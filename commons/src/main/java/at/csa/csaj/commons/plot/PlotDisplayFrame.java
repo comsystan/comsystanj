@@ -31,6 +31,8 @@ package at.csa.csaj.commons.plot;
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.ToolTipManager;
 
@@ -57,7 +59,7 @@ public class PlotDisplayFrame extends JFrame {
 	 */
 	public PlotDisplayFrame() {
 		//this.setIconImage(new ImageIcon(Resources.getImageURL("icon.application.magenta.32x32")).getImage());
-
+		this.setIconImage(new ImageIcon(getClass().getResource("/images/comsystan.png")).getImage());
 		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		this.setAlwaysOnTop(false);
 		ToolTipManager ttm = ToolTipManager.sharedInstance();
