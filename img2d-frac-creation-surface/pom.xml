@@ -93,6 +93,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>at.csa.csaj</groupId>
+			<artifactId>comsystanj-commons</artifactId>
+			<version>29.2.1.1</version>
+		</dependency>
+		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 		</dependency>

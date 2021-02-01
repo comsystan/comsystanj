@@ -55,7 +55,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.img2d.frac.creation.surface.util.WaitingDialog;
+import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import io.scif.services.DatasetIOService;
 
 import java.text.SimpleDateFormat;
@@ -343,28 +343,25 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
 
     @Override
     public void run() {
-    	WaitingDialog dlg = new WaitingDialog("<html>Creation of a 2D surface image, please wait...</html>", false);
-		dlg.setVisible(true);	
+    	//WaitingDialog dlg = new WaitingDialog("<html>Creation of a 2D surface image, please wait...</html>", false);
+		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Creating 2D fractal surface, please wait... Open console window for further info.",
+                logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.setVisible(true);	
     	long startTime = System.currentTimeMillis();
          // create the ImageJ application context with all available services
     	//final ImageJ ij = new ImageJ();
     	//ij.ui().showUI();
 
-    	
-
-
 		//Collect parameters
 		int     width = spinnerInteger_Width;
 		int    height = spinnerInteger_Height;
 		float fracDim = spinnerFloat_FracDim;
-		
-		
+			
 		//please select method "FFT" or "MPD"
 		//String method = "FFT" ;	
 		if (choiceRadioButt_Method.equals("FFT")) computeFrac2DFFT(width, height, fracDim);
 		if (choiceRadioButt_Method.equals("MPD")) computeFrac2DMPD(width, height, fracDim);
 		
-	
 		//ij.ui().show("Fractal 3D", dataset3D);
 		//if (choiceRadioButt_Method.equals("FFT")) uiService.show("3D Fractal-FFT", resultImg);
 		//if (choiceRadioButt_Method.equals("MPD")) uiService.show("3D Fractal-MPD", resultImg);
@@ -374,8 +371,8 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.applyPattern("HHH:mm:ss:SSS");
 		logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-		dlg.setVisible(false);
-		dlg.dispose();
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
     }
 
    
