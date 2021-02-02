@@ -72,7 +72,7 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Image(2D)-Fractal>Fractal Creation Surface")
+@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Image(2D)-Fractal>Fractal surface creation")
 public class FractalCreation2DSurface<T extends RealType<T>> implements Command, Previewable {
 	
 	private static final String PLUGIN_LABEL = "Computes 2D grey value fractals";
