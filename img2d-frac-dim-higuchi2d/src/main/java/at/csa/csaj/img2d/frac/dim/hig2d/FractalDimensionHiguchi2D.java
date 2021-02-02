@@ -39,6 +39,8 @@ import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -1192,6 +1194,11 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch(Throwable t) {
+		
+		}
 		// create the ImageJ application context with all available services
 		final ImageJ ij = new ImageJ();
 

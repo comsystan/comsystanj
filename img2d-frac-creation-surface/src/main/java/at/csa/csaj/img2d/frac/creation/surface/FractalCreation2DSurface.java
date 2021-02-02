@@ -61,6 +61,8 @@ import io.scif.services.DatasetIOService;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
+
+import javax.swing.UIManager;
 /**
  * This is an ImageJ {@link Command} plugin for creation of 2D Fractals.
  * <p>
@@ -379,7 +381,12 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
    
 
 	public static void main(final String... args) throws Exception {
-//        // create the ImageJ application context with all available services
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch(Throwable t) {
+		
+		}
+		//        // create the ImageJ application context with all available services
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
 //
