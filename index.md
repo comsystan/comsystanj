@@ -12,8 +12,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 
 ## Project description
 The project contains mainly three parts:
-- Processing 2D images [- Short description of plugins](img2-description) 
-
-- Processing 3D images(volumes) [- Short description of plugins](img3-description) 
-- Processing signals [- Short description of plugins](sig-description) 
+- Processing 2D images [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/img2-description) 
+- Processing 3D images(volumes) [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/img3-description) 
+- Processing signals [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/sig-description) 
 
