@@ -1,3 +1,5 @@
+## Signal - Short description of plugins
+
 ### Signal opener
 still to come
 
