@@ -1,5 +1,5 @@
 <!-- ![Image](comsystan.png)-->
-<img src="comsystan.png" width=100 height=100/><b>ComsystanJ<b/>
+<img src="images/comsystan.png" width=100 height=100/><b>ComsystanJ<b/>
 
 ComsystanJ (Complex Systems Analysis for ImageJ) is a collection of ImageJ2 plugins to compute the complexity, fractal dimension and other nonlinear measures of images and signals. Copyright (c) Comsystan Software. Maintained by Helmut Ahammer
 
@@ -12,7 +12,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 
 ## Project description
 The project contains mainly three parts:
-- Processing 2D images [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/img2-description) 
-- Processing 3D images(volumes) [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/img3-description) 
-- Processing signals [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/sig-description) 
+- Processing 2D images [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/description/img2-description.md) 
+- Processing 3D images(volumes) [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/description/img3-description.md) 
+- Processing signals [- Short description of plugins](https://github.com/comsystan/comsystanj/blob/gh-pages/description/sig-description.md) 
 
