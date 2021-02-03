@@ -10,10 +10,16 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 - Kainz etal., PLoS ONE, 2015, DOI 10.1371/journal.pone.0116329
 
 
-### Project description
+### Project descriptions
 - Processing 2D images [- Short description of plugins](description/img2-description.md) 
 
 - Processing 3D images(volumes) [- Short description of plugins](description/img3-description.md) 
 
 - Processing signals [- Short description of plugins](description/sig-description.md) 
 
+### Note for using ComsystanJ jar file plugins with Fiji
+
+It is recommended to use ComsystanJ jar files and a Fiji distribution with the same pom-scijava version number.
+
+ComsystanJ jar files or releases have a 4-digit version number in the file names, where the first three digits reflect the pom-scijava version. The last digit is the ComsystanJ version number.
+To get the version number of your actually used Fiji, simply start Fiji and execute following command in the search bar: `!ui.showDialog(app.getApp("Fiji").getPOM().getParentVersion())`
