@@ -1,7 +1,7 @@
 ## Image(2D) - Short description of plugins
 
 ### Fractal surface creation
-- creates 2D fractal grey value surfaces (images).
+- creates 2D fractal grey value surfaces (8-bit images).
 - theoretical fractal dimension can be set.
 - Fast Fourier Transformation FFT method is supported.
 - Midpoint displacement MPD method is supported.
