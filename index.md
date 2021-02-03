@@ -10,7 +10,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 - Kainz etal., PLoS ONE, 2015, DOI 10.1371/journal.pone.0116329
 
 
-## Project description
+### Project description
 - Processing 2D images [- Short description of plugins](description/img2-description.md) 
 
 - Processing 3D images(volumes) [- Short description of plugins](description/img3-description.md) 
