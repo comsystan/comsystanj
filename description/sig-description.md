@@ -1,5 +1,5 @@
-### Signal opner
+### Signal opener
 still to come
 
-### Higuchi Dimension
+### Higuchi dimension
 still to come
