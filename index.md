@@ -1,5 +1,5 @@
 <!-- ![Image](comsystan.png)-->
-<img src="images/comsystan-3-800x100.png"/>
+<img src="images/comsystan-3-680x100.png"/>
 
 **ComsystanJ** (Complex Systems Analysis for ImageJ) is a collection of ImageJ2 plugins to compute the complexity, fractal dimension and other nonlinear measures of images and signals. Copyright (c) Comsystan Software. Developed and maintained by Helmut Ahammer.
 
