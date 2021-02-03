@@ -1,2 +1,2 @@
-### Create §D fractal grey value volume
+### Create 3D fractal grey value volume
 still to come
