@@ -67,11 +67,11 @@
 		<connection>scm:git:git://https://github.com/comsystan/comsystanj</connection>
 		<developerConnection>scm:git:git@github.com:comsystan/comsystanj</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://https://github.com/comsystan/comsystanj</url>
+		<url>https://github.com/comsystan/comsystanj</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>https://https://github.com/comsystan/comsystanj/issues</url>
+		<url>https://github.com/comsystan/comsystanj/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>
