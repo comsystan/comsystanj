@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin for computing fractal dimension with 1D Higuchi algorithm.
- * File: FractalDimensionHiguchi1D_Old_UsingBresenhamLine.java
+ * File: FractalDimensionHiguchi1D_BresenhamLineExtraction.java
  * 
  * $Id$
  * $HeadURL$
