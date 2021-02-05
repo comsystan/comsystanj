@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin for computing fractal dimension with 1D Higuchi algorithm.
- * File: FractalDimensionHiguchi1D.java
+ * File: FractalDimensionHiguchi1D_Old_UsingBresenhamLine.java
  * 
  * $Id$
  * $HeadURL$
@@ -46,19 +46,10 @@ import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
-import net.imglib2.IterableInterval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealRandomAccess;
-import net.imglib2.RealRandomAccessible;
 import net.imglib2.algorithm.region.BresenhamLine;
-import net.imglib2.img.Img;
-import net.imglib2.interpolation.InterpolatorFactory;
-import net.imglib2.interpolation.randomaccess.FloorInterpolatorFactory;
-import net.imglib2.interpolation.randomaccess.LanczosInterpolatorFactory;
-import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
-import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -103,7 +94,7 @@ import io.scif.MetaTable;
  * of an image.
  */
 @Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Image(2D)-Fractal>Fractal Dimension Higuchi1D")
-public class FractalDimensionHiguchi1D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
+public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class FractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
 
 	private static final String PLUGIN_LABEL = "Computes fractal dimension with the Higuchi 1D algorithm";
@@ -113,10 +104,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private static final String OPTIONS_LABEL = "------------------------------------- Options -------------------------------------";
 	private static final String PROCESS_LABEL = "------------------------------------- Process -------------------------------------";
 
-	private static Img<FloatType> imgFloat;
+	//private static Img<FloatType> imgFloat;
 	private static double[] signal1D;
 	private static double[] xAxis1D;
-	private static double[] yAxis1D;
 	BresenhamLine lineBresenham;
 	ArrayList<long[]> coords;
 	LinearInterpolator interpolator;
@@ -1027,6 +1017,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 					eps[kk][b] = kk + 1;
 				} else {
 					eps[kk][b] = kk + 1; // *width*height (not necessary);
+
 				}
 				//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
 			}
@@ -1135,7 +1126,8 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 								String preName = "Row-";
 								showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 							}
-						} //if					
+						} //if
+						
 						if (regressionValues[4] > 0.9) {
 							numActualRows += 1;
 							resultValues[0] += -regressionValues[1]; // Dh = -slope
@@ -1143,7 +1135,8 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 							resultValues[2] += regressionValues[3];
 						}
 					} //if
-				} //for h		
+				} //for h
+				
 				resultValues[0] = resultValues[0]/numActualRows; //average
 				resultValues[1] = resultValues[1]/numActualRows; //average
 				resultValues[2] = resultValues[2]/numActualRows; //average
@@ -1233,10 +1226,12 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 					if (optShowPlot) {
 						String preName = "Row-";
 						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
-					}			
+					}
+					
 					resultValues[0] = -regressionValues[1]; // Dh = -slope
 					resultValues[1] = regressionValues[4];
 					resultValues[2] = regressionValues[3];
+	
 				}
 				
 				// Dh-col Single meander column---------------------------------------------------------------------------------
@@ -1318,159 +1313,178 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 				}
 				
 				//Dh-r--------------------------------------------------------------------------------------------------	
-				int numActualRadialLines = 0; //some lines have too less pixels and are thrown away later on
-				
-				//defining a circle (disk area) round the center
-				long diam = 0;;
-				if (width <= height) {
-					diam = width - 1; //diameter of virtual circle
-				} else {
-					diam = height -1;
-				}
-			
-				double radius = ((double)diam)/2.0;
-				
-				// set start point x1,y1 and end point x2,y2
-				double offSetX = ((double)width / 2.0 - 0.5); //odd width --> pixel center;  even width --> in between pixels 
-				double offSetY = ((double)height/ 2.0 - 0.5);
-				double x1;
-				double y1;
-				double x2;
-				double y2;
-				double x;
-				double y;
-				
-				double[] posReal = new double[2];
-				
-				String interpolType = "Floor";
-				
-				// declare how we want the image to be interpolated
-				InterpolatorFactory factory = null;
-				if (interpolType.contentEquals("Linear") ) {
-					// create an InterpolatorFactory RealRandomAccessible using linear interpolation
-					factory = new NLinearInterpolatorFactory<FloatType>();
-				}
-				if (interpolType.contentEquals("Lanczos") ) {
-					// create an InterpolatorFactory RealRandomAccessible using lanczos interpolation
-					factory = new LanczosInterpolatorFactory<FloatType>();
-				}
-				if (interpolType.contentEquals("Floor") ) {
-					// create an InterpolatorFactory RealRandomAccessible using floor interpolation
-					factory = new FloorInterpolatorFactory<FloatType>();
-				}
-				if (interpolType.contentEquals("Nearest Neighbor") ) {
-				// create an InterpolatorFactory RealRandomAccessible using nearst neighbor interpolation
-				    factory = new NearestNeighborInterpolatorFactory<FloatType>();
-				}
-			
-				// create a RandomAccessible using the factory and views method
-				// it is important to extend the image first, the interpolation scheme might
-				// grep pixels outside of the boundaries even when locations inside are queried
-				// as they integrate pixel information in a local neighborhood - the size of
-				// this neighborhood depends on which interpolator is used
-				
-				//Convert to float image
-				imgFloat = opService.convert().float32((IterableInterval<T>) Views.iterable(rai));
-				//Interpolate
-				RealRandomAccessible< FloatType > interpolant = Views.interpolate(Views.extendMirrorSingle(imgFloat), factory);
-				RealRandomAccess<FloatType> rra = interpolant.realRandomAccess();
-				
-				for (int a = 0; a < numAngles; a++) { // loop through angle			
-					
-//					if (anglesRad[a] == 0) { 	//slope = 0  //from left to right		
-//						x1 = -radius;
-//						y1 = 0;
-//						x2 = radius;
-//						y2 = 0;
-//					}  else if (anglesRad[a] == +(Math.PI / 2.0)) { //slope infinite  from bottom to top		
-//						x1 = 0;
-//						y1 = -radius;
-//						x2 = 0;
-//						y2 = radius;
-//					}  else if (anglesRad[a] == Math.PI) { //slope = -0   //from right to left
-//						x1 = radius;
-//						y1 = 0;
-//						x2 = -radius;
-//						y2 = 0;
-//					} else if ((anglesRad[a] >0) && (anglesRad[a] < Math.PI/2.0)){			
-//						x1 = radius*Math.cos(anglesRad[a] + Math.PI);
-//						y1 = radius*Math.sin(anglesRad[a] + Math.PI);
-//
-//						x2 = radius*Math.cos(anglesRad[a]);
-//						y2 = radius*Math.sin(anglesRad[a]);
-//		
-//					} else if ((anglesRad[a] > Math.PI/2.0) && (anglesRad[a] < Math.PI)){
-//						//do the same
-//						x1 = radius*Math.cos(anglesRad[a] + Math.PI);
-//						y1 = radius*Math.sin(anglesRad[a] + Math.PI);
-//
-//						x2 = radius*Math.cos(anglesRad[a]);
-//						y2 = radius*Math.sin(anglesRad[a]);
-//					}
-					
-					//Mathematical coordinates
-					x1 = radius*Math.cos(anglesRad[a] + Math.PI);
-					y1 = radius*Math.sin(anglesRad[a] + Math.PI);
+				int numActualRadialLines = 0; //some lines have too less pixels and are thrown away
+				for (int a = 0; a < numAngles; a++) { // loop through angles
 
-					x2 = radius*Math.cos(anglesRad[a]);
-					y2 = radius*Math.sin(anglesRad[a]);
-			
-		 		              	
-					signal1D = new double[(int) (diam+1)]; //radius is long
-					xAxis1D  = new double[(int) (diam+1)];		
-					yAxis1D  = new double[(int) (diam+1)];	
+					double slope = -Math.tan(anglesRad[a]); //minus, because positive Y-axis values go downwards  
 
-//					//if (anglesRad[a] == Math.PI / 2.0) {
-//					if (a == 90) {	
-//						logService.info(this.getClass().getName() + " x1=" + x1 +  " , y1="+ y1);
-//						logService.info(this.getClass().getName() + " x2=" + x2 +  " , y2="+ y2);
-//					}
-					if (anglesRad[a] == Math.PI / 2.0) { //90°   x1 and x2 are 0   infinite slope
-						double stepY = (y2 - y1)/(diam);
-					    for (int n = 0; n <= diam; n++) {
-					    	xAxis1D[n] = 0;
-					    	yAxis1D[n] = n*stepY + y1; 
-					    }
-					} else {
-						double stepX = (x2 - x1)/(diam);
-					    for (int n = 0; n <= diam; n++) {
-					    	xAxis1D[n] = n*stepX + x1;
-					    	yAxis1D[n] = xAxis1D[n]*Math.tan(anglesRad[a]);
-					    }
+					// set start point x1,y1 and end point x2,y2
+					double offSetX = (width / 2.0);
+					double offSetY = (height/ 2.0);
+					double x1 = 0;
+					double y1 = 0;
+					double x2 = 0;
+					double y2 = 0;
+
+					if (anglesRad[a] == +(Math.PI / 2.0)) { //slope infinite  from bottom to top
+						x1 = 1;
+						y1 = offSetY;
+						x2 = 1;
+						y2 = -offSetY + 1;
+					}  else if (anglesRad[a] == 0) { //slope = 0  //from left to right
+						x1 = -offSetX + 1;
+						y1 = 1;
+						x2 = offSetX;
+						y2 = 1;
+					}  else if (anglesRad[a] == Math.PI) { //slope = -0   //from right to left
+						x1 = offSetX;
+						y1 = 1;
+						x2 = -offSetX + 1;
+						y2 = 1;
+					} else if ((anglesRad[a] >0) && (anglesRad[a] < Math.PI/2.0)){
+						
+						//start from little left down to little right up around the center of the image
+						x1 = -0.01;
+						y1 = (int) (slope * x1);
+
+						x2 = 0.01;
+						y2 = (int) (slope * x2);
+
+						//Scroll x1 to the left until y1 reaches the border of the image
+						while ((y1 + offSetY) < height) { // out of image
+							x1 = x1 - 0.01;
+							if ((x1 + offSetX) < 1) { //control of x
+								x1 = x1 + 0.01;
+								y1 = (int) (slope * x1);
+								break;
+							}			
+							y1 = (int) (slope * x1);
+						}
+						//Scroll x2 to the right until y2 reaches the border of the image
+						while ((y2 + offSetY) > 1) { // out of image
+							x2 = x2 + 0.01;
+							if ((x2 + offSetX) > width ) { //control of x
+								x2 = x2 - 0.01;
+								y2 = (int) (slope * x2);
+								break;
+							}			
+							y2 = (int) (slope * x2);
+						}
+						
+	
+					} else if ((anglesRad[a] > Math.PI/2.0) && (anglesRad[a] < Math.PI)){
+						//start from little right down to little left up around the center of the image
+						x1 = 0.01;
+						y1 = (int) (slope * x1);
+
+						x2 = -0.01;
+						y2 = (int) (slope * x2);
+
+						//Scroll x1 to the right until y1 reaches the border of the image
+						while ((y1 + offSetY) < height) { // out of image
+							x1 = x1 + 0.01;
+							if ((x1 + offSetX) > width ) { //control of x
+								x1 = x1 - 0.01;
+								y1 = (int) (slope * x1);
+								break;
+							}			
+							y1 = (int) (slope * x1);
+						}
+						//Scroll x2 to the left until y2 reaches the border of the image
+						while ((y2 + offSetY) > 1) { // out of image
+							x2 = x2 - 0.01;
+							if ((x2 + offSetX) < 1 ) { //control of x
+								x2 = x2 - 0.01;
+								y2 = (int) (slope * x2);
+								break;
+							}			
+							y2 = (int) (slope * x2);
+						}
 					}
-//					//if (anglesRad[a] == Math.PI / 2.0) {
-//					if (anglesRad[a] == 0) {
-//						
-//						logService.info(this.getClass().getName() + " x1=" + x1 +  " , y1="+ y1);
-//						logService.info(this.getClass().getName() + " x2=" + x2 +  " , y2="+ y2);
+				
+					//Set to integer values and image coordinates from 0 to width-1, height-1
+					x1 = Math.round(x1 + offSetX) - 1;
+					y1 = Math.round(y1 + offSetY) - 1;
+					x2 = Math.round(x2 + offSetX) - 1;
+					y2 = Math.round(y2 + offSetY) - 1;
+					
+					// System.out.println("IqmOpFracHiguchi: x1=" + x1+ "  y1="+ y1 + "    x2=" + x2+ "  y2="+ y2);
+					if (x1 >= width)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   x1 too high, x1="+ x1);
+					if (x1 < 0)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   x1 too low,  x1="+ x1);
+					if (x2 >= width)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   x2 too high, x2="+ x2);
+					if (x2 < 0)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   x2 too low,  x2="+ x2);
+					if (y1 >= height)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   y1 too high, y1="+ y1);
+					if (y1 < 0)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   y1 too low,  y1="+ y1);
+					if (y2 >= height)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   y2 too high, y2="+ y2);
+					if (y2 < 0)
+						logService.info(this.getClass().getName() + " ERROR: a=" + a +  "   y2 too low,  y2="+ y2);
+					
+//                  WritableLine line = GeomMasks.line(new double[]{x1 + offSetX, x2 + offSetX}, new double[] { y1 + offSetY,  y2 + offSetY}, true);
+//					
+//					DefaultWritableLine line = new DefaultWritableLine(new double[]{x1 + offSetX, y1 + offSetY}, new double[]{x2 + offSetX,  y2 + offSetY}, true);
+//				
+//					IterableRegion<BoolType> onLine = Regions.iterable(
+//					           Views.interval(
+//					             Views.raster(Masks.toRealRandomAccessible(line)),
+//					             Intervals.smallestContainingInterval(line)));
+//									
+//					// with Region.sample
+//					Cursor<FloatType> cursor = Regions.sample(onLine, iv).cursor();
+//					signal1D = new double[(int) (onLine.size())];
+//					logService.info(this.getClass().getName() + " line: "+ a + "  size of signal=" + onLine.size());
+//					int s = 0;
+//					while (cursor.hasNext()) {
+//						cursor.fwd();			
+//						signal1D[s] = cursor.get().get();
+//						s += 1;
 //					}
-					for (int p = 0; p< xAxis1D.length; p++) {
-						//transform coordinates into image coordinates
-						x = xAxis1D[p] + offSetX;
-						y = offSetY -yAxis1D[p]; //Because zero is at the top of the image
 						
-						// System.out.println(" x1=" + x1+ "  y1="+ y1 + "    x2=" + x2+ "  y2="+ y2);
-						if (x >= width)
-							logService.info(this.getClass().getName() + " ERROR: a=" + a + " p=" + p + "   x too high, x="+ x);
-						if (x < 0)
-							logService.info(this.getClass().getName() + " ERROR: a=" + a + " p=" + p + "   x too low,  x="+ x);
-						if (y >= height)
-							logService.info(this.getClass().getName() + " ERROR: a=" + a + " p=" + p + "   y too high, y="+ y);
-						if (y < 0)
-							logService.info(this.getClass().getName() + " ERROR: a=" + a + " p=" + p + "   y too low,  y="+ y);
-							
-						posReal[0] = x;
-						posReal[1] = y;
-						rra.setPosition(posReal);
-						signal1D[p] = (double)rra.get().get();
-						
-//						if (anglesRad[a] == Math.PI/2) {
-//						//if (a == 0) {	
-//							logService.info(this.getClass().getName() + "    a=" + a + " xAxis1D[p]=" + xAxis1D[p] +  ", yAxis1D[p]="+ yAxis1D[p] + ",  signal1D[p]=" +signal1D[p]);							
-//							logService.info(this.getClass().getName() + "    a=" + a + "          x=" + x +  ",           y="+ y + ",  signal1D[p]=" +signal1D[p]);							
-//						}
-					}
-						
+//					RealRandomAccessible< FloatType > interpolant = Views.interpolate(Views.extendMirrorSingle(iv),  new NLinearInterpolatorFactory<FloatType>());
+//					RealRandomAccess<FloatType> rra = interpolant.realRandomAccess();
+//					
+//					Cursor<Void> cursor = onLine.cursor();
+//					signal1D = new double[(int) (onLine.size())];
+//					int s = 0;
+//					while (cursor.hasNext()) {
+//						cursor.fwd();
+//						rra.setPosition(cursor);
+//						signal1D[s] = rra.get().get();
+//						s += 1;
+//					}
+					
+				
+					
+		            Point point1 = new Point((long) x1, (long)y1);
+		            Point point2 = new Point((long) x2, (long)y2);
+		            
+//					//Print some 
+//					if ((anglesRad[a]*180/Math.PI == 89) || (anglesRad[a]*180/Math.PI == 91)) {
+//						logService.info(this.getClass().getName() + "a="+a+"   Point1=" + point1.toString());
+//						logService.info(this.getClass().getName() + "a="+a+"   Point2=" + point2.toString());
+//					}          
+		            System.out.println("a="+a+"   Point1=" + point1.toString());
+		            System.out.println("a="+a+"   Point2=" + point2.toString());
+		 		              
+					lineBresenham = new BresenhamLine(rai, point1, point2);
+					coords = BresenhamLine.generateCoords(point1, point2);
+					
+					signal1D = new double[(int) (coords.size())];
+					xAxis1D  = new double[(int) (coords.size())];		
+					
+					int s = 0;
+					while (lineBresenham.hasNext()) {
+						lineBresenham.fwd();
+						signal1D[s] = ((UnsignedByteType) lineBresenham.get()).get();
+						xAxis1D[s] = (double)(s +1);
+						s += 1;
+					}	
 					//does not work to show lines in an image
 //					RandomAccess<FloatType> ra = iv.randomAccess();
 //					while (lineBresenham.hasNext()) {
@@ -1479,45 +1493,92 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 //						ra.get().set(150.f);
 //					}
 //				    this.uiService.show("Line a=", ra);
-//					ij.ui().show("Line a=" + a, ra);					
+//					ij.ui().show("Line a=" + a, ra);
+					
+					//Length correction---------------------------------------------------------------------
+					double lengthCorrFactor = 1.0; //no correction
+					boolean doLengthCorrection = true;
+					if (doLengthCorrection) {
+						//Euclidean distance
+						double distance = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+						//Length correction factor (diagonal lines are longer than horizontal or vertical lines 
+						lengthCorrFactor = distance/(signal1D.length -1);
+						
+//						//destinationLength destination length
+//				        int sourceLength = signal1D.length; //source length
+//				        int destinationLength = (int)Math.round(sourceLength*(lengthCorrFactor)); 
+//				        double[] destination = new double[destinationLength];
+//				      		       
+//				        //simple linear interpolation is worse than Apache Math3 LinearInterpolator
+//				        destination[0] = signal1D[0];
+//				        destination[destinationLength-1] = signal1D[sourceLength-1];
+	//
+//				        for (int i = 1; i < destinationLength-1; i++){
+//				            double jd = ((double)i * (double)(sourceLength - 1) / (double)(destinationLength - 1));
+//				            int j = (int)jd;
+//				            destination[i] = (double) (signal1D[j] + (signal1D[j + 1] - signal1D[j]) * (jd - (double)j));
+//				        }
+//				        //offSet because signal must be truncated from both sides
+//				   		int offSet = (destinationLength - sourceLength)/2;
+//				   		//Remove values which are over the original length
+//				   		for (int i = 0; i < signal1D.length; i++) {
+//				   			 signal1D[i] = (double)destination[i + offSet];
+//				   		}
+				        	     		
+				        interpolator = new LinearInterpolator();
+					    psf = interpolator.interpolate(xAxis1D, signal1D);
+					    
+					    double offSet = (distance - signal1D.length +1)/2.0;
+					    double[] signal1DInterpolated = new double[signal1D.length];
+					    //double step = (signal1D.length-1)/distance;
+					    double step = 1.0/lengthCorrFactor;
+					    for (int n = 1; n <= signal1DInterpolated.length; n++) {
+					    	signal1DInterpolated[n-1] = (double)psf.value(offSet + n*step);
+					    }
+				        signal1D = signal1DInterpolated;
+						
+					} else {
+						//no length correction
+						//do nothing with signal 1D
+					}
 			       //----------------------------------------------------------------------------------------
 			        
 					if (removeZeores) signal1D = removeZeroes(signal1D);
-				
+					
+					//Resample to corrected length
+					
+					
+					
 					if (optShowSomeRadialLinePlots ){
 						// get plots of radial lines
-//						if(    (anglesRad[a]*180/Math.PI == 0) 
-//							|| (anglesRad[a]*180/Math.PI == 45) 
-//							|| (anglesRad[a]*180/Math.PI == 90) 
-//							|| (anglesRad[a]*180/Math.PI == 135) 
-//							|| (anglesRad[a]*180/Math.PI == 180)
-//							|| (anglesRad[a]*180/Math.PI == 1)
-//							|| (anglesRad[a]*180/Math.PI == 44)  
-//							|| (anglesRad[a]*180/Math.PI == 46)
-//							|| (anglesRad[a]*180/Math.PI == 89)
-//							|| (anglesRad[a]*180/Math.PI == 91)
-//							|| (anglesRad[a]*180/Math.PI == 134)
-//							|| (anglesRad[a]*180/Math.PI == 136) 
-//							|| (anglesRad[a]*180/Math.PI == 179)) { //show some plots
+	//					if(    (anglesRad[a]*180/Math.PI == 0) 
+	//						|| (anglesRad[a]*180/Math.PI == 45) 
+	//						|| (anglesRad[a]*180/Math.PI == 90) 
+	//						|| (anglesRad[a]*180/Math.PI == 135) 
+	//						|| (anglesRad[a]*180/Math.PI == 180)
+	//						|| (anglesRad[a]*180/Math.PI == 1)
+	//						|| (anglesRad[a]*180/Math.PI == 44)  
+	//						|| (anglesRad[a]*180/Math.PI == 46)
+	//						|| (anglesRad[a]*180/Math.PI == 89)
+	//						|| (anglesRad[a]*180/Math.PI == 91)
+	//						|| (anglesRad[a]*180/Math.PI == 134)
+	//						|| (anglesRad[a]*180/Math.PI == 136) 
+	//						|| (anglesRad[a]*180/Math.PI == 179)) { //show some plots
 						if(  (anglesRad[a]*180/Math.PI == 0)
 							|| (anglesRad[a]*180/Math.PI == 45) 
 							|| (anglesRad[a]*180/Math.PI == 90)
 							|| (anglesRad[a]*180/Math.PI == 135)
 							|| (anglesRad[a]*180/Math.PI == 180)) { //show some plots
 							plotProfile = new Plot(""+ (anglesRad[a]*180/Math.PI) + "° - Grey value profile", "Pixel number", "Grey value");
-							double[] xAxisPlot = new double[signal1D.length];
-							for (int i=0; i<xAxisPlot.length; i++) {
-								xAxisPlot[i] = i+1;
-							}
 							//int for shape 0 circle, 1 X, 2 connected dots, 3 square, 4 triangle, 5 +, 6 dot, 7 connected circles, 8 diamond 
-							plotProfile.addPoints(xAxisPlot, signal1D, 7); 
+							plotProfile.addPoints(xAxis1D, signal1D, 7); 
 							//plotProfile.show();
 							PlotWindow window = plotProfile.show();
 							plotWindowList.add(window);
 						}
 					}
 										
-					logService.info(this.getClass().getName() + " Radial line: "+ a + "  Size of signal = " + signal1D.length);
+					logService.info(this.getClass().getName() + " Radial line: "+ a + "  Size of signal = " + signal1D.length + "   Length correction factor = " + lengthCorrFactor);
 					if (signal1D.length > (numKMax * 2)) { // only data series which are large enough		
 						hig = new Higuchi();
 						L = hig.calcLengths(signal1D, numKMax);
@@ -1688,6 +1749,6 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		// execute the filter, waiting for the operation to finish.
 		// ij.command().run(FractalDimensionHiguchi1D.class,
 		// true).get().getOutput("image");
-		ij.command().run(FractalDimensionHiguchi1D.class, true);
+		ij.command().run(FractalDimensionHiguchi1D_BresenhamLineExtraction.class, true);
 	}
 }
