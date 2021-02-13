@@ -1,9 +1,3 @@
-<html>
-	<head>
-		<link rel="shortcut icon" type="image/png" href="images/comsystan-favicon.png">
-	</head>
-</html>
-
 <!-- ![Image](comsystan-logo.png)-->
 <img src="images/comsystan-logo-grey46.png" width=100 height=100/>
 
