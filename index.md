@@ -1,3 +1,5 @@
+<link rel="shortcut icon" href="images/comsystan-favicon.png">
+
 <!-- ![Image](comsystan-logo.png)-->
 <img src="images/comsystan-logo-grey46.png" width=100 height=100/>
 
