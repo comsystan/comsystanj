@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin to open single or multiple images.
+ * Project: ImageJ plugin to open single or multiple signals.
  * File: SignalOpener.java
  * 
  * $Id$
@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 /**
  * This is an ImageJ {@link Command} plugin to open single or multiple images.
@@ -178,7 +179,11 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 				String yLabel = defaultGenericTable.getColumnHeader(0);
 				String seriesLabel = null;
 				
-				pdf = new PlotDisplayFrame(defaultGenericTable, 0, isLineVisible, "Plot(s)", imageTitle, xLabel, yLabel);
+				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
+				if (selectedOption == JOptionPane.YES_OPTION) {
+					pdf = new PlotDisplayFrame(defaultGenericTable, 0, isLineVisible, "Plot(s)", imageTitle, xLabel, yLabel);
+					pdf.setVisible(true);
+				}		
 			}
 			
 			if (numColumns > 1) {
@@ -192,14 +197,17 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 					cols[c] = c;
 					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
 				}
-				pdf = new PlotDisplayFrame(defaultGenericTable, cols, isLineVisible, "Plot(s)", imageTitle, xLabel, yLabel, seriesLabels);
+				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
+				if (selectedOption == JOptionPane.YES_OPTION) {
+					pdf = new PlotDisplayFrame(defaultGenericTable, cols, isLineVisible, "Plot(s)", imageTitle, xLabel, yLabel, seriesLabels);
+					pdf.setVisible(true);
+				}
+				
 			}
-			
-			pdf.setVisible(true);
 				
 			//uiService.show(files[0].getName(), image);
 		    //datasetOut = datasetService.create(image);
-		    uiService.show(files[0].getName(), defaultGenericTable);
+			 uiService.show(files[0].getName(), defaultGenericTable);	  
 		}
 		
 		long duration = System.currentTimeMillis() - startTime;
