@@ -2,7 +2,9 @@
 
 ### Signal opener
 - opens signals or plots of floating values (dot decimal numbers)
-- comma delimited text files
+- for comma delimited text files
+- the first row must contain the column (signal) headers
+- the first column must contain the row headers or just a subsequent numbering 
 - all columns MUST have the same number of rows
 - missing values MUST be filled up with NaN
 - NaNs will be ignored for plot charts
