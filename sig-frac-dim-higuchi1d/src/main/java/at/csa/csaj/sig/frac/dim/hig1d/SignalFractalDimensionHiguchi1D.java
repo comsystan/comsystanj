@@ -25,7 +25,6 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-
 package at.csa.csaj.sig.frac.dim.hig1d;
 
 import java.awt.Toolkit;
@@ -33,10 +32,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import net.imagej.ImageJ;
@@ -63,9 +60,11 @@ import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
+import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.sig.frac.dim.hig1d.util.Higuchi;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
+import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.sig.open.SignalOpener;
 
@@ -77,28 +76,35 @@ import at.csa.csaj.sig.open.SignalOpener;
 public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
 
-	private static final String PLUGIN_LABEL = "Computes fractal dimension with the Higuchi 1D algorithm";
-	private static final String SPACE_LABEL = "";
-	private static final String REGRESSION_LABEL = "---------------------------- Regression parameters ----------------------------";
-	private static final String METHOD_LABEL = "------------------------------------------------------------------------------------";
-	private static final String OPTIONS_LABEL = "------------------------------------- Options -------------------------------------";
-	private static final String PROCESS_LABEL = "------------------------------------- Process -------------------------------------";
+	private static final String PLUGIN_LABEL            = "<html>Genuin Higuchi 1D algorithm</html>";
+	private static final String SPACE_LABEL             = "";
+	private static final String REGRESSION_LABEL        = "<html><b>--------- Fractal Regression Parameters ---------</b></html>";
+	private static final String SIGNALMETHOD_LABEL      = "<html><b>---------- Signal Evaluation and Options ----------</b></html>";
+	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>--------------- Background Options ---------------</b></html>";
+	private static final String OPTIONS_LABEL           = "<html><b>-------------------- Options ---------------------</b></html>";
+	private static final String PROCESS_LABEL           = "<html><b>-------------------- Process ---------------------</b></html>";
 
 	private static DefaultGenericTable  tableIn;
 	
 	private static double[] signal1D;
 	private static double[] xAxis1D;
-
+	private static double[] subSignal1D;
+	private static double[] surrSignal1D;
+	Column<? extends Object> signalColumn;
+	
 	private static String tableInName;
 	private static String[] sliceLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
-	private static int numbKMax = 0;
+	private static int  numSurrogates = 0;
+	private static int  numBoxLength = 0;
+	private static long numSubsequentBoxes = 0;
+	private static long numGlidingBoxes = 0;
+	private static int  numbKMax = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
-
-	private static double[][] resultValuesTable; // first column is the image index, second column are the corresponding regression values
-	private static final String tableName = "Table - Higuchi dimension";
+	
+	private static final String tableOutName = "Table - Higuchi dimension";
 	
 	private ExecutorService exec;
 	
@@ -149,9 +155,10 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelPlugin = PLUGIN_LABEL;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSpace = SPACE_LABEL;
+//	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+//	private final String labelSpace = SPACE_LABEL;
 
+	//-----------------------------------------------------------------------------------------------------
 	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
@@ -169,15 +176,50 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
-
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelInterpolation = METHOD_LABEL;
-
 	
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelSignalType = SIGNALMETHOD_LABEL;
+
+	@Parameter(label = "Signal type",
+		description = "Entire signal, Subsequent boxes or Gliding box",
+		style = ChoiceWidget.LIST_BOX_STYLE,
+		choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
+		//persist  = false,  //restore previous value default = true
+		initializer = "initialSignalType",
+		callback = "callbackSignalType")
+	private String choiceRadioButt_SignalType;
+	
+	@Parameter(label = "Entire signal - Surrogates",
+			description = "Surrogates types - Only for Entire signal type!",
+			style = ChoiceWidget.LIST_BOX_STYLE,
+			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			persist  = false,  //restore previous value default = true
+			initializer = "initialSurrogateType",
+			callback = "callbackSurrogateType")
+		private String choiceRadioButt_SurrogateType;
+	
+	@Parameter(label = "# Surrogates:", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
+			   min = "1", max = "9999999999999999999999999", stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
+	private int spinnerInteger_NumSurrogates;
+	
+	@Parameter(label = "Box length:", description = "Length of subsequent or gliding box - Shoud be at least three times kMax", style = NumberWidget.SPINNER_STYLE, 
+			   min = "2", max = "9999999999999999999999999", stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialBoxLength", callback = "callbackBoxLength")
+	private int spinnerInteger_BoxLength;
+	
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelInterpolation = BACKGROUNDOPTIONS_LABEL;
+
 	@Parameter(label = "Remove zero values", persist = false,
 		       callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
+	//-----------------------------------------------------------------------------------------------------
 	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelOptions = OPTIONS_LABEL;
 
@@ -185,11 +227,6 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		   	   // persist = false, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
-	
-	@Parameter(label = "Show some radial line plots",
-		   	   // persist = false, //restore previous value default = true
-			   initializer = "initialShowSomeRadialLinePlots")
-	private boolean booleanShowSomeRadialLinePlots;
 
 	@Parameter(label = "Delete existing double log plot",
 			   // persist = false, //restore previous value default = true
@@ -201,12 +238,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 			   initializer = "initialDeleteExistingTable")
 	private boolean booleanDeleteExistingTable;
 
-	@Parameter(label = "Get Dh value of each radial line",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialGetRadialDhValues")
-	private boolean booleanGetRadialDhValues;
-
-	
+	//-----------------------------------------------------------------------------------------------------
 	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelProcess = PROCESS_LABEL;
 
@@ -222,50 +254,51 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 
 
 	// ---------------------------------------------------------------------
-
-	
-	
 	// The following initialzer functions set initial values
 
 	protected void initialKMax() {
 		//numbKMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
-		numbKMax = 3;
+		numbKMax = 8;
 		spinnerInteger_KMax = numbKMax;
 	}
-
 	protected void initialRegMin() {
 		spinnerInteger_RegMin = 1;
 	}
-
 	protected void initialRegMax() {
 		//numbKMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
-		numbKMax = 3;
+		numbKMax = 8;
 		spinnerInteger_RegMax = numbKMax;
 	}
-
+	protected void initialSignalType() {
+		choiceRadioButt_SignalType = "Entire signal";
+	} 
+	protected void initialSurrogateType() {
+		choiceRadioButt_SurrogateType = "No surrogates";
+	} 
+	protected void initialNumSurrogates() {
+		numSurrogates = 10;
+		spinnerInteger_NumSurrogates = numSurrogates;
+	}
+	protected void initialBoxLength() {
+		numBoxLength = 100;
+		spinnerInteger_BoxLength =  (int) numBoxLength;
+	}
+	protected void initialRemoveZeroes() {
+		booleanRemoveZeroes = false;
+	}	
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
 	}
-
-	protected void initialShowSomeRadialLinePlotss() {
-		booleanShowSomeRadialLinePlots = false;
-	}
-	
 	protected void initialDeleteExistingDoubleLogPlots() {
 		booleanDeleteExistingDoubleLogPlot = true;
 	}
-
 	protected void initialDeleteExistingTable() {
 		booleanDeleteExistingTable = true;
-	}
-	
-	protected void initialGetRadialDhValues() {
-		booleanGetRadialDhValues = false;
 	}
 
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
-
+	
 	/** Executed whenever the {@link #spinInteger_KMax} parameter changes. */
 	protected void callbackKMax() {
 
@@ -306,6 +339,36 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 
 		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_RegMax);
 	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_SignalType} parameter changes. */
+	protected void callbackSignalType() {
+		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_SignalType);
+		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+			choiceRadioButt_SurrogateType = "No surrogates";
+			callbackSurrogateType();
+		}
+	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
+	protected void callbackSurrogateType() {	
+		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+			choiceRadioButt_SurrogateType = "No surrogates";
+			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
+		}	
+		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
+	}
+	
+	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+	protected void callbackNumSurrogates() {
+		numSurrogates = spinnerInteger_NumSurrogates;
+		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
+	}
+	
+	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+	protected void callbackBoxLength() {
+		numBoxLength = spinnerInteger_BoxLength;
+		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
+	}
 
 	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
 	protected void callbackRemoveZeroes() {
@@ -336,12 +399,13 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active signal");
             		getAndValidateActiveDataset();
+            		generateTableHeader();
             		deleteExistingDisplays();
             		int activeColumnIndex = getActiveColumnIndex();
             		processActiveInputColumn(activeColumnIndex, dlgProgress);
-            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-            		generateTableHeader();
-            		collectActiveResultAndShowTable(activeColumnIndex);
+            		dlgProgress.addMessage("Processing finished! Preparing result table...");		
+            		//collectActiveResultAndShowTable(activeColumnIndex);
+            		showTable();
             		dlgProgress.setVisible(false);
             		dlgProgress.dispose();
             		Toolkit.getDefaultToolkit().beep();
@@ -373,11 +437,12 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available columns");
 	        		getAndValidateActiveDataset();
+	        		generateTableHeader();
 	        		deleteExistingDisplays();
 	        		processAllInputColumns(dlgProgress);
-	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-	        		generateTableHeader();
-	        		collectAllResultsAndShowTable();
+	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
+	        		//collectAllResultsAndShowTable();
+	        		showTable();
 	        		dlgProgress.setVisible(false);
 	        		dlgProgress.dispose();
 	        		Toolkit.getDefaultToolkit().beep();
@@ -442,13 +507,15 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		tableInName = defaultTableDisplay.getName();
 		numColumns  = tableIn.getColumnCount();
 		numRows     = tableIn.getRowCount();
-	
+		
+		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
+		
 		sliceLabels = new String[(int) numColumns];
-
-		           
-		logService.info(this.getClass().getName() + " Name: " + tableInName); 
-		logService.info(this.getClass().getName() + " Colmuns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rowss #: " + numRows); 
+          
+		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
+		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
+		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**
@@ -481,6 +548,56 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		logService.info(this.getClass().getName() + " Active slice index = " + activeColumnIndex);
 		//logService.info(this.getClass().getName() + " Active slice index alternative = " + activeSliceNumber2);
 		return activeColumnIndex;
+	}
+	
+	/** Generates the table header {@code DefaultGenericTable} */
+	private void generateTableHeader() {
+		
+		tableResult = new DefaultGenericTable();
+		tableResult.add(new GenericColumn("File name"));
+		tableResult.add(new GenericColumn("Column name"));	
+		tableResult.add(new IntColumn("k"));
+		tableResult.add(new IntColumn("Reg Min"));
+		tableResult.add(new IntColumn("Reg Max"));
+		tableResult.add(new GenericColumn("Signal type"));
+		tableResult.add(new GenericColumn("Surrogate type"));
+		tableResult.add(new IntColumn("# Surrogates"));
+		tableResult.add(new IntColumn("Box length"));
+		tableResult.add(new BoolColumn("Zeroes removed"));
+	
+		//"Entire signal", "Subsequent boxes", "Gliding box" 
+		if (choiceRadioButt_SignalType.equals("Entire signal")){
+			tableResult.add(new DoubleColumn("Dh"));	
+			tableResult.add(new DoubleColumn("R2"));
+			tableResult.add(new DoubleColumn("StdErr"));
+			
+			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
+				//do nothing	
+			} else { //Surrogates
+				tableResult.add(new DoubleColumn("Dh_Surr")); //Mean surrogate value	
+				tableResult.add(new DoubleColumn("R2_Surr")); //Mean surrogate value
+				tableResult.add(new DoubleColumn("StdErr_Surr")); //Mean surrogate value
+				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("Dh_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("StdErr_Surr-#"+(s+1))); 
+			}	
+		} 
+		else if (choiceRadioButt_SignalType.equals("Subsequent boxes")){
+			for (int n = 1; n <= numSubsequentBoxes; n++) {
+				tableResult.add(new DoubleColumn("Dh-#" + n));	
+			}
+			for (int n = 1; n <= numSubsequentBoxes; n++) {
+				tableResult.add(new DoubleColumn("R2-#" + n));	
+			}
+		}
+		else if (choiceRadioButt_SignalType.equals("Gliding box")){
+			for (int n = 1; n <= numGlidingBoxes; n++) {
+				tableResult.add(new DoubleColumn("Dh-#" + n));	
+			}
+			for (int n = 1; n <= numGlidingBoxes; n++) {
+				tableResult.add(new DoubleColumn("R2-#" + n));	
+			}
+		}	
 	}
 	
 	/**
@@ -516,7 +633,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableName))
+				if (display.getName().equals(tableOutName))
 					display.close();
 			}
 		}
@@ -528,15 +645,11 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		
 		long startTime = System.currentTimeMillis();
 		
-		resultValuesTable = new double[(int) numColumns][3];
-		// Compute regression parameters
+		// Compute result values
 		double[] resultValues = process(tableIn, s); 
 		// 0 Dh, 1 R2, 2 StdErr
-		resultValuesTable[s][0] = resultValues[0]; // Dh
-		resultValuesTable[s][1] = resultValues[1]; // R2
-		resultValuesTable[s][2] = resultValues[2]; // StdErr
-
-		sliceLabels[s] = tableIn.getColumnHeader(s);
+		logService.info(this.getClass().getName() + " Processing finished.");
+		writeToTable(s, resultValues);
 		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -551,9 +664,8 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		resultValuesTable = new double[(int) numColumns][3];
 		// loop over all slices of stack
-		for (int s = 0; s < numColumns; s++) { // p...planes of an image stack
+		for (int s = 0; s < numColumns; s++) { // s... numb er of signal column
 			if (!exec.isShutdown()){
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
@@ -562,18 +674,13 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 				statusService.showStatus((s+1), (int)numColumns, "Processing " + (s+1) + "/" + (int)numColumns);
 	
 				long startTime = System.currentTimeMillis();
-				logService.info(this.getClass().getName() + " Processing image number " + (s+1) + "(" + numColumns + ")");
+				logService.info(this.getClass().getName() + " Processing signal column number " + (s+1) + "(" + numColumns + ")");
 				
-				// Compute regression parameters
-				double[] resultValues = process(tableIn, s); //rai is already 2D, s parameter only for display titles
+				// Compute result values
+				double[] resultValues = process(tableIn, s);
 				// 0 Dh, 1 R2, 2 StdErr
-	
-	
-				resultValuesTable[s][0] = resultValues[0]; //
-				resultValuesTable[s][1] = resultValues[1]; //
-				resultValuesTable[s][2] = resultValues[2]; //
-				
-				sliceLabels[s] = tableIn.getColumnHeader(s);
+				logService.info(this.getClass().getName() + " Processing finished.");
+				writeToTable(s, resultValues);
 	
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -589,158 +696,255 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.applyPattern("HHH:mm:ss:SSS");
-		logService.info(this.getClass().getName() + " Elapsed processing time for all image(s): "+ sdf.format(duration));
+		logService.info(this.getClass().getName() + " Elapsed processing time for all signal(s): "+ sdf.format(duration));
 	}
-
-	/** Generates the table header {@code DefaultGenericTable} */
-	private void generateTableHeader() {
-		
-		GenericColumn columnFileName     = new GenericColumn("File name");
-		GenericColumn columnSliceName    = new GenericColumn("Column name");
-		IntColumn columnKMax             = new IntColumn("k");
-		IntColumn columnRegMin           = new IntColumn("RegMin");
-		IntColumn columnRegMax           = new IntColumn("RegMax");
-		BoolColumn columnZeroesRemoved   = new BoolColumn("Zeroes removed");
-		DoubleColumn columnDh         = new DoubleColumn("Dh");	
-		DoubleColumn columnR2         = new DoubleColumn("R2");	
-		DoubleColumn columnStdErr     = new DoubleColumn("StdErr");
 	
-		tableResult = new DefaultGenericTable();
-		tableResult.add(columnFileName);
-		tableResult.add(columnSliceName);
-		tableResult.add(columnKMax);
-		tableResult.add(columnRegMin);
-		tableResult.add(columnRegMax);
-		tableResult.add(columnZeroesRemoved);
-		tableResult.add(columnDh);
-		tableResult.add(columnR2);
-		tableResult.add(columnStdErr);
-
+	/**
+	 * collects current result and writes to table
+	 * 
+	 * @param int slice number of active image.
+	 * @param double[] result values
+	 */
+	private void writeToTable(int signalNumber, double[] resultValues) {
+		logService.info(this.getClass().getName() + " Writing to the table...");
+		int row = signalNumber;
+		int tableColStart = 0;
+		int tableColEnd   = 0;
+		int tableColLast  = 0;
+		
+		// 0 Dh, 1 R2, 2 StdErr
+		// fill table with values
+		tableResult.appendRow();
+		tableResult.set(0, row, tableInName);//File Name
+		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
+		tableResult.set(2, row, spinnerInteger_KMax); // KMax
+		tableResult.set(3, row, spinnerInteger_RegMin); //RegMin
+		tableResult.set(4, row, spinnerInteger_RegMax); //RegMax	
+		tableResult.set(5, row, choiceRadioButt_SignalType); //Signal Method
+		tableResult.set(6, row, choiceRadioButt_SurrogateType); //Surrogate Method
+		if (choiceRadioButt_SignalType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
+			tableResult.set(7, row, spinnerInteger_NumSurrogates); //# Surrogates
+		} else {
+			tableResult.set(7, row, null); //# Surrogates
+		}
+		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+			tableResult.set(8, row, spinnerInteger_BoxLength); //Box Length
+		} else {
+			tableResult.set(8, row, null);
+		}	
+		tableResult.set(9, row, booleanRemoveZeroes); //Zeroes removed
+		tableColLast = 9;
+		
+		//"Entire signal", "Subsequent boxes", "Gliding box" 
+		if (choiceRadioButt_SignalType.equals("Entire signal")){
+			int numParameters = resultValues.length;
+			tableColStart = tableColLast + 1;
+			tableColEnd = tableColStart + numParameters;
+			for (int c = tableColStart; c < tableColEnd; c++ ) {
+				tableResult.set(c, row, resultValues[c-tableColStart]);
+			}	
+			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
+				//do nothing	
+			} else { //Surrogates
+				//already set
+			}	
+		} 
+		else if (choiceRadioButt_SignalType.equals("Subsequent boxes")){
+			//Dh R2 StdErr
+			tableColStart = tableColLast +1;
+			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); // 2 parameters
+			for (int c = tableColStart; c < tableColEnd; c++ ) {
+				tableResult.set(c, row, resultValues[c-tableColStart]);
+			}	
+		}
+		else if (choiceRadioButt_SignalType.equals("Gliding box")){
+			//Dh R2 StdErr
+			tableColStart = tableColLast +1;
+			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); // 2 parameters 
+			for (int c = tableColStart; c < tableColEnd; c++ ) {
+				tableResult.set(c, row, resultValues[c-tableColStart]);
+			}	
+		}	
 	}
 
 	/**
-	 * collects current result and shows table
-	 * 
-	 * @param int slice number of active image.
+	 * shows the result table
 	 */
-	private void collectActiveResultAndShowTable(int signalNumber) {
-
-		int regMin = spinnerInteger_RegMin;
-		int regMax = spinnerInteger_RegMax;
-		int numKMax = spinnerInteger_KMax;
-
-		int s = signalNumber;
-		// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		// fill table with values
-		tableResult.appendRow();
-		tableResult.set("File name",  tableResult.getRowCount() - 1, tableInName);	
-		if (sliceLabels != null) tableResult.set("Column name", tableResult.getRowCount() - 1, sliceLabels[s]);
-		tableResult.set("k",              tableResult.getRowCount() - 1, numKMax);
-		tableResult.set("RegMin",         tableResult.getRowCount() - 1, regMin);
-		tableResult.set("RegMax",         tableResult.getRowCount() - 1, regMax);
-		tableResult.set("Zeroes removed", tableResult.getRowCount() - 1, booleanRemoveZeroes);
-		tableResult.set("Dh",             tableResult.getRowCount() - 1, resultValuesTable[s][0]);
-		tableResult.set("R2",             tableResult.getRowCount() - 1, resultValuesTable[s][1]);
-		tableResult.set("StdErr",         tableResult.getRowCount() - 1, resultValuesTable[s][2]);
-		
+	private void showTable() {
 		// Show table
-		uiService.show(tableName, tableResult);
+		uiService.show(tableOutName, tableResult);
 	}
-
-	/** collects all results and shows table */
-	private void collectAllResultsAndShowTable() {
-
-		int regMin = spinnerInteger_RegMin;
-		int regMax = spinnerInteger_RegMax;
-		int numKMax = spinnerInteger_KMax;
-
-		// loop over all slices
-		for (int s = 0; s < numColumns; s++) { // slices of an image stack
-			// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-			// fill table with values
-			tableResult.appendRow();
-			tableResult.set("File name",  tableResult.getRowCount() - 1, tableInName);	
-			if (sliceLabels != null) tableResult.set("Column name", tableResult.getRowCount() - 1, sliceLabels[s]);
-			tableResult.set("k",              tableResult.getRowCount() - 1, numKMax);
-			tableResult.set("RegMin",         tableResult.getRowCount() - 1, regMin);
-			tableResult.set("RegMax",         tableResult.getRowCount() - 1, regMax);
-			tableResult.set("Zeroes removed", tableResult.getRowCount() - 1, booleanRemoveZeroes);
-			tableResult.set("Dh",             tableResult.getRowCount() - 1, resultValuesTable[s][0]);
-			tableResult.set("R2",             tableResult.getRowCount() - 1, resultValuesTable[s][1]);
-			tableResult.set("StdErr",         tableResult.getRowCount() - 1, resultValuesTable[s][2]);
-					
-		}
-		uiService.show(tableName, tableResult);
-	}
-
+	
 	/**
 	*
 	* Processing
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		int regMin = spinnerInteger_RegMin;
-		int regMax = spinnerInteger_RegMax;
-		int numKMax = spinnerInteger_KMax;
-		int numDataPoints = dgt.getRowCount();
-		boolean removeZeores = booleanRemoveZeroes;
 
-		boolean optShowPlot            = booleanShowDoubleLogPlot;
-		boolean optShowSomeRadialLinePlots = booleanShowSomeRadialLinePlots;
-
-		double[] resultValues;
-		resultValues = new double[3]; // Dim, R2, StdErr
+		String signalType     = choiceRadioButt_SignalType;
+		String surrType       = choiceRadioButt_SurrogateType;
+		int boxLength         = spinnerInteger_BoxLength;
+		int numDataPoints     = dgt.getRowCount();
+		int numKMax           = spinnerInteger_KMax;
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		boolean removeZeores  = booleanRemoveZeroes;
+	
+		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
-		double[]totals = new double[numKMax];
-		double[]eps = new double[numKMax];
-		// definition of eps
-		for (int kk = 0; kk < numKMax; kk++) {
-			eps[kk] = kk + 1;		
-			//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
-		}
+		double[] resultValues = new double[3]; // Dim, R2, StdErr
+		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
+		
+//		double[]totals = new double[numKMax];
+//		double[]eps = new double[numKMax];
+//		// definition of eps
+//		for (int kk = 0; kk < numKMax; kk++) {
+//			eps[kk] = kk + 1;		
+//			//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
+//		}
 		//******************************************************************************************************
 		xAxis1D  = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
 		
-		Column<? extends Object> column = dgt.get(col);
+		signalColumn = dgt.get(col);
 		for (int n = 0; n < numDataPoints; n++) {
-			xAxis1D[n] = n+1;
-			double dataValue = Double.valueOf((Double)column.get(n));
-			if (dataValue == 999.999) {//Column is shorter, therefore shorten dataY[]
-				signal1D[n] = Double.NaN;	
-			} else {
-				signal1D[n] = dataValue;	
-			}
+			xAxis1D[n]  = n+1;
+			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
-		Higuchi hig;
-		double[] L;
-		double[] regressionValues;
+		
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
-		int numActualRows = 0;
-		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + column.getHeader() + "  Size of signal = " + signal1D.length);	
-		if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
-			numActualRows += 1;
-			hig = new Higuchi();
-			L = hig.calcLengths(signal1D, numKMax);
-			regressionValues = hig.calcDimension(L, regMin, regMax);
-			// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-			
-			if (optShowPlot) {
-				String preName = column.getHeader();
-				showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, col, regMin, regMax);
+		Higuchi hig;
+		double[] L;
+		double[] regressionValues = null;
+		
+		
+		//"Entire signal", "Subsequent boxes", "Gliding box" 
+		//********************************************************************************************************
+		if (signalType.equals("Entire signal")){	
+			if (surrType.equals("No surrogates")) {
+				resultValues = new double[3]; // Dim, R2, StdErr	
+			} else {
+				resultValues = new double[3+3+3*numSurrogates]; // Dim_Surr, R2_Surr, StdErr_Surr,	Dim_Surr1, Dim_Surr2,  Dim_Surr3, ......R2_Surr1,.... 2, 3......
+			}
+			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
+			logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+			if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
+				hig = new Higuchi();
+				L = hig.calcLengths(signal1D, numKMax);
+				regressionValues = hig.calcDimension(L, regMin, regMax);
+				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+				
+				if (optShowPlot) {
+					String preName = signalColumn.getHeader();
+					showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, col, regMin, regMax);
+				}	
+				resultValues[0] = -regressionValues[1]; // Dh = -slope
+				resultValues[1] = regressionValues[4]; //R2
+				resultValues[2] = regressionValues[3]; //StdErr
+				int lastMainResultsIndex = 2;
+				
+				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
+					surrSignal1D = new double[signal1D.length];
+					
+					double sumDims   = 0.0;
+					double sumR2s    = 0.0;
+					double sumStdErr = 0.0;
+					Surrogate surrogate = new Surrogate();
+					for (int s = 0; s < numSurrogates; s++) {
+						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+						if (surrType.equals("Shuffle"))      surrSignal1D = surrogate.calcSurrogateShuffle(signal1D);
+						if (surrType.equals("Gaussian"))     surrSignal1D = surrogate.calcSurrogateGaussian(signal1D);
+						if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D);
+						if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D);
+				
+						hig = new Higuchi();
+						L = hig.calcLengths(surrSignal1D, numKMax);
+						regressionValues = hig.calcDimension(L, regMin, regMax);
+						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+						resultValues[lastMainResultsIndex + 4 + s]                    = -regressionValues[1];
+						resultValues[lastMainResultsIndex + 4 + numSurrogates + s]    = regressionValues[4];
+						resultValues[lastMainResultsIndex + 4 + (2*numSurrogates) +s] = regressionValues[3];
+						sumDims    += -regressionValues[1];
+						sumR2s     +=  regressionValues[4];
+						sumStdErr  +=  regressionValues[3];
+					}
+					resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
+					resultValues[lastMainResultsIndex + 2] = sumR2s/numSurrogates;
+					resultValues[lastMainResultsIndex + 3] = sumStdErr/numSurrogates;
+				}	
+			} 
+		//********************************************************************************************************	
+		} else if (signalType.equals("Subsequent boxes")){
+			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
+			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
+			subSignal1D = new double[(int) boxLength];
+			//number of boxes may be smaller than intended because of NaNs or removed zeroes
+			long actualNumSubsequentBoxes = (long) Math.floor((double)signal1D.length/(double)spinnerInteger_BoxLength);
+		
+			//get sub-signals and compute dimensions
+			for (int i = 0; i < actualNumSubsequentBoxes; i++) {	
+				logService.info(this.getClass().getName() + " Processing subsequent box #: "+(i+1) + "/" + actualNumSubsequentBoxes);	
+				int start = (i*boxLength);
+				for (int ii = start; ii < (start + boxLength); ii++){ 
+					subSignal1D[ii-start] = signal1D[ii];
+				}
+				//Compute specific values************************************************
+				if (subSignal1D.length > (numKMax * 2)) { // only data series which are large enough
+					hig = new Higuchi();
+					L = hig.calcLengths(subSignal1D, numKMax);
+					regressionValues = hig.calcDimension(L, regMin, regMax);
+					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+					
+					//if (optShowPlot){ //show all plots
+					if ((optShowPlot) && (i==0)){ //show only first plot
+						String preName = signalColumn.getHeader() + "-Box#" + (i+1);
+						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, col, regMin, regMax);
+					}
+					resultValues[i]                             = -regressionValues[1]; // Dh = -slope;
+					resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+				} 
+				//***********************************************************************
 			}	
-			resultValues[0] = -regressionValues[1]; // Dh = -slope
-			resultValues[1] = regressionValues[4];
-			resultValues[2] = regressionValues[3];
-		}
+		//********************************************************************************************************			
+		} else if (signalType.equals("Gliding box")){
+			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
+			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
+			subSignal1D = new double[(int) boxLength];
+			//number of boxes may be smaller because of NaNs or removed zeroes
+			long actualNumGlidingBoxes = signal1D.length - spinnerInteger_BoxLength + 1;
 			
+			//get sub-signals and compute dimensions
+			for (int i = 0; i < actualNumGlidingBoxes; i++) {
+				logService.info(this.getClass().getName() + " Processing gliding box #: "+(i+1) + "/" + actualNumGlidingBoxes);	
+				int start = i;
+				for (int ii = start; ii < (start + boxLength); ii++){ 
+					subSignal1D[ii-start] = signal1D[ii];
+				}	
+				//Compute specific values************************************************
+				if (subSignal1D.length > (numKMax * 2)) { // only data series which are large enough
+					hig = new Higuchi();
+					L = hig.calcLengths(subSignal1D, numKMax);
+					regressionValues = hig.calcDimension(L, regMin, regMax);
+					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+					
+					//if (optShowPlot){ //show all plots
+					if ((optShowPlot) && (i==0)){ //show only first plot
+						String preName = signalColumn.getHeader() + "-Box #" + (i+1);
+						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, col, regMin, regMax);
+					}	
+					resultValues[i]                          = -regressionValues[1]; // Dh = -slope;
+					resultValues[(int)(i + numGlidingBoxes)] = regressionValues[4];  //R2		
+				}
+				//***********************************************************************
+			}
+		}
+		
 		return resultValues;
 		// Dim, R2, StdErr
 		// Output
 		// uiService.show(tableName, table);
-		// result = ops.create().img(image, new FloatType());
-		// table
 	}
 
 	// This method shows the double log plot
