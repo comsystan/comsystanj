@@ -7,6 +7,7 @@
 - the first column must contain the row headers or just a subsequent numbering 
 - all columns MUST have the same number of rows
 - missing values MUST be filled up with NaN
+- filling up NaNs with Notepad++ can be found [here](description/notepadpp/index.md) 
 - NaNs will be ignored for plot charts
 - NaNs will be ignored by CSAJ signal plugins
 
