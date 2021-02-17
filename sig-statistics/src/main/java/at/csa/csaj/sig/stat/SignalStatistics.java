@@ -287,7 +287,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessActiveImage} button is pressed.
+	 * Executed whenever the {@link #buttonProcessActiveSignal} button is pressed.
 	 */
 	protected void callbackProcessActiveColumn() {
 		//prepare  executer service
@@ -325,7 +325,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	}
 
 	/**
-	 * Executed whenever the {@link #buttonProcessAllImages} button is pressed. This
+	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
 	 * is the main processing method usually implemented in the run() method for
 	 */
 	protected void callbackProcessAllColumns() {
@@ -335,7 +335,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		
 		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing signal statistics, please wait...<br>Open console window for further info.</html>");
 		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+																					logService, true, exec); //isCanceable = true, because processAllInputSignals(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
 		exec.execute(new Runnable() {
@@ -398,14 +398,6 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 
 	public void getAndValidateActiveDataset() {
 
-		//TO DO
-		//tableIn = imageDisplayService.getActiveDataset();
-
-//		List<Display<?>> displays = defaultDisplayService.getDisplays();
-//		for (int d = 0; d < displays.size(); d++) {
-//			String displayName = displays.get(d).getName();
-//			logService.info(this.getClass().getName() + " Display name: " + displayName); 
-//		}
 		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
 		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
 	
@@ -526,15 +518,6 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private void deleteExistingDisplays() {
 		boolean optDeleteExistingTable = booleanDeleteExistingTable;
 
-//			//ImageJ PlotWindows aren't recognized by DeafultDisplayService!!?
-//			List<Display<?>> list = defaultDisplayService.getDisplays();
-//			for (int i = 0; i < list.size(); i++) {
-//				Display<?> display = list.get(i);
-//				System.out.println("display name: " + display.getName());
-//				if (display.getName().contains("Grey value profile"))
-//					display.close();
-//			}
-
 		if (optDeleteExistingTable) {
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
@@ -542,6 +525,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 				//System.out.println("display name: " + display.getName());
 				if (display.getName().equals(tableName))
 					display.close();
+					//This might free some memory
+					display = null;
 			}
 		}
 	}
@@ -609,7 +594,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param int slice number of active image.
+	 * @param int slice number of active signal.
 	 * @param double[] result values
 	 */
 	private void writeToTable(int signalNumber, double[] resultValues) {
@@ -678,6 +663,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private void showTable() {
 		// Show table
 		uiService.show(tableName, tableResult);
+		//This might free some memory
+		tableResult = null;
 	}
 	
 

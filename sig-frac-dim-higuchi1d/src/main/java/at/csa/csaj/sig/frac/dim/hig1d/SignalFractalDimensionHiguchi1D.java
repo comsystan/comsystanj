@@ -381,7 +381,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessActiveImage} button is pressed.
+	 * Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.
 	 */
 	protected void callbackProcessActiveColumn() {
 		//prepare  executer service
@@ -419,7 +419,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	}
 
 	/**
-	 * Executed whenever the {@link #buttonProcessAllImages} button is pressed. This
+	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
 	 * is the main processing method usually implemented in the run() method for
 	 */
 	protected void callbackProcessAllColumns() {
@@ -429,7 +429,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		
 		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Huguchi1D dimensions, please wait...<br>Open console window for further info.</html>");
 		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing Huguchi1D dimensions, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
 		exec.execute(new Runnable() {
@@ -492,14 +492,6 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 
 	public void getAndValidateActiveDataset() {
 
-		//TO DO
-		//tableIn = imageDisplayService.getActiveDataset();
-
-//		List<Display<?>> displays = defaultDisplayService.getDisplays();
-//		for (int d = 0; d < displays.size(); d++) {
-//			String displayName = displays.get(d).getName();
-//			logService.info(this.getClass().getName() + " Display name: " + displayName); 
-//		}
 		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
 		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
 	
@@ -605,7 +597,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	 * 
 	 */
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlot = booleanDeleteExistingDoubleLogPlot;
+		boolean optDeleteExistingPlot  = booleanDeleteExistingDoubleLogPlot;
 		boolean optDeleteExistingTable = booleanDeleteExistingTable;
 
 		if (optDeleteExistingPlot) {
@@ -702,7 +694,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param int slice number of active image.
+	 * @param int slice number of active signal.
 	 * @param double[] result values
 	 */
 	private void writeToTable(int signalNumber, double[] resultValues) {
