@@ -1,4 +1,4 @@
-<link rel="shortcut icon" type="image/png" href="{{site.url}}favicon.png">
+<link rel="shortcut icon" type="image/png" href="favicon.png">
 
 <!-- ![Image](comsystan-logo.png)-->
 <img src="images/comsystan-logo-grey46.png" width=100 height=100/>
