@@ -54,7 +54,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 /**
- * This is an ImageJ {@link Command} plugin to open single or multiple images.
+ * This is an ImageJ {@link Command} plugin to open single or multiple signals.
  * <p>
  * 
  * </p>
@@ -65,7 +65,7 @@ import javax.swing.UIManager;
 @Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Signal>Signal Opener")
 public class SignalOpener<T extends RealType<T>> implements Command {
 	
-	private static final String PLUGIN_LABEL = "Opens single or multiple images";
+	private static final String PLUGIN_LABEL = "Opens single or multiple signals";
 	private static final String SPACE_LABEL = "";
   
 	@Parameter
@@ -106,6 +106,13 @@ public class SignalOpener<T extends RealType<T>> implements Command {
      */
     @Override
     public void run() {
+    	
+    	try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch(Throwable t) {
+		
+		}
+    	
     	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Opening signals, please wait...<br>Open console window for further info.</html>");
 		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Opening signals, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
@@ -174,14 +181,17 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 			PlotDisplayFrame pdf = null;
 			if (numColumns == 1) {
 				boolean isLineVisible = true;
-				String imageTitle = files[0].getName();
+				String signalTitle = files[0].getName();
 				String xLabel = "#";
 				String yLabel = defaultGenericTable.getColumnHeader(0);
 				String seriesLabel = null;
 				
+				//show table
+				uiService.show(files[0].getName(), defaultGenericTable);	  
+				 
 				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 				if (selectedOption == JOptionPane.YES_OPTION) {
-					pdf = new PlotDisplayFrame(defaultGenericTable, 0, isLineVisible, "Plot(s)", imageTitle, xLabel, yLabel);
+					pdf = new PlotDisplayFrame(defaultGenericTable, 0, isLineVisible, "Plot(s)", signalTitle, xLabel, yLabel);
 					pdf.setVisible(true);
 				}		
 			}
@@ -189,7 +199,7 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 			if (numColumns > 1) {
 				int[] cols = new int[numColumns];
 				boolean isLineVisible = true;
-				String imageTitle = files[0].getName();
+				String signalTitle = files[0].getName();
 				String xLabel = "#";
 				String yLabel = "Value";
 				String[] seriesLabels = new String[numColumns];		
@@ -197,18 +207,21 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 					cols[c] = c;
 					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
 				}
+				
+				//show table
+				uiService.show(files[0].getName(), defaultGenericTable);	 
+				 
 				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 				if (selectedOption == JOptionPane.YES_OPTION) {
-					pdf = new PlotDisplayFrame(defaultGenericTable, cols, isLineVisible, "Plot(s)", imageTitle, xLabel, yLabel, seriesLabels);
+					pdf = new PlotDisplayFrame(defaultGenericTable, cols, isLineVisible, "Plot(s)", signalTitle, xLabel, yLabel, seriesLabels);
 					pdf.setVisible(true);
-				}
-				
-			}
-				
-			//uiService.show(files[0].getName(), image);
-		    //datasetOut = datasetService.create(image);
-			 uiService.show(files[0].getName(), defaultGenericTable);	  
+				}				
+			}				
 		}
+		
+		//This might free some memory and would be nice for a large table
+		defaultGenericTable = null;
+		Runtime.getRuntime().gc();
 		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
