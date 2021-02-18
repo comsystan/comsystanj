@@ -6,11 +6,15 @@
 **ComsystanJ** (Complex Systems Analysis for ImageJ) is a collection of ImageJ2 plugins to compute the complexity, fractal dimension and other nonlinear measures of images and signals. Copyright (c) Comsystan Software. Developed and maintained by Helmut Ahammer.
 
 If you use ComsystanJ plugins and publish your work, please cite at least one of the following publications:
+
+###### Image processing
 - Ahammer, PLoS ONE, 2011, DOI 10.1371/journal.pone.0024796
 - Ahammer etal., Chaos, 2015, DOI 10.1063/1.4923030
 - Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, DOI 10.1063/1.4958709
 - Kainz etal., PLoS ONE, 2015, DOI 10.1371/journal.pone.0116329
 
+###### Time series
+- Ahammer et al., Front.Physiol., 2018, DOI 10.3389/fphys.2018.00546
 
 ### Project descriptions
 - Processing 2D images [- Short description of plugins](description/img2-description.md) 
