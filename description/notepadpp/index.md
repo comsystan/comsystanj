@@ -8,4 +8,4 @@
   2. For inbetween NaNs --> replace without brackets: (,,) with (,NaN,)  
   3. Repeat step 2 --> replace without brackets: (,,) with (,NaN,)
   4. For the last column --> replace without brackets :  (,\r)   with (,NaN\r)
-- If step 4 does not work try (\n) or (\n\r)  instead of (\r)
+- If step 4 does not work try (\n) or (\r\n)  instead of (\r)
