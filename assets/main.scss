@@ -1,0 +1,7 @@
+.site-title::before {
+	content: url("/comsystan-logo.png");
+	display: inline-block;
+	position: relative;
+	width: 100px;
+	top: 100px;
+}
