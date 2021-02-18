@@ -260,6 +260,7 @@ form {
 Full-Width Styles
 *******************************************************************************/
 
+
 .outer {
   width: 100%;
 }
@@ -368,7 +369,13 @@ Full-Width Styles
   background: #212121;
 }
 
-
+.site-title::before {
+	content: url("/images/comsystan-logo-grey46.png");
+	display: inline-block;
+	position: relative;
+	width: 100px;
+	top: 100px;
+}
 
 /*******************************************************************************
 Small Device Styles
