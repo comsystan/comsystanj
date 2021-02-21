@@ -7,5 +7,4 @@
 - Search for: (^|,)([0-9]+)(,|\r)
 - Replace with: \1\2.0\3
 - If it does not work for the last column try \n or \r\n instead of \r
-###
-[IntegerToFloating.png](IntegerToFloating.png)
+![Image](IntegerToFloating.png)
