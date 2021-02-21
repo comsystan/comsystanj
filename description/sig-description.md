@@ -7,9 +7,10 @@
 - the first column must contain the row headers or just a subsequent numbering 
 - all columns MUST have the same number of rows
 - missing values MUST be filled up with NaN
-- filling up NaNs with Notepad++ can be found [here](notepadpp/index.md) 
 - NaNs will be ignored for plot charts
 - NaNs will be ignored by CSAJ signal plugins
+- conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
+- filling up NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
 
 ### Signal statistics
 - computes descriptive statistics of signals.
