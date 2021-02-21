@@ -7,4 +7,4 @@
 - Search for: (^|,)(,|\r)
 - Replace with: \1NaN\2
 - If it does not work for the last column try \n or \r\n instead of \r
-[Image](Notepadpp-FillNaNs.png)
+![Notepadpp-FillNaNs](Notepadpp-FillNaNs.png)
