@@ -1,7 +1,7 @@
 ### Filling up NaNs in a csv table with Notepad++
 
 - Open the csv text file with Notepad++
-- Go to Search/Replace or press ctrl-H
+- Go to Search/Replace or press Ctrl-H
 - Click Wrap around
 - Set Search Mode to Regular expression
 - <p> Search for: (^|,)(,|\r)</p>
