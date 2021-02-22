@@ -6,5 +6,5 @@
 - Set Search Mode to Regular expression
   - <p>Search for: ,([0-9]+)(,|\r)</p>
   - <p>Replace with: ,\1.0\2</p>
-- If it does not work for the last column try \n or \r\n instead of \r
+- If it does not work for the last column, try \n or \r\n instead of \r
 ![Notepadpp-IntegerToFloating.png](Notepadpp-IntegerToFloating.png)
