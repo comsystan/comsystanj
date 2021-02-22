@@ -16,7 +16,7 @@
 - Computes descriptive statistics of signals.
 - Signals should be opened with the CSAJ Signal Opener
 - Evaluation of Entire signal or Subsequent/Gliding boxes
-- Note: For Subsequent/Gliding box
+- Notes for Subsequent/Gliding box:
   - Only Medians, Means and SDs are computed
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
@@ -26,9 +26,9 @@
 - Computes Higuchi dimensions of signals.
 - Signals should be opened with the CSAJ Signal Opener
 - Evaluation of Entire signal or Subsequent/Gliding boxes
-- Note: For Entire signal
+- Note for Entire signal:
   - kMax should not be larger than 1/3 of the signal length
-- Note: For Subsequent/Gliding box
+- Notes for Subsequent/Gliding box:
   - kMax should not be larger than 1/3 of the box size
   - the box size should not be larger than 1/3 of the signal length 
   - The number of subsequent boxes is (signal length)/(box size)
