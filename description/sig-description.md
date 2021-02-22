@@ -17,10 +17,10 @@
 - Signals should be opened with the CSAJ Signal Opener
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Note: For Subsequent/Gliding box
-  - only Medians, Means and SDs are computed
+  - Only Medians, Means and SDs are computed
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
-  - Note: The number of subsequent and particularly of gliding boxes can be very high
+  - The number of subsequent and particularly of gliding boxes can be very high
 
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions of signals.
