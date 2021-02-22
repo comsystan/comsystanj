@@ -15,22 +15,25 @@
 ### Signal statistics
 - Computes descriptive statistics of signals.
 - Signals should be opened with the CSAJ Signal Opener
-- Evaluation of entire signal or subsequent/gliding boxes
-- Note: For Subsequent/Gliding box, only Medians, Means and SDs are computed
-- The number of subsequent boxes is (signal length)/(box size)
-- The number of gliding boxes is (signal length)-(box size)
+- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Note: For Subsequent/Gliding box
+  - only Medians, Means and SDs are computed
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
 - Note: The number of subsequent and particularly of gliding boxes can be very high
 
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions of signals.
 - Signals should be opened with the CSAJ Signal Opener
-- Evaluation of entire signal or subsequent/gliding boxes
-- Note: For Entire signal, kMax should not be larger than 1/3 of the signal length
-- Note: For Subsequent/Gliding box, kMax should not be larger than 1/3 of the box size
-- Note: For Subsequent/Gliding box, the box size should not be larger than 1/3 of the signal length 
-- The number of subsequent boxes is (signal length)/(box size)
-- The number of gliding boxes is (signal length)-(box size)
-- Note: The number of subsequent and particularly of gliding boxes can be very high
+- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Note: For Entire signal
+  - kMax should not be larger than 1/3 of the signal length
+- Note: For Subsequent/Gliding box
+  - kMax should not be larger than 1/3 of the box size
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - The number of subsequent or particularly of gliding boxes can be very high
 - Ref.: Higuchi, Physica D, 1988, DOI 10.1016/0167-2789(88)90081-4
 
 ### Dectect QRS peaks
