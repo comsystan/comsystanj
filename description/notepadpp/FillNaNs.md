@@ -12,15 +12,15 @@
 - Check the last row of the last column, because thre is usually no Carriage Return
 ![Notepadpp-FillNaNs](Notepadpp-FillNaNs.png)
 - For very large tables this search method may not be successfull
-- Then you should try following subsequent replace steps
-- <p>Search and replace missing values in the first column (can be skipped, when the row numbering is complete):
+- Then you should try following subsequent search and replace steps
+- For the first column (can be skipped, when the row numbering is complete):
   - Search for: ^,
-  - Replace with: NaN,</p>
-- <p>Search and replace missing values in the body of the table <b>two times</b>:
+  - Replace with: NaN,
+- For the body of the table **two times**:
   - Search for: ,,
-  - Replace with: ,NaN,</p>
-- <p>Search and replace missing values in the last column:
+  - Replace with: ,NaN,
+- For the last column:
   - Search for: ,\r
-  - Replace with: ,NaN\r</p>
+  - Replace with: ,NaN\r
 - If it does not work for the last column, try \n or \r\n instead of \r
 - Check the last row of the last column, because thre is usually no Carriage Return
