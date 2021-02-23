@@ -4,7 +4,7 @@
 - Go to Search/Replace or press Ctrl-H
 - Click Wrap around
 - Set Search Mode to Regular expression
-- Search and replace *two* times 
+- Search and replace **two times**: 
   - <p>Search for: (^|,)(,|\r)</p>
   - <p>Replace with: \1NaN\2</p>
 - Check the result
@@ -13,13 +13,14 @@
 ![Notepadpp-FillNaNs](Notepadpp-FillNaNs.png)
 - For very large tables this search method may not be successfull
 - Then you should try following subsequent replace steps:
-- <p>Search and repalce missing values in the first column (row headers)
+- <p>Search and replace missing values in the first column (row headers):
+Note: This step can be skipped, when the row numbering is complete
   - Search for: ^,
   - Replace with: NaN,</p>
-- <p>Search and replace *twice* for missing values in the body of the table
+- <p>Search and replace missing values in the body of the table **two times**:
   - Search for: ,,
   - Replace with: ,NaN,</p>
-- <p>Search and replace missing values in the last column
+- <p>Search and replace missing values in the last column:
   - Search for: ,\r
   - Replace with: ,NaN\r</p>
 - If it does not work for the last column, try \n or \r\n instead of \r
