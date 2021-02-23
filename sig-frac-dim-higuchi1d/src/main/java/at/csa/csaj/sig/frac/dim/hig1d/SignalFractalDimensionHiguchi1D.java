@@ -83,8 +83,6 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>--------------- Background Options ---------------</b></html>";
 	private static final String OPTIONS_LABEL           = "<html><b>-------------------- Options ---------------------</b></html>";
 	private static final String PROCESS_LABEL           = "<html><b>-------------------- Process ---------------------</b></html>";
-
-	private static DefaultGenericTable  tableIn;
 	
 	private static double[] signal1D;
 	private static double[] xAxis1D;
@@ -101,7 +99,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	private static int  numBoxLength = 0;
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
-	private static int  numbKMax = 0;
+	private static final int  numKMax = 1000;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	
 	private static final String tableOutName = "Table - Higuchi dimension";
@@ -141,7 +139,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	private DefaultDisplayService defaultDisplayService;
 
 	//@Parameter(type = ItemIO.INPUT)
-	//private DefaultGenericTable tableIn;
+	private DefaultGenericTable tableIn;
 	
 	@Parameter(type = ItemIO.INPUT)
 	private DefaultTableDisplay  defaultTableDisplay;
@@ -162,17 +160,17 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "k:", description = "maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999999999", stepSize = "1",
+	@Parameter(label = "k:", description = "maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialKMax", callback = "callbackKMax")
 	private int spinnerInteger_KMax;
 
-	@Parameter(label = "Regression Min:", description = "minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Min:", description = "minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
 	private int spinnerInteger_RegMin = 1;
 
-	@Parameter(label = "Regression Max:", description = "maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Max:", description = "maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
@@ -200,13 +198,13 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		private String choiceRadioButt_SurrogateType;
 	
 	@Parameter(label = "# Surrogates:", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999999999", stepSize = "1",
+			   min = "1", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
 	private int spinnerInteger_NumSurrogates;
 	
 	@Parameter(label = "Box length:", description = "Length of subsequent or gliding box - Shoud be at least three times kMax", style = NumberWidget.SPINNER_STYLE, 
-			   min = "2", max = "9999999999999999999999999", stepSize = "1",
+			   min = "2", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
@@ -258,16 +256,14 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 
 	protected void initialKMax() {
 		//numbKMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
-		numbKMax = 8;
-		spinnerInteger_KMax = numbKMax;
+		spinnerInteger_KMax = 8;
 	}
 	protected void initialRegMin() {
 		spinnerInteger_RegMin = 1;
 	}
 	protected void initialRegMax() {
 		//numbKMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
-		numbKMax = 8;
-		spinnerInteger_RegMax = numbKMax;
+		spinnerInteger_RegMax = 8;
 	}
 	protected void initialSignalType() {
 		choiceRadioButt_SignalType = "Entire signal";
@@ -305,8 +301,8 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		if (spinnerInteger_KMax < 3) {
 			spinnerInteger_KMax = 3;
 		}
-		if (spinnerInteger_KMax > numbKMax) {
-			spinnerInteger_KMax = numbKMax;
+		if (spinnerInteger_KMax > numKMax) {
+			spinnerInteger_KMax = numKMax;
 		}
 		if (spinnerInteger_RegMax > spinnerInteger_KMax) {
 			spinnerInteger_RegMax = spinnerInteger_KMax;
