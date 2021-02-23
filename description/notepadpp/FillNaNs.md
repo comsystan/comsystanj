@@ -4,8 +4,23 @@
 - Go to Search/Replace or press Ctrl-H
 - Click Wrap around
 - Set Search Mode to Regular expression
-- Run two times through the table
-  - <p> Search for: (^|,)(,|\r)</p>
-  - <p> Replace with: \1NaN\2</p>
+- Search and replace *two* times 
+  - <p>Search for: (^|,)(,|\r)</p>
+  - <p>Replace with: \1NaN\2</p>
+- Check the result
 - If it does not work for the last column, try \n or \r\n instead of \r
+- Check the last row of the last column, because thre is usually no Carriage Return
 ![Notepadpp-FillNaNs](Notepadpp-FillNaNs.png)
+- For very large tables this search method may not be successfull
+- Then you should try following subsequent replace steps:
+- <p>Search and repalce missing values in the first column (row headers)
+  - Search for: ^,
+  - Replace with: NaN,</p>
+- <p>Search and replace *twice* for missing values in the body of the table
+  - Search for: ,,
+  - Replace with: ,NaN,</p>
+- <p>Search and replace missing values in the last column
+  - Search for: ,\r
+  - Replace with: ,NaN\r</p>
+- If it does not work for the last column, try \n or \r\n instead of \r
+- Check the last row of the last column, because thre is usually no Carriage Return
