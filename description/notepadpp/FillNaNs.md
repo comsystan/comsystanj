@@ -12,12 +12,11 @@
 - Check the last row of the last column, because thre is usually no Carriage Return
 ![Notepadpp-FillNaNs](Notepadpp-FillNaNs.png)
 - For very large tables this search method may not be successfull
-- Then you should try following subsequent replace steps:
-- <p>Search and replace missing values in the first column (row headers):
-Note: This step can be skipped, when the row numbering is complete
+- Then you should try following subsequent replace steps
+- <p>Search and replace missing values in the first column (can be skipped, when the row numbering is complete):
   - Search for: ^,
   - Replace with: NaN,</p>
-- <p>Search and replace missing values in the body of the table **two times**:
+- <p>Search and replace missing values in the body of the table <b>two times</b>:
   - Search for: ,,
   - Replace with: ,NaN,</p>
 - <p>Search and replace missing values in the last column:
