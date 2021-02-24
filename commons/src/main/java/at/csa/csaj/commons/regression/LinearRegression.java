@@ -36,7 +36,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
  */
 public class LinearRegression {
 	/**
-	 * This class calculates the regression parameters
+	 * This method computes regression parameters
 	 * @param dataX
 	 * @param dataY
 	 * @param regStart  first value for regression 
@@ -60,5 +60,30 @@ public class LinearRegression {
 		parameters[4] = simpleReg.getRSquare();       //R^2 Bestimmheitsmaß
 		return parameters;
 	}
+	
+	
+	/**
+	 * This method computes residuals
+	 * @param dataX
+	 * @param dataY
+	 * @return parameters including errors
+	 */
+	@SuppressWarnings("unused")
+	public double[] calculateResiduals(double[] dataX, double[] dataY){
+		final int N = dataX.length;
+		final double[] residuals = new double[N];
+		//Apache Math3
+		SimpleRegression simpleReg = new SimpleRegression(); //Apache Math3
+		for (int i = 0; i < N; i++){
+			simpleReg.addData(dataX[i], dataY[i]);
+		}	
+		
+		for (int i = 0; i < N; i++) {
+			residuals[i] = dataY[i] - simpleReg.predict(dataX[i]); //Simply the differences of the data y values and the computed regression y values.
+		}
+		
+		return residuals; 
+	}
+	
 
 }
