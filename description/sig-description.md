@@ -12,15 +12,28 @@
 - Conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
 - Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
 
-### Signal statistics
-- Computes descriptive statistics of signals.
+### Detect QRS peaks
+- Detects QRS peaks and peak to peak intervals of ECG data
+- Based on the OSEA algorithm
+- Signals should be opened with the CSAJ Signal Opener
+- For ecg files (Holter chan.raw file)
+- The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
+- See https://github.com/MEDEVIT/OSEA-4-Java
+- Ref.: Hamilton and Tompkins, 1987,  "Quantitative investigation of QRS detection rules using the MIT/BIH arrhythmia database", IEEE Trans.Biomed.Eng., BME-33, pp.1158-1165
+
+### Detrended fluctuation analysis
+- Computes Detrended fluctuation analysis.
 - Signals should be opened with the CSAJ Signal Opener
 - Evaluation of Entire signal or Subsequent/Gliding boxes
+- Note for Entire signal:
+  - Maximal window size should not be larger than 1/3 of the signal length
 - Notes for Subsequent/Gliding box:
-  - Only Medians, Means and SDs are computed
+  - Maximal window size should not be larger than 1/3 of the box size
+  - the box size should not be larger than 1/3 of the signal length 
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Peng et al., 1994, Phys.Rev.E., DOI 10.1103/physreve.49.1685
 
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions of signals.
@@ -34,13 +47,14 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Higuchi, Physica D, 1988, DOI 10.1016/0167-2789(88)90081-4
+- Ref.: Higuchi, 1988, Physica D, DOI 10.1016/0167-2789(88)90081-4
 
-### Dectect QRS peaks
-- Detects QRS peaks and peak to peak intervals
-- Based on the OSEA algorithm
+### Signal statistics
+- Computes descriptive statistics of signals.
 - Signals should be opened with the CSAJ Signal Opener
-- For ecg files (Holter chan.raw file)
-- The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
-- See https://github.com/MEDEVIT/OSEA-4-Java
-- Ref.: Hamilton, Tompkins, W. J., "Quantitative investigation of QRS detection rules using the MIT/BIH arrhythmia database", IEEE Trans. Biomed. Eng., BME-33, pp. 1158-1165, 1987.
+- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - Only Medians, Means and SDs are computed
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - The number of subsequent and particularly of gliding boxes can be very high
