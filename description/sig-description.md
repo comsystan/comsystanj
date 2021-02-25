@@ -18,7 +18,7 @@
 - Signals should be opened with the CSAJ Signal Opener
 - For ecg files (Holter chan.raw file)
 - The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
-- See https://github.com/MEDEVIT/OSEA-4-Java
+- See [https://github.com/MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
 - Ref.: Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [https://doi.org/10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
 
 ### Detrended fluctuation analysis
