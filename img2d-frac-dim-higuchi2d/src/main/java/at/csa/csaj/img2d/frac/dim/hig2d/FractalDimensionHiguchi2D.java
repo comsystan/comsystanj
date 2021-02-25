@@ -108,13 +108,13 @@ import io.scif.MetaTable;
 public class FractalDimensionHiguchi2D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class FractalDimensionHiguchi2D<T extends RealType<T>> implements Command {	//modal GUI
 
-	private static final String PLUGIN_LABEL = "Computes fractal dimension with Higuchi 2D algorithms";
-	private static final String SPACE_LABEL = "";
-	private static final String REGRESSION_LABEL = "-------------------------- Regression parameters --------------------------";
-	private static final String METHOD_LABEL = "-------------------------------- Method ---------------------------------";
-	private static final String OPTIONS_LABEL = "------------------------------------- Options -------------------------------------";
-	private static final String PROCESS_LABEL = "------------------------------------- Process -------------------------------------";
-
+	private static final String PLUGIN_LABEL            = "Computes fractal dimension with with Higuchi 2D algorithms";
+	private static final String SPACE_LABEL             = "";
+	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Method</b></html>";
+	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
+	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	//private static Img<FloatType> imgFloat;
 	private static String datasetName;
 	private static String[] sliceLabels;
@@ -125,7 +125,7 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 	private static int compChCount = 0; //1  Grey,   3 RGB
 	private static long numDimensions = 0;
 	private static long numSlices = 0;
-	private static int numbKMax = 0;
+	private static int  numbKMax = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; // first column is the image index, second column are the corresponding regression values
 	private static final String tableName = "Table - Higuchi2D dimension";
@@ -168,44 +168,46 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 	@Parameter
 	private DatasetService datasetService;
 
-	// Input dataset which is updated in callback functions
-	@Parameter(type = ItemIO.INPUT)
-	private Dataset datasetIn;
-
 	@Parameter(type = ItemIO.OUTPUT)
 	private DefaultGenericTable table;
 
 
 	// Widget elements------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------------
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelPlugin = PLUGIN_LABEL;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelPlugin = PLUGIN_LABEL;
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelSpace = SPACE_LABEL;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSpace = SPACE_LABEL;
+	// Input dataset which is updated in callback functions
+	@Parameter(type = ItemIO.INPUT)
+	private Dataset datasetIn;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "k:", description = "maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
+	@Parameter(label = "k:", description = "Maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialKMax", callback = "callbackKMax")
 	private int spinnerInteger_KMax;
 
-	@Parameter(label = "Regression Min:", description = "minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "32768", stepSize = "1",
+	@Parameter(label = "Regression Min:", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "32768", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
 	private int spinnerInteger_RegMin = 1;
 
-	@Parameter(label = "Regression Max:", description = "maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
+	@Parameter(label = "Regression Max:", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelInterpolation = METHOD_LABEL;
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelInterpolation = METHODOPTIONS_LABEL;
 
-	@Parameter(label = "Method", description = "type of Higuchi 2D algorithm", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
+	@Parameter(label = "Method", description = "Type of Higuchi 2D algorithm", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
 			   "K-fold differences",
 			   "Multiplicated differences",
 			   "Multiplicated differences2",														   
@@ -223,13 +225,17 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 			   initializer = "initialMethod", callback = "callbackMethod")
 	private String choiceRadioButt_Method;
 
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 	
 	@Parameter(label = "Skip zero values", persist = false,
 		       callback = "callbackSkipZeroes")
 	private boolean booleanSkipZeroes;
 	
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOptions = OPTIONS_LABEL;
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
 		   	   // persist = false, //restore previous value default = true
@@ -246,8 +252,9 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 			   initializer = "initialDeleteExistingTable")
 	private boolean booleanDeleteExistingTable;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelProcess = PROCESS_LABEL;
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
 
 	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
 		       callback = "callbackPreview")
@@ -258,13 +265,8 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 
 	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
 	private Button buttonProcessAllImages;
-
-
-
+	
 	// ---------------------------------------------------------------------
-
-	
-	
 	// The following initialzer functions set initial values
 
 	protected void initialKMax() {

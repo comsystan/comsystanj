@@ -76,13 +76,13 @@ import at.csa.csaj.sig.open.SignalOpener;
 public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
 
-	private static final String PLUGIN_LABEL            = "<html>Genuin Higuchi 1D algorithm</html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Genuin Higuchi 1D algorithm</b></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String REGRESSION_LABEL        = "<html><b>--------- Fractal Regression Parameters ---------</b></html>";
-	private static final String SIGNALMETHOD_LABEL      = "<html><b>---------- Signal Evaluation and Options ----------</b></html>";
-	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>--------------- Background Options ---------------</b></html>";
-	private static final String OPTIONS_LABEL           = "<html><b>-------------------- Options ---------------------</b></html>";
-	private static final String PROCESS_LABEL           = "<html><b>-------------------- Process ---------------------</b></html>";
+	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
+	private static final String SIGNALMETHOD_LABEL      = "<html><b>Signal evaluation</b></html>";
+	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background Option</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
+	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static double[] signal1D;
 	private static double[] xAxis1D;
@@ -99,7 +99,9 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	private static int  numBoxLength = 0;
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
+	
 	private static final int  numKMax = 1000;
+	
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	
 	private static final String tableOutName = "Table - Higuchi dimension";
@@ -141,8 +143,6 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	//@Parameter(type = ItemIO.INPUT)
 	private DefaultGenericTable tableIn;
 	
-	@Parameter(type = ItemIO.INPUT)
-	private DefaultTableDisplay  defaultTableDisplay;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableResult;
@@ -150,33 +150,37 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 
 	// Widget elements------------------------------------------------------
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelPlugin = PLUGIN_LABEL;
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelPlugin = PLUGIN_LABEL;
 
-//	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-//	private final String labelSpace = SPACE_LABEL;
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelSpace = SPACE_LABEL;
+	
+	@Parameter(type = ItemIO.INPUT)
+	private DefaultTableDisplay  defaultTableDisplay;
+
 
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "k:", description = "maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "k:", description = "Maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialKMax", callback = "callbackKMax")
 	private int spinnerInteger_KMax;
 
-	@Parameter(label = "Regression Min:", description = "minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Min:", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
 	private int spinnerInteger_RegMin = 1;
 
-	@Parameter(label = "Regression Max:", description = "maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Max:", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
 	
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelSignalType = SIGNALMETHOD_LABEL;
 
 	@Parameter(label = "Signal type",
@@ -210,16 +214,16 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	private int spinnerInteger_BoxLength;
 	
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelInterpolation = BACKGROUNDOPTIONS_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
 	@Parameter(label = "Remove zero values", persist = false,
 		       callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOptions = OPTIONS_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
 		   	   // persist = false, //restore previous value default = true
@@ -237,8 +241,8 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	private boolean booleanDeleteExistingTable;
 
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelProcess = PROCESS_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelProcess = PROCESSOPTIONS_LABEL;
 
 	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
 		       callback = "callbackPreview")
@@ -247,7 +251,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	@Parameter(label = "Process first column", callback = "callbackProcessActiveColumn")
 	private Button buttonProcessActiveColumn;
 
-	@Parameter(label = "Process all available columns", callback = "callbackProcessAllColumns")
+	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
 	private Button buttonProcessAllColumns;
 
 

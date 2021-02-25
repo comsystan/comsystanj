@@ -30,13 +30,11 @@ package at.csa.csaj.sig.sampen;
 
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.UIManager;
-import javax.swing.WindowConstants;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
@@ -64,7 +62,6 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.sig.open.SignalOpener;
@@ -85,7 +82,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	private static final String SIGNALMETHOD_LABEL      = "<html><b>Signal evaluation</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";
-	private static final String PROCESSOPTION_LABEL     = "<html><b>Process option</b></html>";
+	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static double[] signal1D;
 	private static double[] xAxis1D;
@@ -153,10 +150,10 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 
 	// Widget elements------------------------------------------------------
 
-	//@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	//private final String labelPlugin = PLUGIN_LABEL;
 
-//	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+//	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelSpace = SPACE_LABEL;
 	
 	@Parameter(type = ItemIO.INPUT)
@@ -226,7 +223,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelInterpolation = BACKGROUNDOPTIONS_LABEL;
+	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
 	@Parameter(label = "Remove zero values", persist = false,
 		       callback = "callbackRemoveZeroes")
@@ -234,7 +231,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOptions = DISPLAYOPTIONS_LABEL;
+	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Delete existing result table",
 			   // persist = false, //restore previous value default = true
@@ -243,7 +240,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelProcess = PROCESSOPTION_LABEL;
+	private final String labelProcess = PROCESSOPTIONS_LABEL;
 
 	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
 		       callback = "callbackPreview")

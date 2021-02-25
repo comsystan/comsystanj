@@ -75,7 +75,7 @@ import javax.swing.UIManager;
 @Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal surface creation")
 public class FractalCreation2DSurface<T extends RealType<T>> implements Command, Previewable {
 	
-	private static final String PLUGIN_LABEL = "Computes 2D grey value fractals";
+	private static final String PLUGIN_LABEL = "<html><b>Creation of 2D fractal surface(s)</b></html>";
 	private static final String SPACE_LABEL = "";
   
 	@Parameter
@@ -104,11 +104,11 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
     
     //Widget elements------------------------------------------------------
     
-    @Parameter(visibility = ItemVisibility.MESSAGE)
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE)
 	private final String labelPlugin = PLUGIN_LABEL;
 
-    @Parameter(visibility = ItemVisibility.MESSAGE)
-  	private final String labelSpace = SPACE_LABEL;
+    //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE)
+  	//private final String labelSpace = SPACE_LABEL;
     
     
     @Parameter(label = "Width [pixel]:",

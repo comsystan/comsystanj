@@ -110,12 +110,14 @@ import io.scif.MetaTable;
 public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionPyramid<T extends RealType<T>> implements Command {	//modal GUI
 	
-	private static final String PLUGIN_LABEL = "Computes fractal dimension with an image pyramid";
-	private static final String SPACE_LABEL = "";
-	private static final String REGRESSION_LABEL    = "-------------------------- Regression parameters --------------------------";
-	private static final String INTERPOLATION_LABEL = "------------------------ Interpolation parameters -------------------------";
-	private static final String OPTIONS_LABEL       = "------------------------------------- Options -------------------------------------";
-	private static final String PROCESS_LABEL      = "------------------------------------- Process -------------------------------------";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with an image pyramid";
+	private static final String SPACE_LABEL             = "";
+	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
+	private static final String INTERPOLATION_LABEL     = "<html><b>Interpolation options</b></html>";
+	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
+	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
+	
 	
 	private static Img<FloatType> imgFloat; 
 	private static Img<FloatType> imgDownscaled;
@@ -164,31 +166,29 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 	
 	@Parameter
 	private DatasetService datasetService;
-	
-	//Input dataset which is updated in callback functions
-	@Parameter (type = ItemIO.INPUT)
-	private Dataset datasetIn;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private DefaultGenericTable table;
 
 	
-   //Widget elements------------------------------------------------------
-    
-    @Parameter(visibility = ItemVisibility.MESSAGE,
-    		   persist = false)
-	private final String labelPlugin = PLUGIN_LABEL;
-
-    @Parameter(visibility = ItemVisibility.MESSAGE,
-    		   persist = false)
-  	private final String labelSpace = SPACE_LABEL;
-    
-    @Parameter(visibility = ItemVisibility.MESSAGE,
-    		   persist = false)
-  	private final String labelRegression = REGRESSION_LABEL;
-
-    @Parameter(label = "Number of pyramid images:",
-    		   description = "Number of subsequently half sized images",
+    //Widget elements------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------------
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE,   persist = false)
+	//private final String labelPlugin = PLUGIN_LABEL;
+	
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE,    persist = false)
+	//private final String labelSpace = SPACE_LABEL;
+	
+	//Input dataset which is updated in callback functions
+	@Parameter (type = ItemIO.INPUT)
+	private Dataset datasetIn;
+	
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelRegression = REGRESSION_LABEL;
+	
+	@Parameter(label = "Number of pyramid images:",
+			   description = "Number of subsequently half sized images",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "3",
 	           max = "32768",
@@ -196,10 +196,10 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 	           persist  = false,  //restore previous value default = true
 	           initializer = "initialNumImages",
 	           callback    = "callbackNumImages")
-    private int spinnerInteger_PyramidImages;
+	private int spinnerInteger_PyramidImages;
     
     @Parameter(label = "Regression Min:",
-    		   description = "minimum x value of linear regression",
+    		   description = "Minimum x value of linear regression",
  		       style = NumberWidget.SPINNER_STYLE,
  		       min = "1",
  		       max = "32768",
@@ -210,7 +210,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
     private int spinnerInteger_RegMin = 1;
  
     @Parameter(label = "Regression Max:",
-    		   description = "maximum x value of linear regression",
+    		   description = "Maximum x value of linear regression",
     		   style = NumberWidget.SPINNER_STYLE,
 		       min = "3",
 		       max = "32768",
@@ -220,12 +220,12 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
     
-     @Parameter(visibility = ItemVisibility.MESSAGE,
-	            persist = false)
+     //-----------------------------------------------------------------------------------------------------
+     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelInterpolation = INTERPOLATION_LABEL;
      
      @Parameter(label = "Interpolation",
-    		    description = "type of interpolation for subscaled images",
+    		    description = "Type of interpolation for subscaled images",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
       		    choices = {"Linear", "Floor", "Lanczos", "Nearest Neighbor"},
       		    //persist  = false,  //restore previous value default = true
@@ -233,9 +233,9 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
                 callback = "callbackInterpolation")
      private String choiceRadioButt_Interpolation;
      
-     @Parameter(visibility = ItemVisibility.MESSAGE,
-  		        persist = false)
-     private final String labelOptions = OPTIONS_LABEL;
+     //-----------------------------------------------------------------------------------------------------
+     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,   persist = false)
+     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
     		    //persist  = false,  //restore previous value default = true
@@ -262,9 +262,9 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		        initializer = "initialDeleteExistingTable")
 	 private boolean booleanDeleteExistingTable;
      
-     @Parameter(visibility = ItemVisibility.MESSAGE,
-		        persist = false)
-     private final String labelProcess = PROCESS_LABEL;
+     //-----------------------------------------------------------------------------------------------------
+     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
+     private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
      @Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
 		       callback = "callbackPreview")
@@ -278,9 +278,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
  		        callback = "callbackProcessAllImages")
 	 private Button buttonProcessAllImages;
 
-
     //---------------------------------------------------------------------
- 
     //The following initialzer functions set initial values
     protected void initialNumImages() {
       	numbMaxPyramidImages = getMaxPyramidNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);

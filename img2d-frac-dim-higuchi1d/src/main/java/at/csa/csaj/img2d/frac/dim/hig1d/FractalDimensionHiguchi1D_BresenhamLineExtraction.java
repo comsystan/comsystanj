@@ -97,12 +97,13 @@ import io.scif.MetaTable;
 public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class FractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
 
-	private static final String PLUGIN_LABEL = "Computes fractal dimension with the Higuchi 1D algorithm";
-	private static final String SPACE_LABEL = "";
-	private static final String REGRESSION_LABEL = "-------------------------- Regression parameters --------------------------";
-	private static final String METHOD_LABEL = "---------------------- 1D grey value profile extraction method -----------------------";
-	private static final String OPTIONS_LABEL = "------------------------------------- Options -------------------------------------";
-	private static final String PROCESS_LABEL = "------------------------------------- Process -------------------------------------";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with the Higuchi 1D algorithm</b></html>";
+	private static final String SPACE_LABEL             = "";
+	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>1D profile extraction</b></html>";
+	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
+	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 
 	//private static Img<FloatType> imgFloat;
 	private static double[] signal1D;
@@ -166,23 +167,24 @@ public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealTyp
 	@Parameter
 	private DatasetService datasetService;
 
-	// Input dataset which is updated in callback functions
-	@Parameter(type = ItemIO.INPUT)
-	private Dataset datasetIn;
-
 	@Parameter(type = ItemIO.OUTPUT)
 	private DefaultGenericTable table;
 
 
 	// Widget elements------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------------
+	//@Parameter(label = " ",visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelPlugin = PLUGIN_LABEL;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelPlugin = PLUGIN_LABEL;
+	//@Parameter(label = " ",visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelSpace = SPACE_LABEL;
+	
+	// Input dataset which is updated in callback functions
+	@Parameter(type = ItemIO.INPUT)
+	private Dataset datasetIn;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSpace = SPACE_LABEL;
-
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
 	@Parameter(label = "k:", description = "maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
@@ -200,8 +202,9 @@ public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealTyp
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelInterpolation = METHOD_LABEL;
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelInterpolation = METHODOPTIONS_LABEL;
 
 	@Parameter(label = "Method", description = "type of 1D signal gathering", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
 		       "Single centered row/column", "Single meander row/column", "Mean of all rows/columns", "Mean of      4 radial lines [0-pi]", "Mean of 180 radial lines [0-pi]" },
@@ -214,8 +217,9 @@ public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealTyp
 		       callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOptions = OPTIONS_LABEL;
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
 		   	   // persist = false, //restore previous value default = true
@@ -242,9 +246,9 @@ public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealTyp
 			   initializer = "initialGetRadialDhValues")
 	private boolean booleanGetRadialDhValues;
 
-	
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelProcess = PROCESS_LABEL;
+	//-----------------------------------------------------------------------------------------------------	
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
 
 	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
 		       callback = "callbackPreview")
@@ -258,9 +262,6 @@ public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealTyp
 
 
 	// ---------------------------------------------------------------------
-
-	
-	
 	// The following initialzer functions set initial values
 
 	protected void initialKMax() {

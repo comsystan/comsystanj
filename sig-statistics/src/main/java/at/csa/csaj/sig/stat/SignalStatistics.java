@@ -75,12 +75,12 @@ import at.csa.csaj.sig.open.SignalOpener;
 public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalStatistics<T extends RealType<T>> implements Command {	//modal GUI
 
-	private static final String PLUGIN_LABEL            = "<html>Computes signal statistics</html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Signal statistics<b/></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String SIGNALMETHOD_LABEL      = "<html><b>---------- Signal Evaluation and Options ----------</b></html>";
-	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>--------------- Background Options ---------------</b></html>";
-	private static final String OPTIONS_LABEL           = "<html><b>-------------------- Options ---------------------</b></html>";
-	private static final String PROCESS_LABEL           = "<html><b>-------------------- Process ---------------------</b></html>";
+	private static final String SIGNALMETHOD_LABEL      = "<html><b>Signal evaluation</b></html>";
+	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";
+	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 
 	private static DefaultGenericTable  tableIn;
 
@@ -140,9 +140,6 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 
 	//@Parameter(type = ItemIO.INPUT)
 	//private DefaultGenericTable tableIn;
-	
-	@Parameter(type = ItemIO.INPUT)
-	private DefaultTableDisplay  defaultTableDisplay;
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableResult;
@@ -150,19 +147,22 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 
 	// Widget elements------------------------------------------------------
 
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelPlugin = PLUGIN_LABEL;
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelPlugin = PLUGIN_LABEL;
 
-	//@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	//private final String labelSpace = SPACE_LABEL;
+	
+	@Parameter(type = ItemIO.INPUT)
+	private DefaultTableDisplay  defaultTableDisplay;
 
 	//-----------------------------------------------------------------------------------------------------
-		@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-		private final String labelSignalType = SIGNALMETHOD_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelSignalType = SIGNALMETHOD_LABEL;
 
 	@Parameter(label = "Signal type",
 		description = "Entire signal, Subsequent boxes or Gliding box",
-		style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+		style = ChoiceWidget.LIST_BOX_STYLE,
 		choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
 		//persist  = false,  //restore previous value default = true
 		initializer = "initialSignalType",
@@ -191,16 +191,16 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private int spinnerInteger_BoxLength;
 
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelInterpolation = BACKGROUNDOPTIONS_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 	
 	@Parameter(label = "Remove zero values", persist = false,
 		       initializer = "initialRemoveZeroes", callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOptions = OPTIONS_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Delete existing result table",
 			   // persist = false, //restore previous value default = true
@@ -208,8 +208,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private boolean booleanDeleteExistingTable;
 
 	//************************************************************************
-	@Parameter(visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelProcess = PROCESS_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
 
 	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
 		       callback = "callbackPreview")
@@ -218,7 +218,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	@Parameter(label = "Process first column", callback = "callbackProcessActiveColumn")
 	private Button buttonProcessActiveColumn;
 
-	@Parameter(label = "Process all available columns", callback = "callbackProcessAllColumns")
+	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
 	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------

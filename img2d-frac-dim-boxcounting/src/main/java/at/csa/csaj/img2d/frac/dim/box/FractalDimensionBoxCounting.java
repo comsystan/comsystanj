@@ -100,12 +100,13 @@ import io.scif.MetaTable;
 public class FractalDimensionBoxCounting<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionBoxCounting<T extends RealType<T>> implements Command {	//modal GUI
 	
-	private static final String PLUGIN_LABEL = "Computes fractal dimension with box counting";
-	private static final String SPACE_LABEL = "";
-	private static final String REGRESSION_LABEL    = "-------------------------- Regression parameters --------------------------";
-	private static final String METHOD_LABEL = "-------------------------- Method parameters ---------------------------";
-	private static final String OPTIONS_LABEL       = "------------------------------------- Options -------------------------------------";
-	private static final String PROCESS_LABEL      = "------------------------------------- Process -------------------------------------";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with box counting</b></html>";
+	private static final String SPACE_LABEL             = "";
+	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Binary/Grey options</b></html>";
+	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
+	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
 	RandomAccessibleInterval<?> raiBox;
@@ -164,17 +165,15 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 
 	
    //Widget elements------------------------------------------------------
-    
-    @Parameter(visibility = ItemVisibility.MESSAGE,
-    		   persist = false)
-	private final String labelPlugin = PLUGIN_LABEL;
+	//-----------------------------------------------------------------------------------------------------
+    //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelPlugin = PLUGIN_LABEL;
 
-    @Parameter(visibility = ItemVisibility.MESSAGE,
-    		   persist = false)
-  	private final String labelSpace = SPACE_LABEL;
+    //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
+  	//private final String labelSpace = SPACE_LABEL;
     
-    @Parameter(visibility = ItemVisibility.MESSAGE,
-    		   persist = false)
+	//-----------------------------------------------------------------------------------------------------
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
     @Parameter(label = "Number of boxes:",
@@ -210,9 +209,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
     
-     @Parameter(visibility = ItemVisibility.MESSAGE,
-	            persist = false)
-     private final String labelMethod = METHOD_LABEL;
+	//-----------------------------------------------------------------------------------------------------
+     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+     private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
      @Parameter(label = "Method",
     		    description = "type of image and computation",
@@ -223,9 +222,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
                 callback = "callbackMethod")
      private String choiceRadioButt_Method;
      
-     @Parameter(visibility = ItemVisibility.MESSAGE,
-  		        persist = false)
-     private final String labelOptions = OPTIONS_LABEL;
+ 	//-----------------------------------------------------------------------------------------------------
+     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
     		    //persist  = false,  //restore previous value default = true
@@ -242,9 +241,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		        initializer = "initialDeleteExistingTable")
 	 private boolean booleanDeleteExistingTable;
      
-     @Parameter(visibility = ItemVisibility.MESSAGE,
-		        persist = false)
-     private final String labelProcess = PROCESS_LABEL;
+ 	//-----------------------------------------------------------------------------------------------------
+     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
+     private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
      @Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
 		       callback = "callbackPreview")

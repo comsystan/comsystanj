@@ -63,7 +63,7 @@ import javax.swing.UIManager;
 @Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Signal>Detect QRS Peaks")
 public class DetectQRSPeaks  implements Command, Previewable {
 	
-	private static final String PLUGIN_LABEL = "Detects QRS complexes and RR intervals";
+	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";
 	private static final String SPACE_LABEL = "";
   
 	@Parameter
@@ -93,11 +93,11 @@ public class DetectQRSPeaks  implements Command, Previewable {
 	private ExecutorService exec;
     
     //Widget elements------------------------------------------------------
-    
-    @Parameter(visibility = ItemVisibility.MESSAGE)
+	//-----------------------------------------------------------------------------------------------------
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE)
 	private final String labelPlugin = PLUGIN_LABEL;
 
-    @Parameter(visibility = ItemVisibility.MESSAGE)
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE)
   	private final String labelSpace = SPACE_LABEL;
     
     
@@ -121,14 +121,14 @@ public class DetectQRSPeaks  implements Command, Previewable {
     
     @Parameter(label = "Method",
     		   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		   choices = { "QRSDetect1", "QRSDetect2", "BeatDetectAndClassify"},
+    		   choices = { "QRSDetect1", "QRSDetect2", "BeatDetectAndClassify" },
     		   initializer = "initialMethod",
                callback = "callbackMethod")
     private String choiceRadioButt_Method;
 	
     @Parameter(label = "Output option",
     		   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		   choices = {"RRIntervals", "QRSPeaksCoordinates"},
+    		   choices = {"RRIntervals", "QRSPeaksCoordinates" },
     		   initializer = "initialOutputOption",
                callback = "callbackOutputOption")
     private String choiceRadioButt_OutputOption;
