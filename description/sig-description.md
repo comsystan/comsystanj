@@ -19,7 +19,7 @@
 - For ecg files (Holter chan.raw file)
 - The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
 - See https://github.com/MEDEVIT/OSEA-4-Java
-- Ref.: Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., https://doi.org/10.1109/TBME.1986.325695
+- Ref.: Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [https://doi.org/10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
 
 ### Detrended fluctuation analysis
 - Computes Detrended fluctuation analysis.
@@ -33,7 +33,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Peng et al., 1994, Phys.Rev.E., https://doi.org/10.1103/physreve.49.1685
+- Ref.: Peng et al., 1994, Phys.Rev.E., [https://doi.org/10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions of signals.
@@ -47,7 +47,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Higuchi, 1988, Physica D, https://doi.org/10.1016/0167-2789(88)90081-4
+- Ref.: Higuchi, 1988, Physica D, [https://doi.org/10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
 
 ### Sample entropy
 - Computes Sample or Approximate entropies of signals.
@@ -55,7 +55,7 @@
 - Note: Approximate entropy is not recommended for different signal lengths
 - m length of subsignals
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
-- d additional delay according to Govindan et.al., 2007, PhysicaA, https://doi.org/10.1016/j.physa.2006.10.077
+- d additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - kMax should not be larger than 1/3 of the box size
@@ -63,7 +63,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Richman & Moorman, 2000,Am.J.Physiol.Heart.Circ.Physiol., https://doi.org/10.1152/ajpheart.2000.278.6.H2039
+- Ref.: Richman & Moorman, 2000,Am.J.Physiol.Heart.Circ.Physiol., [https://doi.org/10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
 
 ### Signal statistics
 - Computes descriptive statistics of signals.
