@@ -596,7 +596,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		
 		// Compute result values
 		double[] resultValues = process(tableIn, s); 
-		// 0 Dh, 1 R2, 2 StdErr
+		// 0 Entropy
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(s, resultValues);
 		
@@ -627,7 +627,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 				
 				// Compute result values
 				double[] resultValues = process(tableIn, s);
-				// 0 Dh, 1 R2, 2 StdErr
+				// 0 Entropy
 				logService.info(this.getClass().getName() + " Processing finished.");
 				writeToTable(s, resultValues);
 	
@@ -661,7 +661,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		int tableColEnd   = 0;
 		int tableColLast  = 0;
 		
-		// 0 Dh, 1 R2, 2 StdErr
+		// 0 Entropy
 		// fill table with values
 		tableResult.appendRow();
 		tableResult.set(0, row, tableInName);//File Name
@@ -699,17 +699,15 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 			}	
 		} 
 		else if (choiceRadioButt_SignalType.equals("Subsequent boxes")){
-			//Dh R2 StdErr
 			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); // 2 parameters
+			tableColEnd = (int) (tableColStart + 1 * numSubsequentBoxes); //1 or 2  for 1 or 2 parameters
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
 				tableResult.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
 		else if (choiceRadioButt_SignalType.equals("Gliding box")){
-			//Dh R2 StdErr
 			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); // 2 parameters 
+			tableColEnd = (int) (tableColStart + 1 * numGlidingBoxes); //1 or 2 for 1 or 2 parameters 
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
 				tableResult.set(c, row, resultValues[c-tableColStart]);
 			}	
@@ -802,11 +800,11 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 				
 						if (choiceRadioButt_EntropyType.equals("Sample entropy")) {
 							se = new SampleEntropy(logService);
-							entropyValue = se.calcSampleEntropy(signal1D, numParamM, numParamR, numParamD);
+							entropyValue = se.calcSampleEntropy(surrSignal1D, numParamM, numParamR, numParamD);
 						}
 						else if (choiceRadioButt_EntropyType.equals("Approximate entropy")) {
 							ae = new ApproximateEntropy(logService);
-							entropyValue = ae.calcApproximateEntropy(signal1D, numParamM, numParamR, numParamD);
+							entropyValue = ae.calcApproximateEntropy(surrSignal1D, numParamM, numParamR, numParamD);
 						}
 						resultValues[lastMainResultsIndex + 2 + s] = entropyValue;
 						
@@ -835,11 +833,11 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 				if (subSignal1D.length > (numParamM * 2)) { // only data series which are large enough
 					if (choiceRadioButt_EntropyType.equals("Sample entropy")) {
 						se = new SampleEntropy(logService);
-						entropyValue = se.calcSampleEntropy(signal1D, numParamM, numParamR, numParamD);
+						entropyValue = se.calcSampleEntropy(subSignal1D, numParamM, numParamR, numParamD);
 					}
 					else if (choiceRadioButt_EntropyType.equals("Approximate entropy")) {
 						ae = new ApproximateEntropy(logService);
-						entropyValue = ae.calcApproximateEntropy(signal1D, numParamM, numParamR, numParamD);
+						entropyValue = ae.calcApproximateEntropy(subSignal1D, numParamM, numParamR, numParamD);
 					}
 					resultValues[i] = entropyValue;	
 				} 
@@ -864,11 +862,11 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 				if (subSignal1D.length > (numParamM * 2)) { // only data series which are large enough
 					if (choiceRadioButt_EntropyType.equals("Sample entropy")) {
 						se = new SampleEntropy(logService);
-						entropyValue = se.calcSampleEntropy(signal1D, numParamM, numParamR, numParamD);
+						entropyValue = se.calcSampleEntropy(subSignal1D, numParamM, numParamR, numParamD);
 					}
 					else if (choiceRadioButt_EntropyType.equals("Approximate entropy")) {
 						ae = new ApproximateEntropy(logService);
-						entropyValue = ae.calcApproximateEntropy(signal1D, numParamM, numParamR, numParamD);
+						entropyValue = ae.calcApproximateEntropy(subSignal1D, numParamM, numParamR, numParamD);
 					}
 					resultValues[i] = entropyValue;		
 				}
