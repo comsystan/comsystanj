@@ -8,13 +8,13 @@
 If you use ComsystanJ plugins and publish your work, please cite at least one of the following publications:
 
 ###### Image processing
-- Ahammer, PLoS ONE, 2011, DOI 10.1371/journal.pone.0024796
-- Ahammer etal., Chaos, 2015, DOI 10.1063/1.4923030
-- Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, DOI 10.1063/1.4958709
-- Kainz etal., PLoS ONE, 2015, DOI 10.1371/journal.pone.0116329
+- Ahammer, PLoS ONE, 2011, [https://doi.org10.1371/journal.pone.0024796](https://doi.org10.1371/journal.pone.0024796)
+- Ahammer etal., Chaos, 2015, [https://doi.org10.1063/1.4923030](https://doi.org10.1063/1.4923030)
+- Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [https://doi.org/10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
+- Kainz etal., PLoS ONE, 2015, [https://doi.org10.1371/journal.pone.0116329](https://doi.org10.1371/journal.pone.0116329)
 
 ###### Time series
-- Ahammer et al., Front.Physiol., 2018, DOI 10.3389/fphys.2018.00546
+- Ahammer et al., Front.Physiol., 2018, [https://doi.org10.3389/fphys.2018.00546](https://doi.org10.3389/fphys.2018.00546)
 
 ### Project descriptions
 - Processing 2D images [- Short description of plugins](description/img2-description.md) 
