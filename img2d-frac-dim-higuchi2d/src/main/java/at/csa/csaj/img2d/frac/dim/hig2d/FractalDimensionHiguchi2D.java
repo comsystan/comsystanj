@@ -104,7 +104,7 @@ import io.scif.MetaTable;
  * A {@link Command} plugin computing <the 2D Higuchi dimension</a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Image(2D)-Fractal>Fractal Dimension Higuchi2D")
+@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal Dimension Higuchi2D")
 public class FractalDimensionHiguchi2D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class FractalDimensionHiguchi2D<T extends RealType<T>> implements Command {	//modal GUI
 

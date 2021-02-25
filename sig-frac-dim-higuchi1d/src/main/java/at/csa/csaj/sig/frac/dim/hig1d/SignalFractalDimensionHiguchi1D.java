@@ -72,7 +72,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin computing <the Higuchi dimension</a>
  * of a  signal.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal-Fractal>Fractal Dimension Higuchi")
+@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Fractal Dimension Higuchi")
 public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
 
