@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for computing the Kolmogorov complexity and the Logical depth
+ * Project: ImageJ signal plugin for computing the Kolmogorov complexity and Logical depth
  * File: SignalKolmogorovComplexity.java
  * 
  * $Id$

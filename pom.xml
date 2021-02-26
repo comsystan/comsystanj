@@ -22,6 +22,7 @@
 		<module>img2d-frac-dim-higuchi1d</module>
 		<module>img2d-frac-dim-higuchi2d</module>
 		<module>img2d-frac-dim-pyramid</module>
+		<module>img2d-kc</module>
 		<module>sig-detect-qrspeaks</module>
 		<module>sig-dfa</module>
 		<module>sig-frac-dim-Higuchi1d</module>

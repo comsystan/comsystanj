@@ -13,12 +13,12 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-sig-kc</artifactId>
+	<artifactId>comsystanj-private-img2d-kc</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
-	<name>Signal - Kolmogorov complexity</name>
-	<description>ImageJ signal plugin for computing the Kolmogorov complexity and Logical depth</description>
+	<name>Image(2D) - Kolmogorov Complexity</name>
+	<description>ImageJ plugin for computing Kolmogorov complexity and Logical depth.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>
@@ -50,7 +50,12 @@
 	</developers>
 	<contributors>
 		<contributor>
-		    <name>Helmut Ahammer</name>
+			<name>Helmut Ahammer</name>
+			<url></url>
+			<properties><id></id></properties>
+		</contributor>
+		<contributor>
+			<name>Ion Andronache</name>
 			<url></url>
 			<properties><id></id></properties>
 		</contributor>
@@ -78,8 +83,8 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>at.csa.csaj.sig.kc</package-name>
-		<main-class>at.csa.csaj.sig.kc.SignalKolmogorovComplexity</main-class>
+		<package-name>at.csa.csaj.img2d.kc</package-name>
+		<main-class>at.csa.csaj.img2d.kc.KolmogorovComplexity</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>
@@ -94,12 +99,8 @@
 	<dependencies>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
-			<artifactId>comsystanj-sig-opener</artifactId>
+			<artifactId>comsystanj-commons</artifactId>
 			<version>29.2.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
