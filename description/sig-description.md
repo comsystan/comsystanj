@@ -49,8 +49,15 @@
   - The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Higuchi, 1988, Physica D, [https://doi.org/10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
 
+### Kolmogorov complexity and Logical Depth
+- KC is estiamted by compressing data bytes (ZLIB, GZIB)
+- LD is estimated by the decompression time
+- Iterations should be set to as high a value as possible
+- LD values should be taken with caution, as computers are not well suited to measure times
+- Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+
 ### Sample entropy
-- Computes Sample or Approximate entropies of signals.
+- Computes Sample or Approximate entropies of signals
 - Signals should be opened with the CSAJ Signal Opener
 - Note: Approximate entropy is not recommended for different signal lengths
 - m length of subsignals
