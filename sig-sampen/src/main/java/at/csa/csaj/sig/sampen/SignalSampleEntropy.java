@@ -161,15 +161,15 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelRegression = ENTROPYTYPE_LABEL;
+	private final String labelEntropyType = ENTROPYTYPE_LABEL;
 	
 	@Parameter(label = "Entropy type",
 			description = "Sample entropy or Approximate entropy",
-			style = ChoiceWidget.LIST_BOX_STYLE,
+			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"Sample entropy", "Approximate entropy"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalType",
-			callback = "callbackSignalType")
+			initializer = "initialEntropyType",
+			callback = "callbackEntropyType")
 		private String choiceRadioButt_EntropyType;
 
 	@Parameter(label = "m:", description = "parameter m", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
@@ -534,15 +534,16 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		tableResult = new DefaultGenericTable();
 		tableResult.add(new GenericColumn("File name"));
 		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new IntColumn("m"));
-		tableResult.add(new FloatColumn("r"));
-		tableResult.add(new IntColumn("d"));
 		tableResult.add(new GenericColumn("Signal type"));
 		tableResult.add(new GenericColumn("Surrogate type"));
 		tableResult.add(new IntColumn("# Surrogates"));
 		tableResult.add(new IntColumn("Box length"));
 		tableResult.add(new BoolColumn("Zeroes removed"));
 	
+		tableResult.add(new IntColumn("m"));
+		tableResult.add(new FloatColumn("r"));
+		tableResult.add(new IntColumn("d"));
+		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalType.equals("Entire signal")){
 			tableResult.add(new DoubleColumn(entropyHeader));		
@@ -666,22 +667,24 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		tableResult.appendRow();
 		tableResult.set(0, row, tableInName);//File Name
 		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
-		tableResult.set(2, row, spinnerInteger_ParamM); // ParamM
-		tableResult.set(3, row, spinnerFloat_ParamR); //ParamR
-		tableResult.set(4, row, spinnerInteger_ParamD); //ParamD	
-		tableResult.set(5, row, choiceRadioButt_SignalType); //Signal Method
-		tableResult.set(6, row, choiceRadioButt_SurrogateType); //Surrogate Method
+	
+		tableResult.set(2, row, choiceRadioButt_SignalType); //Signal Method
+		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SignalType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
-			tableResult.set(7, row, spinnerInteger_NumSurrogates); //# Surrogates
+			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
-			tableResult.set(7, row, null); //# Surrogates
+			tableResult.set(4, row, null); //# Surrogates
 		}
 		if (!choiceRadioButt_SignalType.equals("Entire signal")){
-			tableResult.set(8, row, spinnerInteger_BoxLength); //Box Length
+			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
-			tableResult.set(8, row, null);
+			tableResult.set(5, row, null);
 		}	
-		tableResult.set(9, row, booleanRemoveZeroes); //Zeroes removed
+		tableResult.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		
+		tableResult.set(7, row, spinnerInteger_ParamM); // ParamM
+		tableResult.set(8, row, spinnerFloat_ParamR); //ParamR
+		tableResult.set(9, row, spinnerInteger_ParamD); //ParamD		
 		tableColLast = 9;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
@@ -759,6 +762,10 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
+		
+		//int numActualRows = 0;
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
+		
 		SampleEntropy      se;
 		ApproximateEntropy ae;
 		double entropyValue = Double.NaN;
