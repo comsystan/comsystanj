@@ -13,7 +13,7 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-private-img2d-kc</artifactId>
+	<artifactId>comsystanj-img2d-kc</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
