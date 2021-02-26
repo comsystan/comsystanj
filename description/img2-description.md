@@ -7,7 +7,8 @@
 - Midpoint displacement MPD method is supported.
 
 ### Kolmogorov complexity and Logical Depth
-- KC is estimated by the memory size of compressed images saved to disk.
+- KC is estimated by the memory size of compressed images saved to disk (LZW, PNG, J2K, JPG)
+- KC is estiamted by compressing data bytes (ZLIB, GZIB)
 - For 8-bit grey value images.
 - RGB color images may also work, but not tested.
 - Lossless and lossy algorithms can be chosen.
