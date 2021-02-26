@@ -49,7 +49,7 @@
   - The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Higuchi, 1988, Physica D, [https://doi.org/10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
 
-### Kolmogorov complexity and Logical Depth
+### Kolmogorov complexity and Logical depth
 - KC is estiamted by compressing data bytes (ZLIB, GZIB)
 - LD is estimated by the decompression time
 - Iterations should be set to as high a value as possible
