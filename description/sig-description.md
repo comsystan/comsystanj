@@ -72,6 +72,18 @@
   - The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Richman & Moorman, 2000,Am.J.Physiol.Heart.Circ.Physiol., [https://doi.org/10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
 
+### Signal gnerator
+- Generates signals or plots of floating values (dot decimal numbers)
+- Generates a table for further processing
+- Table can be exported as comma delimited text file
+- Optionaly generates a plot display of signals
+- Common signal shapes (sine, Square,...) are supported
+- Gaussian an Uniform noise signals are supported
+- Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM are supported
+- Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM are supported
+- Ref.: Eke et.al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
+
+
 ### Signal statistics
 - Computes descriptive statistics of signals.
 - Signals should be opened with the CSAJ Signal Opener
