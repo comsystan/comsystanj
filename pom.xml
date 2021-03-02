@@ -27,6 +27,7 @@
 		<module>sig-dfa</module>
 		<module>sig-frac-dim-Higuchi1d</module>
 		<module>sig-kc</module>
+		<module>sig-generator</module>
 		<module>sig-opener</module>
 		<module>sig-sampen</module>
 		<module>sig-statistics</module>
