@@ -93,12 +93,14 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 	//No widget
 	
 	/**
-	 * This runs a signal(s) open routine
+	 * This runs a signal(s) openening routine
 	 * __________________________________________________________________________________
-	 * WARNING: Each column of the file must have the same number of rows.
-	 * If actual column's row number is shorter, it must be filled up with "999.999"
-	 * These numbers will be ignored by Chart displays
-	 * These numbers will be ignored by Signal Processing Plugins.
+	 * WARNING:
+	 * Data values must be floating numbers
+	 * Each column of the file must have the same number of rows.
+	 * If actual column's row number is shorter, it must be filled up with NaN
+	 * NaNs will be ignored by Chart displays
+	 * NaNs will be ignored by Signal Processing Plugins.
 	 * __________________________________________________________________________________
 	 *  
      * @param args whatever, it's ignored
