@@ -72,11 +72,11 @@
   - The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Richman & Moorman, 2000,Am.J.Physiol.Heart.Circ.Physiol., [https://doi.org/10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
 
-### Signal gnerator
-- Generates signals or plots of floating values (dot decimal numbers)
+### Signal generator
+- Generates signals of floating values (dot decimal numbers)
 - Generates a table for further processing
 - Table can be exported as comma delimited text file
-- Optionaly generates a plot display of signals
+- Optionally generates a plot display of signals
 - Common signal shapes (sine, Square,...) are supported
 - Gaussian an Uniform noise signals are supported
 - Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM are supported
