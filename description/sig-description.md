@@ -77,11 +77,12 @@
 - Generates a table for further processing
 - Table can be exported as comma delimited text file
 - Optionally generates a plot display of signals
-- Common signal shapes (sine, Square,...) are supported
-- Gaussian an Uniform noise signals are supported
-- Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM are supported
-- Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM are supported
-- Ref.: Eke et.al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
+- Following signal types are supported:
+  - Constant, Sine, Square, Triangle, Sawtooth
+  - Gaussian an Uniform noise
+  - Discrete chaotical maps (Logistic, Henon, Cubic, Spence) Silva & Murta Jr., 2012, Chaos, [http://dx.doi.org/10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
+  - Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM
+  - Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM Eke et.al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
 
 
 ### Signal statistics
