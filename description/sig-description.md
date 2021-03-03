@@ -60,12 +60,12 @@
 - Computes Sample or Approximate entropies of signals
 - Signals should be opened with the CSAJ Signal Opener
 - Note: Approximate entropy is not recommended for different signal lengths
-- m length of subsignals
+- m length of subsignals (m=2 is often used)
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
 - d additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
-  - kMax should not be larger than 1/3 of the box size
+  - m should not be larger than 1/3 of the box size
   - the box size should not be larger than 1/3 of the signal length 
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
