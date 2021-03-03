@@ -89,6 +89,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     @Parameter
     private IOService ioService;
     
+    WaitingDialogWithProgressBar dlgProgress;
+    
     
     //Widget elements------------------------------------------------------
   //-----------------------------------------------------------------------------------------------------
@@ -100,7 +102,7 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     
     @Parameter(label = "Method",
  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
- 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "fGn", "fBm"},
+ 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm"},
                callback = "changedMethod")
     private String choiceRadioButt_Method;
     
@@ -122,7 +124,7 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     		   callback = "changedNumDataPoints")
     private int spinnerInteger_NumDataPoints;
     
-    @Parameter(label = "Constant signal level:",
+    @Parameter(label = "(Constant) Signal level",
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "0",
 	  		   max = "9999999999999999999999999999999",
@@ -131,7 +133,7 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	  		   callback = "changedConstant")
     private int spinnerInteger_Constant;
     
-    @Parameter(label = "Number of periods",
+    @Parameter(label = "(Sine) periods",
  		       style = NumberWidget.SPINNER_STYLE,
  		       min = "1",
  		       max = "32768",
@@ -140,7 +142,25 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
  		       callback = "changedNumPeriods")
     private int spinnerInteger_NumPeriods;
     
-    @Parameter(label = "Hurst [0,1]:",
+    @Parameter(label = "(Logistic/Henon/Cubic) a",
+		       style = NumberWidget.SPINNER_STYLE,
+		       min = "0",
+		       max = "9999999999999999999999",
+		       initializer = "initialParamA",
+		       stepSize = "0.1",
+		       callback = "changedParamA")
+    private float spinnerFloat_ParamA;
+    
+    @Parameter(label = "(Henon) b",
+		       style = NumberWidget.SPINNER_STYLE,
+		       min = "0",
+		       max = "9999999999999999999999",
+		       initializer = "initialParamB",
+		       stepSize = "0.1",
+		       callback = "changedParamB")
+    private float spinnerFloat_ParamB;
+    
+    @Parameter(label = "(fGn/fBm) Hurst [0,1]",
 		       style = NumberWidget.SPINNER_STYLE,
 		       min = "0",
 		       max = "1",
@@ -173,11 +193,17 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     	spinnerInteger_NumPeriods = 10;
     }
     
+    protected void initialParamA() {
+    	spinnerFloat_ParamA = 4f;
+    }
+    
+    protected void initialParamB() {
+    	spinnerFloat_ParamB = 0.3f;
+    }
+    
     protected void initialHurst() {
     	spinnerFloat_Hurst = 0.5f;
     }
-    
-   
     
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
@@ -186,6 +212,20 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
 	protected void changedMethod() {
 		logService.info(this.getClass().getName() + " Method changed to " + choiceRadioButt_Method);
+		if       (choiceRadioButt_Method.equals("Logistic")) {
+			spinnerFloat_ParamA = 4f;
+			changedParamA();
+		}
+		else if  (choiceRadioButt_Method.equals("Henon")) {
+			spinnerFloat_ParamA = 1.4f;
+			spinnerFloat_ParamB = 0.3f;
+			changedParamA();
+			changedParamB();
+		}
+		else if  (choiceRadioButt_Method.equals("Cubic")) {
+			spinnerFloat_ParamA = 3f;
+			changedParamA();
+		}
 	}
 	
 	protected void changedNumSignals() {
@@ -204,6 +244,16 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	/** Executed whenever the {@link #spinInteger_NumPeriods} parameter changes. */
 	protected void changedNumPeriods() {
 		logService.info(this.getClass().getName() + " Number of periods changed to " + spinnerInteger_NumPeriods);
+	}
+	
+	/** Executed whenever the {@link #spinFloat_ParamA} parameter changes. */
+	protected void changedParamA() {
+		logService.info(this.getClass().getName() + " Parameter a changed to " + spinnerFloat_ParamA);
+	}
+	
+	/** Executed whenever the {@link #spinFloat_ParamB} parameter changes. */
+	protected void changedParamB() {
+		logService.info(this.getClass().getName() + " Parameter b changed to " + spinnerFloat_ParamB);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_Hurst} parameter changes. */
@@ -225,10 +275,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
  	}
  	
  	/**
- 	 * 
- 	 * @param dlgProgress
  	 */
- 	private void computeConstantSignals(WaitingDialogWithProgressBar dlgProgress) {
+ 	private void computeConstantSignals() {
  	        
  	  	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
  	  	
@@ -257,10 +305,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
  	}
  	
  	/**
- 	 * 
- 	 * @param dlgProgress
  	 */
-    private void computeSineSignals(WaitingDialogWithProgressBar dlgProgress) {
+    private void computeSineSignals() {
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	double amplitude = 1.0;
@@ -299,10 +345,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	}
     
     /**
-     * 
-     * @param dlgProgress
      */
-    private void computeSquareSignals(WaitingDialogWithProgressBar dlgProgress) {
+    private void computeSquareSignals() {
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	double amplitude = 1.0;
@@ -341,10 +385,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	}
    
     /**
-     * 
-     * @param dlgProgress
      */
-    private void computeTriangleSignals(WaitingDialogWithProgressBar dlgProgress) {
+    private void computeTriangleSignals() {
    	
 	   	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
 	   	double amplitude = 1.0;
@@ -383,10 +425,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	}
    
    /**
-    * 
-    * @param dlgProgress
     */
-   private void computeSawToothSignals(WaitingDialogWithProgressBar dlgProgress) {
+   private void computeSawToothSignals() {
    	
    	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
    	double amplitude = 1.0;
@@ -425,10 +465,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	}
     
     /**
-     * 
-     * @param dlgProgress
      */
-    private void computeGaussianSignals(WaitingDialogWithProgressBar dlgProgress) {
+    private void computeGaussianSignals() {
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
@@ -461,10 +499,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     }
     
     /**
-     * 
-     * @param dlgProgress
      */
-    private void computeUniformSignals(WaitingDialogWithProgressBar dlgProgress) {
+    private void computeUniformSignals() {
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
@@ -495,14 +531,256 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     }
     
     /**
-     * Generates fGn signals using Davis and Harte autocorrelation method DHM 
+     * <b>DCM discrete chaotic map</b><br>
+     * According to Silva & Murta Jr Evaluation of physiologic complexity in time series
+     * using generalized sample entropy and surrogate data analysis. Chaos 22, 2012
      * 
-     * @param dlgProgress
+     * This method computes a logistic signal
+     * 
      */
-    
-    private void computefGnSignals(WaitingDialogWithProgressBar dlgProgress) {
+    private void computeLogisticSignals() {
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
+    	Random generator = new Random();
+    	double amplitude = 1.0;
+    	
+    	double valueX;
+    
+ 	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
+
+ 	  		int percent = (int)Math.round((  ((float)c)/((float)spinnerInteger_NumSignals) * 100.f ));
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((c), (int)spinnerInteger_NumSignals, "Processing " + (c+1) + "/" + (int)spinnerInteger_NumSignals);
+			logService.info(this.getClass().getName() + " Processing " + (c+1) + "/" + spinnerInteger_NumSignals);
+ 
+			long startTime = System.currentTimeMillis();
+ 	  		defaultGenericTable.setColumnHeader(c, "Signal_" + (String.format("%03d",(c +1))));
+ 	  		
+ 	  		//computation
+ 	  		//set first data point randomly
+ 			//range[c][0] = (double)0.0d + 1.0d;
+ 	  		valueX = (generator.nextDouble() + 0.0000001d);
+ 	  		
+ 		   //skip first 50 points to be attracted to the attractor
+ 	  		for (int r = 0; r < 50; r++) { //r
+ 	  			valueX = (spinnerFloat_ParamA * valueX * (1.0d - valueX));
+ 	  		}
+ 	  		
+ 	  		defaultGenericTable.set(c, 0, valueX);
+	 	  	for (int r = 1; r < spinnerInteger_NumDataPoints; r++) { //rows
+	 	  		defaultGenericTable.set(c, r, (spinnerFloat_ParamA * (double)defaultGenericTable.get(c, r - 1) * (1.0d - (double)defaultGenericTable.get(c, r - 1))));
+	 	  		//range[c][r] = ((double)r + 1.0d);
+	 	  	}
+	 	  	
+	 	  	if (amplitude != 1.0) {
+		 		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { 
+		 	  		defaultGenericTable.set(c, r, amplitude*(double)defaultGenericTable.get(c, r));
+		 	  	}
+	 	  	}
+	 	  	
+	 	  	long duration = System.currentTimeMillis() - startTime;
+			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			sdf.applyPattern("HHH:mm:ss:SSS");
+			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+ 	  	}     
+    }
+    
+    /**
+     * <b>DCM discrete chaotic map</b><br>
+     * According to Silva & Murta Jr Evaluation of physiologic complexity in time series
+     * using generalized sample entropy and surrogate data analysis. Chaos 22, 2012
+     * 
+     * This method computes a Henon signal
+     * 
+     */
+    private void computeHenonSignals() {
+    	
+    	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
+    	Random generator = new Random();
+    	double amplitude = 1.0;
+    	//double[] signalX; //X coordinate of  Henon map
+    	
+    	double valueXOld; 
+    	double valueXNew; 
+    	double valueY;
+    
+ 	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
+
+ 	  		int percent = (int)Math.round((  ((float)c)/((float)spinnerInteger_NumSignals) * 100.f ));
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((c), (int)spinnerInteger_NumSignals, "Processing " + (c+1) + "/" + (int)spinnerInteger_NumSignals);
+			logService.info(this.getClass().getName() + " Processing " + (c+1) + "/" + spinnerInteger_NumSignals);
+ 
+			long startTime = System.currentTimeMillis();
+ 	  		defaultGenericTable.setColumnHeader(c, "Signal_" + (String.format("%03d",(c +1))));
+ 	  		
+	  		//computation
+ 	  		//set first data point randomly
+ 			//range[c][0] = (double)0.0d + 1.0d;
+ 	  		//signalY = new double[spinnerInteger_NumDataPoints];
+ 	  		//signalY[0] = 0; //a random signalX starting point can be outside the basin of attraction, so the maps can drift away to -infinity // = amplitude * (generator.nextDouble());
+ 	  		valueXOld = (generator.nextDouble() + 0.0000001d);
+ 	  		valueY = 0; //a random Y starting point can be outside the basin of attraction, so the maps can drift away to -infinity // = amplitude * (generator.nextDouble());
+ 	  		
+ 	  	   //skip first 50 points to be attracted to the attractor
+ 	  		for (int r = 0; r < 50; r++) { //r
+ 	  			valueXNew = 1.0 - spinnerFloat_ParamA*(valueXOld*valueXOld) + valueY;
+ 	  			valueY = spinnerFloat_ParamB*valueXOld;
+ 	  			valueXOld = valueXNew;
+ 	  		}
+ 	  	
+ 	  		defaultGenericTable.set(c, 0, valueXOld);
+	 	  	for (int r = 1; r < spinnerInteger_NumDataPoints; r++) { //rows skip first 50 points to be attracted t othe attractor
+	 	  		defaultGenericTable.set(c, r, (valueY + 1.0d - (spinnerFloat_ParamA*(double)defaultGenericTable.get(c, r - 1)*(double)defaultGenericTable.get(c, r - 1))));
+	 	  		valueY = (spinnerFloat_ParamB * (double)defaultGenericTable.get(c, r - 1));
+	 	  		//signalX[r] = amplitude*(spinnerFloat_ParamB * (double)defaultGenericTable.get(c, r - 1));
+	 	  		//range[c][r] = ((double)r + 1.0d);
+	 	  	}
+	 	  	
+	 	  	if (amplitude != 1.0) {
+		 		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { 
+		 	  		defaultGenericTable.set(c, r, amplitude*(double)defaultGenericTable.get(c, r));
+		 	  	}
+	 	  	}
+	 	  	
+	 	  	//signalX = null;
+	 	  	long duration = System.currentTimeMillis() - startTime;
+			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			sdf.applyPattern("HHH:mm:ss:SSS");
+			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+ 	  	}     
+    }
+    
+    /**
+     * <b>DCM discrete chaotic map</b><br>
+     * According to Silva & Murta Jr Evaluation of physiologic complexity in time series
+     * using generalized sample entropy and surrogate data analysis. Chaos 22, 2012
+     * 
+     * This method computes a cubic signal
+     * 
+     */
+    private void computeCubicSignals() {
+    	
+    	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
+    	Random generator = new Random();
+    	double amplitude = 1.0;
+    	double valueX;
+    
+ 	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
+
+ 	  		int percent = (int)Math.round((  ((float)c)/((float)spinnerInteger_NumSignals) * 100.f ));
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((c), (int)spinnerInteger_NumSignals, "Processing " + (c+1) + "/" + (int)spinnerInteger_NumSignals);
+			logService.info(this.getClass().getName() + " Processing " + (c+1) + "/" + spinnerInteger_NumSignals);
+ 
+			long startTime = System.currentTimeMillis();
+ 	  		defaultGenericTable.setColumnHeader(c, "Signal_" + (String.format("%03d",(c +1))));
+	  		
+ 	  		//computation
+ 	  		//set first data point randomly
+ 			//range[c][0] = (double)0.0d + 1.0d;
+ 	  		
+	  		valueX = (generator.nextDouble() + 0.0000001d);
+ 	  		
+ 		   //skip first 50 points to be attracted to the attractor
+ 	  		for (int r = 0; r < 50; r++) { //r
+ 	  			valueX = (spinnerFloat_ParamA * valueX * (1.0d - valueX*valueX));
+ 	  		}
+ 	  		
+ 	  		defaultGenericTable.set(c, 0, valueX);
+	 	  	for (int r = 1; r < spinnerInteger_NumDataPoints; r++) { //rows
+	 	  		defaultGenericTable.set(c, r, (spinnerFloat_ParamA * (double)defaultGenericTable.get(c, r - 1) * (1.0d - (double)defaultGenericTable.get(c, r - 1)*(double)defaultGenericTable.get(c, r - 1))));
+	 	  		//range[c][r] = ((double)r + 1.0d);
+	 	  	}
+	 	  	
+	 		if (amplitude != 1.0) {
+		 		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { 
+		 	  		defaultGenericTable.set(c, r, amplitude*(double)defaultGenericTable.get(c, r));
+		 	  	}
+	 	  	}
+	 	  	
+	 	  	long duration = System.currentTimeMillis() - startTime;
+			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			sdf.applyPattern("HHH:mm:ss:SSS");
+			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+ 	  	}     
+    }
+    
+    /**
+     * <b>DCM discrete chaotic map</b><br>
+     * According to Silva & Murta Jr Evaluation of physiologic complexity in time series
+     * using generalized sample entropy and surrogate data analysis. Chaos 22, 2012
+     * 
+     * This method computes a Spence signal
+     * 
+     */
+    private void computeSpenceSignals() {
+    	
+    	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
+    	Random generator = new Random();
+    	double amplitude = 1.0;
+    	double valueX;
+    
+ 	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
+
+ 	  		int percent = (int)Math.round((  ((float)c)/((float)spinnerInteger_NumSignals) * 100.f ));
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((c), (int)spinnerInteger_NumSignals, "Processing " + (c+1) + "/" + (int)spinnerInteger_NumSignals);
+			logService.info(this.getClass().getName() + " Processing " + (c+1) + "/" + spinnerInteger_NumSignals);
+ 
+			long startTime = System.currentTimeMillis();
+ 	  		defaultGenericTable.setColumnHeader(c, "Signal_" + (String.format("%03d",(c +1))));
+	  		
+ 	  		//computation
+ 	  		//set first data point randomly
+ 			//range[c][0] = (double)0.0d + 1.0d;
+ 	  		
+	  		valueX = (generator.nextDouble() + 0.0000001d);
+ 	  		
+ 		   //skip first 50 points to be attracted to the attractor
+ 	  		for (int r = 0; r < 50; r++) { //r
+ 	  			valueX = Math.abs(Math.log(valueX));
+ 	  		}
+ 	  		
+ 	  		defaultGenericTable.set(c, 0, valueX);
+	 	  	for (int r = 1; r < spinnerInteger_NumDataPoints; r++) { //rows
+	 	  		defaultGenericTable.set(c, r, (Math.abs(Math.log((double)defaultGenericTable.get(c, r - 1)))));
+	 	  		//range[c][r] = ((double)r + 1.0d);
+	 	  	}
+	 	  	
+	 		if (amplitude != 1.0) {
+		 		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { 
+		 	  		defaultGenericTable.set(c, r, amplitude*(double)defaultGenericTable.get(c, r));
+		 	  	}
+	 	  	}
+	  	
+	 	  	long duration = System.currentTimeMillis() - startTime;
+			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			sdf.applyPattern("HHH:mm:ss:SSS");
+			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+ 	  	}     
+    }
+    
+    /**
+     * Generates fGn signals using Davis and Harte autocorrelation method DHM 
+     */
+    
+    private void computefGnSignals() {
+    	
+    	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
+    	double amplitude = 1.0;
     	
     	int M = spinnerInteger_NumDataPoints * 2;
 		double[]   signalAC;
@@ -554,8 +832,9 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 // 				signal = this.convert_fGnTofBm(signal);
 // 			}
 	 	  	for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { //rows
-	 	  		defaultGenericTable.set(c, r, signal[r]);
+	 	  		defaultGenericTable.set(c, r, amplitude * signal[r]);
 	 	  	}
+	 	  
 	 	  	long duration = System.currentTimeMillis() - startTime;
 			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 			SimpleDateFormat sdf = new SimpleDateFormat();
@@ -566,13 +845,12 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     
     /**
      * Generates fBm signals using spectral synthesis method SSM
-     * 
-     * @param dlgProgress
      */
-    private void computefBmSignals(WaitingDialogWithProgressBar dlgProgress) { 
+    private void computefBmSignals() { 
     	
 	  	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
-	    	
+	    double amplitude = 1.0;	
+	  	
 	  	int M = (2 * spinnerInteger_NumDataPoints) * 4; // 2* because of DFT halves the number, *2 or *4 is not so memory intensive than *8 as suggested by Caccia et al 1997
 		double beta = 2.0d * spinnerFloat_Hurst + 1.0d;
 		double[] signalReal;
@@ -649,8 +927,10 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 //			}
  	  		  		
 	 	  	for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { //rows
-	 	  		defaultGenericTable.set(c, r, signal[r]);
+	 	  		defaultGenericTable.set(c, r, amplitude * signal[r]);
 	 	  	}
+	 		
+	 	 	
 	 		long duration = System.currentTimeMillis() - startTime;
 			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 			SimpleDateFormat sdf = new SimpleDateFormat();
@@ -903,8 +1183,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     		
     	long startTimeAll = System.currentTimeMillis();
    
-    	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Signal generation, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Signal generation, please wait... Open console window for further info.",
+    	//dlgProgress = new WaitingDialogWithProgressBar("<html>Signal generation, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Signal generation, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 
 		//dlgProgress.updatePercent("0%");
@@ -913,17 +1193,21 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 		dlgProgress.setVisible(true);
 	
     	logService.info(this.getClass().getName() + " Processing all available images");
-    	//"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform"
+    	//"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm"
     	//generate this.defaultGenericTable = new DefaultGenericTable();
-		if (choiceRadioButt_Method.equals("Constant")) computeConstantSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("Sine"))     computeSineSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("Square"))   computeSquareSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("Triangle")) computeTriangleSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("SawTooth")) computeSawToothSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("Gaussian")) computeGaussianSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("Uniform"))  computeUniformSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("fGn"))      computefGnSignals(dlgProgress);
-		if (choiceRadioButt_Method.equals("fBm"))      computefBmSignals(dlgProgress);
+		if      (choiceRadioButt_Method.equals("Constant")) computeConstantSignals();
+		else if (choiceRadioButt_Method.equals("Sine"))     computeSineSignals();
+		else if (choiceRadioButt_Method.equals("Square"))   computeSquareSignals();
+		else if (choiceRadioButt_Method.equals("Triangle")) computeTriangleSignals();
+		else if (choiceRadioButt_Method.equals("SawTooth")) computeSawToothSignals();
+		else if (choiceRadioButt_Method.equals("Gaussian")) computeGaussianSignals();
+		else if (choiceRadioButt_Method.equals("Uniform"))  computeUniformSignals();
+		else if (choiceRadioButt_Method.equals("Logistic")) computeLogisticSignals();
+		else if (choiceRadioButt_Method.equals("Henon"))    computeHenonSignals();
+		else if (choiceRadioButt_Method.equals("Cubic"))    computeCubicSignals();
+		else if (choiceRadioButt_Method.equals("Spence"))   computeSpenceSignals();
+		else if (choiceRadioButt_Method.equals("fGn"))      computefGnSignals();
+		else if (choiceRadioButt_Method.equals("fBm"))      computefBmSignals();
 	
 		
 		int percent = (100);
