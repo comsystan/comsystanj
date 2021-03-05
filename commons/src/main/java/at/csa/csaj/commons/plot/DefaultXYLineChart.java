@@ -168,8 +168,10 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 		this.setLayout(new BorderLayout());
 		this.add(this.chartPanel, BorderLayout.CENTER);
 	}
+	
+	
 		@SuppressWarnings("rawtypes")
-	public DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
+	public DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String imageTitle, String xLabel, String yLabel, String legendLabel) {
 
 		this.isLineVisible = isLineVisible;
 		this.imageTitle = imageTitle;
@@ -178,7 +180,7 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
-		XYDataset dataset = this.createXYDataset(dataX, dataY, yLabel);
+		XYDataset dataset = this.createXYDataset(dataX, dataY, legendLabel);
 		this.chartPanel.setChart(createChart(dataset));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
@@ -202,10 +204,15 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 	 */
 	@SuppressWarnings("rawtypes")
 	public DefaultXYLineChart(double[] dataX, double[][] dataY, boolean isLineVisible, String imageTitle, String xLabel,
-			String yLabel, String[] seriesNames) {
+			String yLabel, String[] legendLabels) {
+		
+		this.isLineVisible = isLineVisible;
+		this.imageTitle = imageTitle;
+		this.xLabel = xLabel;
+		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
-		XYDataset dataset = this.createXYDataset(dataX, dataY, seriesNames);
+		XYDataset dataset = this.createXYDataset(dataX, dataY, legendLabels);
 		this.chartPanel.setChart(createChart(dataset));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
@@ -258,7 +265,7 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 
 	@SuppressWarnings("rawtypes")
 	public DefaultXYLineChart(double[] dataX, double[][] dataY, double[] dataX2, double[][] dataY2, boolean isLineVisible,
-			String imageTitle, String xLabel, String yLabel, String[] colNames) {
+			String imageTitle, String xLabel, String yLabel, String[] legendLabels) {
 
 		this.isLineVisible = isLineVisible;
 		this.imageTitle = imageTitle;
@@ -267,11 +274,11 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
-		XYDataset xyDataset = this.createXYDataset(dataX, dataY, colNames);
+		XYDataset xyDataset = this.createXYDataset(dataX, dataY, legendLabels);
 		//	this.chartPanel.setChart(createChart(xyDataset));
 		//	this.chartPanel.setChart(createChart2(0, xyDataset));
 
-		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, colNames);
+		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, legendLabels);
 
 		this.chartPanel.setChart(createChart(xyDataset, xyDataset2));
 
@@ -462,7 +469,7 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 	 * @return the xySeriesColl
 	 */
 	@SuppressWarnings({ "rawtypes" })
-	private XYDataset createXYDataset(double[] dataX, double[][] dataY, String[] seriesNames) {
+	private XYDataset createXYDataset(double[] dataX, double[][] dataY, String[] legendLabels) {
 
 		XYSeries[] s = new XYSeries[dataY.length];
 		XYSeriesCollection xySeriesColl = null;
@@ -470,7 +477,7 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 		colSeries1 = Color.black;
 		for (int v = 0; v < dataY.length; v++)
 			//s[v] = new XYSeries("Series " + (v + 1)); // several data series
-			s[v] = new XYSeries(seriesNames[v]); // several data series
+			s[v] = new XYSeries(legendLabels[v]); // several data series
 			//s = new XYSeries("");
 		xySeriesColl = new XYSeriesCollection();
 		for (int v = 0; v < dataY.length; v++) {

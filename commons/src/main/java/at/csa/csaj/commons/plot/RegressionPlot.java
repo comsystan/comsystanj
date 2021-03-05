@@ -83,21 +83,21 @@ public class RegressionPlot extends DefaultXYLineChart implements
 	private JPanel jPanelSouth = null; // a panel for all components in the
 										// south
 
-	private JPanel jPanelRegression = null;
-	private JLabel jLabelRegression = null;;
-	private JPanel jPanelRegStart = null;
-	private JLabel jLabelRegStart = null;
+	private JPanel jPanelRegression   = null;
+	private JLabel jLabelRegression   = null;;
+	private JPanel jPanelRegStart     = null;
+	private JLabel jLabelRegStart     = null;
 	private JSpinner jSpinnerRegStart = null;
-	private JPanel jPanelRegEnd = null;
-	private JLabel jLabelRegEnd = null;
-	private JSpinner jSpinnerRegEnd = null;
+	private JPanel jPanelRegEnd       = null;
+	private JLabel jLabelRegEnd       = null;
+	private JSpinner jSpinnerRegEnd   = null;
 
 	private int numPoints = 0;
-	private int regStart = 0;
-	private int regEnd = 0;
+	private int regStart  = 0;
+	private int regEnd    = 0;
 
-	private JPanel jPanelRegResult = null;
-	private JLabel jLabelRegResult = null;
+	private JPanel jPanelRegResult   = null;
+	private JLabel jLabelRegResult   = null;
 	private JLabel jLabelRegResultP0 = null; // y=
 	private JLabel jLabelRegResultP1 = null; // x
 	private JLabel jLabelRegResultP2 = null; // r2=
@@ -119,9 +119,9 @@ public class RegressionPlot extends DefaultXYLineChart implements
 	 */
 	@SuppressWarnings("rawtypes")
 	public RegressionPlot(double[] dataX, double[] dataY, boolean isLineVisible,
-			String frameTitle, String imageTitle, String xTitle, String yTitle,
+			String frameTitle, String imageTitle, String xTitle, String yTitle, String legendLabel,
 			int regStart, int regEnd) {
-		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle);
+		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabel);
 		numPoints = dataX.length;
 		this.regStart = regStart;
 		this.regEnd = regEnd;
@@ -147,9 +147,9 @@ public class RegressionPlot extends DefaultXYLineChart implements
 	 */
 	@SuppressWarnings("rawtypes")
 	public RegressionPlot(double[] dataX, double[][] dataY, boolean isLineVisible,
-			String frameTitle, String imageTitle, String xTitle, String yTitle, String[] seriesNames,
+			String frameTitle, String imageTitle, String xTitle, String yTitle, String[] legendLabels,
 			int regStart, int regEnd) {
-		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, seriesNames);
+		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabels);
 		numPoints = dataX.length;
 		this.regStart = regStart;
 		this.regEnd = regEnd;

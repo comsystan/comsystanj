@@ -117,6 +117,41 @@ public class PlotDisplayFrame extends JFrame {
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
 	}
+	
+	
+	/**
+	 * This constructor creates an instance that displays multiple data series
+	 * of various lengths in a single plot.
+	 */
+	@SuppressWarnings("rawtypes")
+	public PlotDisplayFrame(double dataX[], double[] dataY,
+			boolean isLineVisible, String frameTitle, String imageTitle,
+			String xLabel, String yLabel, String legendLabel) {
+		this(frameTitle);
+
+		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY,
+				isLineVisible, imageTitle, xLabel, yLabel, legendLabel);
+
+		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
+		this.pack();
+	}
+	
+	/**
+	 * This constructor creates an instance that displays multiple data series
+	 * of various lengths in a single plot.
+	 */
+	@SuppressWarnings("rawtypes")
+	public PlotDisplayFrame(double dataX[], double[][] dataY,
+			boolean isLineVisible, String frameTitle, String imageTitle,
+			String xLabel, String yLabel, String[] seriesLabels) {
+		this(frameTitle);
+
+		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY,
+				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
+
+		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
+		this.pack();
+	}
 
 	/**
 	 * This method disposes the frame. It also resets some ToolTip parameters.

@@ -1606,7 +1606,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 			
 			boolean isLineVisible = false; // ?
 			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-					"Double Log Plot - Higuchi Dimension", preName + datasetName, "ln(k)", "ln(L)", regMin, regMax);
+					"Double Log Plot - Higuchi Dimension", preName + datasetName, "ln(k)", "ln(L)", "", regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
 		if (!isGrey) {
@@ -1655,11 +1655,11 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	 * @return RegressionPlotFrame
 	 */
 	private RegressionPlotFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
-			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel,
+			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel,
 			int regMin, int regMax) {
 		// jFreeChart
 		RegressionPlotFrame pl = new RegressionPlotFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, regMin, regMax);
+				yAxisLabel, legendLabel, regMin, regMax);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;

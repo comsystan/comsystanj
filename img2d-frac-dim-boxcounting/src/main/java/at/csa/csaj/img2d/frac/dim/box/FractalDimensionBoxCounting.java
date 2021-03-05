@@ -977,7 +977,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 					preName = "Slice-"+String.format("%03d", plane) +"-";
 				}
 				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Box Counting Dimension", 
-						preName + datasetName, "ln(Box width)", "ln(Count)",
+						preName + datasetName, "ln(Box width)", "ln(Count)", "",
 						regMin, regMax);
 				doubleLogPlotList.add(doubleLogPlot);
 			}
@@ -1048,10 +1048,10 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	 * @return RegressionPlotFrame
 	 */			
 	private RegressionPlotFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
-			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, int regMin, int regMax) {
+			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel, int regMin, int regMax) {
 		// jFreeChart
 		RegressionPlotFrame pl = new RegressionPlotFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, regMin, regMax);
+				yAxisLabel, legendLabel, regMin, regMax);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;

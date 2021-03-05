@@ -49,11 +49,11 @@ public class RegressionPlotFrame extends PlotDisplayFrame {
 
 	public RegressionPlotFrame(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
-			String xLabel, String yLabel, int regStart, int regEnd) {
+			String xLabel, String yLabel, String legendLabel, int regStart, int regEnd) {
 		super(frameTitle);
 
 		RegressionPlot rp = new RegressionPlot(dataX, dataY, isLineVisible,
-				frameTitle, imageTitle, xLabel, yLabel, regStart, regEnd);
+				frameTitle, imageTitle, xLabel, yLabel, legendLabel, regStart, regEnd);
 
 		this.setContentPane(rp);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -64,11 +64,11 @@ public class RegressionPlotFrame extends PlotDisplayFrame {
 
 	public RegressionPlotFrame(double[] dataX, double[][] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
-			String xLabel, String yLabel, String[] seriesNames, int regStart, int regEnd) {
+			String xLabel, String yLabel, String[] legendLabels, int regStart, int regEnd) {
 		super(frameTitle);
 
 		RegressionPlot rp = new RegressionPlot(dataX, dataY, isLineVisible,
-				frameTitle, imageTitle, xLabel, yLabel, seriesNames, regStart, regEnd);
+				frameTitle, imageTitle, xLabel, yLabel, legendLabels, regStart, regEnd);
 
 		this.setContentPane(rp);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
