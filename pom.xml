@@ -9,9 +9,7 @@
 	<artifactId>csaj-maven-aggregation-build</artifactId>
 	<version>1.0</version>
 	<packaging>pom</packaging>
-
-
-
+	
 <!--These Maven projects are aggregated to be built at once https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Aggregation
 	No inheritance, no dependencies on parent etc. https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance
 	Projects are still independent and can be built independently-->
@@ -23,6 +21,7 @@
 		<module>img2d-frac-dim-higuchi2d</module>
 		<module>img2d-frac-dim-pyramid</module>
 		<module>img2d-kc</module>
+		<module>sig-autocorr</module>
 		<module>sig-detect-qrspeaks</module>
 		<module>sig-dfa</module>
 		<module>sig-frac-dim-Higuchi1d</module>
