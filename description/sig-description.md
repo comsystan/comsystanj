@@ -12,6 +12,16 @@
 - Conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
 - Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
 
+### Autocorrelation
+- Computes the autocorrelation
+- Signals should be opened with the CSAJ Signal Opener
+- Options for large and small number of data points
+- FFT according to Wiener-Khinchin theorem
+- Limited number of deltas supported
+- Optional surrogate data conversion
+- Ref.: Oppenheim & Schafer, Discrete-Time Signal Processing, Ed.3, Pearson, 2010 
+
+
 ### Detect QRS peaks
 - Detects QRS peaks and peak to peak intervals of ECG data
 - Based on the OSEA algorithm
@@ -24,6 +34,7 @@
 ### Detrended fluctuation analysis
 - Computes Detrended fluctuation analysis.
 - Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data conversion
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - Maximal window size should not be larger than 1/3 of the signal length
@@ -38,6 +49,7 @@
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions of signals.
 - Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data conversion
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - kMax should not be larger than 1/3 of the signal length
@@ -54,6 +66,7 @@
 - LD is estimated by the decompression time
 - Iterations should be set to as high a value as possible
 - LD values should be taken with caution, as computers are not well suited to measure times
+- Optional surrogate data conversion
 - Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
 ### Sample entropy
@@ -63,6 +76,7 @@
 - m length of subsignals (m=2 is often used)
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
 - d additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- Optional surrogate data conversion
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - m should not be larger than 1/3 of the box size
@@ -88,6 +102,7 @@
 ### Signal statistics
 - Computes descriptive statistics of signals.
 - Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data conversion
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - Only Medians, Means and SDs are computed
