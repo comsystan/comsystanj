@@ -17,7 +17,7 @@
 - Signals should be opened with the CSAJ Signal Opener
 - Options for large and small number of data points
 - FFT according to Wiener-Khinchin theorem
-- Limited number of deltas supported
+- The maximal lag can be set
 - Optional surrogate data conversion
 - Ref.: Oppenheim & Schafer, Discrete-Time Signal Processing, Ed.3, Pearson, 2010 
 
