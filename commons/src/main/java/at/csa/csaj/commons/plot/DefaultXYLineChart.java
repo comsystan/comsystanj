@@ -146,9 +146,10 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 		int numDataPoints = defaultGenericTable.getRowCount();
 		double dataX[]  = new double[numDataPoints];
 		double dataY[][] = new double[cols.length][numDataPoints];
-	
+		Column<? extends Object> column;
+		
 		for (int c = 0; c < cols.length; c++) {
-			Column<? extends Object> column = defaultGenericTable.get(c);
+			column = defaultGenericTable.get(cols[c]);
 			for (int n = 0; n < numDataPoints; n++) {
 				dataX[n] = n+1;
 				double dataValue = Double.valueOf((Double)column.get(n));
