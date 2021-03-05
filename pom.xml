@@ -28,6 +28,7 @@
 		<module>sig-kc</module>
 		<module>sig-generator</module>
 		<module>sig-opener</module>
+		<module>sig-poincareplot</module>
 		<module>sig-sampen</module>
 		<module>sig-statistics</module>
 	</modules>
