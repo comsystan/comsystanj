@@ -71,7 +71,7 @@
 - Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
 ### Poincare plot
-- Generation of Poicare plots
+- Generation of Poincare plots (lag plots)
 - The time lag can be set
 - Multiple plots with distinct colors are possible
 
