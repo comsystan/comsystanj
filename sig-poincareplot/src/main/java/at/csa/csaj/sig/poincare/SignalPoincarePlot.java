@@ -30,21 +30,13 @@ package at.csa.csaj.sig.poincare;
 
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
-
-import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.transform.DftNormalization;
-import org.apache.commons.math3.transform.FastFourierTransformer;
-import org.apache.commons.math3.transform.TransformType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -52,7 +44,6 @@ import org.scijava.command.Command;
 import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
-import org.scijava.display.Display;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -60,7 +51,6 @@ import org.scijava.prefs.PrefService;
 import org.scijava.table.Column;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
-import org.scijava.table.GenericColumn;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
@@ -72,7 +62,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 
 
 /**
- * A {@link Command} plugin computing <Autocorrelation</a>
+ * A {@link Command} plugin computing <Poincare plots</a>
  * of a signal.
  */
 @Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Poincare plot")
@@ -227,12 +217,9 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
-	
-	@Parameter(label = "Process first column", callback = "callbackProcessActiveColumn")
-	private Button buttonProcessActiveColumn;
 
-	@Parameter(label = "Process  Column # ", callback = "callbackProcessColumn")
-	private Button buttonProcessColumn;
+	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
+	private Button buttonProcessSingleColumn;
 	
 	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
 	private Button buttonProcessAllColumns;
@@ -334,11 +321,11 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 		}
 		logService.info(this.getClass().getName() + " Column number set to " + spinnerInteger_NumColumn);
 	}
-	
+
 	/**
-	 * Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
 	 */
-	protected void callbackProcessActiveColumn() {
+	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 		
@@ -352,49 +339,11 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
     	exec.execute(new Runnable() {
             public void run() {
         	    try {
-        	    	logService.info(this.getClass().getName() + " Processing active signal");
+        	    	logService.info(this.getClass().getName() + " Processing single signal");
             		getAndValidateActiveDataset();
             		generateTableHeader();
             		deleteExistingDisplays();
-            		int activeColumnIndex = getActiveColumnIndex();
-            		processInputColumn(activeColumnIndex);
-            		dlgProgress.addMessage("Processing finished!");		
-            		//collectActiveResultAndShowTable(activeColumnIndex);
-            		//showTable();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
-	}
-	
-	/**
-	 * Executed whenever the {@link #buttonProcessColumn} button is pressed.
-	 */
-	protected void callbackProcessColumn() {
-		//prepare  executer service
-		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Generating Poincare plot, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Generating Poincare plot, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	logService.info(this.getClass().getName() + " Processing active signal");
-            		getAndValidateActiveDataset();
-            		generateTableHeader();
-            		deleteExistingDisplays();
-            		if (spinnerInteger_NumColumn <= numColumns) processInputColumn(spinnerInteger_NumColumn - 1);
+            		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
             		dlgProgress.addMessage("Processing finished!");		
             		//collectActiveResultAndShowTable(activeColumnIndex);
             		//showTable();
@@ -453,7 +402,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	// time a widget value changes.
 	public void preview() {
 		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanPreview) callbackProcessColumn();
+		if (booleanPreview) callbackProcessSingleColumn();
 		// statusService.showStatus(message);
 	}
 
@@ -565,10 +514,10 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	}
 
 	/** 
-	 * This method takes the active column and computes results. 
+	 * This method takes the single column and computes results. 
 	 * @Param int s
 	 * */
-	private void processInputColumn (int s) throws InterruptedException {
+	private void processSingleInputColumn (int s) throws InterruptedException {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -667,10 +616,10 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param int column number of active signal.
+	 * @param int column number of single signal.
 	 * @param double[] result values
 	 */
-	private void writeToTable(int signalNumber, double[] resultValues) {
+	private void writeToTable(int rowNumber, double[] resultValues) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
 

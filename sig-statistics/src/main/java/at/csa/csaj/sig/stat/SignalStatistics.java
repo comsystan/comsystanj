@@ -104,8 +104,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 
 	private static final String tableName = "Table - Signal statistics";
 	
+	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
-	
 	
 	@Parameter
 	private ImageJ ij;
@@ -215,8 +215,13 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		       callback = "callbackPreview")
 	private boolean booleanPreview;
 	
-	@Parameter(label = "Process first column", callback = "callbackProcessActiveColumn")
-	private Button buttonProcessActiveColumn;
+	@Parameter(label = "Column #", description = "column number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialNumColumn", callback = "callbackNumColumn")
+	private int spinnerInteger_NumColumn;
+	
+	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
+	private Button buttonProcessSingleColumn;
 
 	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
 	private Button buttonProcessAllColumns;
@@ -286,15 +291,25 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
 	}
 	
+	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	protected void callbackNumColumn() {
+		getAndValidateActiveDataset();
+		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
+			logService.info(this.getClass().getName() + " No more columns available");
+			spinnerInteger_NumColumn = tableIn.getColumnCount();
+		}
+		logService.info(this.getClass().getName() + " Column number set to " + spinnerInteger_NumColumn);
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessActiveSignal} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
 	 */
-	protected void callbackProcessActiveColumn() {
+	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 		
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing signal statistics, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing signal statistics, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
 																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -308,7 +323,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
             		generateTableHeader();
             		deleteExistingDisplays();
             		int activeColumnIndex = getActiveColumnIndex();
-            		processActiveInputColumn(activeColumnIndex, dlgProgress);
+            		//processActiveInputColumn(activeColumnIndex, dlgProgress);
+              		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
             		dlgProgress.addMessage("Processing finished! Preparing result table...");          		
             		//collectActiveResultAndShowTable(activeColumnIndex);
             		showTable();
@@ -333,8 +349,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		exec = Executors.newSingleThreadExecutor();
 		//exec =  defaultThreadService.getExecutorService();
 		
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing signal statistics, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing signal statistics, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputSignals(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -345,7 +361,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	        		getAndValidateActiveDataset();
 	        		generateTableHeader();
 	        		deleteExistingDisplays();
-	        		processAllInputColumns(dlgProgress);
+	        		processAllInputColumns();
 	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
 	        		//collectAllResultsAndShowTable();
 	        		showTable();
@@ -368,7 +384,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	// time a widget value changes.
 	public void preview() {
 		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanPreview) callbackProcessActiveColumn();
+		if (booleanPreview) callbackProcessSingleColumn();
 		// statusService.showStatus(message);
 	}
 
@@ -531,17 +547,19 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		}
 	}
 
-	/** This method takes the active column and computes results. 
-	 * @param dlgProgress */
-	private void processActiveInputColumn (int s, WaitingDialogWithProgressBar dlgProgress) throws InterruptedException {
+  	/** 
+	 * This method takes the single column and computes results. 
+	 * @Param int c
+	 * */
+	private void processSingleInputColumn (int c) throws InterruptedException {
 		
 		long startTime = System.currentTimeMillis();
 		
 		//Compute result values
-		double[] resultValues = process(tableIn, s); 
+		double[] resultValues = process(tableIn, c); 
 		// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
 		logService.info(this.getClass().getName() + " Processing finished.");
-		writeToTable(s, resultValues);
+		writeToTable(0, c, resultValues); //write always to the first row
 			
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -552,7 +570,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 
 	/** This method loops over all input columns and computes results. 
 	 * @param dlgProgress */
-	private void processAllInputColumns(WaitingDialogWithProgressBar dlgProgress) throws InterruptedException{
+	private void processAllInputColumns() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
 		
@@ -572,7 +590,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 				double[] resultValues = process(tableIn, s);
 				// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
 				logService.info(this.getClass().getName() + " Processing finished.");
-				writeToTable(s, resultValues);
+				writeToTable(s, s, resultValues);
 	
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -594,12 +612,13 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param int slice number of active signal.
+	 * @param int rowNumber to write in the result table
+	 * @param in signalNumber column number of signal from tableIn.
 	 * @param double[] result values
 	 */
-	private void writeToTable(int signalNumber, double[] resultValues) {
+	private void writeToTable(int rowNumber, int signalNumber, double[] resultValues) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
-		int row = signalNumber;
+		int row = rowNumber;
 		int tableColStart = 0;
 		int tableColEnd   = 0;
 		int tableColLast  = 0;

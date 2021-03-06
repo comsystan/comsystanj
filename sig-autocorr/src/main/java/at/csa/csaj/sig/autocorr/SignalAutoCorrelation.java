@@ -241,8 +241,13 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		       callback = "callbackPreview")
 	private boolean booleanPreview;
 	
-	@Parameter(label = "Process first column", callback = "callbackProcessActiveColumn")
-	private Button buttonProcessActiveColumn;
+	@Parameter(label = "Column #", description = "column number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialNumColumn", callback = "callbackNumColumn")
+	private int spinnerInteger_NumColumn;
+
+	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
+	private Button buttonProcessSingleColumn;
 
 	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
 	private Button buttonProcessAllColumns;
@@ -348,10 +353,20 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
 	}
 	
+	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	protected void callbackNumColumn() {
+		getAndValidateActiveDataset();
+		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
+			logService.info(this.getClass().getName() + " No more columns available");
+			spinnerInteger_NumColumn = tableIn.getColumnCount();
+		}
+		logService.info(this.getClass().getName() + " Column number set to " + spinnerInteger_NumColumn);
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
 	 */
-	protected void callbackProcessActiveColumn() {
+	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 		
@@ -369,8 +384,9 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
             		getAndValidateActiveDataset();
             		generateTableHeader();
             		deleteExistingDisplays();
-            		int activeColumnIndex = getActiveColumnIndex();
-            		processActiveInputColumn(activeColumnIndex);
+            		//int activeColumnIndex = getActiveColumnIndex();
+            		//processActiveInputColumn(activeColumnIndex);
+              		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
             		dlgProgress.addMessage("Processing finished! Preparing result table...");		
             		//collectActiveResultAndShowTable(activeColumnIndex);
             		showTable();
@@ -429,7 +445,7 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 	// time a widget value changes.
 	public void preview() {
 		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanPreview) callbackProcessActiveColumn();
+		if (booleanPreview) callbackProcessSingleColumn();
 		// statusService.showStatus(message);
 	}
 
@@ -551,11 +567,11 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		}
 	}
 
-	/** 
-	 * This method takes the active column and computes results. 
+  	/** 
+	 * This method takes the single column s and computes results. 
 	 * @Param int s
 	 * */
-	private void processActiveInputColumn (int s) throws InterruptedException {
+	private void processSingleInputColumn (int s) throws InterruptedException {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -566,7 +582,7 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		writeToTable(s, resultValues);
 		
 		//eliminate empty columns
-		leaveOverOnlyOneSignalCloumn(s);
+		leaveOverOnlyOneSignalColumn(s+2); // + 2 becaus of 2 text columns
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
@@ -593,13 +609,13 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 
 	
 	/**
-	 * This method eliminates all columns despite one
+	 * This method eliminates all columns despite one with number c
 	 * @param c
 	 */
-	private void leaveOverOnlyOneSignalCloumn(int c) {
+	private void leaveOverOnlyOneSignalColumn(int c) {
 		String header = tableResult.getColumnHeader(c);
 		int numCols = tableResult.getColumnCount();
-		for (int i = numCols-2; i > 1; i--) {    //leave also first two text column
+		for (int i = numCols-1; i > 1; i--) {    //leave also first 2 text column
 			if (!tableResult.getColumnHeader(i).equals(header))  tableResult.removeColumn(i);	
 		}	
 	}
