@@ -6,6 +6,7 @@
 - The first row must contain the column (signal) headers
 - The first column must contain the row headers or just a subsequent numbering 
 - All columns MUST have the same number of rows
+- Maximal row number is 2147483647 or 2^31-^1
 - Missing values MUST be filled up with NaN
 - NaNs will be ignored for plot charts
 - NaNs will be ignored by CSAJ signal plugins
@@ -68,6 +69,11 @@
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Optional surrogate data conversion
 - Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+
+### Poincare plot
+- Generation of Poicare plots
+- The time lag can be set
+- Multiple plots with distinct colors are possible
 
 ### Sample entropy
 - Computes Sample or Approximate entropies of signals
