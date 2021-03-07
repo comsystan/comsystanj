@@ -79,7 +79,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	private static final String PLUGIN_LABEL            = "<html><b>Genuin Higuchi 1D algorithm</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
-	private static final String SIGNALMETHOD_LABEL      = "<html><b>Signal evaluation</b></html>";
+	private static final String SIGNALOPTIONS_LABEL     = "<html><b>Signal options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background Option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
@@ -164,24 +164,24 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "k:", description = "Maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "k", description = "Maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialKMax", callback = "callbackKMax")
 	private int spinnerInteger_KMax;
 
-	@Parameter(label = "Regression Min:", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Min", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
 	private int spinnerInteger_RegMin = 1;
 
-	@Parameter(label = "Regression Max:", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Max", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSignalType = SIGNALMETHOD_LABEL;
+	private final String labelSignalOptions = SIGNALOPTIONS_LABEL;
 
 	@Parameter(label = "Signal type",
 		description = "Entire signal, Subsequent boxes or Gliding box",
@@ -192,7 +192,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 		callback = "callbackSignalType")
 	private String choiceRadioButt_SignalType;
 	
-	@Parameter(label = "Entire signal - Surrogates",
+	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
@@ -201,21 +201,21 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
 			callback = "callbackSurrogateType")
 		private String choiceRadioButt_SurrogateType;
 	
-	@Parameter(label = "# Surrogates:", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
+	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
 			   min = "1", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
 	private int spinnerInteger_NumSurrogates;
 	
-	@Parameter(label = "Box length:", description = "Length of subsequent or gliding box - Shoud be at least three times kMax", style = NumberWidget.SPINNER_STYLE, 
+	@Parameter(label = "Box length", description = "Length of subsequent or gliding box - Shoud be at least three times kMax", style = NumberWidget.SPINNER_STYLE, 
 			   min = "2", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
 	
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
+//	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+//	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
 	@Parameter(label = "Remove zero values", persist = false,
 		       callback = "callbackRemoveZeroes")

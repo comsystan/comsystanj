@@ -79,7 +79,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	private static final String PLUGIN_LABEL            = "<html><b>Sample entropy / Approximate entropy</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String ENTROPYTYPE_LABEL       = "<html><b>Entropy Type</b></html>";
-	private static final String SIGNALMETHOD_LABEL      = "<html><b>Signal evaluation</b></html>";
+	private static final String SIGNALOPTIONS_LABEL     = "<html><b>Signal options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
@@ -173,24 +173,24 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 			callback = "callbackEntropyType")
 		private String choiceRadioButt_EntropyType;
 
-	@Parameter(label = "m:", description = "parameter m", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
+	@Parameter(label = "m", description = "parameter m", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialParamM", callback = "callbackParamM")
 	private int spinnerInteger_ParamM;
 
-	@Parameter(label = "r:", description = "parameter r", style = NumberWidget.SPINNER_STYLE, min = "0.05", max = "1.0", stepSize = "0.05",
+	@Parameter(label = "r", description = "parameter r", style = NumberWidget.SPINNER_STYLE, min = "0.05", max = "1.0", stepSize = "0.05",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialParamR", callback = "callbackParamR")
 	private float spinnerFloat_ParamR;
 
-	@Parameter(label = "d:", description = "delay d", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
+	@Parameter(label = "d", description = "delay d", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialParamD", callback = "callbackParamD")
 	private int spinnerInteger_ParamD;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSignalType = SIGNALMETHOD_LABEL;
+	private final String labelSignalOptions = SIGNALOPTIONS_LABEL;
 
 	@Parameter(label = "Signal type",
 			description = "Entire signal, Subsequent boxes or Gliding box",
@@ -201,7 +201,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 			callback = "callbackSignalType")
 		private String choiceRadioButt_SignalType;
 	
-	@Parameter(label = "Entire signal - Surrogates",
+	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
@@ -210,21 +210,21 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 			callback = "callbackSurrogateType")
 		private String choiceRadioButt_SurrogateType;
 	
-	@Parameter(label = "# Surrogates:", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
+	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
 			   min = "1", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
 	private int spinnerInteger_NumSurrogates;
 	
-	@Parameter(label = "Box length:", description = "Length of subsequent or gliding box - Shoud be at least three times ParamM", style = NumberWidget.SPINNER_STYLE, 
+	@Parameter(label = "Box length", description = "Length of subsequent or gliding box - Shoud be at least three times ParamM", style = NumberWidget.SPINNER_STYLE, 
 			   min = "2", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
 	
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
+//	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+//	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
 	@Parameter(label = "Remove zero values", persist = false,
 		       callback = "callbackRemoveZeroes")
