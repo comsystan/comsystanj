@@ -68,7 +68,6 @@ import org.scijava.table.Column;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
 import org.scijava.table.DoubleColumn;
-import org.scijava.table.FloatColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
 import org.scijava.ui.UIService;
