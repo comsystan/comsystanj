@@ -15,11 +15,11 @@
 	Projects are still independent and can be built independently-->
 	<modules>
 		<module>commons</module>
-		<module>img2d-frac-creation-surface</module>
 		<module>img2d-frac-dim-boxcounting</module>
 		<module>img2d-frac-dim-higuchi1d</module>
 		<module>img2d-frac-dim-higuchi2d</module>
 		<module>img2d-frac-dim-pyramid</module>
+		<module>img2d-frac-generator-surface</module>
 		<module>img2d-kc</module>
 		<module>sig-autocorr</module>
 		<module>sig-detect-qrspeaks</module>

@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ plugin to create 2D fractal surfaces.
- * File: FractalCreation2DSurface.java
+ * Project: ImageJ plugin to generate 2D fractal surfaces.
+ * File: FractalGenerator2DSurface.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.img2d.frac.creation.surface;
+package at.csa.csaj.img2d.frac.generator.surface;
 
 import net.imagej.DatasetService;
 
@@ -72,10 +72,10 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal surface creation")
-public class FractalCreation2DSurface<T extends RealType<T>> implements Command, Previewable {
+@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal surface generator")
+public class FractalGenerator2DSurface<T extends RealType<T>> implements Command, Previewable {
 	
-	private static final String PLUGIN_LABEL = "<html><b>Creation of 2D fractal surface(s)</b></html>";
+	private static final String PLUGIN_LABEL = "<html><b>Generator of 2D fractal surface(s)</b></html>";
 	private static final String SPACE_LABEL = "";
   
 	@Parameter
@@ -111,7 +111,7 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
   	//private final String labelSpace = SPACE_LABEL;
     
     
-    @Parameter(label = "Width [pixel]:",
+    @Parameter(label = "Width [pixel]",
     		   style = NumberWidget.SPINNER_STYLE,
     		   min = "1",
     		   max = "32768",
@@ -120,7 +120,7 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
     		   callback = "changedWidth")
     private int spinnerInteger_Width;
     
-    @Parameter(label = "Height [pixel]:",
+    @Parameter(label = "Height [pixel]",
  		       style = NumberWidget.SPINNER_STYLE,
  		       min = "1",
  		       max = "32768",
@@ -129,7 +129,7 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
  		       callback = "changedHeight")
     private int spinnerInteger_Height;
     
-    @Parameter(label = "Fractal Dimension:",
+    @Parameter(label = "Fractal Dimension",
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "2",
 	  		   max = "3",
@@ -405,7 +405,7 @@ public class FractalCreation2DSurface<T extends RealType<T>> implements Command,
 //        }
 //       
          //invoke the plugin
-         ij.command().run(FractalCreation2DSurface.class, true);
+         ij.command().run(FractalGenerator2DSurface.class, true);
     	
     }
 

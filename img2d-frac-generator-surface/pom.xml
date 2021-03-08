@@ -13,12 +13,12 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-img2d-frac-creation-surface</artifactId>
+	<artifactId>comsystanj-img2d-frac-generator-surface</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
-	<name>Image(2D) - Fractal Surface Creation</name>
-	<description>ImageJ plugin to create 2D fractal surfaces.</description>
+	<name>Image(2D) - Fractal Surface Generator</name>
+	<description>ImageJ plugin to generate 2D fractal surfaces.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2020</inceptionYear>
 	<organization>
@@ -78,8 +78,8 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>at.csa.csaj.img2d.frac.creation.surface</package-name>
-		<main-class>at.csa.csaj.img2d.frac.creation.surface.FractalCreation2DSurface</main-class>
+		<package-name>at.csa.csaj.img2d.frac.generator.surface</package-name>
+		<main-class>at.csa.csaj.img2d.frac.generator.surface.FractalGenerator2DSurface</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>
