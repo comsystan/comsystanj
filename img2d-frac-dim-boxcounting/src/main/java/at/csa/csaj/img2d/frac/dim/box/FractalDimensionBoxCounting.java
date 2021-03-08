@@ -122,6 +122,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
 	private static final String tableName = "Table - Box counting dimension";
 	
+	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -176,7 +177,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "Number of boxes:",
+    @Parameter(label = "Number of boxes",
     		   description = "Number of boxes",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
@@ -187,7 +188,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	           callback    = "callbackNumImages")
     private int spinnerInteger_NumBoxes;
     
-    @Parameter(label = "Regression Min:",
+    @Parameter(label = "Regression Min",
     		   description = "minimum x value of linear regression",
  		       style = NumberWidget.SPINNER_STYLE,
  		       min = "1",
@@ -198,7 +199,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
  		       callback = "callbackRegMin")
     private int spinnerInteger_RegMin = 1;
  
-    @Parameter(label = "Regression Max:",
+    @Parameter(label = "Regression Max",
     		   description = "maximum x value of linear regression",
     		   style = NumberWidget.SPINNER_STYLE,
 		       min = "3",
@@ -342,8 +343,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -356,7 +357,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
             		getAndValidateActiveDataset();
             		deleteExistingDisplays();
             		int activeSliceIndex = getActiveImageIndex();
-            		processActiveInputImage(activeSliceIndex, dlgProgress);
+            		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(activeSliceIndex);
@@ -378,8 +379,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -389,7 +390,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	            	logService.info(this.getClass().getName() + " Processing all available images");
 	        		getAndValidateActiveDataset();
 	        		deleteExistingDisplays();
-	        		processAllInputImages(dlgProgress);
+	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
 	        		collectAllResultsAndShowTable();
@@ -566,8 +567,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	}
 	
 	/** This method takes the active image and computes results. 
-	 * @param dlgProgress */
-	private void processActiveInputImage(int s, WaitingDialogWithProgressBar dlgProgress) throws InterruptedException{
+	 *
+	 */
+	private void processActiveInputImage(int s) throws InterruptedException{
 		long startTime = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];
 		
@@ -606,8 +608,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	}
 	
 	/** This method loops over all input images and computes results. 
-	 * @param dlgProgress */
-	private void processAllInputImages(WaitingDialogWithProgressBar dlgProgress) throws InterruptedException{
+	 *
+	 **/
+	private void processAllInputImages() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];

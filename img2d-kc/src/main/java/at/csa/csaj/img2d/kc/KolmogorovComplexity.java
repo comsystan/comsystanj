@@ -98,7 +98,6 @@ import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 import io.scif.SCIFIO;
-import io.scif.codec.CodecOptions;
 import io.scif.codec.CompressionType;
 import io.scif.config.SCIFIOConfig;
 
@@ -134,6 +133,7 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding result values
     private static final String tableName = "Table - KC and LD";
 	
+	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -201,7 +201,7 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
             callback = "callbackCompression")
     private String choiceRadioButt_Compression;
     
-    @Parameter(label = "Iterations for LD:",
+    @Parameter(label = "Iterations for LD",
     		   description = "Number of compressions to compute averages",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
@@ -284,8 +284,8 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -298,7 +298,7 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
             		getAndValidateActiveDataset();
             		deleteExistingDisplays();
             		int activeSliceIndex = getActiveImageIndex();
-            		processActiveInputImage(activeSliceIndex, dlgProgress);
+            		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(activeSliceIndex);
@@ -330,8 +330,8 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -341,7 +341,7 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 	            	logService.info(this.getClass().getName() + " Processing all available images");
 	        		getAndValidateActiveDataset();
 	        		deleteExistingDisplays();
-	        		processAllInputImages(dlgProgress);
+	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
 	        		collectAllResultsAndShowTable();
@@ -501,8 +501,9 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 	
 	
 	/** This method takes the active image and computes results. 
-	 * @param dlgProgress */
-	private void processActiveInputImage(int s, WaitingDialogWithProgressBar dlgProgress) throws InterruptedException{
+	 *
+	 **/
+	private void processActiveInputImage(int s) throws InterruptedException{
 		long startTime = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];
 		
@@ -535,8 +536,9 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 	}
 	
 	/** This method loops over all input images and computes results. 
-	 * @param dlgProgress */
-	private void processAllInputImages(WaitingDialogWithProgressBar dlgProgress) throws InterruptedException{
+	 *
+	 **/
+	private void processAllInputImages() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];

@@ -47,7 +47,6 @@ import net.imagej.Position;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.IterableInterval;
-import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
@@ -138,6 +137,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private static double[][] resultValuesTable; // first column is the image index, second column are the corresponding regression values
 	private static final String tableName = "Table - Higuchi dimension";
 	
+	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -198,17 +198,17 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "k:", description = "Maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
+	@Parameter(label = "k", description = "Maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialKMax", callback = "callbackKMax")
 	private int spinnerInteger_KMax;
 
-	@Parameter(label = "Regression Min:", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "32768", stepSize = "1",
+	@Parameter(label = "Regression Min", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "32768", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
 	private int spinnerInteger_RegMin = 1;
 
-	@Parameter(label = "Regression Max:", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
+	@Parameter(label = "Regression Max", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
@@ -382,8 +382,8 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 		
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Higuchi1D dimensions, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Higuchi1D dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
 																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -396,7 +396,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
             		getAndValidateActiveDataset();
             		deleteExistingDisplays();
             		int activeSliceIndex = getActiveImageIndex();
-            		processActiveInputImage(activeSliceIndex, dlgProgress);
+            		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(activeSliceIndex);
@@ -421,8 +421,8 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		exec = Executors.newSingleThreadExecutor();
 		//exec =  defaultThreadService.getExecutorService();
 		
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Higuchi1D dimensions, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Higuchi1D dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -432,7 +432,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	            	logService.info(this.getClass().getName() + " Processing all available images");
 	        		getAndValidateActiveDataset();
 	        		deleteExistingDisplays();
-	        		processAllInputImages(dlgProgress);
+	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
 	        		collectAllResultsAndShowTable();
@@ -617,8 +617,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	}
 
 	/** This method takes the active image and computes results. 
-	 * @param dlgProgress */
-	private void processActiveInputImage (int s, WaitingDialogWithProgressBar dlgProgress) throws InterruptedException {
+	 *
+	 **/
+	private void processActiveInputImage (int s) throws InterruptedException {
 		
 		long startTime = System.currentTimeMillis();
 		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
@@ -712,8 +713,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	}
 
 	/** This method loops over all input images and computes results. 
-	 * @param dlgProgress */
-	private void processAllInputImages(WaitingDialogWithProgressBar dlgProgress) throws InterruptedException{
+	 *
+	 **/
+	private void processAllInputImages() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
 		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
