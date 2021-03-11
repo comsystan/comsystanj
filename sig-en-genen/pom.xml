@@ -13,12 +13,12 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-sig-sampen</artifactId>
+	<artifactId>comsystanj-sig-en-genen</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
-	<name>Signal - Sample and Approximate Entropy</name>
-	<description>ImageJ signal plugin for computing the Sample and Approximate entropy</description>
+	<name>Signal - Generalised entropies</name>
+	<description>ImageJ signal plugin for computing generalizeed entropies</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>
@@ -78,8 +78,8 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>at.csa.csaj.sig.sampen</package-name>
-		<main-class>at.csa.csaj.sig.sampen.SignalSampEn</main-class>
+		<package-name>at.csa.csaj.sig.en.genen</package-name>
+		<main-class>at.csa.csaj.sig.en.genen.SignalGeneralisedEntropies</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

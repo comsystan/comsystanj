@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ signal plugin for computing the Sample and Approximate entropy
- * File: SampleEntropy.java
+ * File: ApproximateEntropy.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,20 +25,13 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.sig.sampen.util;
+package at.csa.csaj.sig.en.sampen.util;
 
 import org.scijava.log.LogService;
 
 /**
- * 
- * Sample Entropy: Alternative to Approximate entropy Sample entropy and
- * drawbacks of Approximate entropy can be found in: Richman J.S., Moorman J.R.,
- * Physiological time-series analysis using approximate entropy and sample
- * entropy Am J Physiol Heart Circ Physiol, Vol.278, H2039-2049, 2000 First the
- * sum is calculated and afterwards the logarithm is calculated only once. i=j
- * is therefore no problem. Delay according to: Govindan R.B., Wilson J.D.,
- * Eswaran H., Lowery C.L., Prei�l H., Revisiting sample entropy analysis
- * PhysicaA, Vol.376, 158-164, 2007
+ * Pincus Approximate Entropy Pincus S.M., Approximate entropy as a measure of
+ * system complexity, Proc. Natl. Acad. Sci. USA, Vol.88, 2297-2301, 1991
  * <p>
  * <b>Changes</b>
  * <ul>
@@ -46,12 +39,12 @@ import org.scijava.log.LogService;
  * </ul>
  * 
  * @author Helmut Ahammer
- * @since  2021 02-25
+ * @since  2021-02-25
  */
-public class SampleEntropy {
+public class ApproximateEntropy {
 	
 	private LogService logService;
-
+	
 	private int numbDataPoints = 0; // length of 1D data series
 
 	/**
@@ -61,7 +54,7 @@ public class SampleEntropy {
 	 * @param operator
 	 * 
 	 */
-	public SampleEntropy(LogService logService) {
+	public ApproximateEntropy(LogService logService) {
 		this.logService = logService;
 	}
 
@@ -69,11 +62,11 @@ public class SampleEntropy {
 	/**
 	 * This is the standard constructor
 	 */
-	public SampleEntropy() {
+	public ApproximateEntropy() {
 	}
 
 	/**
-	 * This method calculates the mean of a data series.
+	 * This method calculates the mean of a data series
 	 * 
 	 * @param data1D
 	 * @return the mean
@@ -87,7 +80,7 @@ public class SampleEntropy {
 	}
 
 	/**
-	 * This method calculates the variance of a data series.
+	 * This method calculates the variance of a data series
 	 * 
 	 * @param data1D
 	 * @return the variance
@@ -102,7 +95,7 @@ public class SampleEntropy {
 	}
 
 	/**
-	 * This method calculates the standard deviation of a data series.
+	 * This method calculates the standard deviation of a data series
 	 * 
 	 * @param data1D
 	 * @return the standard deviation
@@ -115,17 +108,20 @@ public class SampleEntropy {
 	/**
 	 * This method calculates new data series
 	 * 
-	 * @param data1D 1D data vector
-	 * @param m number of newly calculated time series (m = 2, Pincus et al.1994) 
-	 * @param d delay
+	 * @param data1D   1D data vector
+	 * @param m: number of new calculated time series (m = 2, Pincus et al. 1994)
 	 * @return Vector of Series (vectors)
 	 * 
 	 */
-	private double[][] calcNewSeries(double[] data1D, int m, int d) {
-		int numSeries      = numbDataPoints - (m - 1) * d;
+	private double[][] calcNewSeries(double[] data1D, int m,
+			int d) {
+		// int numSeries = numbDataPoints-m+1;
+		int numSeries = numbDataPoints - (m - 1) * d;
 		int numSerieLength = (m - 1) * d + 1;
 		double[][] newDataSeries = new double[numSeries][numSerieLength];
 		for (int i = 0; i < numSeries; i++) {
+		
+			// for(int ii = i; ii <= i+m-1 ; ii++){ //get m data points
 			for (int ii = i; ii <= i + (m - 1) * d; ii = ii + d) { // get m data points stepwidth = delay
 				newDataSeries[i][ii-i] = data1D[ii];
 			}
@@ -137,7 +133,6 @@ public class SampleEntropy {
 	 * This method calculates the number of correlations
 	 * 
 	 * @param newDataSeries vector of 1D vectors
-	 * @param m
 	 * @param distR distance in %of SD
 	 * @return Vector (Number of Correlations)
 	 * 
@@ -152,25 +147,23 @@ public class SampleEntropy {
 		double dist;
 		
 //		for (int i = 0; i < numSeries; i++) { // initialize Vector
-//			numberOfCorrelations[i] = 0;
-//		}
+//		numberOfCorrelations[i] = 0;
+//	}
 		for (int i = 0; i < numSeries; i++) {
 			for (int j = 0; j < numSeries; j++) {
-				if (i != j) {
-					seriesI = new double[newDataSeries[i].length];
-					seriesJ = new double[newDataSeries[j].length];
-					for (int ni = 0; ni < newDataSeries[i].length ;ni++) seriesI[ni] = newDataSeries[i][ni];
-					for (int nj = 0; nj < newDataSeries[j].length ;nj++) seriesJ[nj] = newDataSeries[j][nj];
-					distMax = 0;
-					for (int k = 1; k <= m; k++) {
-						dist = Math.abs(seriesI[k-1] - seriesJ[k-1]);
-						if (dist > distMax) {
-							distMax = dist;
-						}
+				seriesI = new double[newDataSeries[i].length];
+				seriesJ = new double[newDataSeries[j].length];
+				for (int ni = 0; ni < newDataSeries[i].length ;ni++) seriesI[ni] = newDataSeries[i][ni];
+				for (int nj = 0; nj < newDataSeries[j].length ;nj++) seriesJ[nj] = newDataSeries[j][nj];
+				distMax = 0;
+				for (int k = 1; k <= m; k++) {
+					dist = Math.abs(seriesI[k-1] - seriesJ[k-1]);
+					if (dist > distMax) {
+						distMax = dist;
 					}
-					if (distMax <= distR) {
-						numberOfCorrelations[i] = numberOfCorrelations[i] + 1;
-					}
+				}
+				if (distMax <= distR) {
+					numberOfCorrelations[i] = numberOfCorrelations[i] + 1;
 				}
 			}
 		}
@@ -178,20 +171,24 @@ public class SampleEntropy {
 	}
 
 	/**
-	 * This method calculates correlations
+	 * This method calculates logarithm of correlations
 	 * 
 	 * @param numberOfCorrelations vector of mumbers
-	 * @param m number of newly calculated time series (m = 2, Pincus et al.1994) 
+	 * @param m number of new calculated time series (m = 2, Pincus et al. 1994)
 	 * @param d delay
 	 * @return Vector correlations
-	 * 
 	 */
-	private double[] calcCorrelations(int[] numberOfCorrelations, int m, double d) {
+	private double[] calcLogCorrelations(int[] numberOfCorrelations, int m, int d) {
 
 		double[] correlations = new double[numberOfCorrelations.length];
-
+		double value;
 		for (int n = 0; n < numberOfCorrelations.length; n++) {
-			correlations[n] = ((double) numberOfCorrelations[n] / (numbDataPoints - (m - 1) * d - 1)); // -1 because i=j was not allowed
+			// double value =
+			// (double)numberOfCorrelations.get(n)/(numbDataPoints-m+1);
+			value = ((double) numberOfCorrelations[n] / (numbDataPoints - (m - 1) * d)); //
+
+			if (value > 0)
+				correlations[n] = Math.log(value);
 		}
 		return correlations;
 	}
@@ -205,27 +202,30 @@ public class SampleEntropy {
 	 * @return sumOfCorrelations double
 	 * 
 	 */
-	private double calcSumOfCorrelation(double[] correlations, int m, int d) {
+	private double calcSumOfCorrelation(double[] correlations, int m,
+			int d) {
 		double sumOfCorrelations = 0;
-
 		for (int n = 0; n < correlations.length; n++) {
 			sumOfCorrelations = sumOfCorrelations + correlations[n];
 		}
+		// sumOfCorrelations = sumOfCorrelations/(numbDataPoints-m+1);
 		sumOfCorrelations = sumOfCorrelations / (numbDataPoints - (m - 1) * d);
 		return sumOfCorrelations;
 	}
 
 	/**
-	 * This method calculates the sample entropy
+	 * This method calculates the approximate entropy
 	 * 
 	 * @param data1D 1D data vector
-	 * @param m number of new calculated time series (m = 2, Pincus et al.1994) m should not be greater than N/3 (N number of data points)!
-	 * @param r maximal distance radius r (10%sd < r < 25%sd sd = standard deviation of time series, Pincus et al. 1994)
+	 * @param m number of newly calculated time series (m = 2, Pincus et al.1994) m should not be greater than N/3 (N number of data
+	 *            points)! 
+	 * @param r maximal distance radius r (10%sd < r < 25%sd sd =
+	 *            standard deviation of time series, Pincus et al. 1994)
 	 * @param d delay
-	 * @return Sample Entropy (single double value)
+	 * @return Approximate Entropy (single double value)
 	 * 
 	 */
-	public double calcSampleEntropy(double[] data1D, int m, double r, int d) {
+	public double calcApproximateEntropy(double[] data1D, int m, double r, int d) {
 		numbDataPoints = data1D.length;
 		if (m > numbDataPoints / 3) {
 			m = numbDataPoints / 3;
@@ -240,7 +240,7 @@ public class SampleEntropy {
 			return 999999999d;
 		}
 
-		double     sampleEntropy = Double.NaN;
+		double     appEntropy = 0d;
 		double[]   fmr = new double[2];
 		double[][] newDataSeries;
 		double     distR;
@@ -248,17 +248,17 @@ public class SampleEntropy {
 		double[]   correlations;
 		double     sumOfCorrelations;
 		
-		for (int mm = m; mm <= m + 1; mm++) { // two times
+		for (int mm = m; mm <= m + 1; mm++) {
 			newDataSeries = this.calcNewSeries(data1D, mm, d);
 			distR = this.calcStandardDeviation(data1D) * r;
 			numberOfCorrelations = this.calcNumberOfCorrelations(newDataSeries, mm, distR);
-			correlations = this.calcCorrelations(numberOfCorrelations, mm, d);
-			sumOfCorrelations = this.calcSumOfCorrelation(correlations,mm, d);
+			correlations = this.calcLogCorrelations(numberOfCorrelations, mm, d);
+			sumOfCorrelations = this.calcSumOfCorrelation(correlations, mm, d);
 			fmr[mm - m] = sumOfCorrelations;
 		}
 
-		sampleEntropy = (Math.log(fmr[0] / fmr[1]));// d; //Gaussian noise can lead to log(0/x)=infinity or even log(0/0)=NaN for larger m
-		return sampleEntropy;
+		appEntropy = fmr[0] - fmr[1];
+		return appEntropy;
 	}
 
 }

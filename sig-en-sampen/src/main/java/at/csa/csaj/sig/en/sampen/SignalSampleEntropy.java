@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.sig.sampen;
+package at.csa.csaj.sig.en.sampen;
 
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
@@ -65,8 +65,8 @@ import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.sig.open.SignalOpener;
-import at.csa.csaj.sig.sampen.util.ApproximateEntropy;
-import at.csa.csaj.sig.sampen.util.SampleEntropy;
+import at.csa.csaj.sig.en.sampen.util.ApproximateEntropy;
+import at.csa.csaj.sig.en.sampen.util.SampleEntropy;
 
 /**
  * A {@link Command} plugin computing <Sample entropy and Approximate entropy</a>
@@ -78,7 +78,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 
 	private static final String PLUGIN_LABEL            = "<html><b>Sample entropy / Approximate entropy</b></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String ENTROPYTYPE_LABEL       = "<html><b>Entropy Type</b></html>";
+	private static final String ENTROPYTYPE_LABEL       = "<html><b>Entropy type</b></html>";
 	private static final String SIGNALOPTIONS_LABEL     = "<html><b>Signal options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";

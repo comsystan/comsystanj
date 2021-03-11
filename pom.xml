@@ -24,12 +24,13 @@
 		<module>sig-autocorr</module>
 		<module>sig-detect-qrspeaks</module>
 		<module>sig-dfa</module>
+		<module>sig-en-genen</module>
+		<module>sig-en-sampen</module>
 		<module>sig-frac-dim-Higuchi1d</module>
 		<module>sig-kc</module>
 		<module>sig-generator</module>
 		<module>sig-opener</module>
 		<module>sig-poincareplot</module>
-		<module>sig-sampen</module>
 		<module>sig-statistics</module>
 	</modules>
 
