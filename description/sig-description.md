@@ -76,7 +76,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108, Tsallis, Introduction to Nonextensive
+- Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
 Statistical Mechanics, Springer, 2009
 
 ### Kolmogorov complexity and Logical depth
