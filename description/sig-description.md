@@ -35,7 +35,7 @@
 ### Detrended fluctuation analysis
 - Computes Detrended fluctuation analysis.
 - Signals should be opened with the CSAJ Signal Opener
-- Optional surrogate data conversion
+- Optional surrogate data analysis
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - Maximal window size should not be larger than 1/3 of the signal length
@@ -44,53 +44,70 @@
   - the box size should not be larger than 1/3 of the signal length 
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
-  - The number of subsequent and particularly of gliding boxes can be very high
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Peng et al., 1994, Phys.Rev.E., [https://doi.org/10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
 ### Fractal dimension - Higuchi
-- Computes Higuchi dimensions of signals.
+- Computes Higuchi dimensions
 - Signals should be opened with the CSAJ Signal Opener
-- Optional surrogate data conversion
+- Optional surrogate data analysis
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - kMax should not be larger than 1/3 of the signal length
 - Notes for Subsequent/Gliding box:
   - kMax should not be larger than 1/3 of the box size
-  - the box size should not be larger than 1/3 of the signal length 
+  - The box size should not be larger than 1/3 of the signal length 
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
-  - The number of subsequent and particularly of gliding boxes can be very high
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Higuchi, 1988, Physica D, [https://doi.org/10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
+
+### Generalised entropies
+- Computes generalised entropies
+- SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
+- Probabilities are computed with actual signal values or with differences
+- The time lag can be set
+- Signals should be opened with the CSAJ Signal Opener
+- Surrogate analysis is restricted to one of the entropies, if needed taking the smallest parameter value
+- Evaluation of Entire signal or Subsequent/Gliding box
+- Notes for Subsequent/Gliding box:
+  - Restricted to one of the entropies, if needed taking the smallest parameter value
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108, Tsallis, Introduction to Nonextensive
+Statistical Mechanics, Springer, 2009
 
 ### Kolmogorov complexity and Logical depth
 - KC is estiamted by compressing data bytes (ZLIB, GZIB)
 - LD is estimated by the decompression time
 - Iterations should be set to as high a value as possible
 - LD values should be taken with caution, as computers are not well suited to measure times
-- Optional surrogate data conversion
-- Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
-
+- Optional surrogate data analysis
+- Ref.: Zenil et al., 2012, Complexity, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+- 
 ### Poincare plot
 - Generation of Poincare plots (lag plots)
 - The time lag can be set
 - Multiple plots with distinct colors are possible
 
 ### Sample entropy
-- Computes Sample or Approximate entropies of signals
+- Computes Sample or Approximate entropy
 - Signals should be opened with the CSAJ Signal Opener
 - Note: Approximate entropy is not recommended for different signal lengths
 - m length of subsignals (m=2 is often used)
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
 - d additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
-- Optional surrogate data conversion
+- Optional surrogate data analysis
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - m should not be larger than 1/3 of the box size
-  - the box size should not be larger than 1/3 of the signal length 
+  - The box size should not be larger than 1/3 of the signal length 
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
-  - The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Richman & Moorman, 2000,Am.J.Physiol.Heart.Circ.Physiol., [https://doi.org/10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Richman & Moorman, 2000, Am.J.Physiol.Heart.Circ.Physiol., [https://doi.org/10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
 
 ### Signal generator
 - Generates signals of floating values (dot decimal numbers)
@@ -102,16 +119,16 @@
   - Gaussian an Uniform noise
   - Discrete chaotical maps (Logistic, Henon, Cubic, Spence), Silva & Murta Jr., 2012, Chaos, [http://dx.doi.org/10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
   - Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM
-  - Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM, Eke et.al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
+  - Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
 
 
 ### Signal statistics
-- Computes descriptive statistics of signals.
+- Computes descriptive statistics
 - Signals should be opened with the CSAJ Signal Opener
-- Optional surrogate data conversion
+- Optional surrogate data analysis
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - Only Medians, Means and SDs are computed
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
-  - The number of subsequent and particularly of gliding boxes can be very high
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
