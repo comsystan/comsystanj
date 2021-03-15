@@ -72,7 +72,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin computing <DFA</a>
  * of a  signal.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>DFA")
+@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Detrended fluctuation analysis")
 public class SignalDFA<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalDFA<T extends RealType<T>> implements Command {	//modal GUI
 
