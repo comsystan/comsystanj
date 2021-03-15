@@ -132,8 +132,8 @@ Statistical Mechanics, Springer, 2009
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
   
-### Standard HRV measurments
-- Computes standard HRV measurments (e.g. for 24h ECG Holter recordings)
+### Standard HRV measurements
+- Computes standard HRV measurements (e.g. for 24h ECG Holter recordings)
 - Time domain and Frquency domain methods
 - MeanHR, MeanNN, SDNN, SDANN, SDNNI, HRVTI, RMSSD, SDSD, NN50, PNN50, NN20, PNN20, VLF, LF, HF, LFnorm, HFnorm, LF/HF, TP
 - Signals should be opened with the CSAJ Signal Opener
