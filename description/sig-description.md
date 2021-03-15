@@ -141,7 +141,7 @@ Statistical Mechanics, Springer, 2009
 - Optional surrogate data analysis
 - Evaluation of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
-  - One of the measurement paramter must be selected
+  - One of the measurement parameters must be selected
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
