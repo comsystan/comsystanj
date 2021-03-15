@@ -22,7 +22,6 @@
 - Optional surrogate data conversion
 - Ref.: Oppenheim & Schafer, Discrete-Time Signal Processing, Ed.3, Pearson, 2010 
 
-
 ### Detect QRS peaks
 - Detects QRS peaks and peak to peak intervals of ECG data
 - Based on the OSEA algorithm
@@ -132,3 +131,19 @@ Statistical Mechanics, Springer, 2009
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
+  
+  ### Standard HRV measurments
+- Computes standard HRV measurments (e.g. for 24h ECG Holter recordings)
+- Time domain and Frquency domain methods
+- MeanHR, MeanNN, SDNN, SDANN, SDNNI, HRVTI, RMSSD, SDSD, NN50, PNN50, NN20, PNN20, VLF, LF, HF, LFnorm, HFnorm, LF/HF, TP
+- Signals should be opened with the CSAJ Signal Opener
+- A time domain column is not needed, because it will be reconstructed by summing up subsequent beat to beat intervals
+- Optional surrogate data analysis
+- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - One of the measurement paramter must be selected
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Malik et al., 1996, Circulation, [https://doi.org/10.1161/01.CIR.93.5.1043](https://doi.org/10.1161/01.CIR.93.5.1043)
+
