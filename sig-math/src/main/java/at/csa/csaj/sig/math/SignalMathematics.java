@@ -35,16 +35,11 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
-import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.transform.DftNormalization;
-import org.apache.commons.math3.transform.FastFourierTransformer;
-import org.apache.commons.math3.transform.TransformType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
