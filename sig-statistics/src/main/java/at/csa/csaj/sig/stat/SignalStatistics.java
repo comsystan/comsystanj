@@ -71,7 +71,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin computing <Statistics</a>
  * of a signal.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Signal Statistics")
+@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Statistics")
 public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalStatistics<T extends RealType<T>> implements Command {	//modal GUI
 
