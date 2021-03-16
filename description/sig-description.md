@@ -1,18 +1,5 @@
 ## Signal - Short description of plugins
 
-### Signal opener
-- Opens signals or plots of floating values (dot decimal numbers)
-- For comma delimited text files
-- The first row must contain the column (signal) headers
-- The first column must contain the row headers or just a subsequent numbering 
-- All columns MUST have the same number of rows
-- Maximal row number is 2147483647 or 2^31-1
-- Missing values MUST be filled up with NaN
-- NaNs will be ignored for plot charts
-- NaNs will be ignored by CSAJ signal plugins
-- Conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
-- Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
-
 ### Autocorrelation
 - Computes the autocorrelation
 - Options for large and small number of data points
@@ -129,18 +116,19 @@ Statistical Mechanics, Springer, 2009
   - Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM
   - Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
 
-### Signal statistics
-- Computes descriptive statistics
-- N, Min, Max, Median, RMS, Mean, SD, Kurtosis, Skewness, Sum, Sum of squares
-- Signals should be opened with the CSAJ Signal Opener
-- Optional surrogate data analysis
-- Evaluation of Entire signal or Subsequent/Gliding boxes
-- Notes for Subsequent/Gliding box:
-  - Only Medians, Means and SDs are computed
-  - The number of subsequent boxes is (signal length)/(box size)
-  - The number of gliding boxes is (signal length)-(box size)
-  - Note: The number of subsequent and particularly of gliding boxes can be very high
-  
+### Signal opener
+- Opens signals or plots of floating values (dot decimal numbers)
+- For comma delimited text files
+- The first row must contain the column (signal) headers
+- The first column must contain the row headers or just a subsequent numbering 
+- All columns MUST have the same number of rows
+- Maximal row number is 2147483647 or 2^31-1
+- Missing values MUST be filled up with NaN
+- NaNs will be ignored for plot charts
+- NaNs will be ignored by CSAJ signal plugins
+- Conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
+- Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
+
 ### Standard HRV measurements
 - Computes standard HRV measurements (e.g. for 24h ECG Holter recordings)
 - Time domain and Frquency domain methods
@@ -155,4 +143,17 @@ Statistical Mechanics, Springer, 2009
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Malik et al., 1996, Circulation, [https://doi.org/10.1161/01.CIR.93.5.1043](https://doi.org/10.1161/01.CIR.93.5.1043)
+
+### Statistics
+- Computes descriptive statistics
+- N, Min, Max, Median, RMS, Mean, SD, Kurtosis, Skewness, Sum, Sum of squares
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - Only Medians, Means and SDs are computed
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+  
 
