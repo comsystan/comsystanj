@@ -30,6 +30,7 @@
 		<module>sig-generator</module>
 		<module>sig-hrv</module>
 		<module>sig-kc</module>
+		<module>sig-math</module>
 		<module>sig-opener</module>
 		<module>sig-poincareplot</module>
 		<module>sig-statistics</module>
