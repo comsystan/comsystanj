@@ -15,18 +15,18 @@
 
 ### Autocorrelation
 - Computes the autocorrelation
-- Signals should be opened with the CSAJ Signal Opener
 - Options for large and small number of data points
 - FFT according to Wiener-Khinchin theorem
 - The maximal lag can be set
+- Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data conversion
 - Ref.: Oppenheim & Schafer, Discrete-Time Signal Processing, Ed.3, Pearson, 2010 
 
 ### Detect QRS peaks
 - Detects QRS peaks and peak to peak intervals of ECG data
 - Based on the OSEA algorithm
+- For ECG files (Holter chan.raw files)
 - Signals should be opened with the CSAJ Signal Opener
-- For ecg files (Holter chan.raw file)
 - The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
 - See [https://github.com/MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
 - Ref.: Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [https://doi.org/10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
@@ -83,13 +83,22 @@ Statistical Mechanics, Springer, 2009
 - LD is estimated by the decompression time
 - Iterations should be set to as high a value as possible
 - LD values should be taken with caution, as computers are not well suited to measure times
+- Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Ref.: Zenil et al., 2012, Complexity, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
-- 
+
+### Mathematical functions
+- Computes mathematical functions
+- Differentiation, Integration, Exp, Ln, Log, Sin, Cos, Tan
+- Unity domain or optionally the 1st column as domain for differentiation and integration
+- Data values of the 1st column as domain must be monotonically increasing
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data conversion
+
 ### Poincare plot
 - Generation of Poincare plots (lag plots)
 - The time lag can be set
-- Multiple plots with distinct colors are possible
+- Multiple plots with distinct colors
 
 ### Sample entropy
 - Computes Sample or Approximate entropy
@@ -120,9 +129,9 @@ Statistical Mechanics, Springer, 2009
   - Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM
   - Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
 
-
 ### Signal statistics
 - Computes descriptive statistics
+- N, Min, Max, Median, RMS, Mean, SD, Kurtosis, Skewness, Sum, Sum of squares
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Evaluation of Entire signal or Subsequent/Gliding boxes
