@@ -9,6 +9,12 @@
 - Optional surrogate data conversion
 - Ref.: Oppenheim & Schafer, Discrete-Time Signal Processing, Ed.3, Pearson, 2010 
 
+### Cut out
+- Cutting out of a sub-signal
+- The range of the sub-signal is selected with the data value indices
+- A range outside of the original signal is filled up with NaNs
+- Signals should be opened with the CSAJ Signal Opener
+
 ### Detect QRS peaks
 - Detects QRS peaks and peak to peak intervals of ECG data
 - Based on the OSEA algorithm
