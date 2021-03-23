@@ -65,7 +65,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 
 
 /**
- * A {@link Command} plugin for cutting out a part of a signal.
+ * A {@link Command} plugin for cutting out a sub-signal.
  */
 @Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Cut out")
 public class SignalCut<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
@@ -348,8 +348,8 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing a Mathematical function, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing a Mathematical function, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Cutting out a sub-signal, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Cutting out a sub-signal, please wait... Open console window for further info.",
 																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -389,8 +389,8 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 		exec = Executors.newSingleThreadExecutor();
 		//exec =  defaultThreadService.getExecutorService();
 		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing a Mathematical function, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing a Mathematical function, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Cutting out a sub-signal, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Cutting out a sub-signal, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
