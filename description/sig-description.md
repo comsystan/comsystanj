@@ -39,6 +39,15 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Peng et al., 1994, Phys.Rev.E., [https://doi.org/10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
+### FFT
+- Computes the Power- or Magnitude spectrum
+- Normalization can be set to Standard or Unitary
+- Output value scaling can be set to Log, Ln or Linear
+- Time domain axis can be set to unitary units or to Hz 
+- Sample frequency can be set for time domain in Hz
+- Optional surrogate data conversion
+- Signals should be opened with the CSAJ Signal Opener
+
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions
 - Signals should be opened with the CSAJ Signal Opener
