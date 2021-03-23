@@ -412,7 +412,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Inte
     	exec.execute(new Runnable() {
             public void run() {
         	    try {
-        	    	logService.info(this.getClass().getName() + " Processing active signal");
+        	    	logService.info(this.getClass().getName() + " Processing single signal");
             		getAndValidateActiveDataset();
             		generateTableHeader();
             		deleteExistingDisplays();

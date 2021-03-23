@@ -381,7 +381,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
     	exec.execute(new Runnable() {
             public void run() {
         	    try {
-        	    	logService.info(this.getClass().getName() + " Processing active signal");
+        	    	logService.info(this.getClass().getName() + " Processing single signal");
             		getAndValidateActiveDataset();
             		generateTableHeader();
             		deleteExistingDisplays();
