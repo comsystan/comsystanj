@@ -169,8 +169,89 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 		this.add(this.chartPanel, BorderLayout.CENTER);
 	}
 	
+	@SuppressWarnings("rawtypes")
+	public DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int col,  boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
+
+		this.isLineVisible = isLineVisible;
+		this.imageTitle = imageTitle;
+		this.xLabel = xLabel;
+		this.yLabel = yLabel;
+		
+		this.chartPanel = new ChartPanel((JFreeChart) null, true);
+
+		int numColumns    = defaultGenericTable.getColumnCount();
+		int numDataPoints = defaultGenericTable.getRowCount();
+		//double dataX[] = new double[numDataPoints];
+		double dataY[] = new double[numDataPoints];
+		
+		Column<? extends Object> column = defaultGenericTable.get(col);
+		for (int n = 0; n < numDataPoints; n++) {
+			//dataX[n] = n+1;
+			double dataValue = Double.valueOf((Double)column.get(n));
+			dataY[n] = dataValue;	
+		}
+		
+		String seriesLabel = this.yLabel;
+		XYDataset xyDataset = this.createXYDataset(dataX, dataY, seriesLabel);
+		this.chartPanel.setChart(createChart(xyDataset));
+		// this.setHorizontalAxisTrace(true);
+		// this.setVerticalAxisTrace(true);
+		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
+		this.chartPanel.setMouseZoomable(true, false);
+
+		this.setLayout(new BorderLayout());
+		this.add(this.chartPanel, BorderLayout.CENTER);
+
+	}
 	
-		@SuppressWarnings("rawtypes")
+	/**
+	 * This class displays multiple data series in a single plot window.
+	 * 
+	 * @param dataX
+	 * @param dataY
+	 * @param isLineVisible
+	 * @param imageTitle
+	 * @param xLabel
+	 * @param yLabel
+	 */
+	@SuppressWarnings("rawtypes")
+	public DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String imageTitle, String xLabel,
+			String yLabel, String[] colNames) {
+		
+		this.isLineVisible = isLineVisible;
+		this.imageTitle = imageTitle;
+		this.xLabel = xLabel;
+		this.yLabel = yLabel;
+		this.chartPanel = new ChartPanel((JFreeChart) null, true);
+
+		int numColumns    = defaultGenericTable.getColumnCount();
+		int numDataPoints = defaultGenericTable.getRowCount();
+		//double dataX[]  = new double[numDataPoints];
+		double dataY[][] = new double[cols.length][numDataPoints];
+		Column<? extends Object> column;
+		
+		for (int c = 0; c < cols.length; c++) {
+			column = defaultGenericTable.get(cols[c]);
+			for (int n = 0; n < numDataPoints; n++) {
+				//dataX[n] = n+1;
+				double dataValue = Double.valueOf((Double)column.get(n));
+				dataY[c][n] = dataValue;
+			}
+		}
+		
+		XYDataset xyDataset = this.createXYDataset(dataX, dataY, colNames);
+
+		this.chartPanel.setChart(createChart(xyDataset));
+		// this.setHorizontalAxisTrace(true);
+		// this.setVerticalAxisTrace(true);
+		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
+		this.chartPanel.setMouseZoomable(true, false);
+
+		this.setLayout(new BorderLayout());
+		this.add(this.chartPanel, BorderLayout.CENTER);
+	}
+	
+	@SuppressWarnings("rawtypes")
 	public DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String imageTitle, String xLabel, String yLabel, String legendLabel) {
 
 		this.isLineVisible = isLineVisible;

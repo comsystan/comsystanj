@@ -118,6 +118,38 @@ public class PlotDisplayFrame extends JFrame {
 		this.pack();
 	}
 	
+	/**
+	 * This constructor creates an instance that displays a plot containing a
+	 * single data series.
+	 */
+	@SuppressWarnings("rawtypes")
+	public PlotDisplayFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
+			String frameTitle, String imageTitle, String xLabel, String yLabel) {
+		this(frameTitle);
+
+		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, defaultGenericTable, col,
+				isLineVisible, imageTitle, xLabel, yLabel);
+
+		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
+		this.pack();
+	}
+	
+	/**
+	 * This constructor creates an instance that displays multiple data series
+	 * of various lengths in a single plot.
+	 */
+	@SuppressWarnings("rawtypes")
+	public PlotDisplayFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols,
+			boolean isLineVisible, String frameTitle, String imageTitle,
+			String xLabel, String yLabel, String[] seriesLabels) {
+		this(frameTitle);
+
+		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, defaultGenericTable, cols,
+				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
+
+		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
+		this.pack();
+	}
 	
 	/**
 	 * This constructor creates an instance that displays multiple data series
