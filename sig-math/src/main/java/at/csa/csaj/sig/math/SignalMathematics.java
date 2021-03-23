@@ -98,6 +98,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
+	private static final int numTableOutTxtCols = 2; //Number of text columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
 	private static final String tableOutName = "Table - Mathematical function";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
@@ -572,19 +573,19 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 		writeToTable(s, resultValues);
 		
 		//eliminate empty columns
-		leaveOverOnlyOneSignalColumn(s+2); // + 2 because of 2 text columns
+		leaveOverOnlyOneSignalColumn(s+numTableOutTxtCols); // +because of first text columns
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableResult.getColumnCount()-2]; //-2 because of first two text columns	
+			int[] cols = new int[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "Function - " + this.choiceRadioButt_Operator;
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableResult.getColumnCount()-2]; //-2 because of first two text columns			
-			for (int c = 2; c < tableResult.getColumnCount(); c++) { //2 because of first two text columns	
-				cols[c-2] = c; //-2 because of first two text columns	
-				seriesLabels[c-2] = tableResult.getColumnHeader(c); //-2 because of first two text columns					
+			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns			
+			for (int c = numTableOutTxtCols; c < tableResult.getColumnCount(); c++) { //because of first text columns	
+				cols[c-numTableOutTxtCols] = c; //- because of first text columns	
+				seriesLabels[c-numTableOutTxtCols] = tableResult.getColumnHeader(c); //- because of first text columns					
 			}
 			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
@@ -648,15 +649,15 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelations?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableResult.getColumnCount()-2]; //-2 because of first two text columns	
+			int[] cols = new int[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "Function - " + this.choiceRadioButt_Operator;
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableResult.getColumnCount()-2]; //-2 because of first two text columns		
-			for (int c = 2; c < tableResult.getColumnCount(); c++) { //2 because of first two text columns	
-				cols[c-2] = c;  //-2 because of first two text columns	
-				seriesLabels[c-2] = tableResult.getColumnHeader(c);	//-2 because of first two text columns				
+			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns		
+			for (int c = numTableOutTxtCols; c < tableResult.getColumnCount(); c++) { // because of first text columns	
+				cols[c-numTableOutTxtCols] = c;  //- because of first text columns	
+				seriesLabels[c-numTableOutTxtCols] = tableResult.getColumnHeader(c);	//- because of first text columns				
 			}
 			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
@@ -681,7 +682,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 		for (int r = 0; r < resultValues.length; r++ ) {
 			tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 			tableResult.set(1, r, this.choiceRadioButt_Operator);
-			tableResult.set(signalNumber + 2, r, resultValues[r]); //+2 because of first two text columns	
+			tableResult.set(signalNumber + numTableOutTxtCols, r, resultValues[r]); //+ because of first text columns	
 		}
 		
 		//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
@@ -689,7 +690,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 			for (int r = resultValues.length; r < tableResult.getRowCount(); r++ ) {
 				tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableResult.set(1, r, this.choiceRadioButt_Operator);
-				tableResult.set(signalNumber + 2, r, Double.NaN); //+2 because of first two text columns	
+				tableResult.set(signalNumber + numTableOutTxtCols, r, Double.NaN); //+ because of first text columns	
 			}
 		}
 	}
@@ -756,7 +757,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (signalType.equals("Entire signal")){	//only this option is possible for autocorrelation
+		if (signalType.equals("Entire signal")){	//only this option is possible for Mathematics
 			
 			if (!surrType.equals("No surrogates")) {
 				Surrogate surrogate = new Surrogate();	
@@ -854,10 +855,10 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 				}
 			}	
 		//********************************************************************************************************	
-		} else if (signalType.equals("Subsequent boxes")){ //not for Autocorrelation
+		} else if (signalType.equals("Subsequent boxes")){ //not for Mathematics
 		
 		//********************************************************************************************************			
-		} else if (signalType.equals("Gliding box")){ //not for autocorrelation
+		} else if (signalType.equals("Gliding box")){ //not for Mathematics
 		
 		}
 		

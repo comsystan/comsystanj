@@ -104,6 +104,7 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 	
 	private static int numMaxLag = 1;
 
+	private static final int numTableOutTxtCols = 2; //Number of text columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
 	private static final String tableOutName = "Table - Autocorrelation";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
@@ -582,19 +583,19 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		writeToTable(s, resultValues);
 		
 		//eliminate empty columns
-		leaveOverOnlyOneSignalColumn(s+2); // + 2 becaus of 2 text columns
+		leaveOverOnlyOneSignalColumn(s+numTableOutTxtCols); // + because of text columns
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableResult.getColumnCount()-2]; //-2 because of first two text columns	
+			int[] cols = new int[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "Autocorrelation - " + this.choiceRadioButt_AutoCorrelationMethod;
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableResult.getColumnCount()-2]; //-2 because of first two text columns			
-			for (int c = 2; c < tableResult.getColumnCount(); c++) { //2 because of first two text columns	
-				cols[c-2] = c; //-2 because of first two text columns	
-				seriesLabels[c-2] = tableResult.getColumnHeader(c); //-2 because of first two text columns					
+			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns			
+			for (int c = numTableOutTxtCols; c < tableResult.getColumnCount(); c++) { //because of first text columns	
+				cols[c-numTableOutTxtCols] = c; //- because of first text columns	
+				seriesLabels[c-numTableOutTxtCols] = tableResult.getColumnHeader(c); //- because of first text columns					
 			}
 			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
@@ -658,15 +659,15 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelations?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableResult.getColumnCount()-2]; //-2 because of first two text columns	
+			int[] cols = new int[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "Autocorrelation - " + this.choiceRadioButt_AutoCorrelationMethod;
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableResult.getColumnCount()-2]; //-2 because of first two text columns		
-			for (int c = 2; c < tableResult.getColumnCount(); c++) { //2 because of first two text columns	
-				cols[c-2] = c;  //-2 because of first two text columns	
-				seriesLabels[c-2] = tableResult.getColumnHeader(c);	//-2 because of first two text columns				
+			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutTxtCols]; //- because of first text columns		
+			for (int c = numTableOutTxtCols; c < tableResult.getColumnCount(); c++) { // because of first text columns	
+				cols[c-numTableOutTxtCols] = c;  //- because of first text columns	
+				seriesLabels[c-numTableOutTxtCols] = tableResult.getColumnHeader(c);	//- because of first text columns				
 			}
 			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
@@ -691,7 +692,7 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		for (int r = 0; r < resultValues.length; r++ ) {
 			tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 			tableResult.set(1, r, this.choiceRadioButt_AutoCorrelationMethod);
-			tableResult.set(signalNumber + 2, r, resultValues[r]); //+2 because of first two text columns	
+			tableResult.set(signalNumber + numTableOutTxtCols, r, resultValues[r]); //+ because of first text columns	
 		}
 		
 		//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
@@ -699,7 +700,7 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 			for (int r = resultValues.length; r < tableResult.getRowCount(); r++ ) {
 				tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableResult.set(1, r, this.choiceRadioButt_AutoCorrelationMethod);
-				tableResult.set(signalNumber + 2, r, Double.NaN); //+2 because of first two text columns	
+				tableResult.set(signalNumber + numTableOutTxtCols, r, Double.NaN); //+ because of first text columns	
 			}
 		}
 	}
@@ -875,7 +876,7 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 //				double[] magnitude = new double[complx.length];
 //				for (int i = 0; i < complx.length; i++) {               
 //					//magnitude[i] = Math.sqrt(complx[i].getReal()*complx[i].getReal() + complx[i].getImaginary()*complx[i].getImaginary()); //Magnitude
-//					magnitude[i] = complx[i].abs() * complx[i].abs(); //magnitude
+//					magnitude[i] = complx[i].abs(); //magnitude
 //				}
 //				//magnitude[0] = 0;
 //				complx = transformer.transform(magnitude, TransformType.INVERSE);
