@@ -27,6 +27,7 @@
 		<module>sig-dfa</module>
 		<module>sig-en-genen</module>
 		<module>sig-en-sampen</module>
+		<module>sig-fft</module>
 		<module>sig-frac-dim-Higuchi1d</module>
 		<module>sig-generator</module>
 		<module>sig-hrv</module>
