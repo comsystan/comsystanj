@@ -48,6 +48,14 @@
 - Optional surrogate data conversion
 - Signals should be opened with the CSAJ Signal Opener
 
+### Filter
+- Computes Moving average or Moving Median
+- The range of average or median computation can be set
+- The range must be an odd number
+- A range of e.g. 3 means that for a data point, the previous value, the value itself and the next value are taken for the computation  
+- Optional surrogate data conversion
+- Signals should be opened with the CSAJ Signal Opener
+
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions
 - Signals should be opened with the CSAJ Signal Opener
