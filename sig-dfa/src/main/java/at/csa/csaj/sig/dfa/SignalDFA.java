@@ -104,7 +104,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 	
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	
-	private static final String tableOutName = "Table - Higuchi dimension";
+	private static final String tableOutName = "Table - DFA";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
