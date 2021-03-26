@@ -585,7 +585,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 
 	/** Executed whenever the {@link #choiceRadioButt_EntropyType} parameter changes. */
 	protected void callbackEntropyType() {
-		logService.info(this.getClass().getName() + " Entropy type set to " + choiceRadioButt_EntropyType);
+		logService.info(this.getClass().getName() + " Entropy type for surrogate or box set to " + choiceRadioButt_EntropyType);
 	}
 	
 	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
