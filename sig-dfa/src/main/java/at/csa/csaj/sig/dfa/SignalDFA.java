@@ -79,7 +79,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 	private static final String PLUGIN_LABEL            = "<html><b>Detrended fluctuation analysis</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
-	private static final String SIGNALOPTIONS_LABEL     = "<html><b>Signal options</b></html>";
+	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
@@ -179,16 +179,16 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSignalOptions = SIGNALOPTIONS_LABEL;
+	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
-	@Parameter(label = "Signal type",
+	@Parameter(label = "Analysis type",
 		description = "Entire signal, Subsequent boxes or Gliding box",
 		style = ChoiceWidget.LIST_BOX_STYLE,
 		choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
 		//persist  = false,  //restore previous value default = true
-		initializer = "initialSignalType",
-		callback = "callbackSignalType")
-	private String choiceRadioButt_SignalType;
+		initializer = "initialAnalysisType",
+		callback = "callbackAnalysisType")
+	private String choiceRadioButt_AnalysisType;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -272,8 +272,8 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 		//numbWinSizeMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
 		spinnerInteger_RegMax = 8;
 	}
-	protected void initialSignalType() {
-		choiceRadioButt_SignalType = "Entire signal";
+	protected void initialAnalysisType() {
+		choiceRadioButt_AnalysisType = "Entire signal";
 	} 
 	protected void initialSurrogateType() {
 		choiceRadioButt_SurrogateType = "No surrogates";
@@ -343,10 +343,10 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_RegMax);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_SignalType} parameter changes. */
-	protected void callbackSignalType() {
-		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_SignalType);
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+	protected void callbackAnalysisType() {
+		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -354,7 +354,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -562,7 +562,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 		tableResult = new DefaultGenericTable();
 		tableResult.add(new GenericColumn("File name"));
 		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Signal type"));
+		tableResult.add(new GenericColumn("Analysis type"));
 		tableResult.add(new GenericColumn("Surrogate type"));
 		tableResult.add(new IntColumn("# Surrogates"));
 		tableResult.add(new IntColumn("Box length"));
@@ -573,7 +573,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 		tableResult.add(new IntColumn("Reg Max"));
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalType.equals("Entire signal")){
+		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
 			tableResult.add(new DoubleColumn("Alpha"));	
 			tableResult.add(new DoubleColumn("R2"));
 			tableResult.add(new DoubleColumn("StdErr"));
@@ -589,7 +589,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("StdErr_Surr-#"+(s+1))); 
 			}	
 		} 
-		else if (choiceRadioButt_SignalType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableResult.add(new DoubleColumn("Alpha-#" + n));	
 			}
@@ -597,7 +597,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 				tableResult.add(new DoubleColumn("R2-#" + n));	
 			}
 		}
-		else if (choiceRadioButt_SignalType.equals("Gliding box")){
+		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableResult.add(new DoubleColumn("Alpha-#" + n));	
 			}
@@ -728,14 +728,14 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 		tableResult.set(0, row, tableInName);//File Name
 		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
 	
-		tableResult.set(2, row, choiceRadioButt_SignalType); //Signal Method
+		tableResult.set(2, row, choiceRadioButt_AnalysisType); //Signal Method
 		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
-		if (choiceRadioButt_SignalType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
+		if (choiceRadioButt_AnalysisType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
 			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
 			tableResult.set(4, row, null); //# Surrogates
 		}
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
 			tableResult.set(5, row, null);
@@ -748,7 +748,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 		tableColLast = 9;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalType.equals("Entire signal")){
+		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
 			int numParameters = resultValues.length;
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
@@ -761,7 +761,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 				//already set
 			}	
 		} 
-		else if (choiceRadioButt_SignalType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
 			//Dh R2 StdErr
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); // 2 parameters
@@ -769,7 +769,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 				tableResult.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
-		else if (choiceRadioButt_SignalType.equals("Gliding box")){
+		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
 			//Dh R2 StdErr
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); // 2 parameters 
@@ -794,7 +794,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
 
-		String signalType     = choiceRadioButt_SignalType;
+		String analysisType   = choiceRadioButt_AnalysisType;
 		String surrType       = choiceRadioButt_SurrogateType;
 		int boxLength         = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
@@ -834,7 +834,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (signalType.equals("Entire signal")){	
+		if (analysisType.equals("Entire signal")){	
 			if (surrType.equals("No surrogates")) {
 				resultValues = new double[3]; // Dim, R2, StdErr	
 			} else {
@@ -888,7 +888,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 				}	
 			} 
 		//********************************************************************************************************	
-		} else if (signalType.equals("Subsequent boxes")){
+		} else if (analysisType.equals("Subsequent boxes")){
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];
@@ -920,7 +920,7 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
-		} else if (signalType.equals("Gliding box")){
+		} else if (analysisType.equals("Gliding box")){
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];

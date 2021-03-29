@@ -74,7 +74,7 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 	private static final String PLUGIN_LABEL                = "<html><b>Cut out</b></html>";
 	private static final String SPACE_LABEL                 = "";
 	private static final String RANGE_LABEL                 = "<html><b>Cut range</b></html>";
-	private static final String SIGNALOPTIONS_LABEL         = "<html><b>Signal options</b></html>";
+	private static final String ANALYSISOPTIONS_LABEL       = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL     = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL        = "<html><b>Display option</b></html>";
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
@@ -170,16 +170,16 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 
 	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-//	private final String labelSignalOptions = SIGNALOPTIONS_LABEL;
+//	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 //
 //	@Parameter(label = "Signal type",
 //			description = "Entire signal, Subsequent boxes or Gliding box",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
 //			//persist  = false,  //restore previous value default = true
-//			initializer = "initialSignalType",
-//			callback = "callbackSignalType")
-//	private String choiceRadioButt_SignalType;
+//			initializer = "initialAnalysisType",
+//			callback = "callbackAnalysisType")
+//	private String choiceRadioButt_AnalysisType;
 //	
 //	@Parameter(label = "(Entire signal) Surrogates",
 //			description = "Surrogates types - Only for Entire signal type!",
@@ -249,8 +249,8 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 		spinnerInteger_RangeEnd = 2;
 	} 
 	
-//	protected void initialSignalType() {
-//		choiceRadioButt_SignalType = "Entire signal";
+//	protected void initialAnalysisType() {
+//		choiceRadioButt_AnalysisType = "Entire signal";
 //	} 
 //	
 //	protected void initialSurrogateType() {
@@ -291,10 +291,10 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 		logService.info(this.getClass().getName() + " End index set to " + spinnerInteger_RangeEnd);
 	}
 	
-//	/** Executed whenever the {@link #choiceRadioButt_SignalType} parameter changes. */
-//	protected void callbackSignalType() {
-//		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_SignalType);
-//		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+//	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+//	protected void callbackAnalysisType() {
+//		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
+//		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 //			choiceRadioButt_SurrogateType = "No surrogates";
 //			callbackSurrogateType();
 //		}
@@ -302,7 +302,7 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 	
 //	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 //	protected void callbackSurrogateType() {	
-//		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+//		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 //			choiceRadioButt_SurrogateType = "No surrogates";
 //			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 //		}	
@@ -682,7 +682,7 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		//String signalType    = choiceRadioButt_SignalType;
+		//String analysisType    = choiceRadioButt_AnalysisType;
 		//String surrType      = choiceRadioButt_SurrogateType;
 		//int  boxLength     = spinnerInteger_BoxLength;
 		int    numDataPoints = dgt.getRowCount();

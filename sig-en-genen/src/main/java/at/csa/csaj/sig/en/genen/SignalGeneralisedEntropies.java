@@ -106,7 +106,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	private static final String PLUGIN_LABEL            = "<html><b>Generalised entropies</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String ENTROPYOPTIONS_LABEL    = "<html><b>Entropy options</b></html>";
-	private static final String SIGNALOPTIONS_LABEL     = "<html><b>Signal options</b></html>";
+	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
@@ -308,16 +308,16 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSignalOptions = SIGNALOPTIONS_LABEL;
+	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
-	@Parameter(label = "Signal type",
+	@Parameter(label = "Analysis type",
 			description = "Entire signal, Subsequent boxes or Gliding box",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalType",
-			callback = "callbackSignalType")
-	private String choiceRadioButt_SignalType;
+			initializer = "initialAnalysisType",
+			callback = "callbackAnalysisType")
+	private String choiceRadioButt_AnalysisType;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -444,8 +444,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		spinnerFloat_MaxGamma = 1.0f;
 	}
 	
-	protected void initialSignalType() {
-		choiceRadioButt_SignalType = "Entire signal";
+	protected void initialAnalysisType() {
+		choiceRadioButt_AnalysisType = "Entire signal";
 	} 
 	
 	protected void initialSurrogateType() {
@@ -553,10 +553,10 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	}
 
 	
-	/** Executed whenever the {@link #choiceRadioButt_SignalType} parameter changes. */
-	protected void callbackSignalType() {
-		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_SignalType);
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+	protected void callbackAnalysisType() {
+		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -564,7 +564,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -776,7 +776,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		tableResult = new DefaultGenericTable();
 		tableResult.add(new GenericColumn("File name"));
 		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Signal type"));
+		tableResult.add(new GenericColumn("Analysis type"));
 		tableResult.add(new GenericColumn("Surrogate type"));
 		tableResult.add(new IntColumn("Surrogates #"));
 		tableResult.add(new IntColumn("Box length"));
@@ -813,7 +813,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		numGamma = (int) ((maxGamma - minGamma)/stepGamma + 1);
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalType.equals("Entire signal")){
+		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
@@ -899,7 +899,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 				}
 			}
 		} 
-		else if (choiceRadioButt_SignalType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
 			String entropyHeader = "";
 			if      (choiceRadioButt_EntropyType.equals("SE"))      {entropyHeader = "SE";}
 			else if (choiceRadioButt_EntropyType.equals("H1"))      {entropyHeader = "H1";}
@@ -919,7 +919,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 				tableResult.add(new DoubleColumn(entropyHeader+"-#" + n));	
 			}	
 		}
-		else if (choiceRadioButt_SignalType.equals("Gliding box")){
+		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
 			String entropyHeader = "";
 			if      (choiceRadioButt_EntropyType.equals("SE"))      {entropyHeader = "SE";}
 			else if (choiceRadioButt_EntropyType.equals("H1"))      {entropyHeader = "H1";}
@@ -1041,14 +1041,14 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		tableResult.set(0, row, tableInName);//File Name
 		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
 	
-		tableResult.set(2, row, choiceRadioButt_SignalType); //Signal Method
+		tableResult.set(2, row, choiceRadioButt_AnalysisType); //Signal Method
 		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
-		if (choiceRadioButt_SignalType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
+		if (choiceRadioButt_AnalysisType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
 			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
 			tableResult.set(4, row, null); //# Surrogates
 		}
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
 			tableResult.set(5, row, null);
@@ -1060,7 +1060,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		tableColLast = 8;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalType.equals("Entire signal")){
+		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
 			int numParameters = resultValues.length;
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
@@ -1073,14 +1073,14 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 				//already set
 			}	
 		} 
-		else if (choiceRadioButt_SignalType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 1 * numSubsequentBoxes); //1 or 2  for 1 or 2 parameters
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
 				tableResult.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
-		else if (choiceRadioButt_SignalType.equals("Gliding box")){
+		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 1 * numGlidingBoxes); //1 or 2 for 1 or 2 parameters 
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
@@ -1103,7 +1103,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		String  signalType    = choiceRadioButt_SignalType;
+		String  analysisType  = choiceRadioButt_AnalysisType;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
@@ -1154,7 +1154,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (signalType.equals("Entire signal")){	
+		if (analysisType.equals("Entire signal")){	
 	
 			if (surrType.equals("No surrogates")) {		
 				resultValues = new double[numOfEntropies]; // 		
@@ -1267,7 +1267,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			}
 		
 		//********************************************************************************************************	
-		} else if (signalType.equals("Subsequent boxes")){
+		} else if (analysisType.equals("Subsequent boxes")){
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSignal1D = new double[(int) boxLength];
@@ -1301,7 +1301,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
-		} else if (signalType.equals("Gliding box")){
+		} else if (analysisType.equals("Gliding box")){
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSignal1D = new double[(int) boxLength];
@@ -1811,7 +1811,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	
 	private int getMaxLag(int length) { // 
 		int result = 0;
-		if (this.choiceRadioButt_SignalType.equals("Entire signal")) {
+		if (this.choiceRadioButt_AnalysisType.equals("Entire signal")) {
 			result = (length) / 2;
 		}
 		else {

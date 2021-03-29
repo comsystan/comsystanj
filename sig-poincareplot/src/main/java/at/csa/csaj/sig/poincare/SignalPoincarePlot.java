@@ -72,7 +72,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	private static final String PLUGIN_LABEL                = "<html><b>Poincare plot</b></html>";
 	private static final String SPACE_LABEL                 = "";
 	private static final String POINCAREPLOT_LABEL          = "<html><b>Poincare plot option</b></html>";
-	private static final String SIGNALOPTIONS_LABEL         = "<html><b>Signal options</b></html>";
+	private static final String ANALYSISOPTIONS_LABEL       = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL     = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL        = "<html><b>Display option</b></html>";
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
@@ -156,16 +156,16 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSignalOptions = SIGNALOPTIONS_LABEL;
+	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 	
-	@Parameter(label = "Signal type",
+	@Parameter(label = "Analysis type",
 			description = "Entire signal, Subsequent boxes or Gliding box",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalType",
-			callback = "callbackSignalType")
-		private String choiceRadioButt_SignalType;
+			initializer = "initialAnalysisType",
+			callback = "callbackAnalysisType")
+		private String choiceRadioButt_AnalysisType;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -234,8 +234,8 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 		spinnerInteger_NumLag = 10;
 	}
 	
-	protected void initialSignalType() {
-		choiceRadioButt_SignalType = "Entire signal";
+	protected void initialAnalysisType() {
+		choiceRadioButt_AnalysisType = "Entire signal";
 	} 
 		
 	protected void initialSurrogateType() {
@@ -272,10 +272,10 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_NumLag);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_SignalType} parameter changes. */
-	protected void callbackSignalType() {
-		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_SignalType);
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+	protected void callbackAnalysisType() {
+		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -283,7 +283,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -639,7 +639,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		String  signalType    = choiceRadioButt_SignalType;
+		String  analysisType  = choiceRadioButt_AnalysisType;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		//int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
@@ -677,7 +677,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (signalType.equals("Entire signal")){	//only this option is possible for autocorrelation
+		if (analysisType.equals("Entire signal")){	//only this option is possible for autocorrelation
 			
 			if (!surrType.equals("No surrogates")) {
 				Surrogate surrogate = new Surrogate();	
@@ -695,10 +695,10 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 			
 			
 		//********************************************************************************************************	
-		} else if (signalType.equals("Subsequent boxes")){ //not for Autocorrelation
+		} else if (analysisType.equals("Subsequent boxes")){ //not for Autocorrelation
 		
 		//********************************************************************************************************			
-		} else if (signalType.equals("Gliding box")){ //not for autocorrelation
+		} else if (analysisType.equals("Gliding box")){ //not for autocorrelation
 		
 		}
 		

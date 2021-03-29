@@ -77,7 +77,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 	private static final String PLUGIN_LABEL                = "<html><b>Mathematical functions</b></html>";
 	private static final String SPACE_LABEL                 = "";
 	private static final String OPERATOR_LABEL              = "<html><b>Operator</b></html>";
-	private static final String SIGNALOPTIONS_LABEL         = "<html><b>Signal options</b></html>";
+	private static final String ANALYSISOPTIONS_LABEL       = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL     = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL        = "<html><b>Display option</b></html>";
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
@@ -179,16 +179,16 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelSignalOptions = SIGNALOPTIONS_LABEL;
+	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
-	@Parameter(label = "Signal type",
+	@Parameter(label = "Analysis type",
 			description = "Entire signal, Subsequent boxes or Gliding box",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalType",
-			callback = "callbackSignalType")
-	private String choiceRadioButt_SignalType;
+			initializer = "initialAnalysisType",
+			callback = "callbackAnalysisType")
+	private String choiceRadioButt_AnalysisType;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -258,8 +258,8 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 		choiceRadioButt_Domain = "Unity";
 	} 
 
-	protected void initialSignalType() {
-		choiceRadioButt_SignalType = "Entire signal";
+	protected void initialAnalysisType() {
+		choiceRadioButt_AnalysisType = "Entire signal";
 	} 
 	
 	protected void initialSurrogateType() {
@@ -305,10 +305,10 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 		logService.info(this.getClass().getName() + " Domain set to " + choiceRadioButt_Domain);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_SignalType} parameter changes. */
-	protected void callbackSignalType() {
-		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_SignalType);
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+	protected void callbackAnalysisType() {
+		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -316,7 +316,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_SignalType.equals("Entire signal")){
+		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -709,7 +709,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		String  signalType    = choiceRadioButt_SignalType;
+		String  analysisType  = choiceRadioButt_AnalysisType;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		//int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
@@ -757,7 +757,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (signalType.equals("Entire signal")){	//only this option is possible for Mathematics
+		if (analysisType.equals("Entire signal")){	//only this option is possible for Mathematics
 			
 			if (!surrType.equals("No surrogates")) {
 				Surrogate surrogate = new Surrogate();	
@@ -855,10 +855,10 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 				}
 			}	
 		//********************************************************************************************************	
-		} else if (signalType.equals("Subsequent boxes")){ //not for Mathematics
+		} else if (analysisType.equals("Subsequent boxes")){ //not for Mathematics
 		
 		//********************************************************************************************************			
-		} else if (signalType.equals("Gliding box")){ //not for Mathematics
+		} else if (analysisType.equals("Gliding box")){ //not for Mathematics
 		
 		}
 		
