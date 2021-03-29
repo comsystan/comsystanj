@@ -28,7 +28,7 @@
 - Computes Detrended fluctuation analysis.
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
-- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Analysis of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - Maximal window size should not be larger than 1/3 of the signal length
 - Notes for Subsequent/Gliding box:
@@ -60,7 +60,7 @@
 - Computes Higuchi dimensions
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
-- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Analysis of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - kMax should not be larger than 1/3 of the signal length
 - Notes for Subsequent/Gliding box:
@@ -78,7 +78,7 @@
 - The time lag can be set
 - Signals should be opened with the CSAJ Signal Opener
 - Surrogate analysis is restricted to one of the entropies, if needed taking the smallest parameter value
-- Evaluation of Entire signal or Subsequent/Gliding box
+- Analysis of Entire signal or Subsequent/Gliding box
 - Notes for Subsequent/Gliding box:
   - Restricted to one of the entropies, if needed taking the smallest parameter value
   - The box size should not be larger than 1/3 of the signal length 
@@ -100,7 +100,7 @@ Statistical Mechanics, Springer, 2009
 - bdSWV - scaled windowed variance (mean of SD's) with bridge detrending
 - Signals should be opened with the CSAJ Signal Opener
 - Surrogate analysis is restricted to PSD Beta
-- Evaluation of Entire signal or Subsequent/Gliding box
+- Analysis of Entire signal or Subsequent/Gliding box
 - Notes for Subsequent/Gliding box:
   - Restricted to PSD Beta
   - The box size should not be larger than 1/3 of the signal length 
@@ -140,7 +140,7 @@ Statistical Mechanics, Springer, 2009
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
 - d additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Optional surrogate data analysis
-- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Analysis of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - m should not be larger than 1/3 of the box size
   - The box size should not be larger than 1/3 of the signal length 
@@ -182,7 +182,7 @@ Statistical Mechanics, Springer, 2009
 - Signals should be opened with the CSAJ Signal Opener
 - A time domain column is not needed, because it will be reconstructed by summing up subsequent beat to beat intervals
 - Optional surrogate data analysis
-- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Analysis of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - One of the measurement parameters must be selected
   - The number of subsequent boxes is (signal length)/(box size)
@@ -195,11 +195,17 @@ Statistical Mechanics, Springer, 2009
 - N, Min, Max, Median, RMS, Mean, SD, Kurtosis, Skewness, Sum, Sum of squares
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
-- Evaluation of Entire signal or Subsequent/Gliding boxes
+- Analysis of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
   - Only Medians, Means and SDs are computed
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
+
+### Surrogate
+- Computes surrogate signals
+- Shuffle, Gaussian, Random phase, AAFT
+- Signals should be opened with the CSAJ Signal Opener
+- Ref: Mark Shelhammer, Nonlinear Dynamics in Physiology, World Scientific 2007
   
 
