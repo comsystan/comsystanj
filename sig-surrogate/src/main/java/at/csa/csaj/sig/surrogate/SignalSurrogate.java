@@ -160,7 +160,7 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelSurrogateOptions = SURROGATEOPTIONS_LABEL;
 	
-	@Parameter(label = "Surrogate",
+	@Parameter(label = "Surrogate type",
 			description = "Surrogate type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"Shuffle", "Gaussian", "Random phase", "AAFT"},
