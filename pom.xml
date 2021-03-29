@@ -30,6 +30,7 @@
 		<module>sig-fft</module>
 		<module>sig-filter</module>
 		<module>sig-frac-dim-Higuchi1d</module>
+		<module>sig-frac-hurst</module>
 		<module>sig-generator</module>
 		<module>sig-hrv</module>
 		<module>sig-kc</module>
