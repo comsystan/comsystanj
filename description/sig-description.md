@@ -88,6 +88,28 @@
 - Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
 Statistical Mechanics, Springer, 2009
 
+### Hurst coefficient
+- Computes the Hurst coefficient
+- PSD - power spectrum density
+- lowPSDwe - PSD using only lower frequencies (low), parabolic windowing (w) and end matching (e) (bridge detrending)
+- for PSD, regression Min and Max can be set
+- for lowPSDwe, regression Min = 1/8 and Max = 1/2 of the PSD size(1/2 of the signal length)
+- SSC - signal summation conversion method for discriminating fGn from fBm signals
+- Disp - dispersional method
+- SWV - scaled windowed variance (mean of SD's)
+- bdSWV - scaled windowed variance (mean of SD's) with bridge detrending
+- Signals should be opened with the CSAJ Signal Opener
+- Surrogate analysis is restricted to PSD Beta
+- Evaluation of Entire signal or Subsequent/Gliding box
+- Notes for Subsequent/Gliding box:
+  - Restricted to PSD Beta
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135)
+
+
 ### Kolmogorov complexity and Logical depth
 - KC is estiamted by compressing data bytes (ZLIB, GZIB)
 - LD is estimated by the decompression time
