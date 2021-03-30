@@ -78,7 +78,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
 	
 	private static double[] signal1D;
-	private static double[] xAxis1D;
+	private static double[] domain1D;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
 	Column<? extends Object> signalColumn;
@@ -647,12 +647,12 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 		int numLag            = this.numLag; 
 		
 		//******************************************************************************************************
-		//xAxis1D  = new double[numDataPoints];
+		//domain1D  = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
 		
 		signalColumn = dgt.get(col);
 		for (int n = 0; n < numDataPoints; n++) {
-			//xAxis1D[n]  = n+1;
+			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		

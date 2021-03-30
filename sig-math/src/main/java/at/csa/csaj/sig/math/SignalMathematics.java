@@ -83,7 +83,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
 	
 	private static double[] signal1D;
-	private static double[] xAxis1D;
+	private static double[] domain1D;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
 	Column<? extends Object> signalColumn;
@@ -720,20 +720,20 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 		//******************************************************************************************************
 		
 		if (optDomain.equals("Unity")){
-			//xAxis1D  = new double[numDataPoints];
+			//domain1D  = new double[numDataPoints];
 			signal1D = new double[numDataPoints];
 			signalColumn = dgt.get(col);
 			for (int n = 0; n < numDataPoints; n++) {
-				//xAxis1D[n]  = n+1;
+				//domain1D[n]  = n+1;
 				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 			}	
 		} else if (optDomain.equals("Column #1")){
-			xAxis1D  = new double[numDataPoints];
+			domain1D  = new double[numDataPoints];
 			signal1D = new double[numDataPoints];
 			domainColumn = dgt.get(0);
 			signalColumn = dgt.get(col);
 			for (int n = 0; n < numDataPoints; n++) {
-				xAxis1D[n]  = Double.valueOf((Double)domainColumn.get(n));
+				domain1D[n]  = Double.valueOf((Double)domainColumn.get(n));
 				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 			}	
 		}
@@ -776,7 +776,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 				double deltaX = Double.NaN; 
 				for (int i = 0; i < signal1D.length - 1; i++){
 					if (optDomain.equals("Unity"))     deltaX = 1.0d;   //deltaX unity
-					if (optDomain.equals("Column #1")) deltaX = xAxis1D[i+1] - xAxis1D[i]; //deltaX actual
+					if (optDomain.equals("Column #1")) deltaX = domain1D[i+1] - domain1D[i]; //deltaX actual
 					signalOut[i] = (signal1D[i+1] - signal1D[i])/deltaX;			
 				}		
 			}
@@ -785,7 +785,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 				double deltaX = Double.NaN; 
 				for (int i = 0; i < signal1D.length - 1; i++){
 					if (optDomain.equals("Unity"))     deltaX = 1.0d;   //deltaX unity
-					if (optDomain.equals("Column #1")) deltaX = xAxis1D[i+1] - xAxis1D[i]; //deltaX actual
+					if (optDomain.equals("Column #1")) deltaX = domain1D[i+1] - domain1D[i]; //deltaX actual
 					signalOut[i] = (signal1D[i] - signal1D[i+1])/deltaX;			
 				}
 			}
@@ -794,7 +794,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 				double deltaX = Double.NaN; 
 				for (int i = 0; i < signal1D.length - 2; i++){
 					if (optDomain.equals("Unity"))     deltaX = 2.0d;   //deltaX unity
-					if (optDomain.equals("Column #1")) deltaX = xAxis1D[i+2] - xAxis1D[i]; //deltaX actual
+					if (optDomain.equals("Column #1")) deltaX = domain1D[i+2] - domain1D[i]; //deltaX actual
 					signalOut[i] = (signal1D[i+2] - signal1D[i])/deltaX;			
 				}
 			}
@@ -804,7 +804,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 				double deltaX = Double.NaN; 
 				for (int i = 1; i < signal1D.length; i++){
 					if (optDomain.equals("Unity"))     deltaX = 1.0d;   //deltaX unity
-					if (optDomain.equals("Column #1")) deltaX = xAxis1D[i] - xAxis1D[i-1]; //deltaX actual
+					if (optDomain.equals("Column #1")) deltaX = domain1D[i] - domain1D[i-1]; //deltaX actual
 					signalOut[i] = (signalOut[i-1] + signal1D[i]*deltaX);			
 				}
 			}

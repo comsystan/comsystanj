@@ -123,8 +123,8 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	private static final String PROCESSOPTIONS_LABEL      = "<html><b>Process options</b></html>";
 	
 	private static double[] signal1D;
-	private static double[] xAxis1D;
-	private static double[] subXAxis1D;
+	private static double[] domain1D;
+	private static double[] subdomain1D;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
 	Column<? extends Object> signalColumn;
@@ -915,19 +915,19 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 		
 		//******************************************************************************************************
-		xAxis1D  = new double[numDataPoints];
+		domain1D  = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
 		
 		signalColumn = dgt.get(col); 
 		for (int n = 0; n < numDataPoints; n++) {
-			//xAxis1D[n]  = n+1;
+			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}
 		//Compute time values from intervals
-		xAxis1D[0] = 0.0;
+		domain1D[0] = 0.0;
 		for (int n = 1; n < numDataPoints; n++) {
-			//xAxis1D[n]  = n+1;
-			xAxis1D[n]  = xAxis1D[n-1] + signal1D[n];  //time values from intervals
+			//domain1D[n]  = n+1;
+			domain1D[n]  = domain1D[n-1] + signal1D[n];  //time values from intervals
 		}	
 		
 		signal1D = removeNaN(signal1D);
@@ -964,7 +964,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 				nn20   = calcNN20(diffSignal ,timeBase);		
 				pnn20  = nn20/numbnn;	
 			
-				double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+				double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 				//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 				vlf  = psdParameters[0];
 				lf   = psdParameters[1];
@@ -1035,37 +1035,37 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 				}
 				else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-					double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
 					measurementValue = psdParameters[0];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-					double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[1];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-					double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[2];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-					double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[3];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-					double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[4];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-					double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[5];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-					double[] psdParameters = calcPSDParameters(xAxis1D, signal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[6];
 				}
@@ -1120,37 +1120,37 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 						measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 					}
 					else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-						double[] psdParameters = calcPSDParameters(xAxis1D, surrSignal1D, timeBase);
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
 						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
 						measurementValue = psdParameters[0];
 					}
 					else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-						double[] psdParameters = calcPSDParameters(xAxis1D, surrSignal1D, timeBase);
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
 						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 						measurementValue = psdParameters[1];
 					}
 					else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-						double[] psdParameters = calcPSDParameters(xAxis1D, surrSignal1D, timeBase);
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
 						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 						measurementValue = psdParameters[2];
 					}
 					else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-						double[] psdParameters = calcPSDParameters(xAxis1D, surrSignal1D, timeBase);
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
 						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 						measurementValue = psdParameters[3];
 					}
 					else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-						double[] psdParameters = calcPSDParameters(xAxis1D, surrSignal1D, timeBase);
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
 						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 						measurementValue = psdParameters[4];
 					}
 					else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-						double[] psdParameters = calcPSDParameters(xAxis1D, surrSignal1D, timeBase);
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
 						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 						measurementValue = psdParameters[5];
 					}
 					else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-						double[] psdParameters = calcPSDParameters(xAxis1D, surrSignal1D, timeBase);
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
 						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 						measurementValue = psdParameters[6];
 					}			
@@ -1165,7 +1165,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSignal1D = new double[(int) boxLength];
-			subXAxis1D  = new double[(int) boxLength];
+			subdomain1D  = new double[(int) boxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
 			long actualNumSubsequentBoxes = (long) Math.floor((double)signal1D.length/(double)spinnerInteger_BoxLength);
 		
@@ -1175,7 +1175,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 				int start = (i*boxLength);
 				for (int ii = start; ii < (start + boxLength); ii++){ 
 					subSignal1D[ii-start] = signal1D[ii];
-					subXAxis1D[ii-start]  = xAxis1D[ii];
+					subdomain1D[ii-start]  = domain1D[ii];
 				}
 				//Compute specific values************************************************
 				//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
@@ -1215,37 +1215,37 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 				}
 				else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
 					measurementValue = psdParameters[0];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[1];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[2];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[3];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[4];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[5];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[6];
 				}	
@@ -1258,7 +1258,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSignal1D = new double[(int) boxLength];
-			subXAxis1D = new double[(int) boxLength];
+			subdomain1D = new double[(int) boxLength];
 			//number of boxes may be smaller because of NaNs or removed zeroes
 			long actualNumGlidingBoxes = signal1D.length - spinnerInteger_BoxLength + 1;
 			
@@ -1268,7 +1268,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 				int start = i;
 				for (int ii = start; ii < (start + boxLength); ii++){ 
 					subSignal1D[ii-start] = signal1D[ii];
-					subXAxis1D[ii-start]  = xAxis1D[ii];
+					subdomain1D[ii-start]  = domain1D[ii];
 				}	
 				//Compute specific values************************************************
 				//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
@@ -1308,37 +1308,37 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 				}
 				else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
 					measurementValue = psdParameters[0];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[1];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[2];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[3];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[4];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[5];
 				}
 				else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-					double[] psdParameters = calcPSDParameters(subXAxis1D, subSignal1D, timeBase);
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
 					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
 					measurementValue = psdParameters[6];
 				}

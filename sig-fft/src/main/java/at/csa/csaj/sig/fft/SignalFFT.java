@@ -88,7 +88,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
 	
 	private static double[] signal1D;
-	private static double[] xAxis1D;
+	private static double[] domain1D;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
 	Column<? extends Object> signalColumn;
@@ -651,7 +651,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 				cols[c-numTableOutPreCols] = c; //- because of first text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c); //- because of first two text columns					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(xAxis1D, tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			PlotDisplayFrame pdf = new PlotDisplayFrame(domain1D, tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		//}
 		
@@ -728,7 +728,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c);	//-because of first text columns				
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(xAxis1D, tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			PlotDisplayFrame pdf = new PlotDisplayFrame(domain1D, tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		//}
 			
@@ -751,7 +751,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		for (int r = 0; r < resultValues.length; r++ ) {
 			tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 			tableResult.set(1, r, this.choiceRadioButt_NormalizationType);
-			tableResult.set(2, r, xAxis1D[r]); // time domain column	
+			tableResult.set(2, r, domain1D[r]); // time domain column	
 			tableResult.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
 		}
 		
@@ -760,7 +760,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 			for (int r = resultValues.length; r < tableResult.getRowCount(); r++ ) {
 				tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableResult.set(1, r, this.choiceRadioButt_NormalizationType);
-				tableResult.set(2, r, xAxis1D[r]); // time domain column	
+				tableResult.set(2, r, domain1D[r]); // time domain column	
 				tableResult.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
 			}
 		}
@@ -793,11 +793,11 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		//******************************************************************************************************
 		
 	
-		//xAxis1D  = new double[numDataPoints];
+		//domain1D  = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
 		signalColumn = dgt.get(col);
 		for (int n = 0; n < numDataPoints; n++) {
-			//xAxis1D[n]  = n+1;
+			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		
@@ -900,14 +900,14 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 			}
 			
 			//generate time domain axis
-			xAxis1D = new double[complx.length/2];
+			domain1D = new double[complx.length/2];
 			if (timeDomainType.equals("Unitary")) {
 				for (int n = 0; n < signalOut.length; n++) {
-					xAxis1D[n]  = n+1;
+					domain1D[n]  = n+1;
 				}	
 			} else if (timeDomainType.equals("Hz")) {
 				for (int f = 0; f < signalOut.length; f++) {
-					xAxis1D[f]  = (double)f*sampleRate/(signalOut.length*2 - 2);
+					domain1D[f]  = (double)f*sampleRate/(signalOut.length*2 - 2);
 				}	
 			}
 			

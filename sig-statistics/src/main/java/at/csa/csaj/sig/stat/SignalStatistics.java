@@ -85,7 +85,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private static DefaultGenericTable  tableIn;
 
 	private static double[] signal1D;
-	private static double[] xAxis1D;
+	private static double[] domain1D;
 	private static Double valueDataPoint;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
@@ -703,13 +703,13 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		DescriptiveStatistics stats = null;
 		
 		//******************************************************************************************************
-		//xAxis1D  = new double[numDataPoints];
+		//domain1D  = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
 		
 		signalColumn = dgt.get(col);
 		
 		for (int n = 0; n < numDataPoints; n++) {
-			//xAxis1D[n] = n+1;
+			//domain1D[n] = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		

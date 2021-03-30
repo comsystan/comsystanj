@@ -84,7 +84,7 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
 	
 	private static double[] signal1D;
-	private static double[] xAxis1D;
+	private static double[] domain1D;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
 	private static double[] signalOut;
@@ -738,11 +738,11 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 		//******************************************************************************************************
 		
 	
-		//xAxis1D  = new double[numDataPoints];
+		//domain1D  = new double[numDataPoints];
 		signal1D = new double[numDataPointsIn];
 		signalColumn = dgt.get(col);
 		for (int n = 0; n < numDataPointsIn; n++) {
-			//xAxis1D[n]  = n+1;
+			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		
