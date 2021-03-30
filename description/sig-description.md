@@ -135,7 +135,7 @@ Statistical Mechanics, Springer, 2009
 
 ### Resampling
 - Down- or Upsampling
-- The Resampling factor can be set
+- A resampling factor can be set
 - With or without linear interpolation
 - Signals should be opened with the CSAJ Signal Opener
 
