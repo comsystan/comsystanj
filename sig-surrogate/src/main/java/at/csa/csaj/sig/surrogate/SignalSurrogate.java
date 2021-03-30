@@ -348,8 +348,8 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing FFT, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing FFT, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing surrogates, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing surrogates, please wait... Open console window for further info.",
 																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -389,8 +389,8 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 		exec = Executors.newSingleThreadExecutor();
 		//exec =  defaultThreadService.getExecutorService();
 		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing FFT, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing FFT, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing surrogates, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing surrogates, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
