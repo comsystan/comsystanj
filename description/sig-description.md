@@ -45,16 +45,16 @@
 - Output value scaling can be set to Log, Ln or Linear
 - Time domain axis can be set to unitary units or to Hz 
 - Sample frequency can be set for time domain in Hz
-- Optional surrogate data conversion
 - Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data conversion
 
 ### Filter
 - Computes Moving average or Moving Median
 - The range of average or median computation can be set
 - The range must be an odd number
 - A range of e.g. 3 means that for a data point, the previous value, the value itself and the next value are taken for the computation  
-- Optional surrogate data conversion
 - Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data conversion
 
 ### Fractal dimension - Higuchi
 - Computes Higuchi dimensions
@@ -131,14 +131,21 @@ Statistical Mechanics, Springer, 2009
 - Generation of Poincare plots (lag plots)
 - The time lag can be set
 - Multiple plots with distinct colors
+- Signals should be opened with the CSAJ Signal Opener
+
+### Resampling
+- Down- or Upsampling
+- The Resampling factor can be set
+- With or without linear interpolation
+- Signals should be opened with the CSAJ Signal Opener
 
 ### Sample entropy
 - Computes Sample or Approximate entropy
-- Signals should be opened with the CSAJ Signal Opener
-- Note: Approximate entropy is not recommended for different signal lengths
+- Approximate entropy is not recommended for different signal lengths
 - m length of subsignals (m=2 is often used)
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
 - d additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
@@ -179,8 +186,8 @@ Statistical Mechanics, Springer, 2009
 - Computes standard HRV measurements (e.g. for 24h ECG Holter recordings)
 - Time domain and Frquency domain methods
 - MeanHR, MeanNN, SDNN, SDANN, SDNNI, HRVTI, RMSSD, SDSD, NN50, PNN50, NN20, PNN20, VLF, LF, HF, LFnorm, HFnorm, LF/HF, TP
-- Signals should be opened with the CSAJ Signal Opener
 - A time domain column is not needed, because it will be reconstructed by summing up subsequent beat to beat intervals
+- Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
 - Notes for Subsequent/Gliding box:
