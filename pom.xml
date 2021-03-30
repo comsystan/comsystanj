@@ -37,6 +37,7 @@
 		<module>sig-math</module>
 		<module>sig-opener</module>
 		<module>sig-poincareplot</module>
+		<module>sig-resampling</module>
 		<module>sig-statistics</module>
 		<module>sig-surrogate</module>
 	</modules>
