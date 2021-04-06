@@ -38,6 +38,7 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartHints.Key;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -318,7 +319,7 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 	 */
 	@SuppressWarnings("rawtypes")
 	public DefaultXYLineChart(double[] dataX, double[] dataY, double[] dataX2, double[] dataY2, boolean isLineVisible,
-			String imageTitle, String xLabel, String yLabel) {
+			String imageTitle, String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
 
 		this.isLineVisible = isLineVisible;
 		this.imageTitle = imageTitle;
@@ -327,11 +328,11 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
-		XYDataset xyDataset = this.createXYDataset(dataX, dataY, "Data");
+		XYDataset xyDataset = this.createXYDataset(dataX, dataY, dataLegendLabel);
 		//	this.chartPanel.setChart(createChart(xyDataset));
 		//	this.chartPanel.setChart(createChart2(0, xyDataset));
 
-		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, "Points");
+		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, data2LegendLabel);
 		this.chartPanel.setChart(createChart(xyDataset, xyDataset2));
 
 		// this.setHorizontalAxisTrace(true);
@@ -346,7 +347,7 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 
 	@SuppressWarnings("rawtypes")
 	public DefaultXYLineChart(double[] dataX, double[][] dataY, double[] dataX2, double[][] dataY2, boolean isLineVisible,
-			String imageTitle, String xLabel, String yLabel, String[] legendLabels) {
+			String imageTitle, String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
 
 		this.isLineVisible = isLineVisible;
 		this.imageTitle = imageTitle;
@@ -355,11 +356,11 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
-		XYDataset xyDataset = this.createXYDataset(dataX, dataY, legendLabels);
+		XYDataset xyDataset = this.createXYDataset(dataX, dataY, dataLegendLabels);
 		//	this.chartPanel.setChart(createChart(xyDataset));
 		//	this.chartPanel.setChart(createChart2(0, xyDataset));
 
-		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, legendLabels);
+		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, data2LegendLabels);
 
 		this.chartPanel.setChart(createChart(xyDataset, xyDataset2));
 
@@ -561,9 +562,14 @@ public class DefaultXYLineChart extends JPanel implements ChangeListener {
 			s[v] = new XYSeries(legendLabels[v]); // several data series
 			//s = new XYSeries("");
 		xySeriesColl = new XYSeriesCollection();
+		int countIdenticalKeys = 0; //identical keys are not allowed
 		for (int v = 0; v < dataY.length; v++) {
 			for (int i = 0; i < dataX.length; i++) s[v].add(dataX[i], dataY[v][i]);
-			xySeriesColl.addSeries(s[v]);
+			if (xySeriesColl.indexOf(s[v].getKey()) >= 0) { //found identical key
+				countIdenticalKeys += 1;
+				s[v].setKey(s[v].getKey().toString() + "("+countIdenticalKeys+")"); //Rename key by addin a number 
+			}
+			xySeriesColl.addSeries(s[v]);		
 		}
 		// xyDataset.addSeries(s2);
 		return xySeriesColl;

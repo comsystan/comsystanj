@@ -184,7 +184,42 @@ public class PlotDisplayFrame extends JFrame {
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
 	}
+	
+	/**
+	 * This constructor creates an instance that displays a data series and a second one on top (e.g. for event display)
+	 * of various lengths in a single plot.
+	 */
+	@SuppressWarnings("rawtypes")
+	public PlotDisplayFrame(double dataX[], double[] dataY,  double[] dataX2, double[] dataY2,
+			boolean isLineVisible, String frameTitle, String imageTitle,
+			String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
+		this(frameTitle);
 
+		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
+				isLineVisible, imageTitle, xLabel, yLabel, dataLegendLabel,  data2LegendLabel);
+
+		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
+		this.pack();
+	}
+	
+	/**
+	 * This constructor creates an instance that displays data series and second ones on top (e.g. for event display)
+	 * of various lengths in a single plot.
+	 */
+	@SuppressWarnings("rawtypes")
+	public PlotDisplayFrame(double dataX[], double[][] dataY,  double[] dataX2, double[][] dataY2,
+			boolean isLineVisible, String frameTitle, String imageTitle,
+			String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
+		this(frameTitle);
+
+		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
+				isLineVisible, imageTitle, xLabel, yLabel, dataLegendLabels, data2LegendLabels);
+
+		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
+		this.pack();
+	}
+
+	
 	/**
 	 * This method disposes the frame. It also resets some ToolTip parameters.
 	 */

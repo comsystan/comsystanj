@@ -23,6 +23,7 @@
 		<module>img2d-kc</module>
 		<module>sig-autocorr</module>
 		<module>sig-cut</module>
+		<module>sig-detect-events</module>
 		<module>sig-detect-qrspeaks</module>
 		<module>sig-dfa</module>
 		<module>sig-en-genen</module>

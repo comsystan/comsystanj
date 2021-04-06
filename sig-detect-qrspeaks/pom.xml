@@ -17,7 +17,7 @@
 	<!-- first numbers of plugin version are identical to used pom-scijava version -->
 	<version>29.2.1.1</version>
 
-	<name>Signal - QRS Peaks Detection </name>
+	<name>Signal - QRS peaks detection </name>
 	<description>ImageJ plugin to detect QRS peaks and RR intervals.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2020</inceptionYear>
@@ -79,7 +79,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.sig.detect.qrspeaks</package-name>
-		<main-class>at.csa.csaj.sig.detect.qrspeaks.DetectQRSPeaks</main-class>
+		<main-class>at.csa.csaj.sig.detect.qrspeaks.SignalDetectQRSPeaks</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>
