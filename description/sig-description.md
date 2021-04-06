@@ -15,6 +15,20 @@
 - A range outside of the original signal is filled up with NaNs
 - Signals should be opened with the CSAJ Signal Opener
 
+### Detect events
+- Detects events such as peaks, valleys, slopes, or QRS peaks
+- Output can be the event time, event value, interval, heigth, energy, or delta height
+- Threshold or  Moving Average Curves (MACs)
+- QRS detection based on the Chen&Chen or OSEA algorithm
+- Optional surrogate data conversion
+- Optional subtraction of the mean
+- Optional up- or downscaling
+- Signals should be opened with the CSAJ Signal Opener
+- The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
+- See [https://github.com/MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
+- Ref.: Lu et al., 2006, Medical Physics, [https://doi.org/10.1118/1.2348764](https://doi.org/10.1118/1.2348764), Chen & Chen, 2003, Computers in Cardiology, [https://doi.org/10.1109/CIC.2003.1291223](https://doi.org/10.1109/CIC.2003.1291223),
+ Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [https://doi.org/10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
+
 ### Detect QRS peaks
 - Detects QRS peaks and peak to peak intervals of ECG data
 - Based on the OSEA algorithm
