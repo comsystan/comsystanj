@@ -17,7 +17,7 @@
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
-	<name>Image(2D) - Fractal Surface Generator</name>
+	<name>Image(2D) - Fractal surface generator</name>
 	<description>ImageJ plugin to generate 2D fractal surfaces.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2020</inceptionYear>

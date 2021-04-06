@@ -109,7 +109,7 @@ import io.scif.config.SCIFIOConfig;
  */
 @Plugin(type = InteractiveCommand.class, 
         headless = true,
-	    menuPath = "Plugins>ComsystanJ>Image(2D)>Kolmogorov Complexity")
+	    menuPath = "Plugins>ComsystanJ>Image(2D)>Kolmogorov complexity")
 public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionPyramid<T extends RealType<T>> implements Command {	//modal GUI
 	

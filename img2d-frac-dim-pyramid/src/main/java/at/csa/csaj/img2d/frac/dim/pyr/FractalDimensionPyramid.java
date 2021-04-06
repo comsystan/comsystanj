@@ -105,7 +105,7 @@ import io.scif.MetaTable;
  */
 @Plugin(type = InteractiveCommand.class, 
         headless = true,
-	    menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal Dimension Pyramid")
+	    menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal dimension - Pyramid")
 public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionPyramid<T extends RealType<T>> implements Command {	//modal GUI
 	

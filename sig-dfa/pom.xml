@@ -17,7 +17,7 @@
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
-	<name>Signal - Detrended Fluctuation Analysis</name>
+	<name>Signal - Detrended fluctuation analysis</name>
 	<description>ImageJ signal plugin for computing DFA</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

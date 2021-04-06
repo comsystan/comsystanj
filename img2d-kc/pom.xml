@@ -17,7 +17,7 @@
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
-	<name>Image(2D) - Kolmogorov Complexity</name>
+	<name>Image(2D) - Kolmogorov complexity</name>
 	<description>ImageJ plugin for computing Kolmogorov complexity and Logical depth.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

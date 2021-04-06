@@ -93,7 +93,7 @@ import io.scif.MetaTable;
  * A {@link Command} plugin computing <the Higuchi dimension by 1D signals</a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal Dimension Higuchi1D")
+@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal dimension - Higuchi1D")
 public class FractalDimensionHiguchi1D_BresenhamLineExtraction<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class FractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
 

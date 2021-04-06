@@ -60,7 +60,7 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Signal>Detect QRS Peaks")
+@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Signal>Detect QRS peaks")
 public class DetectQRSPeaks  implements Command, Previewable {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";

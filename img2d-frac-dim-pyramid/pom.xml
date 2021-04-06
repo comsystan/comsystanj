@@ -17,7 +17,7 @@
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.1</version>
 
-	<name>Image(2D) - Fractal Dimension Pyramid</name>
+	<name>Image(2D) - Fractal dimension - Pyramid</name>
 	<description>ImageJ plugin for computing fractal dimension with image pyramids.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2020</inceptionYear>

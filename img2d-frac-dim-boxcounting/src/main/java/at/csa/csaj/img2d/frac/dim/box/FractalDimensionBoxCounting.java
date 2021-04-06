@@ -96,7 +96,7 @@ import io.scif.MetaTable;
  */
 @Plugin(type = InteractiveCommand.class, 
         headless = true,
-	    menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal Dimension Box Counting")
+	    menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal dimension - Box counting")
 public class FractalDimensionBoxCounting<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionBoxCounting<T extends RealType<T>> implements Command {	//modal GUI
 	
