@@ -228,5 +228,19 @@ Statistical Mechanics, Springer, 2009
 - Shuffle, Gaussian, Random phase, AAFT
 - Signals should be opened with the CSAJ Signal Opener
 - Ref: Mark Shelhammer, Nonlinear Dynamics in Physiology, World Scientific 2007
+
+### Symbolic aggregation
+- Generates symbolic aggregation
+- Output is an image
+- Aggregation size = Sqrt(Alphabet size) x 2^(Sub-word length - 1)
+- Aggregation length can be set
+- Alphabet size is fixed to 4 characters (may be expanded later)
+- Word length can be set
+- Sub-word length can be set
+- Magnification of the aggregation size to an image size can be set
+- Grey or color image(s)
+- Optional surrogate data conversion
+- Signals should be opened with the CSAJ Signal Opener
+- Ref: Lin et al., 2003, DMKD '03: Proceedings of the 8th ACM SIGMOD workshop on Research issues in data mining and knowledge discovery [https://doi.org/10.1145/882082.882086](https://doi.org/10.1145/882082.882086)
   
 
