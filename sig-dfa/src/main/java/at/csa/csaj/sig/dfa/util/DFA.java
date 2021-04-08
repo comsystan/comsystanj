@@ -28,6 +28,8 @@
 package at.csa.csaj.sig.dfa.util;
 
 
+import javax.swing.JOptionPane;
+
 import org.scijava.log.LogService;
 import at.csa.csaj.commons.regression.LinearRegression;
 
@@ -110,6 +112,8 @@ public class DFA {
 		if (winSize > N) {
 			winSize = N / 3;
 			logService.info(this.getClass().getName() + " DFA parameter window size too large, automatically set to data length/3");
+			JOptionPane.showMessageDialog(null, " DFA parameter window size too large, automatically set to data length/3", "Info", JOptionPane.INFORMATION_MESSAGE);
+
 		}
 			
 		//Mean of data series
@@ -203,7 +207,7 @@ public class DFA {
 			lnDataX[i] = lnX;
 			lnDataY[i] = lnY;
 			// System.out.println(lnX + " " + lnY);
-			logService.info(this.getClass().getName() + "      " + lnX + "     " + lnY); 
+			//logService.info(this.getClass().getName() + "      " + lnX + "     " + lnY); 
 		}
 		
 		// Compute regression

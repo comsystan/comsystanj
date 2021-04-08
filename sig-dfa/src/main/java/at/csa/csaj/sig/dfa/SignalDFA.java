@@ -816,12 +816,12 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 //			//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
 //		}
 		//******************************************************************************************************
-		domain1D  = new double[numDataPoints];
+		//domain1D  = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
 		
 		signalColumn = dgt.get(col);
 		for (int n = 0; n < numDataPoints; n++) {
-			domain1D[n]  = n+1;
+			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		
@@ -961,13 +961,34 @@ public class SignalDFA<T extends RealType<T>> extends InteractiveCommand impleme
 
 	// This method shows the double log plot
 	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int col, int regMin, int regMax) {
+		
+		if (lnDataX == null) {
+			logService.info(this.getClass().getName() + " lnDataX == null, cannot display the plot!");
+			return;
+		}
+		if (lnDataY == null) {
+			logService.info(this.getClass().getName() + " lnDataY == null, cannot display the plot!");
+			return;
+		}
+		if (col < 0) {
+			logService.info(this.getClass().getName() + " col < 0, cannot display the plot!");
+			return;
+		}
+		if (regMin >= regMax) {
+			logService.info(this.getClass().getName() + " regMin >= regMax, cannot display the plot!");
+			return;
+		}
+		if (regMax <= regMin) {
+			logService.info(this.getClass().getName() + " regMax <= regMin, cannot display the plot!");
+			return;
+		}
 		// String preName = "";
 		if (preName == null) {
 			preName += "Col" + String.format("%03d", col) + "-";
 		}
 		boolean isLineVisible = false; // ?
 		RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-				"Double Log Plot - Higuchi Dimension", preName + "-" + tableInName, "ln(k)", "ln(L)", "", regMin, regMax);
+				"Double Log Plot - DFA", preName + "-" + tableInName, "ln(k)", "ln(F)", "", regMin, regMax);
 		doubleLogPlotList.add(doubleLogPlot);
 		
 	}

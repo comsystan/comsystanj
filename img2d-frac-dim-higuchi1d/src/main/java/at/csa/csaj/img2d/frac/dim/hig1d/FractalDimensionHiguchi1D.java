@@ -1599,6 +1599,26 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	// This method shows the double log plot
 	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int plane, int regMin, int regMax) {
 		if (isGrey) {
+			if (lnDataX == null) {
+				logService.info(this.getClass().getName() + " lnDataX == null, cannot display the plot!");
+				return;
+			}
+			if (lnDataY == null) {
+				logService.info(this.getClass().getName() + " lnDataY == null, cannot display the plot!");
+				return;
+			}
+			if (plane < 0) {
+				logService.info(this.getClass().getName() + " plane < 0, cannot display the plot!");
+				return;
+			}
+			if (regMin >= regMax) {
+				logService.info(this.getClass().getName() + " regMin >= regMax, cannot display the plot!");
+				return;
+			}
+			if (regMax <= regMin) {
+				logService.info(this.getClass().getName() + " regMax <= regMin, cannot display the plot!");
+				return;
+			}
 			// String preName = "";
 			if (preName == null) {
 				preName = "Slice-" + String.format("%03d", plane) + "-";
