@@ -9,6 +9,22 @@
 - Optional surrogate data conversion
 - Ref.: Oppenheim & Schafer, Discrete-Time Signal Processing, Ed.3, Pearson, 2010 
 
+### Allometric scaling
+- Computes a double log plot of aggregated variances and means
+- Regression parameters can be set
+- The slope of the linear regression is the result
+- According to West: FD = 2 - slope/2, but this does not always yield reasonable values
+- Signals should be opened with the CSAJ Signal Opener
+- Note for Entire signal:
+  - Regression Max should not be larger than 1/3 of the signal length
+- Notes for Subsequent/Gliding box:
+  - Regression Max should not be larger than 1/3 of the box size
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: West, 2006, Complexity, [https://doi.org/10.1002/cplx.20114](https://doi.org/10.1002/cplx.20114)
+
 ### Cut out
 - Cutting out of a sub-signal
 - The range of the sub-signal is selected with the data value indices
