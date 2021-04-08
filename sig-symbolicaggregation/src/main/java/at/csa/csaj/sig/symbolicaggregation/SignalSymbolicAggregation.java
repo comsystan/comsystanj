@@ -630,8 +630,9 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 			datasetOut.axis(0).setType(Axes.X);
 			datasetOut.axis(1).setType(Axes.Y);
 			datasetOut.axis(2).setType(Axes.CHANNEL);
+			datasetOut.setCompositeChannelCount(3);
 		}
-		
+		datasetOut.setName(imageOutName);
 		logService.info(this.getClass().getName() + " Processing finished.");
 
 		long duration = System.currentTimeMillis() - startTime;
@@ -698,7 +699,9 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 					boolean virtual  = false;
 
 					//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
-					datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
+					datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+					if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color"))) datasetOut.setCompositeChannelCount(3);
+					datasetOut.setName(imageOutName);
 					//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
 					//resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(singleImg.dimension(0), singleImg.dimension(1), numColumns);
 					randomAccessResultImg = (RandomAccess<T>) datasetOut.randomAccess();
