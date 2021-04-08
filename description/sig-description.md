@@ -36,6 +36,7 @@
 - Output can be the event time, event value, interval, heigth, energy, or delta height
 - Threshold or  Moving Average Curves (MACs)
 - QRS detection based on the Chen&Chen or OSEA algorithm
+- Optionally, the first data column may be the domain axis
 - Optional surrogate data conversion
 - Optional subtraction of the mean
 - Optional up- or downscaling
