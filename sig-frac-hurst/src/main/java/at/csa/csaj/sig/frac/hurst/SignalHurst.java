@@ -138,7 +138,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 	
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	
-	private static final String tableOutName = "Table - Higuchi dimension";
+	private static final String tableOutName = "Table - Hurst";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;

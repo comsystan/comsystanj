@@ -111,7 +111,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
-	private static final String tableOutName = "Table - Higuchi dimension";
+	private static final String tableOutName = "Table - Kolmogorov complexity";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;

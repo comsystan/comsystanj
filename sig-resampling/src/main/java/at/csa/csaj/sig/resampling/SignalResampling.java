@@ -102,7 +102,7 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 //	private static long numGlidingBoxes = 0;
 	
 	private static final int numTableOutPreCols = 1; //Number of columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
-	private static final String tableOutName = "Table - Surrogate";
+	private static final String tableOutName = "Table - Resampled";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;

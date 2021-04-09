@@ -172,7 +172,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	
 	double[] resultValues;
 	
-	private static final String tableOutName = "Table - Higuchi dimension";
+	private static final String tableOutName = "Table - Generalized entropies";
 	
 	WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;

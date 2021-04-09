@@ -164,7 +164,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	// data array	
 	private static double[] resultValues;
 
-	private static final String tableOutName = "Table - Higuchi dimension";
+	private static final String tableOutName = "Table - HRV";
 	
 	WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;

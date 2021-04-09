@@ -104,7 +104,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	private static float numParamR = 0.15f;
 	private static int   numParamD = 1;
 	
-	private static final String tableOutName = "Table - Higuchi dimension";
+	private static final String tableOutName = "Table - Entropy";
 	
 	WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
