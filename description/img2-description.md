@@ -1,23 +1,18 @@
 ## Image(2D) - Short description of plugins
 
-### Fractal surface creation
-- Creates 2D fractal grey value surfaces (8-bit images).
-- Theoretical fractal dimension can be set.
-- Fast Fourier Transformation FFT method is supported.
-- Midpoint displacement MPD method is supported.
-
-### Kolmogorov complexity and Logical Depth
-- KC is estimated by the memory size of compressed images saved to disk (LZW, PNG, J2K, JPG)
-- KC is estiamted by compressing data bytes (ZLIB, GZIB)
-- For 8-bit grey value images.
-- RGB color images may also work, but not tested
-- Lossless and lossy algorithms can be chosen
-- Lossless algorithms are recommended.
-- LD is estimated by the opening time of the compressed image (LZW, PNG, J2K, JPG)
-- LD is estimated by the decompression time of the compressed data bytes (ZLIB, GZIB)
-- Iterations should be set to as high a value as possible.
-- LD values should be taken with caution, as computers are not well suited to measure times
-- Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+### Image generator
+- Generates a single image or an image stack
+- 8bit Grey images or 24bit Color RGB images
+- Image size can be set
+- Maximal grey values can be set
+- Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
+- Freqeuncy can be set for Sine
+- Fractal surface - Fourier (FFT) or Midpoint displacment (MPD) or Sum of sine method
+- Theoretical fractal dimension can be set
+- For Sum of sine the frequency, amplitude and number of iterations can be set
+- Fractal Iterated function system (IFS) - Menger, Sierpinski-1, Sierpinski-2, Koch snowflake, Fern, Heighway dragon
+- For the IFS the number of iterations can be set
+- The polygon number for the Koch snowflake can bes set
 
 ### Fractal Dimension - Higuhi1D
 - Fractal dimensions are computed for 1D grey value profiles extracted from an image
@@ -39,3 +34,17 @@
 - Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
 - For other sizes it yields more reliable results, because box truncation is not necessary
 - Ref.: Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [https://doi.org/10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
+
+### Kolmogorov complexity and Logical Depth
+- KC is estimated by the memory size of compressed images saved to disk (LZW, PNG, J2K, JPG)
+- KC is estiamted by compressing data bytes (ZLIB, GZIB)
+- For 8-bit grey value images.
+- RGB color images may also work, but not tested
+- Lossless and lossy algorithms can be chosen
+- Lossless algorithms are recommended.
+- LD is estimated by the opening time of the compressed image (LZW, PNG, J2K, JPG)
+- LD is estimated by the decompression time of the compressed data bytes (ZLIB, GZIB)
+- Iterations should be set to as high a value as possible.
+- LD values should be taken with caution, as computers are not well suited to measure times
+- Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+
