@@ -13,6 +13,7 @@
 - Fractal Iterated function system (IFS) - Menger, Sierpinski-1, Sierpinski-2, Koch snowflake, Fern, Heighway dragon
 - For the IFS the number of iterations can be set
 - The polygon number for the Koch snowflake can bes set
+- Note: The number of iterates must be really high for the Fern 
 
 ### Fractal Dimension - Higuhi1D
 - Fractal dimensions are computed for 1D grey value profiles extracted from an image
