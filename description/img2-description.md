@@ -12,7 +12,7 @@
 - For Sum of sine the frequency, amplitude and number of iterations can be set
 - Fractal Iterated function system (IFS) - Menger, Sierpinski-1, Sierpinski-2, Koch snowflake, Fern, Heighway dragon
 - For the IFS the number of iterations can be set
-- The polygon number for the Koch snowflake can bes set
+- The polygon number for the Koch snowflake can be set
 - Note: The number of iterates must be really high for the Fern 
 
 ### Fractal Dimension - Higuhi1D
