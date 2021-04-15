@@ -8,7 +8,7 @@
 - Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
 - Freqeuncy can be set for Sine
 - Fractal surface - Fourier (FFT) or Midpoint displacment (MPD) or Sum of sine method
-- Theoretical fractal dimension can be set
+- Theoretical fractal dimension in the range of [2,3] can be set
 - For Sum of sine the frequency, amplitude and number of iterations can be set
 - Fractal Iterated function system (IFS) - Menger, Sierpinski-1, Sierpinski-2, Koch snowflake, Fern, Heighway dragon
 - For the IFS the number of iterations can be set
