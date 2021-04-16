@@ -210,7 +210,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	@Parameter(label = "Color model",
 			description = "Color model of output image",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Grey", "Color"}, //
+			choices = {"Grey-8bit", "Color-RGB-24bit"}, //
 			//persist  = false,  //restore previous value default = true
 			initializer = "initialColorModelType",
 			callback = "callbackColorModelType")
@@ -310,7 +310,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	}
 	
 	protected void initialColorModelType() {
-		choiceRadioButt_ColorModelType = "Grey";
+		choiceRadioButt_ColorModelType = "Grey-8bit";
 	}
 	
 	protected void initialAnalysisType() {
@@ -374,7 +374,8 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 		labelImageSize = String.valueOf(((int) (Math.sqrt(spinnerInteger_AlphabetSize))) * (int) Math.pow(2, spinnerInteger_SubWordLength-1) * spinnerInteger_Mag);
 		labelImageSize = labelImageSize+"x"+labelImageSize;
 		logService.info(this.getClass().getName() + " Image size will be " + labelImageSize);
-	}	
+	}
+	
 	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
 	protected void callbackColorModelType() {
 		logService.info(this.getClass().getName() + " Color model set to " + choiceRadioButt_ColorModelType);
@@ -680,11 +681,11 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 					AxisType[] axes;
 					long[] dims;
 					
-					if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Grey"))) {
+					if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Grey-8bit"))) {
 						dims = new long[]{singleImg.dimension(0), singleImg.dimension(1), numColumns};
 						axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
 					}
-					else if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color"))) {
+					else if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color-RGB-24bit"))) {
 						dims = new long[]{singleImg.dimension(0), singleImg.dimension(1), 3, numColumns}; //RGB
 						axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
 					}
@@ -700,14 +701,14 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 
 					//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
 					datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-					if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color"))) datasetOut.setCompositeChannelCount(3);
+					if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color-RGB-24bit"))) datasetOut.setCompositeChannelCount(3);
 					datasetOut.setName(imageOutName);
 					//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
 					//resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(singleImg.dimension(0), singleImg.dimension(1), numColumns);
 					randomAccessResultImg = (RandomAccess<T>) datasetOut.randomAccess();
 				}
 				//Copy to resultImg
-				if (choiceRadioButt_ColorModelType.equals("Grey")) {
+				if (choiceRadioButt_ColorModelType.equals("Grey-8bit")) {
 					cursor = singleImg.localizingCursor();
 					pos = new long[2];
 					while (cursor.hasNext()) {
@@ -721,7 +722,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 					}  	
 				}
 			
-				if (choiceRadioButt_ColorModelType.equals("Color")) {
+				if (choiceRadioButt_ColorModelType.equals("Color-RGB-24bit")) {
 					cursor = singleImg.localizingCursor();
 					pos = new long[3];
 					while (cursor.hasNext()) {
@@ -780,7 +781,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 		int     wordLength      = spinnerInteger_WordLength;
 		int     subWordLength   = spinnerInteger_SubWordLength;
 		int     mag             = spinnerInteger_Mag;
-		String  colorModelType  = choiceRadioButt_ColorModelType;//"Grey", "Color"
+		String  colorModelType  = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB-24bit"
 		//******************************************************************************************************
 		
 	
@@ -993,7 +994,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 //					}
 //				}	
 				
-			if (colorModelType.equals("Grey")) {
+			if (colorModelType.equals("Grey-8bit")) {
 				
 				//Change float to byte----------------------------------------------------
 				
@@ -1031,7 +1032,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 				
 				singleImg = imgBig;
 				
-			} else 	if (colorModelType.equals("Color")) {
+			} else 	if (colorModelType.equals("Color-RGB-24bit")) {
 				
 				//create empty image
 				imgRGB = new ArrayImgFactory<>(new UnsignedByteType()).create(img.dimension(0), img.dimension(1), img.dimension(0));
