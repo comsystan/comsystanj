@@ -451,16 +451,18 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
     	float offsetY = ((float)height-1f)/2f;
     	float radius = (float) Math.sqrt(offsetX*offsetX + offsetY*offsetY);
     	float value = 0;
+    	float omega = (float) (frequency*2*Math.PI);
+    	float phi   = (float) (frequency*2*Math.PI/4);
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				if (type.equals("radial")) {
-					value = (float) (Math.sin(Math.sqrt((x-offsetX)*(x-offsetX) + (y-offsetY)*(y-offsetY)) / radius * frequency * 2 * Math.PI));
+					value = (float) (Math.sin(Math.sqrt((x-offsetX)*(x-offsetX) + (y-offsetY)*(y-offsetY)) / radius * omega + phi));
 				}
 				else if (type.equals("horizontal")) {
-					value = (float) (Math.sin((float) x / (width - 1) * frequency * 2 * Math.PI));
+					value = (float) (Math.sin((float) x / (width - 1) * omega + phi));
 				}
 				else if (type.equals("vertical")) {
-					value = (float) (Math.sin((float) y / (width - 1) * frequency * 2 * Math.PI));
+					value = (float) (Math.sin((float) y / (width - 1) * omega + phi));
 				}
 				value = (value + 1.0f) / 2.0f * greyValueMax;  //Make positive and Normalize, greyValueMax up to 255
 				resultImgRa.setPosition(x, 0);
