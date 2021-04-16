@@ -20,6 +20,7 @@
 		<module>img2d-frac-dim-higuchi2d</module>
 		<module>img2d-frac-dim-pyramid</module>
 		<module>img2d-frac-generator-surface</module>
+		<module>img2d-generator</module>
 		<module>img2d-kc</module>
 		<module>sig-allomscale</module>
 		<module>sig-autocorr</module>
