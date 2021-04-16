@@ -20,6 +20,7 @@
 ### Image opener
 - Opens a single image or an image stack
 - Grey 8bit or Color RGB images are supported
+- For a stack, all images must be of same size and type  
 - Includes a preview (thumbnail) panel
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
