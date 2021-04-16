@@ -162,7 +162,7 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
     @Parameter(label = "Color model",
 			description = "Color model of output image",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Grey-8bit", "Color-RGB-24bit"}, //
+			choices = {"Grey-8bit", "Color-RGB"}, //
 			//persist  = false,  //restore previous value default = true
 			initializer = "initialColorModelType",
 			callback = "callbackColorModelType")
@@ -1578,7 +1578,7 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 		int width     			= spinnerInteger_Width;
 		int height    			= spinnerInteger_Height;
 		int numImages			= spinnerInteger_NumImages;
-		String colorModelType   = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB-24bit"
+		String colorModelType   = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
 		String imageType		= choiceRadioButt_ImageType;
 		int greyR   			= spinnerInteger_R;
 		int greyG   			= spinnerInteger_G;
@@ -1586,7 +1586,7 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 		float fracDim 			= spinnerFloat_FracDim;
 		float frequency  		= spinnerFloat_SineSumOfSineFrequency;
 		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
-		int numIterations				= spinnerInteger_NumSumOfSineIterations;
+		int numIterations		= spinnerInteger_NumSumOfSineIterations;
 		int numPolygons			= spinnerInteger_NumPolygons;
 	
 		// Create an image.
@@ -1610,7 +1610,7 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 			
 		AxisType[] axes  = null;
 		long[] dims 	 = null;
-		int bitsPerPixel = 8;
+		int bitsPerPixel = 0;
 		boolean signed   = false;
 		boolean floating = false;
 		boolean virtual  = false;
@@ -1621,6 +1621,7 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 		
 		if (colorModelType.equals("Grey-8bit")) {
 			if (numImages == 1) {
+				bitsPerPixel = 8;
 				dims = new long[]{width, height};
 				axes = new AxisType[]{Axes.X, Axes.Y};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
@@ -1656,6 +1657,7 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 				}
 			}
 			else if (numImages >= 1) {
+				bitsPerPixel = 8;
 				dims = new long[]{width, height, numImages};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
@@ -1674,10 +1676,10 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 					dlgProgress.updatePercent(String.valueOf(percent+"%"));
 					dlgProgress.updateBar(percent);
 					//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
-					statusService.showStatus((n+1), (int)numImages, "Processing " + (n+1) + "/" + (int)numImages);
+					statusService.showStatus((n+1), (int)numImages, "Generating " + (n+1) + "/" + (int)numImages);
 
 					startTime = System.currentTimeMillis();
-					logService.info(this.getClass().getName() + " Processing signal column number " + (n+1) + "(" + numImages + ")");
+					logService.info(this.getClass().getName() + " Generating image number " + (n+1) + "(" + numImages + ")");
 					
 					if      (imageType.equals("Random"))   						computeRandomImage(greyR);
 					else if (imageType.equals("Gaussian")) 						computeGaussianImage(greyR);
@@ -1717,12 +1719,14 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 				}			
 			}
 		}
-		else if (colorModelType.equals("Color-RGB-24bit")) {
+		else if (colorModelType.equals("Color-RGB")) {
 			if (numImages == 1) {
+				bitsPerPixel = 8;
 				dims = new long[]{width, height, 3};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
 				datasetOut.setCompositeChannelCount(3);
+				datasetOut.setRGBMerged(true);
 				
 				//R G B
 				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
@@ -1767,10 +1771,12 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 				} //RGB		
 			}
 			else if (numImages >= 1) {
+				bitsPerPixel = 8;
 				dims = new long[]{width, height, 3, numImages};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
 				datasetOut.setCompositeChannelCount(3);
+				datasetOut.setRGBMerged(true);
 					
 				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 				Cursor<UnsignedByteType> cursor;
