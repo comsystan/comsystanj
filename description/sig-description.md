@@ -48,9 +48,9 @@
 
 ### Detect QRS peaks
 - Detects QRS peaks and peak to peak intervals of ECG data
+- Plugin expects ECG files (Holter chan.raw files) from disk as input 
+- Output is directly saved into a csv file as a table 
 - Based on the OSEA algorithm
-- For ECG files (Holter chan.raw files)
-- Signals should be opened with the CSAJ Signal Opener
 - The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
 - See [https://github.com/MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
 - Ref.: Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [https://doi.org/10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
