@@ -2,7 +2,7 @@
 
 ### Image generator
 - Generates a single image or an image stack
-- 8bit Grey images or 24bit Color RGB images
+- 8bit Grey images or Color RGB images
 - Image size can be set
 - Maximal grey values can be set
 - Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
@@ -14,6 +14,15 @@
 - For the IFS the number of iterations can be set
 - The polygon number for the Koch snowflake can be set
 - Note: The number of iterates must be really high for the Fern 
+- Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
+- Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
+
+### Image opener
+- Opens a single image or an image stack
+- Grey 8bit or Color RGB images are supported
+- Includes a preview (thumbnail) panel
+- Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
+- Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
 ### Fractal Dimension - Higuhi1D
 - Fractal dimensions are computed for 1D grey value profiles extracted from an image
