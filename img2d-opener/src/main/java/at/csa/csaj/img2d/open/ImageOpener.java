@@ -30,13 +30,17 @@ package at.csa.csaj.img2d.open;
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
 import net.imagej.ImageJ;
+import net.imagej.axis.Axes;
+import net.imagej.axis.AxisType;
 import net.imagej.axis.CalibratedAxis;
 import net.imagej.axis.DefaultLinearAxis;
 import net.imagej.ops.OpService;
+import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.StackView;
 import net.imglib2.view.Views;
 
@@ -53,6 +57,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.FileWidget;
 
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
+import at.csa.csaj.commons.image.ImagePreviewPanel;
 
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
@@ -64,16 +69,20 @@ import io.scif.MetaTable;
 import io.scif.img.IO;
 import io.scif.img.SCIFIOImgPlus;
 import io.scif.services.DatasetIOService;
+
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 /**
  * This is an ImageJ {@link Command} plugin to open single or multiple images.
@@ -138,8 +147,9 @@ public class ImageOpener<T extends RealType<T>> implements Command {
 		dlgProgress.setBarIndeterminate(true);
 		dlgProgress.setVisible(true);
 		
-    	long startTime = System.currentTimeMillis();
-      	
+    	long startTimeAll = System.currentTimeMillis();
+    	logService.info(this.getClass().getName() + " Opening images, please wait...");
+    	
 		JFileChooser fc = null;
 		try {fc = new JFileChooser();}
 		catch (Throwable e) {
@@ -149,6 +159,13 @@ public class ImageOpener<T extends RealType<T>> implements Command {
 			return;
 			}
 		fc.setMultiSelectionEnabled(true);
+		
+		// Add thumbnail preview
+		// Thanks to Jakob Hatzl, FH Joanneum Graz for this link:
+		// http://www.javalobby.org/java/forums/t49462.html
+		ImagePreviewPanel preview = new ImagePreviewPanel();
+		fc.setAccessory(preview);
+		fc.addPropertyChangeListener(preview);
 		
 		String dir = System.getProperty("user.dir");
 		//System.out.println("System.getProperty(user.dir): " + System.getProperty("user.dir"));		
@@ -192,32 +209,130 @@ public class ImageOpener<T extends RealType<T>> implements Command {
 		}
 		
 		if (files.length > 1) {
-			ArrayList<Img<T>> hyperSlicesList = new ArrayList();
+			dlgProgress.setBarIndeterminate(false);
+			//Sort alphabetically, to be sure
+			Arrays.sort(files);
+			int numImgDimensions = 0;
+			String name = "Image Stack";
+			long[] dims = null;
+			AxisType[] axes = null;
+			int bitsPerPixel = 0;
+			boolean signed   = false;
+			boolean floating = false;
+			boolean virtual  = false;
+						
+			RandomAccess<RealType<?>> ra;
+			Cursor<UnsignedByteType> cursor;
+			long[] pos2D = new long[2];
+			long[] pos3D = new long[3];
+			long[] pos4D = new long[4]; 
+			float value;
+			
+			//ArrayList<Img<T>> hyperSlicesList = new ArrayList();
 			String[] fileNames = new String[files.length];
+			Img<T> img = null;
 			for (int i=0; i<files.length; i++) {
+				int percent = (int)Math.round((  ((float)i)/((float)files.length)   *100.f   ));
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus((i+1), (int)files.length, "Opening " + (i+1) + "/" + (int)files.length);
+
+				long startTime = System.currentTimeMillis();
+				logService.info(this.getClass().getName() + " Opening image number " + (i+1) + "(" + files.length + ")");
+				
 				fileNames[i] = files[i].getName();
 		        //Img< T > image = ( Img< T > ) IO.open(files[i].getPath()); 
 		        //hyperSlicesList.add((Img<T>) IO.open(files[i].getPath()));
 		        try {
-					hyperSlicesList.add((Img<T>) ioService.open(files[0].getPath()));
+					img = ((Img<T>) ioService.open(files[i].getPath()));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					logService.info(this.getClass().getName() + " WARNING #IO22 It was not possible to load the image");
 					e.printStackTrace();
 				}
-			    
+			    //Generate dataset with first image
+		        if (i==0) {
+		        	if (img.numDimensions() == 2) { //Grey
+		        		numImgDimensions = 2;
+		        		bitsPerPixel = 8;
+			        	dims = new long[]{img.dimension(0), img.dimension(1), files.length};
+						axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
+						datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+		        	} 
+		        	else if (img.numDimensions() == 3) { //RGB
+		        		numImgDimensions = 3;
+		        		bitsPerPixel = 8;
+			        	dims = new long[]{img.dimension(0), img.dimension(1), 3, files.length};
+						axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
+		        	} 
+		        	datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+					datasetOut.setCompositeChannelCount(3);
+					datasetOut.setRGBMerged(true);
+		        }
+		        //Check image size
+		    	if ((img.dimension(0) != dims[0]) || (img.dimension(1) != dims[1])) {
+		    		JOptionPane.showMessageDialog(null, "Image " + (i+1)+"("+files.length +")\nName: " + files[i].getName() + "\nhas different width or height!\nOpening of images cancelled.", "Warning", JOptionPane.WARNING_MESSAGE);
+		    		logService.info(this.getClass().getName() + " Image " + (i+1)+"("+files.length +") " + files[i].getName() + " has different width or height! - Opening of images cancelled");
+		    		dlgProgress.setVisible(false);
+		    		dlgProgress.dispose();
+		    		statusService.showProgress(0, 100);
+		    		statusService.clearStatus();
+		    		img = null;
+		    		datasetOut = null;
+		    		return;
+		    	}	  
+		    	//Check image type 
+		    	if (img.numDimensions() != numImgDimensions) {
+		    		JOptionPane.showMessageDialog(null, "Image " + (i+1)+"("+files.length +")\nName: " + files[i].getName() + "\nis a different type of image!\nOpening of images cancelled.", "Warning", JOptionPane.WARNING_MESSAGE);
+		    		logService.info(this.getClass().getName() + " Image " + (i+1)+"("+files.length +") " + files[i].getName() + " is a different type of image! - Opening of images cancelled");
+		    		dlgProgress.setVisible(false);
+		    		dlgProgress.dispose();
+		    		statusService.showProgress(0, 100);
+		    		statusService.clearStatus();
+		    		img = null;
+		    		datasetOut = null;
+		    		return;
+		    	}	     
+		        //write to datasetOut
+		        if (img.numDimensions() == 2) { //Grey
+			        cursor = (Cursor<UnsignedByteType>) img.cursor();
+			        ra = datasetOut.randomAccess();
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						cursor.localize(pos2D);
+						value= cursor.get().getRealFloat();
+						pos3D = new long[] {pos2D[0], pos2D[1], i};
+						ra.setPosition(pos3D);
+						ra.get().setReal(value);
+					}
+				}
+		        else if (img.numDimensions() == 3) { //RGB
+			        cursor = (Cursor<UnsignedByteType>) img.cursor();
+			        ra = datasetOut.randomAccess();
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						cursor.localize(pos3D);
+						value= cursor.get().getRealFloat();
+						pos4D = new long[] {pos3D[0], pos3D[1], pos3D[2], i};
+						ra.setPosition(pos4D);
+						ra.get().setReal(value);
+					}
+				}    
+		        img = null;
+		        long duration = System.currentTimeMillis() - startTime;
+				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+				SimpleDateFormat sdf = new SimpleDateFormat();
+				sdf.applyPattern("HHH:mm:ss:SSS");
+				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
 		    	// Show image sequence
 				//uiService.show(files[i].getName(), image);
 			} 
-			StackView sv = new StackView(hyperSlicesList);
-			
+			//StackView sv = new StackView(hyperSlicesList);
 			//RandomAccessibleInterval<T> rai = Views.stack(hyperSlicesList);
 			//uiService.show("Image Stack", sv); //shows stack, but without slice labels
-			datasetOut = datasetService.create(sv);
-			
-			datasetOut.getImgPlus().setName("Image Stack");
-			
-			// TO DO set axis label for z axis to "z"
+			//datasetOut = datasetService.create(sv);
+			//datasetOut.getImgPlus().setName("Image Stack");
 			
 			//set slice labels
 			try {
@@ -257,13 +372,16 @@ public class ImageOpener<T extends RealType<T>> implements Command {
 //		ij1.run("Images to Stack", "name=Stack title=[] use"); //THROWS ERROR  " No images found."
 		
 		
-		long duration = System.currentTimeMillis() - startTime;
+		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.applyPattern("HHH:mm:ss:SSS");
-		logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+		logService.info(this.getClass().getName() + " Elapsed time for all images: "+ sdf.format(duration));
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
+		
+		statusService.showProgress(0, 100);
+		statusService.clearStatus();
     }
 
    
