@@ -36,4 +36,4 @@ To get the version number of your Fiji, simply start Fiji and execute following 
 
 ### Contact
 Helmut Ahammer
-com.syst.an@gmail.com
+e-mail com.syst.an@gmail.com
