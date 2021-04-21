@@ -6,7 +6,7 @@
 **ComsystanJ** (Complex Systems Analysis for ImageJ) is a collection of ImageJ2 plugins to compute the complexity, fractal dimension and other nonlinear measures of images and signals. Copyright (c) Comsystan Software. Developed and maintained by Helmut Ahammer.
 
 ### Downloads
-- You can download ComsystanJ zip folders [here](downloads/index.md) 
+- You can download ComsystanJ [here](downloads/index.md) 
 - Unzip the file and copy the folder to the Fiji's plugin folder 
 
 ### Project descriptions
