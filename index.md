@@ -33,3 +33,7 @@ It is recommended to use ComsystanJ jar files and a Fiji distribution with the s
 
 ComsystanJ releases have a 4-digit version number in the jar file names as defined in the corresponding pom.xml files. The first three digits reflect the pom-scijava version. The last digit is the ComsystanJ version number.
 To get the version number of your Fiji, simply start Fiji and execute following command in the search bar: `!ui.showDialog(app.getApp("Fiji").getPOM().getParentVersion())`
+
+### Contact
+Helmut Ahammer
+com.syst.an@gmail.com
