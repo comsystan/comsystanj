@@ -16,6 +16,8 @@
 
 - Processing signals [- Short description of plugins](description/sig-description.md) 
 
+### Citing ComsystanJ 
+
 If you use ComsystanJ plugins and publish your work, please cite at least one of the following publications:
 
 ###### Image processing
