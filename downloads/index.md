@@ -1,7 +1,7 @@
 ## Downloads
 Installation instruction: Unzip the downloaded file and copy the folder to the Fiji's plugin folder
 
-**ComsystanJ-29.2.1.1-2021-04-21** [download](files/ComsystanJ-29.2.1.1-2021-04-21.zip) 
+**ComsystanJ-29.2.1.1-2021-04-21** [download](files/ComsystanJ-v29.2.1.1-2021-04-21.zip) 
 - Version 29.2.1.1
 - Release date 2021-04-21
 - pom-sjijava version 29.2.1
