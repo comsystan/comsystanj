@@ -8,7 +8,7 @@
 ### Downloads
 - You can download ComsystanJ [here](https://github.com/comsystan/comsystanj/releases)
 
-### Installation for Fiji
+### Installation
 - Unzip the .zip file and copy the folder to the Fiji's plugin folder 
 
 ### Project descriptions
