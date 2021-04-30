@@ -1,0 +1,7 @@
+ComsystanJ change log
+
+29.2.1.2
+- new img2 plugin Succolarity
+
+29.2.1.1 initial release
+
