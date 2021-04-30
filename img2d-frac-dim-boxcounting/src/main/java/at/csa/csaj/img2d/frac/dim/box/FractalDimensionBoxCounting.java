@@ -178,18 +178,18 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
   	private final String labelRegression = REGRESSION_LABEL;
 
     @Parameter(label = "Number of boxes",
-    		   description = "Number of boxes",
+    		   description = "Number of distinct box sizes with the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
 	           persist  = false,  //restore previous value default = true
-	           initializer = "initialNumImages",
-	           callback    = "callbackNumImages")
+	           initializer = "initialNumBoxes",
+	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
     
     @Parameter(label = "Regression Min",
-    		   description = "minimum x value of linear regression",
+    		   description = "Minimum x value of linear regression",
  		       style = NumberWidget.SPINNER_STYLE,
  		       min = "1",
  		       max = "32768",
@@ -200,7 +200,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     private int spinnerInteger_RegMin = 1;
  
     @Parameter(label = "Regression Max",
-    		   description = "maximum x value of linear regression",
+    		   description = "Maximum x value of linear regression",
     		   style = NumberWidget.SPINNER_STYLE,
 		       min = "3",
 		       max = "32768",
@@ -215,7 +215,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
      @Parameter(label = "Method",
-    		    description = "type of image and computation",
+    		    description = "Type of image and computation",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
       		    choices = {"Binary", "DBC", "RDBC"},
       		    //persist  = false,  //restore previous value default = true
@@ -262,7 +262,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     //---------------------------------------------------------------------
  
     //The following initialzer functions set initial values
-    protected void initialNumImages() {
+    protected void initialNumBoxes() {
       	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
       	spinnerInteger_NumBoxes = numBoxes;
     }
@@ -289,21 +289,24 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
-	/** Executed whenever the {@link #spinInteger_NumImages} parameter changes. */
-	protected void callbackNumImages() {
+	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
+	protected void callbackNumBoxes() {
 		
 		if  (spinnerInteger_NumBoxes < 3) {
 			spinnerInteger_NumBoxes = 3;
 		}
-		if  (spinnerInteger_NumBoxes > numBoxes) {
-			spinnerInteger_NumBoxes = numBoxes;
-		}
+		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
+		if (spinnerInteger_NumBoxes > numMaxBoxes) {
+			spinnerInteger_NumBoxes = numMaxBoxes;
+		};
 		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
 			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
 		}
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
 		}
+
+		numBoxes = spinnerInteger_NumBoxes;
 		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
     /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
@@ -549,7 +552,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
-				System.out.println("display name: " + display.getName());
+				//System.out.println("display name: " + display.getName());
 				if (display.getName().equals(tableName)) display.close();
 			}			
 		}
