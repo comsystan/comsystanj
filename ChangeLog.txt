@@ -2,6 +2,7 @@ ComsystanJ change log
 
 29.2.1.2
 - new img2 plugin Succolarity
+- check maximal number of boxes in Box counting plugin
 
 29.2.1.1 initial release
 
