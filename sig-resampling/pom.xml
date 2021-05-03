@@ -15,7 +15,7 @@
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-sig-resampling</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
-	<version>29.2.1.1</version>
+	<version>29.2.1.2</version>
 
 	<name>Signal - Resampling</name>
 	<description>ImageJ signal plugin for down- and upsampling</description>
@@ -95,7 +95,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-sig-opener</artifactId>
-			<version>29.2.1.1</version>
+			<version>29.2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

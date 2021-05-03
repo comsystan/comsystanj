@@ -15,7 +15,7 @@
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-img2d-frac-dim-boxcounting</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
-	<version>29.2.1.1</version>
+	<version>29.2.1.2</version>
 
 	<name>Image(2D) - Fractal dimension - Box counting</name>
 	<description>ImageJ plugin for computing fractal dimension with box counting.</description>
@@ -95,7 +95,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-commons</artifactId>
-			<version>29.2.1.1</version>
+			<version>29.2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

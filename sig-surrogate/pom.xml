@@ -15,7 +15,7 @@
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-sig-surrogate</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
-	<version>29.2.1.1</version>
+	<version>29.2.1.2</version>
 
 	<name>Signal - Surrogate</name>
 	<description>ImageJ signal plugin for computing surrogates</description>
@@ -95,7 +95,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-sig-opener</artifactId>
-			<version>29.2.1.1</version>
+			<version>29.2.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
