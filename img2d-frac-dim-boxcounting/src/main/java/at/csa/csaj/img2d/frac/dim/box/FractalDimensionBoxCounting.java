@@ -103,7 +103,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with box counting</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
-	private static final String METHODOPTIONS_LABEL     = "<html><b>Binary/Grey options</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
@@ -205,7 +205,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       //persist  = false,   //restore previous value default = true
+		       persist  = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
@@ -214,14 +214,23 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Method",
-    		    description = "Type of image and computation",
+     @Parameter(label = "Scanning method",
+    		    description = "Type of box scanning",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-      		    choices = {"Binary", "DBC", "RDBC"},
+      		    choices = {"Raster box"}, //"Sliding box" does not give the right dimension values
       		    //persist  = false,  //restore previous value default = true
-    		    initializer = "initialMethod",
-                callback = "callbackMethod")
-     private String choiceRadioButt_Method;
+    		    initializer = "initialScanningType",
+                callback = "callbackScanningType")
+     private String choiceRadioButt_ScanningType;
+     
+     @Parameter(label = "Analysis type",
+ 		    description = "Type of image and computation",
+ 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		    choices = {"Binary", "DBC", "RDBC"},
+   		    //persist  = false,  //restore previous value default = true
+ 		    initializer = "initialAnalysisMethod",
+             callback = "callbackAnalysisMethod")
+     private String choiceRadioButt_AnalysisMethod;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -273,8 +282,11 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
     	spinnerInteger_RegMax =  numBoxes;
     }
-    protected void initialMethod() {
-    	choiceRadioButt_Method = "Binary";
+    protected void initialScanningType() {
+    	choiceRadioButt_ScanningType = "Raster box";
+    }
+    protected void initialAnalysisMethod() {
+    	choiceRadioButt_AnalysisMethod = "Binary";
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
@@ -330,9 +342,16 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
-	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
-	protected void callbackMethod() {
-		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_Method);
+	
+	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
+	protected void callbackScanningType() {
+		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
+		
+	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
+	protected void callbackAnalysisMethod() {
+		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
 		
 	}
 	
@@ -690,7 +709,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
-		GenericColumn columnMethod         = new GenericColumn("Method");
+		GenericColumn columnScanType       = new GenericColumn("Scanning type");
+		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
 		DoubleColumn columnDp              = new DoubleColumn("Db");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
@@ -701,7 +721,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		table.add(columnMaxNumBoxes);
 		table.add(columnRegMin);
 		table.add(columnRegMax);
-		table.add(columnMethod);
+		table.add(columnScanType);
+		table.add(columnAnalysisType);
 		table.add(columnDp);
 		table.add(columnR2);
 		table.add(columnStdErr);
@@ -712,26 +733,28 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	 */
 	private void collectActiveResultAndShowTable(int sliceNumber) {
 	
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
-		int numImages       = spinnerInteger_NumBoxes;
-		String methodType   = choiceRadioButt_Method;	
-		if ((!methodType.equals("Binary")) && (regMin == 1)){
+		int regMin           = spinnerInteger_RegMin;
+		int regMax           = spinnerInteger_RegMax;
+		int numImages        = spinnerInteger_NumBoxes;
+		String scanningType  = choiceRadioButt_ScanningType;	
+		String analysisType  = choiceRadioButt_AnalysisMethod;	
+		if ((!analysisType.equals("Binary")) && (regMin == 1)){
 			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 		}	
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
 			table.appendRow();
-			table.set("File name",   table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",     table.getRowCount()-1, numImages);	
-			table.set("RegMin",      table.getRowCount()-1, regMin);	
-			table.set("RegMax",      table.getRowCount()-1, regMax);	
-			table.set("Method",      table.getRowCount()-1, methodType);	
-			table.set("Db",          table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("R2",          table.getRowCount()-1, resultValuesTable[s][4]);
-			table.set("StdErr",      table.getRowCount()-1, resultValuesTable[s][3]);		
+			table.set("File name",   	 table.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null) 	 table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
+			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
+			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
+			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
+			table.set("Scanning type",   table.getRowCount()-1, scanningType);	
+			table.set("Analysis type",   table.getRowCount()-1, analysisType);	
+			table.set("Db",          	 table.getRowCount()-1, resultValuesTable[s][1]);
+			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
+			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
 		
 		//Show table
 		uiService.show(tableName, table);
@@ -742,9 +765,10 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
-		int numImages       = spinnerInteger_NumBoxes;
-		String methodType   = choiceRadioButt_Method;	
-		if ((!methodType.equals("Binary")) && (regMin == 1)){
+		int numImages    	= spinnerInteger_NumBoxes;
+		String scanningType = choiceRadioButt_ScanningType;	
+		String analysisType = choiceRadioButt_AnalysisMethod;	
+		if ((!analysisType.equals("Binary")) && (regMin == 1)){
 			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 		}
 		//loop over all slices
@@ -752,15 +776,16 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
 			table.appendRow();
-			table.set("File name",   table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",     table.getRowCount()-1, numImages);	
-			table.set("RegMin",      table.getRowCount()-1, regMin);	
-			table.set("RegMax",      table.getRowCount()-1, regMax);	
-			table.set("Method",      table.getRowCount()-1, methodType);	
-			table.set("Db",          table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("R2",          table.getRowCount()-1, resultValuesTable[s][4]);
-			table.set("StdErr",      table.getRowCount()-1, resultValuesTable[s][3]);		
+			table.set("File name",	   	 table.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null)	 table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
+			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
+			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
+			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
+			table.set("Scanning type",   table.getRowCount()-1, scanningType);	
+			table.set("Analysis type",   table.getRowCount()-1, analysisType);		
+			table.set("Db",          	 table.getRowCount()-1, resultValuesTable[s][1]);
+			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
+			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
 		}
 		//Show table
 		uiService.show(tableName, table);
@@ -775,9 +800,10 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numBoxes        = spinnerInteger_NumBoxes;
-		String methodType   = choiceRadioButt_Method; //binary  DBC   RDBC
+		String scanningType = choiceRadioButt_ScanningType;	
+		String analysisType = choiceRadioButt_AnalysisMethod;	 //binary  DBC   RDBC
 		
-		if ((!methodType.equals("Binary")) && (regMin == 1)){
+		if ((!analysisType.equals("Binary")) && (regMin == 1)){
 			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 		}
 		int numBands = 1;
@@ -806,12 +832,12 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		for (int n = 0; n < numBoxes; n++) {
 			for (int b = 0; b < numBands; b++) {	
 				eps[n][b] = Math.pow(2, n);
-				logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);	
+				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);	
 			}
 		}		
 		
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		if (methodType.equals("Binary")) {//{"Binary", "DBC", "RDBC"}
+		if (analysisType.equals("Binary")) {//{"Binary", "DBC", "RDBC"}
 			//Box counting
 			//n=0  2^0 = 1 ... single pixel
 			// Loop through all pixels.
@@ -824,19 +850,22 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 					//totals[n][b] = totals[n][b]; // / totalsMax[b];
 				}
 			}//b	
+			int boxSize;		
+			int delta = 0;
 			for (int b = 0; b < numBands; b++) {
 				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-					int boxSize = (int) Math.pow(2, n);			
-					for (int offSetX =0; offSetX <= (width-boxSize); offSetX=offSetX+boxSize){
-						for (int offSetY =0;  offSetY<= (height-boxSize); offSetY=offSetY+boxSize){
-							raiBox = Views.interval(rai, new long[]{offSetX, offSetY}, new long[]{offSetX+boxSize-1, offSetY+boxSize-1});
+					boxSize = (int) Math.pow(2, n);		
+					if      (scanningType.equals("Raster box"))  delta = boxSize;
+					else if (scanningType.equals("Sliding box")) delta = 1;
+					for (int x =0; x <= (width-boxSize); x=x+delta){
+						for (int y =0;  y<= (height-boxSize); y=y+delta){
+							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 							boolean isGreaterZeroFound = false;
 							// Loop through all pixels of this box.
 							cursor = Views.iterable(raiBox).localizingCursor();
 							while (cursor.hasNext()) { //Box
 								cursor.fwd();
-								//cursorF.localize(pos);
-							
+								//cursorF.localize(pos);				
 								if (((UnsignedByteType) cursor.get()).get() > 0) {
 									totals[n][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
 									//totals[n][b] = totals[n][b]; // / totalsMax[b];
@@ -850,7 +879,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			}//b band		
 		}
 		//*******************************Grey Value Image
-		if (methodType.equals("DBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
+		if (analysisType.equals("DBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
 			//Box counting
 			//n=0  2^0 = 1 ... single pixel
 			double greyMax = 0.0;
@@ -860,17 +889,20 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			double l = Double.NaN;
 			double k = Double.NaN;	
 			//single pixel box
-			int boxSize = (int) Math.pow(2, 0);		
 			for (int b = 0; b < numBands; b++) {
 				//totals[0][b] = 1.0 * width * height; // Grey Image (l-k+1) is always 1 because l=k  //IQM setting
 				totals[0][b] = Double.NaN; //new in ComsystanJ
 			}
+			int boxSize = (int) Math.pow(2, 0);		
+			int delta = 0;
 			for (int b = 0; b < numBands; b++) {
 				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
-					boxSize = (int) Math.pow(2, n);		
-					for (int offSetX =0; offSetX <= (width-boxSize); offSetX=offSetX+boxSize){
-						for (int offSetY =0;  offSetY<= (height-boxSize); offSetY=offSetY+boxSize){
-							raiBox = Views.interval(rai, new long[]{offSetX, offSetY}, new long[]{offSetX+boxSize-1, offSetY+boxSize-1});
+					boxSize = (int) Math.pow(2, n);	
+					if      (scanningType.equals("Raster box"))  delta = boxSize;
+					else if (scanningType.equals("Sliding box")) delta = 1;
+					for (int x =0; x <= (width-boxSize); x=x+delta){
+						for (int y =0;  y<= (height-boxSize); y=y+delta){
+							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 							greyMax = 0.0;
 							greyMin = Double.MAX_VALUE;
 							greyValue = Double.NaN;
@@ -895,7 +927,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			}//b band
 		}
 		//***********************************Grey value Image
-		if (methodType.equals("RDBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
+		if (analysisType.equals("RDBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
 			//Box counting
 			//n=0  2^0 = 1 ... single pixel
 			double greyMax = 0.0;
@@ -905,17 +937,20 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			double l = Double.NaN;
 			double k = Double.NaN;	
 			//single pixel box
-			int boxSize = (int) Math.pow(2, 0);		
 			for (int b = 0; b < numBands; b++) {
 				//totals[0][b] = 1.0 * width * height; // Grey Image (l-k+1) is always 1 because l=k
 				totals[0][b] = Double.NaN; //new in ComsystanJ
 			}
+			int boxSize = (int) Math.pow(2, 0);		
+			int delta = 0;
 			for (int b = 0; b < numBands; b++) {
 				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
-					boxSize = (int) Math.pow(2, n);		
-					for (int offSetX =0; offSetX <= (width-boxSize); offSetX=offSetX+boxSize){
-						for (int offSetY =0;  offSetY<= (height-boxSize); offSetY=offSetY+boxSize){
-							raiBox = Views.interval(rai, new long[]{offSetX, offSetY}, new long[]{offSetX+boxSize-1, offSetY+boxSize-1});
+					boxSize = (int) Math.pow(2, n);	
+					if      (scanningType.equals("Raster box"))  delta = boxSize;
+					else if (scanningType.equals("Sliding box")) delta = 1;
+					for (int x =0; x <= (width-boxSize); x=x+delta){
+						for (int y =0;  y<= (height-boxSize); y=y+delta){
+							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 							greyMax = 0.0;
 							greyMin = Double.MAX_VALUE;
 							greyValue = Double.NaN;
