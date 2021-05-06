@@ -270,9 +270,9 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 	protected void callbackCompression() {
 		logService.info(this.getClass().getName() + " Compression method set to " + choiceRadioButt_Compression);
 	}
-	/** Executed whenever the {@link #spinInteger_NumIations} parameter changes. */
+	/** Executed whenever the {@link #spinInteger_NumIterations} parameter changes. */
 	protected void callbackNumIterations() {
-		logService.info(this.getClass().getName() + " Number of iterations images set to " + spinnerInteger_NumIterations);
+		logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
 	}
 	/** Executed whenever the {@link #booleanPreview} parameter changes. */
 	protected void callbackPreview() {
