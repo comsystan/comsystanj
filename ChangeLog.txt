@@ -1,8 +1,10 @@
 ComsystanJ change log
 
 29.2.1.2
-- New img2 plugin Succolarity
+- New img2d plugin Lacunarity
+- New img2d plugin Succolarity
 - Check maximal number of boxes in Box counting plugin
+- Canged some persit entries
 
 29.2.1.1 initial release
 
