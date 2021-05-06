@@ -85,6 +85,9 @@
 - The number of boxes with distinct sizes can be set
 - Linear regression parameters can be set 
 - Raster box or sliding box scanning or Tug of war method
+- The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
+- In the original paper accuracy=30 and confidence=5  
+- But it is recommended to set accuracy and confidence as high as computation times allow
 - Ref.: Reiss et al., Chaos, 2016, [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 
