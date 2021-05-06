@@ -239,16 +239,27 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
             callback = "callbackMethodType")
     private String choiceRadioButt_MethodType;
     
-    @Parameter(label = "(Tug of war) Iterations",
- 		   description = "Number of runs to compute averages",
+    @Parameter(label = "(Tug of war) Accuracy",
+		       description = "Accuracy",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "99999999999999",
 	           stepSize = "1",
 	           //persist  = false,  //restore previous value default = true
-	           initializer = "initialNumIterations",
-	           callback    = "callbackNumIterations")
-    private int spinnerInteger_NumIterations;
+	           initializer = "initialNumAccuracy",
+	           callback    = "callbackNumAccuracy")
+    private int spinnerInteger_NumAcurracy;
+  
+    @Parameter(label = "(Tug of war) Confidence",
+		       description = "Confidence",
+	       	   style = NumberWidget.SPINNER_STYLE,
+	           min = "1",
+	           max = "99999999999999",
+	           stepSize = "1",
+	           //persist  = false,  //restore previous value default = true
+	           initializer = "initialNumConfidence",
+	           callback    = "callbackNumConfidence")
+    private int spinnerInteger_NumConfidence;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -285,9 +296,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
  		        callback = "callbackProcessAllImages")
 	 private Button buttonProcessAllImages;
 
-
     //---------------------------------------------------------------------
- 
     //The following initialzer functions set initial values
     protected void initialNumBoxes() {
       	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
@@ -305,8 +314,12 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
     	choiceRadioButt_MethodType = "Raster box";
     }
     
-    protected void initialNumIterations() {
-      	spinnerInteger_NumIterations = 10;
+    protected void initialNumAccuracy() {
+    	spinnerInteger_NumAcurracy = 90; //s1=30 Wang paper
+    }
+    
+    protected void initialNumConfidence() {
+    	spinnerInteger_NumConfidence = 15; //s2=5 Wang paper
     }
 
     protected void initialShowDoubleLogPlots() {
@@ -371,9 +384,14 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumIterations} parameter changes. */
-	protected void callbackNumIterations() {
-		logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
+	/** Executed whenever the {@link #spinInteger_NumAccuracy} parameter changes. */
+	protected void callbackNumAccuracy() {
+		logService.info(this.getClass().getName() + " Accuracy set to " + spinnerInteger_NumAcurracy);
+	}
+	
+	/** Executed whenever the {@link #spinInteger_NumConfidence} parameter changes. */
+	protected void callbackNumConfidence() {
+		logService.info(this.getClass().getName() + " Confidence set to " + spinnerInteger_NumConfidence);
 	}
 		
 	/** Executed whenever the {@link #booleanPreview} parameter changes. */
@@ -740,9 +758,11 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 	private void collectActiveResultAndShowTable(int sliceNumber) {
 	
 		//int numBoxes   = spinnerInteger_NumBoxes;
-		int regMin     		= spinnerInteger_RegMin;
-		int regMax     		= spinnerInteger_RegMax;
+		int regMin     	  = spinnerInteger_RegMin;
+		int regMax     	  = spinnerInteger_RegMax;
 		String methodType = choiceRadioButt_MethodType;
+		int accuracy 	  = spinnerInteger_NumAcurracy;
+		int confidence    = spinnerInteger_NumConfidence;
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -758,7 +778,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			table.set("RegMin",        table.getRowCount()-1, regMin);	
 			table.set("RegMax",        table.getRowCount()-1, regMax);
 			if (choiceRadioButt_MethodType.equals("Tug of war")) {
-				table.set("Method type",   table.getRowCount()-1, "Tug of war " + spinnerInteger_NumIterations + "x");
+				table.set("Method type",   table.getRowCount()-1, "Tug of war Acc"+accuracy + " Conf"+confidence);
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
@@ -780,9 +800,11 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 	private void collectAllResultsAndShowTable() {
 	
 		//int numBoxes       = spinnerInteger_NumBoxes;
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
+		int regMin        = spinnerInteger_RegMin;
+		int regMax        = spinnerInteger_RegMax;
 		String methodType = choiceRadioButt_MethodType;
+		int accuracy 	  = spinnerInteger_NumAcurracy;
+		int confidence    = spinnerInteger_NumConfidence;
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -799,7 +821,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			table.set("RegMin",        table.getRowCount()-1, regMin);	
 			table.set("RegMax",        table.getRowCount()-1, regMax);
 			if (choiceRadioButt_MethodType.equals("Tug of war")) {
-				table.set("Method type",   table.getRowCount()-1, "Tug of war " + spinnerInteger_NumIterations + "x");
+				table.set("Method type",   table.getRowCount()-1, "Tug of war Acc"+accuracy + " Conf"+confidence);
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
@@ -825,8 +847,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		int regMin        = spinnerInteger_RegMin;
 		int regMax        = spinnerInteger_RegMax;
 		String method     = choiceRadioButt_MethodType;
-		int numIterations = spinnerInteger_NumIterations;
-		
+		int accuracy 	  = spinnerInteger_NumAcurracy;
+		int confidence    = spinnerInteger_NumConfidence;
 		
 		boolean optShowPlot = booleanShowDoubleLogPlot;
 		
@@ -989,9 +1011,10 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			} // 0>=l<=numEps loop through eps
 		}	
 		//------------------------------------------------------------------------------------------
-		else if (method.equals("Tug of war")) {
-		
+		else if (method.equals("Tug of war")) {	
 			/**
+			 * 
+			 * Martin Reiss
 			 * DESCRIPTION:
 			 *  Die äquivalente Definition der Lacunarity aus [1] erlaubt es nun, eine neue Approximationsmethode 
 			 *  für die Fixed-Grid Lacunarity vorzuschlagen. Das erste Moment bleibt für einen Fixed-Grid Scan bei den verschiedenen Boxgrö"sen konstant. 
@@ -1008,10 +1031,9 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			 * 	2) In 1D TugOfWar Lacunarity the result is very sensitive to the value of q. (Example: Regular Line) 
 			 * 
 			 *  UPDATES: MR 19.10.2016 elimination of negative values in getTotals() method according to Chaos 2016 paper
-			 */
-			
-			int s1 = 30; 	//accuracy 	
-			int s2 = 5;	 	//confidence
+			 */	
+			int s1 = accuracy;   //s1 = 30; Wang paper	//accuracy 	
+			int s2 = confidence; // s2 = 5;	Wang paper 	//confidence
 			int q  = 10501;	//prime number
 			
 			double[] sum2   = new double[numBoxes];
@@ -1063,88 +1085,74 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 				}
 			} while ( k < L );
 			
-			//TugOfWar - algorithm
-			for (int it = 0; it < numIterations; it++ ) {
-				for (int c = 0; c < count.length; c++) count[c] = 0.0;
-				for (int s = 0; s < sum2.length; s++) sum2[s] = 0.0;
-				sum = 0.0;
-				epsWidth = 1;
-				if (L > 0) {
-					for (int b = 0; b < numBoxes; b++) {	
-							//boxSize = boxSizes[b];
-							boxSize = 2 * epsWidth + 1;
-							for(int s2_i = 0; s2_i < s2; s2_i++){
-								for(int s1_i = 0; s1_i < s1; s1_i++){	
-									
-									int a_prim = getPrimeNumber();
-									int b_prim = getPrimeNumber();
-									int c_prim = getPrimeNumber();
-									int d_prim = getPrimeNumber();
-			
-									for(int i = 0; i < L; i++){	
-										xx=(int) Math.round( xCoordinate[i]/boxSize ); 
-										yy=(int) Math.round( yCoordinate[i]/boxSize ); 
-			
-										// hash function 
-										part1 = a_prim*xx*xx*xx + b_prim*xx*xx + c_prim*xx + d_prim;
-										part2 = a_prim*a_prim*yy*yy*yy + b_prim*b_prim*yy*yy + c_prim*c_prim*yy + d_prim*d_prim;
-										
-										hashFunction = (part1 + part2) % q; 
-										even = (hashFunction & 1) == 0;
-										
-										if (even) {
-											count[s1_i]++;
-										} else {
-											count[s1_i]+=-1;
-										}
+			//TugOfWar - algorithm	
+			for (int c = 0; c < count.length; c++) count[c] = 0.0;
+			for (int s = 0; s < sum2.length; s++) sum2[s] = 0.0;
+			sum = 0.0;
+			epsWidth = 1;
+			if (L > 0) {
+				for (int b = 0; b < numBoxes; b++) {	
+						//boxSize = boxSizes[b];
+						boxSize = 2 * epsWidth + 1;
+						for(int s2_i = 0; s2_i < s2; s2_i++){
+							for(int s1_i = 0; s1_i < s1; s1_i++){	
+								
+								int a_prim = getPrimeNumber();
+								int b_prim = getPrimeNumber();
+								int c_prim = getPrimeNumber();
+								int d_prim = getPrimeNumber();
+		
+								for(int i = 0; i < L; i++){	
+									xx=(int) Math.round( xCoordinate[i]/boxSize ); 
+									yy=(int) Math.round( yCoordinate[i]/boxSize ); 
+									// hash function 
+									part1 = a_prim*xx*xx*xx + b_prim*xx*xx + c_prim*xx + d_prim;
+									part2 = a_prim*a_prim*yy*yy*yy + b_prim*b_prim*yy*yy + c_prim*c_prim*yy + d_prim*d_prim;							
+									hashFunction = (part1 + part2) % q; 
+									even = (hashFunction & 1) == 0;							
+									if (even) {
+										count[s1_i]++;
+									} else {
+										count[s1_i]+=-1;
 									}
-								} 
-			
-								for(int s1_i = 0; s1_i < s1; s1_i++){
-									sum += count[s1_i]*count[s1_i]; 
 								}
-								
-								meanS1[s2_i] = sum / s1; 
-								
-								sum = 0.0;
-								for(int s1_i = 0; s1_i < s1; s1_i++){	
-									count[s1_i] = 0;
-								}	
 							} 
-							
-							for(int s2_i = 0; s2_i < s2; s2_i++){
-								sum2[b] += meanS1[s2_i] / s2;	
-							}
-									
-							lac = (double)(sum2[b]/(L*L))*(width*height/(boxSize*boxSize));
-							
-							//Note that lacunarity (= log[totals]) is always positive.
+							for(int s1_i = 0; s1_i < s1; s1_i++){
+								sum += count[s1_i]*count[s1_i]; 
+							}				
+							meanS1[s2_i] = sum / s1; 					
+							sum = 0.0;
+							for(int s1_i = 0; s1_i < s1; s1_i++){	
+								count[s1_i] = 0;
+							}	
+						} 				
+						for(int s2_i = 0; s2_i < s2; s2_i++){
+							sum2[b] += meanS1[s2_i] / s2;	
+						}							
+						lac = (double)(sum2[b]/(L*L))*(width*height/(boxSize*boxSize));
+						
+						//Note that lacunarity (= log[totals]) is always positive.
 //							if (lac < 1) {
-//								lacunarities[b] = lacunarities[b] + 1; //Martin did it so
+//								lacunarities[b] =  + 1; //Martin did it so
 //							} else {
-//								lacunarities[b] = lacunarities[b] + lac;								
+//								lacunarities[b] = lac;								
 //							}
-							
-							//Changed by Helmut
-							lacunarities[b] = lacunarities[b] + lac;	
-							
-							for(int s2_i = 0; s2_i < s2; s2_i++){	
-								meanS1[s2_i] = 0;
-							}
-							boxSizes[b] = boxSize;// = epsWidth; = kernelSize;
-							epsWidth = epsWidth * 2;
-							// epsWidth = epsWidth+1;
-					} //Box sizes
-					
-				} else {
-					// Set totals to zero if image is empty.
-					for (int b = 0; b < numBoxes; b++) lacunarities[b] = lacunarities[b] + 0;	
-				}	
-			
-			}//Iterations
-			//finalize average lacunarities from iterations
-			for (int b = 0; b < numBoxes; b++) lacunarities[b] = lacunarities[b]/numIterations;
-	
+						
+						//Changed by Helmut
+						lacunarities[b] = lac;	
+						
+						for(int s2_i = 0; s2_i < s2; s2_i++){	
+							meanS1[s2_i] = 0;
+						}
+						boxSizes[b] = boxSize;// = epsWidth; = kernelSize;
+						epsWidth = epsWidth * 2;
+						// epsWidth = epsWidth+1;
+				} //Box sizes
+				
+			} else {
+				// Set totals to zero if image is empty.
+				for (int b = 0; b < numBoxes; b++) lacunarities[b] =  0;	
+			}		
 		}//Tug of war
 		//---------------------------------------------------------------------------------------------
 		double[] lnDataX = new double[numBoxes];

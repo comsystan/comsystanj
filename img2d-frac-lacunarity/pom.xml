@@ -54,6 +54,12 @@
 			<url></url>
 			<properties><id></id></properties>
 		</contributor>
+		<contributor>
+		    <name>Martin Reiss</name>
+			<url></url>
+			<roles><role>developer</role></roles>
+			<properties><id></id></properties>
+		</contributor>
 	</contributors>
 
 	<mailingLists>
