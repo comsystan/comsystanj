@@ -110,6 +110,7 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 	private static final String PLUGIN_LABEL            = "<html><b>Computes Succolarity</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
 	private static final String FLOODINGOPTIONS_LABEL   = "<html><b>Flooding type</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
@@ -217,14 +218,27 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       //persist  = false,   //restore previous value default = true
+		       persist  = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
-     private int spinnerInteger_RegMax = 3;
+    private int spinnerInteger_RegMax = 3;
     
-  //-----------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-    private final String labelFLOODINGOptions = FLOODINGOPTIONS_LABEL;
+    private final String labelMethodOptions = METHODOPTIONS_LABEL;
+    
+    @Parameter(label = "Scanning type",
+   		    description = "Type of box scanning",
+   		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+     		choices = {"Raster box", "Sliding box"},
+     		//persist  = false,  //restore previous value default = true
+   		    initializer = "initialScanningType",
+            callback = "callbackScanningType")
+    private String choiceRadioButt_ScanningType;
+    
+    //-----------------------------------------------------------------------------------------------------
+    //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+    //private final String labelFloodingOptions = FLOODINGOPTIONS_LABEL;
     
     @Parameter(label = "Flooding type",
    		    description = "Type of flooding, e.g. Top to down or Left to right.... or mean of all 4 directions",
@@ -284,6 +298,10 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
     protected void initialRegMax() {
     	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	spinnerInteger_RegMax =  numBoxes;
+    }
+    
+    protected void initialScanningType() {
+    	choiceRadioButt_ScanningType = "Raster box";
     }
     
     protected void initialFloodingType() {
@@ -346,9 +364,15 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
 
+	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
+	protected void callbackScanningType() {
+		logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
+		
+	}
+	
 	/** Executed whenever the {@link #choiceRadioButt_FloodingType} parameter changes. */
 	protected void callbackFloodingType() {
-		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_FloodingType);
+		logService.info(this.getClass().getName() + " Flooding type set to " + choiceRadioButt_FloodingType);
 		
 	}
 	
@@ -691,6 +715,7 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		IntColumn columnMaxNumBoxes    = new IntColumn("# Boxes");
 		IntColumn columnRegMin         = new IntColumn("RegMin");
 		IntColumn columnRegMax         = new IntColumn("RegMax");
+		GenericColumn columnScanType   = new GenericColumn("Scanning type");
 		GenericColumn columnFloodType  = new GenericColumn("Flooding type");
 	
 	    table = new DefaultGenericTable();
@@ -699,10 +724,11 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		table.add(columnMaxNumBoxes);
 		table.add(columnRegMin);
 		table.add(columnRegMax);
+		table.add(columnScanType);
 		table.add(columnFloodType);
 		String preString = "Succ";
 		for (int i = 0; i < numBoxes; i++) {
-			table.add(new DoubleColumn(preString + "-BS" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
+			table.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
 		}
 	}
 	
@@ -714,6 +740,7 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		//int numBoxes   = spinnerInteger_NumBoxes;
 		int regMin     		= spinnerInteger_RegMin;
 		int regMax     		= spinnerInteger_RegMax;
+		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
 		
 		int tableColStart = 0;
@@ -729,8 +756,9 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 			table.set("# Boxes",       table.getRowCount()-1, numBoxes);	
 			table.set("RegMin",        table.getRowCount()-1, regMin);	
 			table.set("RegMax",        table.getRowCount()-1, regMax);
+			table.set("Scanning type", table.getRowCount()-1, scanningType);
 			table.set("Flooding type", table.getRowCount()-1, floodingType);
-			tableColLast = 5;
+			tableColLast = 6;
 			
 			int numParameters = resultValuesTable[s].length;
 			tableColStart = tableColLast + 1;
@@ -749,6 +777,7 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		//int numBoxes       = spinnerInteger_NumBoxes;
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
+		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
 		
 		
@@ -766,8 +795,9 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 			table.set("# Boxes",       table.getRowCount()-1, numBoxes);	
 			table.set("RegMin",        table.getRowCount()-1, regMin);	
 			table.set("RegMax",        table.getRowCount()-1, regMax);
+			table.set("Scanning type", table.getRowCount()-1, scanningType);
 			table.set("Flooding type", table.getRowCount()-1, floodingType);
-			tableColLast = 5;
+			tableColLast = 6;
 			
 			int numParameters = resultValuesTable[s].length;
 			tableColStart = tableColLast + 1;
@@ -788,6 +818,7 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		//int numBoxes        = spinnerInteger_NumBoxes;
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
+		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
 		
 		boolean optShowPlot = booleanShowDoubleLogPlot;
@@ -1059,7 +1090,8 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
 		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
 		int boxSize;	
-	
+		int delta = 0;
+		
 //		//extra for k = 0 did not be really be faster
 //		//k = 0 box size == 1
 //		boxSize = (int) Math.pow(2, 0); //= 1;
@@ -1081,17 +1113,19 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 //		//Normalization
 //		succ[0] = succ[0]/((double)numOfScannedBoxes*1*maxPR);
 		
-		//all other box sizes
+		//all box sizes
 		for (int k = 0; k < numBoxes; k++) { //	
 			succ[k] = 0.0;
 			norm[k] = 0.0;
 			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;	
 			pressure = 0.0;
-			for (int offSetY = 0;  offSetY<= (height-boxSize); offSetY=offSetY+boxSize){
+			for (int y = 0;  y<= (height-boxSize); y=y+delta){
 				//Pressure is the only variable which is distinct between these 4 methods
-				pressure = ((double)offSetY + (double)offSetY + (double)boxSize)/2.0;
-				for (int offSetX = 0; offSetX <= (width-boxSize); offSetX=offSetX+boxSize){
-					raiBox = Views.interval(imgFlood, new long[]{offSetX, offSetY}, new long[]{offSetX+boxSize-1, offSetY+boxSize-1});
+				pressure = ((double)y + (double)y + (double)boxSize)/2.0;
+				for (int x = 0; x <= (width-boxSize); x=x+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 					occ = 0;
 					// Loop through all pixels of this box.
 					cursor = Views.iterable(raiBox).localizingCursor();
@@ -1125,18 +1159,21 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
 		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
 		int boxSize;	
+		int delta = 0;
 		
-		//all other box sizes
+		//all box sizes
 		for (int k = 0; k < numBoxes; k++) { //	
 			succ[k] = 0.0;
 			norm[k] = 0.0;
 			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
 			pressure = 0.0;
-			for (int offSetY = 0;  offSetY<= (height-boxSize); offSetY=offSetY+boxSize){
+			for (int y = 0;  y<= (height-boxSize); y=y+delta){
 				//Pressure is the only variable which is distinct between these 4 methods
-				pressure = height - ((double)offSetY + (double)offSetY + (double)boxSize)/2.0;
-				for (int offSetX = 0; offSetX <= (width-boxSize); offSetX=offSetX+boxSize){
-					raiBox = Views.interval(imgFlood, new long[]{offSetX, offSetY}, new long[]{offSetX+boxSize-1, offSetY+boxSize-1});
+				pressure = height - ((double)y + (double)y + (double)boxSize)/2.0;
+				for (int x = 0; x <= (width-boxSize); x=x+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 					occ = 0.0;
 					// Loop through all pixels of this box.
 					cursor = Views.iterable(raiBox).localizingCursor();
@@ -1170,18 +1207,20 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
 		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
 		int boxSize;	
-
-		//all other box sizes
+		int delta = 0;
+		//all box sizes
 		for (int k = 0; k < numBoxes; k++) { //	
 			succ[k] = 0.0;
 			norm[k] = 0.0;
 			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
 			pressure = 0.0;
-			for (int offSetX = 0; offSetX <= (width-boxSize); offSetX=offSetX+boxSize){
+			for (int x = 0; x <= (width-boxSize); x=x+delta){
 				//Pressure is the only variable which is distinct between these 4 methods
-				pressure = ((double)offSetX + (double)offSetX + (double)boxSize)/2.0;
-				for (int offSetY = 0;  offSetY<= (height-boxSize); offSetY=offSetY+boxSize){
-					raiBox = Views.interval(imgFlood, new long[]{offSetX, offSetY}, new long[]{offSetX+boxSize-1, offSetY+boxSize-1});
+				pressure = ((double)x + (double)x + (double)boxSize)/2.0;
+				for (int y = 0;  y<= (height-boxSize); y=y+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 					occ = 0.0;
 					// Loop through all pixels of this box.
 					cursor = Views.iterable(raiBox).localizingCursor();
@@ -1214,19 +1253,22 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 		double[] norm = new double[numBoxes];
 		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
 		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
-		int boxSize;	
+		int boxSize;
+		int delta = 0;
 
-		//all other box sizes
+		//all box sizes
 		for (int k = 0; k < numBoxes; k++) { //	
 			succ[k] = 0.0;
 			norm[k] = 0.0;
 			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
 			pressure = 0.0;
-			for (int offSetX = 0; offSetX <= (width-boxSize); offSetX=offSetX+boxSize){
+			for (int x = 0; x <= (width-boxSize); x=x+delta){
 				//Pressure is the only variable which is distinct between these 4 methods
-				pressure = width - ((double)offSetX + (double)offSetX + (double)boxSize)/2.0; 
-				for (int offSetY = 0;  offSetY<= (height-boxSize); offSetY=offSetY+boxSize){
-					raiBox = Views.interval(imgFlood, new long[]{offSetX, offSetY}, new long[]{offSetX+boxSize-1, offSetY+boxSize-1});
+				pressure = width - ((double)x + (double)x + (double)boxSize)/2.0; 
+				for (int y = 0;  y<= (height-boxSize); y=y+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 					occ = 0.0;
 					// Loop through all pixels of this box.
 					cursor = Views.iterable(raiBox).localizingCursor();
