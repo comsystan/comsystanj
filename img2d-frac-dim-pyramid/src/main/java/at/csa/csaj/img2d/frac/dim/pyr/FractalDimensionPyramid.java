@@ -215,7 +215,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       //persist  = false,   //restore previous value default = true
+		       persist  = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
