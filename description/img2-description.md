@@ -25,11 +25,21 @@
 ### Fractal Dimension - Pyramid algorithm
 - Fractal dimension is computed by using image pyramids
 - For binary 8-bit images
+- Linear regression parameters can be set
 - Number of object pixels is counted for subsequently size reduced images
 - Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
 - For other sizes it yields more reliable results, because box truncation is not necessary
-- Linear regression parameters can be set
 - Ref.: Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [https://doi.org/10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
+
+### Fractal Dimension - Tug of war algorithm
+- Fractal dimension is computed by using a tug of war algorithm
+- For binary 8-bit images
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters can be set 
+- The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
+- In the original paper accuracy=30 and confidence=5  
+- But it is recommended to set accuracy and confidence as high as computation times allow
+- Ref.: Reiss et al., Chaos, 2016, [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Image generator
 - Generates a single image or an image stack
@@ -75,7 +85,7 @@
 - The number of boxes with distinct sizes can be set
 - Linear regression parameters can be set 
 - Raster box or sliding box scanning or Tug of war method
-- Ref.: Reiss et al., Chaos, 2016. [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+- Ref.: Reiss et al., Chaos, 2016, [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 
 ### Succolarity
