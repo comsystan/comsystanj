@@ -2,7 +2,8 @@
 
 ### Fractal Dimension - Box counting
 - Fractal dimension is computed with box counting
-- For binary 8-bit images
+- For binary or grey 8-bit images
+- Binary counting or DBC and RDBC
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters can be set 
 
@@ -68,10 +69,20 @@
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
+### Lacunarity
+- Lacunarity is computed of a binary image  
+- For binary 8-bit images
+- The number of boxes with distinct sizes can be set
+- Linear regression parameters can be set 
+- Raster box or sliding box scanning or Tug of war method
+- Ref.: Reiss et al., Chaos, 2016. [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+
+
 ### Succolarity
 - Succolarity is computed by flooding of a binary image  
 - For binary 8-bit images
-- Flooding the image can be set to Top2down, Down2top, Left2right, Right2left or the mean of all four directions
-- The number of boxes with distinct sizes according to the power of 2 can be set
+- The number of boxes with distinct sizes can be set
 - Linear regression parameters can be set 
+- Raster box or sliding box scanning
+- Flooding of image can be set to Top2down, Down2top, Left2right, Right2left or the mean of all four directions
 - Ref.: de Melo & Conci, Telecommunication Systems, 2013, [https://doi.org/10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
