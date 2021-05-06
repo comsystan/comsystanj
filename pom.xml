@@ -19,6 +19,7 @@
 		<module>img2d-frac-dim-higuchi1d</module>
 		<module>img2d-frac-dim-higuchi2d</module>
 		<module>img2d-frac-dim-pyramid</module>
+		<module>img2d-frac-lacunarity</module>
 		<module>img2d-frac-succolarity</module>
 		<module>img2d-generator</module>
 		<module>img2d-kc</module>
