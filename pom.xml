@@ -16,6 +16,7 @@
 	<modules>
 		<module>commons</module>
 		<module>img2d-frac-dim-boxcounting</module>
+		<module>img2d-frac-dim-correlation</module>
 		<module>img2d-frac-dim-higuchi1d</module>
 		<module>img2d-frac-dim-higuchi2d</module>
 		<module>img2d-frac-dim-pyramid</module>

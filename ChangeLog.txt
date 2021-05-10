@@ -1,6 +1,7 @@
 ComsystanJ change log
 
 29.2.1.2
+- New img2d plugin Fractal dimension - Correlation
 - New img2d plugin Fractal dimension - Tug of war
 - New img2d plugin Lacunarity
 - New img2d plugin Succolarity
