@@ -7,6 +7,16 @@
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters can be set 
 
+### Fractal Dimension - Correlation
+- Fractal correlation dimension is computed
+- For binary 8-bit images
+- Classical pair wise occurrence counting
+- Computation times can be lowered by decreasing the probability (% of randomly chosen image pixel)
+- or by using a fixed grid estimation of summing up squared counts
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters can be set 
+- Ref: Grassberger & Procaccia, Physica D, 1983, [https://10.1016/0167-2789(83)90298-1](https://10.1016/0167-2789(83)90298-1)
+
 ### Fractal Dimension - Higuhi1D
 - Fractal dimension is computed for 1D grey value profiles extracted from an image
 - For 8-bit grey value images
