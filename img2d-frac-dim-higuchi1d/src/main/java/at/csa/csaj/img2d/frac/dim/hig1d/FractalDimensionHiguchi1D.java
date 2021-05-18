@@ -130,7 +130,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private static long numDimensions = 0;
 	private static long numSlices = 0;
 	private static int numbKMax = 0;
-	private static double[] anglesRad;
+	private static double[] anglesGrad;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static ArrayList<PlotWindow>          plotWindowList    = new ArrayList<PlotWindow>(); //ImageJ plot windows
 
@@ -255,10 +255,10 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 			   initializer = "initialDeleteExistingTable")
 	private boolean booleanDeleteExistingTable;
 
-	@Parameter(label = "Get Dh value of each radial line",
+	@Parameter(label = "Get Dh values of all radial lines",
 			   // persist = false, //restore previous value default = true
-			   initializer = "initialGetRadialDhValues")
-	private boolean booleanGetRadialDhValues;
+			   initializer = "initialGetAllRadialDhValues")
+	private boolean booleanGetAllRadialDhValues;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -311,8 +311,8 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		booleanDeleteExistingTable = true;
 	}
 	
-	protected void initialGetRadialDhValues() {
-		booleanGetRadialDhValues = false;
+	protected void initialGetAllRadialDhValues() {
+		booleanGetAllRadialDhValues = false;
 	}
 
 	// The following method is known as "callback" which gets executed
@@ -622,9 +622,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private void processActiveInputImage (int s) throws InterruptedException {
 		
 		long startTime = System.currentTimeMillis();
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][194]; //13 + 181
-		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][18]; //13 + 5
 		}	else {
 			resultValuesTable = new double[(int) numSlices][13];
@@ -695,12 +695,12 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		resultValuesTable[s][12] = resultValues[12]; //#Anisotropy index Higuchi Anisotropy index
 		
 		
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 			for (int a = 0; a < 181; a++) {
 			resultValuesTable[s][13+a] = resultValues[13+a];
 			}
 		}
-		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 			for (int a = 0; a < 5; a++) {
 			resultValuesTable[s][13+a] = resultValues[13+a];
 			}
@@ -718,9 +718,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private void processAllInputImages() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][194]; //13 + 181
-		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][18]; //13 + 5
 		}	else {
 			resultValuesTable = new double[(int) numSlices][13];
@@ -806,12 +806,12 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 				resultValuesTable[s][11] = resultValues[11]; //#RadialLines
 				resultValuesTable[s][12] = resultValues[12]; //Anisotropy index Higuchi anisotropy index
 	
-				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 					for (int a = 0; a < 181; a++) {
 					resultValuesTable[s][13+a] = resultValues[13+a];
 					}
 				} 
-				if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetRadialDhValues)) {
+				if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
 					for (int a = 0; a < 5; a++) {
 					resultValuesTable[s][13+a] = resultValues[13+a];
 					}
@@ -836,26 +836,26 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		GenericColumn columnFileName     = new GenericColumn("File name");
-		GenericColumn columnSliceName    = new GenericColumn("Slice name");
-		IntColumn columnKMax             = new IntColumn("k");
-		IntColumn columnRegMin           = new IntColumn("RegMin");
-		IntColumn columnRegMax           = new IntColumn("RegMax");
-		GenericColumn columnMethod       = new GenericColumn("Method");
-		BoolColumn columnZeroesRemoved   = new BoolColumn("Zeroes removed");
-		DoubleColumn columnDhRow      = new DoubleColumn("Dh-row");
-		DoubleColumn columnDhCol      = new DoubleColumn("Dh-col");
-		DoubleColumn columnDh         = new DoubleColumn("Dh");
-		DoubleColumn columnR2Row      = new DoubleColumn("R2-row");
-		DoubleColumn columnR2Col      = new DoubleColumn("R2-col");
-		DoubleColumn columnR2         = new DoubleColumn("R2");
-		DoubleColumn columnStdErrRow  = new DoubleColumn("StdErr-row");
-		DoubleColumn columnStdErrCol  = new DoubleColumn("StdErr-col");
-		DoubleColumn columnStdErr     = new DoubleColumn("StdErr");
-		IntColumn columnNumRows            = new IntColumn("# Rows");
-		IntColumn columnNumColumns         = new IntColumn("# Columns");
-		IntColumn columnNumRadialLines     = new IntColumn("# Radial lines");
-		DoubleColumn columnAnisotropyIndex =  new DoubleColumn("Anisotropy index");
+		GenericColumn columnFileName     	= new GenericColumn("File name");
+		GenericColumn columnSliceName    	= new GenericColumn("Slice name");
+		IntColumn columnKMax             	= new IntColumn("k");
+		IntColumn columnRegMin           	= new IntColumn("RegMin");
+		IntColumn columnRegMax           	= new IntColumn("RegMax");
+		GenericColumn columnMethod       	= new GenericColumn("Method");
+		BoolColumn columnZeroesRemoved   	= new BoolColumn("Zeroes removed");
+		DoubleColumn columnDhRow      	 	= new DoubleColumn("Dh-row");
+		DoubleColumn columnDhCol     	 	= new DoubleColumn("Dh-col");
+		DoubleColumn columnDh         	 	= new DoubleColumn("Dh");
+		DoubleColumn columnR2Row      	 	= new DoubleColumn("R2-row");
+		DoubleColumn columnR2Col      	 	= new DoubleColumn("R2-col");
+		DoubleColumn columnR2        	 	= new DoubleColumn("R2");
+		DoubleColumn columnStdErrRow 	 	= new DoubleColumn("StdErr-row");
+		DoubleColumn columnStdErrCol 	 	= new DoubleColumn("StdErr-col");
+		DoubleColumn columnStdErr    		= new DoubleColumn("StdErr");
+		IntColumn columnNumRows            	= new IntColumn("# Rows");
+		IntColumn columnNumColumns         	= new IntColumn("# Columns");
+		IntColumn columnNumRadialLines     	= new IntColumn("# Radial lines");
+		DoubleColumn columnAnisotropyIndex 	= new DoubleColumn("Anisotropy index");
 
 		table = new DefaultGenericTable();
 		table.add(columnFileName);
@@ -878,14 +878,14 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		table.add(columnNumColumns);
 		table.add(columnNumRadialLines);
 		table.add(columnAnisotropyIndex);
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 181; a++) {
-				table.add(new DoubleColumn("Dh-" +  (int)(Math.round(anglesRad[a]*180.0/Math.PI)) + "°"));
+				table.add(new DoubleColumn("Dh " + anglesGrad[a] + "°"));
 			}
 		}
-		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 5; a++) {
-				table.add(new DoubleColumn("Dh-" + (int)(Math.round(anglesRad[a]*180.0/Math.PI)) + "°"));
+				table.add(new DoubleColumn("Dh " + anglesGrad[a] + "°"));
 			}
 		}
 	}
@@ -905,37 +905,37 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		// fill table with values
 		table.appendRow();
-		table.set("File name",  table.getRowCount() - 1, datasetName);	
-		if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
+		table.set("File name",  	table.getRowCount() - 1, datasetName);	
+		if (sliceLabels != null) 	table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
 		table.set("k",              table.getRowCount() - 1, numKMax);
 		table.set("RegMin",         table.getRowCount() - 1, regMin);
 		table.set("RegMax",         table.getRowCount() - 1, regMax);
 		table.set("Method",         table.getRowCount() - 1, choiceRadioButt_Method);
 		table.set("Zeroes removed", table.getRowCount() - 1, booleanRemoveZeroes);
-		table.set("Dh-row",     table.getRowCount() - 1, resultValuesTable[s][0]);
-		table.set("Dh-col",     table.getRowCount() - 1, resultValuesTable[s][1]);
-		table.set("Dh",         table.getRowCount() - 1, resultValuesTable[s][2]);
-		table.set("R2-row",     table.getRowCount() - 1, resultValuesTable[s][3]);
-		table.set("R2-col",     table.getRowCount() - 1, resultValuesTable[s][4]);
-		table.set("R2",         table.getRowCount() - 1, resultValuesTable[s][5]);
-		table.set("StdErr-row", table.getRowCount() - 1, resultValuesTable[s][6]);
-		table.set("StdErr-col", table.getRowCount() - 1, resultValuesTable[s][7]);
-		table.set("StdErr",     table.getRowCount() - 1, resultValuesTable[s][8]);
+		table.set("Dh-row",     	table.getRowCount() - 1, resultValuesTable[s][0]);
+		table.set("Dh-col",     	table.getRowCount() - 1, resultValuesTable[s][1]);
+		table.set("Dh",         	table.getRowCount() - 1, resultValuesTable[s][2]);
+		table.set("R2-row",     	table.getRowCount() - 1, resultValuesTable[s][3]);
+		table.set("R2-col",     	table.getRowCount() - 1, resultValuesTable[s][4]);
+		table.set("R2",         	table.getRowCount() - 1, resultValuesTable[s][5]);
+		table.set("StdErr-row", 	table.getRowCount() - 1, resultValuesTable[s][6]);
+		table.set("StdErr-col", 	table.getRowCount() - 1, resultValuesTable[s][7]);
+		table.set("StdErr",    		table.getRowCount() - 1, resultValuesTable[s][8]);
 		table.set("# Rows",         table.getRowCount() - 1, (int) resultValuesTable[s][9]);
 		table.set("# Columns",      table.getRowCount() - 1, (int) resultValuesTable[s][10]);
 		table.set("# Radial lines", table.getRowCount() - 1, (int) resultValuesTable[s][11]);
-		table.set("Anisotropy index",            table.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anistropy index =(Dr-Dc)/(De-Dt)
+		table.set("Anisotropy index", table.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anistropy index =(Dr-Dc)/(De-Dt)
 
 		//add 181 angles
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 181; a++) {
-				table.set("Dh-"+(int)(Math.round(anglesRad[a]*180.0/Math.PI))+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
+				table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 			}
 		}
 		//add 4+1 angles
-		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 5; a++) {
-				table.set("Dh-"+(int)(Math.round(anglesRad[a]*180.0/Math.PI))+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
+				table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 			}
 		}
 		
@@ -955,38 +955,38 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 			// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			// fill table with values
 			table.appendRow();
-			table.set("File name",  table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
+			table.set("File name",  	table.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null) 	table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
 			table.set("k",              table.getRowCount() - 1, numKMax);
 			table.set("RegMin",         table.getRowCount() - 1, regMin);
 			table.set("RegMax",         table.getRowCount() - 1, regMax);
 			table.set("Method",         table.getRowCount() - 1, choiceRadioButt_Method);
 			table.set("Zeroes removed", table.getRowCount() - 1, booleanRemoveZeroes);
-			table.set("Dh-row",     table.getRowCount() - 1, resultValuesTable[s][0]);
-			table.set("Dh-col",     table.getRowCount() - 1, resultValuesTable[s][1]);
-			table.set("Dh",         table.getRowCount() - 1, resultValuesTable[s][2]);
-			table.set("R2-row",     table.getRowCount() - 1, resultValuesTable[s][3]);
-			table.set("R2-col",     table.getRowCount() - 1, resultValuesTable[s][4]);
-			table.set("R2",         table.getRowCount() - 1, resultValuesTable[s][5]);
-			table.set("StdErr-row", table.getRowCount() - 1, resultValuesTable[s][6]);
-			table.set("StdErr-col", table.getRowCount() - 1, resultValuesTable[s][7]);
-			table.set("StdErr",     table.getRowCount() - 1, resultValuesTable[s][8]);
+			table.set("Dh-row",     	table.getRowCount() - 1, resultValuesTable[s][0]);
+			table.set("Dh-col",    		table.getRowCount() - 1, resultValuesTable[s][1]);
+			table.set("Dh",         	table.getRowCount() - 1, resultValuesTable[s][2]);
+			table.set("R2-row",     	table.getRowCount() - 1, resultValuesTable[s][3]);
+			table.set("R2-col",     	table.getRowCount() - 1, resultValuesTable[s][4]);
+			table.set("R2",         	table.getRowCount() - 1, resultValuesTable[s][5]);
+			table.set("StdErr-row", 	table.getRowCount() - 1, resultValuesTable[s][6]);
+			table.set("StdErr-col", 	table.getRowCount() - 1, resultValuesTable[s][7]);
+			table.set("StdErr",     	table.getRowCount() - 1, resultValuesTable[s][8]);
 			table.set("# Rows",         table.getRowCount() - 1, (int)resultValuesTable[s][9]);
 			table.set("# Columns",      table.getRowCount() - 1, (int)resultValuesTable[s][10]);
 			table.set("# Radial lines", table.getRowCount() - 1, (int)resultValuesTable[s][11]);
-			table.set("Anisotropy index",            table.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anisotropy index =(Dr-Dc)/(De-Dt)
+			table.set("Anisotropy index", table.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anisotropy index =(Dr-Dc)/(De-Dt)
 			
 			//add 181 angles
-			if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)){
+			if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
 				for (int a = 0; a < 181; a++) {
-					table.set("Dh-"+(int)(Math.round(anglesRad[a]*180.0/Math.PI))+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
+					table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 			
 				}
 			}
 			//add 5 angles
-			if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetRadialDhValues)){
+			if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
 				for (int a = 0; a < 5; a++) {
-					table.set("Dh-"+(int)(Math.round(anglesRad[a]*180.0/Math.PI))+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
+					table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 				}
 			}
 		}
@@ -1301,27 +1301,22 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 				double[] L;
 				double[] regressionValues;
 				int numAngles = 0;
-				int indexAngle_0  = 0;
-				int indexAngle_90 = 0;
-				double Dh_0  = 0.0;
-				double Dh_90 = 0.0; 
+				double Dh_0  = Double.NaN;
+				double Dh_90 = Double.NaN; 
 				//define number of angles in the range of 0 - pi
 				//int numAngles = (180 + 1);  //maximal 180, maybe only 4 (0°, 45°, 90°, 135°, 180°)
 				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]")) {
 					numAngles = (180 + 1); //range 0 - pi through the center of the image
-					indexAngle_0 = 0;
-					indexAngle_90 = (numAngles -1)/2; // = 90
 				}
 				if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]")) {
 					numAngles = (4 + 1);   //range 0 - pi through the center of the image
-					indexAngle_0 = 0;
-					indexAngle_90 = (numAngles -1)/2; // = 2
 				}
 								
-				anglesRad = new double[numAngles];
+				anglesGrad = new double[numAngles];
 				for (int i = 0; i < numAngles; i++) {
 					//angles[i] = (i * Math.PI / (numAngles - 1) - (Math.PI / 2.0)); // -pi/2,...,0,...+pi/2
-					anglesRad[i] = (i * Math.PI / (numAngles - 1)); // simply Counterclockwise 
+					//anglesRad[i] = (i * Math.PI / (numAngles - 1)); // simply Counterclockwise 
+					anglesGrad[i] = (i * 180 / (numAngles - 1)); // simply Counterclockwise 
 				}
 				
 				//Dh-r--------------------------------------------------------------------------------------------------	
@@ -1389,50 +1384,50 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 //						y1 = 0;
 //						x2 = radius;
 //						y2 = 0;
-//					}  else if (anglesRad[a] == +(Math.PI / 2.0)) { //slope infinite  from bottom to top		
+//					}  else if (anglesRad[a] == +(90.0)) { //slope infinite  from bottom to top		
 //						x1 = 0;
 //						y1 = -radius;
 //						x2 = 0;
 //						y2 = radius;
-//					}  else if (anglesRad[a] == Math.PI) { //slope = -0   //from right to left
+//					}  else if (anglesRad[a] == 180.0) { //slope = -0   //from right to left
 //						x1 = radius;
 //						y1 = 0;
 //						x2 = -radius;
 //						y2 = 0;
-//					} else if ((anglesRad[a] >0) && (anglesRad[a] < Math.PI/2.0)){			
-//						x1 = radius*Math.cos(anglesRad[a] + Math.PI);
-//						y1 = radius*Math.sin(anglesRad[a] + Math.PI);
+//					} else if ((anglesRad[a] >0) && (anglesRad[a] < 90.0)){			
+//						x1 = radius*Math.cos(Math.toRadians(anglesRad[a] + 180.0));
+//						y1 = radius*Math.sin(Math.toRadians(anglesRad[a] + 180.0));
 //
-//						x2 = radius*Math.cos(anglesRad[a]);
-//						y2 = radius*Math.sin(anglesRad[a]);
+//						x2 = radius*Math.cos(Math.toRadians(anglesRad[a]));
+//						y2 = radius*Math.sin(Math.toRadians(anglesRad[a]));
 //		
-//					} else if ((anglesRad[a] > Math.PI/2.0) && (anglesRad[a] < Math.PI)){
+//					} else if ((anglesRad[a] > 90.0) && (anglesRad[a] < 180.0)){
 //						//do the same
-//						x1 = radius*Math.cos(anglesRad[a] + Math.PI);
-//						y1 = radius*Math.sin(anglesRad[a] + Math.PI);
+//						x1 = radius*Math.cos(Math.toRadians(anglesRad[a] + 180.0));
+//						y1 = radius*Math.sin(Math.toRadians(anglesRad[a] + 180.0));
 //
-//						x2 = radius*Math.cos(anglesRad[a]);
-//						y2 = radius*Math.sin(anglesRad[a]);
+//						x2 = radius*Math.cos(Math.toRadians(anglesRad[a]));
+//						y2 = radius*Math.sin(Math.toRadians(anglesRad[a]));
 //					}
 					
 					//Mathematical coordinates
-					x1 = radius*Math.cos(anglesRad[a] + Math.PI);
-					y1 = radius*Math.sin(anglesRad[a] + Math.PI);
+					x1 = radius*Math.cos(Math.toRadians(anglesGrad[a] + 180.0));
+					y1 = radius*Math.sin(Math.toRadians(anglesGrad[a] + 180.0));
 
-					x2 = radius*Math.cos(anglesRad[a]);
-					y2 = radius*Math.sin(anglesRad[a]);
+					x2 = radius*Math.cos(Math.toRadians(anglesGrad[a]));
+					y2 = radius*Math.sin(Math.toRadians(anglesGrad[a]));
 			
 		 		              	
 					signal1D = new double[(int) (diam+1)]; //radius is long
 					xAxis1D  = new double[(int) (diam+1)];		
 					yAxis1D  = new double[(int) (diam+1)];	
 
-//					//if (anglesRad[a] == Math.PI / 2.0) {
-//					if (a == 90) {	
+//					//if (anglesRad[a] == 90.0) {
+//					//if (a == 90) {	
 //						logService.info(this.getClass().getName() + " x1=" + x1 +  " , y1="+ y1);
 //						logService.info(this.getClass().getName() + " x2=" + x2 +  " , y2="+ y2);
 //					}
-					if (anglesRad[a] == Math.PI / 2.0) { //90°   x1 and x2 are 0   infinite slope
+					if (anglesGrad[a] == 90.0) { //90°   x1 and x2 are 0   infinite slope
 						double stepY = (y2 - y1)/(diam);
 					    for (int n = 0; n <= diam; n++) {
 					    	xAxis1D[n] = 0;
@@ -1442,7 +1437,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 						double stepX = (x2 - x1)/(diam);
 					    for (int n = 0; n <= diam; n++) {
 					    	xAxis1D[n] = n*stepX + x1;
-					    	yAxis1D[n] = xAxis1D[n]*Math.tan(anglesRad[a]);
+					    	yAxis1D[n] = xAxis1D[n]*Math.tan(Math.toRadians(anglesGrad[a]));
 					    }
 					}
 //					//if (anglesRad[a] == Math.PI / 2.0) {
@@ -1493,25 +1488,25 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 				
 					if (optShowSomeRadialLinePlots ){
 						// get plots of radial lines
-//						if(    (anglesRad[a]*180/Math.PI == 0) 
-//							|| (anglesRad[a]*180/Math.PI == 45) 
-//							|| (anglesRad[a]*180/Math.PI == 90) 
-//							|| (anglesRad[a]*180/Math.PI == 135) 
-//							|| (anglesRad[a]*180/Math.PI == 180)
-//							|| (anglesRad[a]*180/Math.PI == 1)
-//							|| (anglesRad[a]*180/Math.PI == 44)  
-//							|| (anglesRad[a]*180/Math.PI == 46)
-//							|| (anglesRad[a]*180/Math.PI == 89)
-//							|| (anglesRad[a]*180/Math.PI == 91)
-//							|| (anglesRad[a]*180/Math.PI == 134)
-//							|| (anglesRad[a]*180/Math.PI == 136) 
-//							|| (anglesRad[a]*180/Math.PI == 179)) { //show some plots
-						if(  (anglesRad[a]*180/Math.PI == 0)
-							|| (anglesRad[a]*180/Math.PI == 45) 
-							|| (anglesRad[a]*180/Math.PI == 90)
-							|| (anglesRad[a]*180/Math.PI == 135)
-							|| (anglesRad[a]*180/Math.PI == 180)) { //show some plots
-							plotProfile = new Plot(""+ (anglesRad[a]*180/Math.PI) + "° - Grey value profile", "Pixel number", "Grey value");
+//						if(    (anglesRad[a] == 0) 
+//							|| (anglesRad[a] == 45) 
+//							|| (anglesRad[a] == 90) 
+//							|| (anglesRad[a] == 135) 
+//							|| (anglesRad[a] == 180)
+//							|| (anglesRad[a] == 1)
+//							|| (anglesRad[a] == 44)  
+//							|| (anglesRad[a] == 46)
+//							|| (anglesRad[a] == 89)
+//							|| (anglesRad[a] == 91)
+//							|| (anglesRad[a] == 134)
+//							|| (anglesRad[a] == 136) 
+//							|| (anglesRad[a] == 179)) { //show some plots
+						if(  (anglesGrad[a] == 0)
+							|| (anglesGrad[a] == 45) 
+							|| (anglesGrad[a] == 90)
+							|| (anglesGrad[a] == 135)
+							|| (anglesGrad[a] == 180)) { //show some plots
+							plotProfile = new Plot(""+ (anglesGrad[a]) + "° - Grey value profile", "Pixel number", "Grey value");
 							double[] xAxisPlot = new double[signal1D.length];
 							for (int i=0; i<xAxisPlot.length; i++) {
 								xAxisPlot[i] = i+1;
@@ -1532,12 +1527,12 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						if (optShowPlot) {
-							if(    (anglesRad[a]*180/Math.PI == 0)
-								|| (anglesRad[a]*180/Math.PI == 45)
-								|| (anglesRad[a]*180/Math.PI == 90)
-								|| (anglesRad[a]*180/Math.PI == 135)
-								|| (anglesRad[a]*180/Math.PI == 180)) { //show first middle and last plot
-								String preName = "" + (anglesRad[a]*180.0/Math.PI) +"° - ";
+							if(    (anglesGrad[a] == 0)
+								|| (anglesGrad[a] == 45)
+								|| (anglesGrad[a] == 90)
+								|| (anglesGrad[a] == 135)
+								|| (anglesGrad[a] == 180)) { //show first middle and last plot
+								String preName = "" + anglesGrad[a] +"° - ";
 								showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 							}
 						}					
@@ -1550,10 +1545,10 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 								resultValues[7] += regressionValues[4];
 								resultValues[8] += regressionValues[3];
 							}
-							if ( a == indexAngle_0)  Dh_0  = dim;
-							if ( a == indexAngle_90) Dh_90 = dim;
+							if ( anglesGrad[a] == 0.0)  Dh_0  = dim;
+							if ( anglesGrad[a] == 90.0) Dh_90 = dim;
 							//add 180 +1 angles
-							if (booleanGetRadialDhValues){
+							if (booleanGetAllRadialDhValues){
 								//one of 181 Dh values
 								resultValues[13+a] = dim;
 							}
