@@ -239,6 +239,15 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
             callback = "callbackMethodType")
     private String choiceRadioButt_MethodType;
     
+    @Parameter(label = "Analysis type",
+ 		    description = "Type of image and computation",
+ 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		    choices = {"Binary", "Grey"},
+   		    //persist  = false,  //restore previous value default = true
+ 		    initializer = "initialAnalysisMethod",
+             callback = "callbackAnalysisMethod")
+     private String choiceRadioButt_AnalysisMethod;
+    
     @Parameter(label = "(Tug of war) Accuracy",
 		       description = "Accuracy",
 	       	   style = NumberWidget.SPINNER_STYLE,
@@ -314,6 +323,10 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
     	choiceRadioButt_MethodType = "Raster box";
     }
     
+    protected void initialAnalysisMethod() {
+    	choiceRadioButt_AnalysisMethod = "Binary";
+    }
+    
     protected void initialNumAccuracy() {
     	spinnerInteger_NumAcurracy = 90; //s1=30 Wang paper
     }
@@ -381,6 +394,12 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 	/** Executed whenever the {@link #choiceRadioButt_MethodType} parameter changes. */
 	protected void callbackMethodType() {
 		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_MethodType);
+		
+	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
+	protected void callbackAnalysisMethod() {
+		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
 		
 	}
 	
@@ -736,6 +755,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		IntColumn columnRegMin         = new IntColumn("RegMin");
 		IntColumn columnRegMax         = new IntColumn("RegMax");
 		GenericColumn columnMethodType = new GenericColumn("Method type");
+		GenericColumn columnAnalysisType = new GenericColumn("Analysis type");
 	
 	    table = new DefaultGenericTable();
 		table.add(columnFileName);
@@ -744,6 +764,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		table.add(columnRegMin);
 		table.add(columnRegMax);
 		table.add(columnMethodType);
+		table.add(columnAnalysisType);
 		String preString = "Lac";
 		int epsWidth = 1;
 		for (int i = 0; i < numBoxes; i++) {
@@ -763,6 +784,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		String methodType = choiceRadioButt_MethodType;
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
+		String analysisType  = choiceRadioButt_AnalysisMethod;	
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -782,8 +804,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
-			
-			tableColLast = 5;
+			table.set("Analysis type",   table.getRowCount()-1, analysisType);	
+			tableColLast = 6;
 			
 			int numParameters = resultValuesTable[s].length;
 			tableColStart = tableColLast + 1;
@@ -805,6 +827,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		String methodType = choiceRadioButt_MethodType;
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
+		String analysisType  = choiceRadioButt_AnalysisMethod;	
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -825,7 +848,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
-			tableColLast = 5;
+			table.set("Analysis type",   table.getRowCount()-1, analysisType);	
+			tableColLast = 6;
 			
 			int numParameters = resultValuesTable[s].length;
 			tableColStart = tableColLast + 1;
@@ -847,6 +871,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		int regMin        = spinnerInteger_RegMin;
 		int regMax        = spinnerInteger_RegMax;
 		String method     = choiceRadioButt_MethodType;
+		String analysisType = choiceRadioButt_AnalysisMethod;	 //"Binary"  "Grey"
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
 		
@@ -870,6 +895,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			int epsWidth = 1;
 			int boxSize = 0;
 			long count = 0;
+			int sample = 0;
 			ArrayList<Long> countList;
 			//loop through box sizes, each box size gives a lacunarity
 			for (int l = 0; l < numBoxes; l++) {
@@ -881,6 +907,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 				countList = new ArrayList<Long>();
 				mean = 0.0;
 				var = 0.0;
+				sample = 0;
 				//Raster through image
 				for (int x = 0; x <= (width-boxSize); x=x+boxSize){
 					for (int y = 0;  y <= (height-boxSize); y=y+boxSize){		
@@ -890,21 +917,25 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 						cursor = Views.iterable(raiBox).localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
-							//cursorF.localize(pos); 		
-							if (((UnsignedByteType) cursor.get()).get() > 0) {
+							//cursorF.localize(pos); 
+							sample = ((UnsignedByteType) cursor.get()).get();
+							if (sample > 0) {
 								// Binary Image: 0 and [1, 255]! and not: 0 and 255
-								count = count + 1;
+								if (analysisType.equals("Binary")) count = count + 1;
+								if (analysisType.equals("Grey"))   count = count + sample;
 							}								
 						}//while Box
-						countList.add(count);
+						//countList.add(count);
+						if (analysisType.equals("Binary")) countList.add(count);
+						if (analysisType.equals("Grey"))   countList.add(count/255);
 					} //y	
 				} //x
 				//mean for this box size
-				for (long c: countList) mean = mean + c;
+				for (long c: countList) mean = mean + (double)c;
 				mean = mean/countList.size();
 				
-				//varianve for this boxsize 
-				for (long c: countList) var = (var + (c - mean) * (c - mean));
+				//variance for this boxsize 
+				for (long c: countList) var = (var + ((double)c - mean) * ((double)c - mean));
 				var = var/countList.size();
 				
 				// calculate and set lacunarity value
@@ -941,11 +972,12 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 				cursor.fwd();
 				cursor.localize(pos);
 				ra.setPosition(pos);
-				sample = ra.get().getInteger();
-				if (sample == 0) {
+				sample = (double)ra.get().getInteger();
+				if (sample == 0.0) {
 					((UnsignedByteType) cursor.get()).set(0);
 				} else {
-					((UnsignedByteType) cursor.get()).set(1);
+					if (analysisType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
+					if (analysisType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample);
 				}		
 			}
 			//uiService.show("imgBin2", imgBin);
@@ -990,7 +1022,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 				mean = mean/N;
 			
 				// variance
-				sample = 0;
+				sample = 0.0;
 				cursor = imgDil.localizingCursor();
 				while (cursor.hasNext()) {
 					cursor.fwd();
