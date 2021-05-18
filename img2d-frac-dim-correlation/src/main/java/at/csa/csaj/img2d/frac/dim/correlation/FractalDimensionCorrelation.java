@@ -91,7 +91,7 @@ import io.scif.MetaTable;
 
 /**
  * A {@link Command} plugin computing
- * <the fractal box counting dimension </a>
+ * <a>the fractal correlation dimension </a>
  * of an image.
  */
 @Plugin(type = InteractiveCommand.class, 
@@ -178,8 +178,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "Number of boxes",
-    		   description = "Number of distinct box sizes with the power of 2",
+    @Parameter(label = "Number of radii",
+    		   description = "Number of distinct radii following the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
@@ -236,7 +236,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
      private int spinnerInteger_Probability;
      
      @Parameter(label = "(FFGE) Scanning method",
-    		    description = "Type of fast grid estimate",
+    		    description = "Type of fast grid estimate, box size = radius",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
       		    choices = {"Raster box"}, // "Sliding box"}, //Sliding box is implemented but gives not the desired results
       		    //persist  = false,  //restore previous value default = true
@@ -284,21 +284,21 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
  
     //The following initialzer functions set initial values
     protected void initialNumBoxes() {
-      	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
+      	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
       	spinnerInteger_NumBoxes = numBoxes;
     }
     protected void initialRegMin() {
     	spinnerInteger_RegMin = 1;
     }
     protected void initialRegMax() {
-    	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
+    	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	spinnerInteger_RegMax =  numBoxes;
+    }
+    protected void initialAnalysisType() {
+    	choiceRadioButt_AnalysisType = "Disc(radius) over pixel";
     }
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
-    }
-    protected void initialAnalysisType() {
-    	choiceRadioButt_AnalysisType = "Binary";
     }
     protected void initialProbability() {
       	spinnerInteger_Probability = 100;
@@ -795,9 +795,6 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		String analysisType  = choiceRadioButt_AnalysisType;	
 		String scanningType  = choiceRadioButt_ScanningType;	
 		
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-		}
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -831,10 +828,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		String analysisType = choiceRadioButt_AnalysisType;	 
 		String scanningType = choiceRadioButt_ScanningType;	
 		int probability     = spinnerInteger_Probability;
-		
-		if ((analysisType.equals("???")) && (regMin == 1)){
-			regMin = 2; //regMin == 1 (single pixel box is not possible for ??? algorithms)
-		}
+	
 		int numBands = 1;
 		
 		boolean optShowPlot    = booleanShowDoubleLogPlot;
@@ -855,12 +849,12 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 
 		double[][] totals = new double[numBoxes][numBands];
 		// double[] totalsMax = new double[numBands]; //for binary images
-		double[][] eps = new double[numBoxes][numBands];
+		int[][] eps = new int[numBoxes][numBands];
 		
 		// definition of eps
 		for (int n = 0; n < numBoxes; n++) {
 			for (int b = 0; b < numBands; b++) {	
-				eps[n][b] = Math.pow(2, n);
+				eps[n][b] = (int)Math.round(Math.pow(2, n));
 				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);	
 			}
 		}		
@@ -871,16 +865,16 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			//Classical correlation dimension with radius over a pixel
 			//radius is estimated by box
 			ra = rai.randomAccess();
-			long number_of_points=0;
-			int max_random_number=(int) (100/probability); // Evaluate max. random number
-			int random_number=0;
+			long number_of_points = 0;
+			int max_random_number = (int) (100/probability); // Evaluate max. random number
+			int random_number = 0;
 			int radius;		
 			long count = 0;
 			
-			if  (max_random_number == 1) { // no statistical approach, take all pixels
+			if  (max_random_number == 1) { // no statistical approach, take all image pixels
 				for (int b = 0; b < numBands; b++) {
 					for (int n = 0; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-						radius = (int) Math.pow(2, n);			
+						radius = eps[n][b];			
 						for (int x = 0; x < width; x++){
 							for (int y = 0; y < height; y++){	
 								ra.setPosition(x, 0);
@@ -892,7 +886,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 										if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
 											for (int yy = y - radius + 1; yy < y + radius; yy++) {
 												if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-													if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) {
+													if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
 														ra.setPosition(xx, 0);
 														ra.setPosition(yy, 1);	
 														if((((UnsignedByteType) ra.get()).get() > 0) ){
@@ -909,7 +903,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 						// calculate the average number of neighboring points within distance "radius":  
 						//number of neighbors = counts-total_number_of_points
 						//average number of neighbors = number of neighbors / total_number_of_points		 
-						totals[n][b]=(double)(count-number_of_points)/number_of_points; 
+						totals[n][b]=(double)(count-number_of_points)/number_of_points;
 						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
 						// set counts equal to zero
 						count=0;	
@@ -920,7 +914,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			else { //statistical approach
 				for (int b = 0; b < numBands; b++) {
 					for (int n = 0; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-						radius = (int) Math.pow(2, n);			
+						radius = eps[n][b];				
 						for (int x = 0; x < width; x++){
 							for (int y = 0;  y < height; y++){		
 								random_number = (int) (Math.random()*max_random_number+1);
@@ -934,7 +928,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 											if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
 												for (int yy = y - radius + 1; yy < y + radius; yy++) {
 													if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-														if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) {
+														if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
 															ra.setPosition(xx, 0);
 															ra.setPosition(yy, 1);	
 															if((((UnsignedByteType) ra.get()).get() > 0) ){
@@ -951,8 +945,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 						} //x  
 						// calculate the average number of neighboring points within distance "radius":  
 						//number of neighbors = counts-total_number_of_points
-						//average number of neighbors = number of neighbors / total_number_of_points		 
-						totals[n][b]=(double)(count-number_of_points)/number_of_points; 
+						//average number of neighbors = number of neighbors / total_number_of_points
+						totals[n][b]=(double)(count-number_of_points)/number_of_points;
 						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
 						// set counts equal to zero
 						count=0;	
@@ -976,7 +970,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			long count = 0;
 			for (int b = 0; b < numBands; b++) {
 				for (int n = 0; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-					boxSize = (int) Math.pow(2, n);		
+					boxSize = eps[n][b];		
 					if      (scanningType.equals("Raster box"))  delta = boxSize;
 					else if (scanningType.equals("Sliding box")) delta = 1; //not sure that values are correct, maybe dim=result/2
 					for (int x =0; x <= (width-boxSize); x=x+delta){
@@ -1017,9 +1011,9 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 				}
 				//lnEps[n][b] = Math.log(eps[numBoxes - n - 1 ][b]); //IQM
 				lnEps[n][b] = Math.log(eps[n][b]);
-				logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
+				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
 				//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
-				logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
+				//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
 			}
 		}
 		
@@ -1055,7 +1049,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 				}
 				
 				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Correlation dimension", 
-						preName + datasetName, "ln(Box width)", "ln(Count)", "",
+						preName + datasetName, axisNameX, axisNameY, "",
 						regMin, regMax);
 				doubleLogPlotList.add(doubleLogPlot);
 			}
