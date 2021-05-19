@@ -5,8 +5,9 @@ ComsystanJ change log
 - New img2d plugin Fractal dimension - Tug of war
 - New img2d plugin Lacunarity
 - New img2d plugin Succolarity
-- Bugfix Kolmogorov complexcity image plugin did register as signal plugin
-- Check maximal number of boxes in Box counting plugin
+- Bugfix img2d Kolmogorov complexcity did register as signal plugin
+- img2d Box counting now checks maximal number of boxes
+- Bugfix signal HRV Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 - Changed some persist entries
 
 29.2.1.1 initial release
