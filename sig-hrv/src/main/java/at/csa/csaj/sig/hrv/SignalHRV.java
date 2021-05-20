@@ -1175,7 +1175,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 				int start = (i*boxLength);
 				for (int ii = start; ii < (start + boxLength); ii++){ 
 					subSignal1D[ii-start] = signal1D[ii];
-					subdomain1D[ii-start]  = domain1D[ii];
+					subdomain1D[ii-start] = domain1D[ii];
 				}
 				//Compute specific values************************************************
 				//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
@@ -1654,6 +1654,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	 */
 	private double[] calcPSDParameters(double[] xData1D, double[] yData1D,  String timeBase) {
 		//xData1D are the absolute times tn of subsequent beats (the first beat is missing)
+		//xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
 		//yData1D are the corresponding beat to beat intervals in ms or seconds,  
 		
 		double vlf = 0.0;
@@ -1674,7 +1675,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			for (int i = 0; i < yData1D.length; i++) {
 				//if (xData1D[0] == 0.0) xData[i] =  xData1D[i]/1000.0;
 				//if (xData1D[0] == 1.0) xData[i] = (xData1D[i]/1000.0) - 1.0;
-				xData[i] = (xData1D[i])/1000.0;
+				xData[i] = (xData1D[i] - xData1D[0])/1000.0; 	//xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
 				yData[i] = yData1D[i]/1000.0;
 			}
 		}
@@ -1682,7 +1683,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			for (int i = 0; i < yData1D.length; i++) {
 				//if (xData1D[0] == 0.0) xData[i] = xData1D[i];
 				//if (xData1D[0] == 1.0) xData[i] = xData1D[i] - 1.0;
-				xData[i] = xData1D[i];
+				xData[i] = xData1D[i] - xData1D[0]; 	//xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
 				yData[i] = yData1D[i];
 			}
 		}
