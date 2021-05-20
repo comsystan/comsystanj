@@ -265,10 +265,10 @@ public class ImageOpener<T extends RealType<T>> implements Command {
 		        		bitsPerPixel = 8;
 			        	dims = new long[]{img.dimension(0), img.dimension(1), 3, files.length};
 						axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
+						datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+						datasetOut.setCompositeChannelCount(3);
+						datasetOut.setRGBMerged(true);
 		        	} 
-		        	datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-					datasetOut.setCompositeChannelCount(3);
-					datasetOut.setRGBMerged(true);
 		        }
 		        //Check image size
 		    	if ((img.dimension(0) != dims[0]) || (img.dimension(1) != dims[1])) {
