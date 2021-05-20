@@ -1,12 +1,14 @@
 ComsystanJ change log
 
 29.2.1.2
-- New img2d plugin Fractal dimension - Correlation
-- New img2d plugin Fractal dimension - Tug of war
-- New img2d plugin Lacunarity
-- New img2d plugin Succolarity
-- Bugfix Kolmogorov complexcity image plugin did register as signal plugin
-- Check maximal number of boxes in Box counting plugin
+- img2d plugin new - Fractal dimension - Directional correlation dimension
+- img2d plugin new - Fractal dimension - Correlation dimension
+- img2d plugin new - Fractal dimension - Tug of war dimension
+- img2d plugin new - Lacunarity
+- img2d plugin new - Succolarity
+- img2d plugin bugfix - Kolmogorov complexcity - did register as signal plugin
+- img2d plugin bugfix - Higuchi1D - roundig errors from rad to grad for lables, angles now in grad
+- img2d plugin Box counting: Check maximal number of boxes
 - Changed some persist entries
 
 29.2.1.1 initial release
