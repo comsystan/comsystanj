@@ -218,7 +218,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
 	private int spinnerInteger_NumSurrogates;
 	
-	@Parameter(label = "Box length", description = "Length of subsequent or gliding box - Shoud be at least three times ParamM", style = NumberWidget.SPINNER_STYLE, 
+	@Parameter(label = "Box length", description = "Length of subsequent or gliding box", style = NumberWidget.SPINNER_STYLE, 
 			   min = "2", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialBoxLength", callback = "callbackBoxLength")
