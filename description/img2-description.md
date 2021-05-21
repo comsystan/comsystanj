@@ -100,8 +100,8 @@
 - Raster/Sliding box scanning or Tug of war method
 - Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
 - Grey value algortihm for Raster/Sliding box
-- \<L\>R&P Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [https://doi.org/10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
-- \<L\>S&V Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [https://doi.org/10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
+- \<L\>-R&P Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [https://doi.org/10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
+- \<L\>-S&V Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [https://doi.org/10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
 - In the original paper accuracy=30 and confidence=5  
 - But it is recommended to set accuracy and confidence as high as computation times allow
