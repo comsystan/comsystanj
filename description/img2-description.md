@@ -3,7 +3,7 @@
 ### Fractal Dimension - Box counting
 - Fractal dimension is computed with box counting
 - For binary or grey 8-bit images
-- Binary counting or DBC and RDBC
+- Binary [0, >0] counting or DBC and RDBC
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters can be set 
 
@@ -11,6 +11,7 @@
 - Fractal correlation dimension is computed
 - For binary 8-bit images
 - Classical pair wise occurrence counting
+- Binary [0, >0] algorithm
 - Computation times can be lowered by decreasing the probability (% of randomly chosen image pixel)
 - or by using a fixed grid estimation of summing up squared counts
 - The number of boxes with distinct sizes according to the power of 2 can be set
@@ -35,6 +36,7 @@
 ### Fractal Dimension - Pyramid algorithm
 - Fractal dimension is computed by using image pyramids
 - For binary 8-bit images
+- Binary [0, >0] algorithm
 - Linear regression parameters can be set
 - Number of object pixels is counted for subsequently size reduced images
 - Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
@@ -44,6 +46,7 @@
 ### Fractal Dimension - Tug of war algorithm
 - Fractal dimension is computed by using a tug of war algorithm
 - For binary 8-bit images
+- Binary [0, >0] algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters can be set 
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
@@ -91,21 +94,25 @@
 
 ### Lacunarity
 - Lacunarity is computed of a binary image  
-- For binary 8-bit images
+- For binary or grey 8-bit images
 - The number of boxes with distinct sizes can be set
 - Linear regression parameters can be set 
-- Raster box or sliding box scanning or Tug of war method
+- Raster/Sliding box scanning or Tug of war method
+- Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
+- Grey value algortihm for Raster/Sliding box
+- <L> Weighted mean lacunarity
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
 - In the original paper accuracy=30 and confidence=5  
 - But it is recommended to set accuracy and confidence as high as computation times allow
 - Ref.: Reiss et al., Chaos, 2016, [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
-
 ### Succolarity
 - Succolarity is computed by flooding of a binary image  
 - For binary 8-bit images
+- Binary [0, >0] algorithm
 - The number of boxes with distinct sizes can be set
 - Linear regression parameters can be set 
-- Raster box or sliding box scanning
+- Raster box or Sliding box scanning
+- Binary [0, >0] algorithm
 - Flooding of image can be set to Top2down, Down2top, Left2right, Right2left or the mean of all four directions
 - Ref.: de Melo & Conci, Telecommunication Systems, 2013, [https://doi.org/10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
