@@ -393,14 +393,24 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 
 	/** Executed whenever the {@link #choiceRadioButt_MethodType} parameter changes. */
 	protected void callbackMethodType() {
+		if (choiceRadioButt_MethodType.equals("Tug of war")) {
+			if (choiceRadioButt_AnalysisMethod.equals("Grey")) {
+				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
+				choiceRadioButt_AnalysisMethod = "Binary";
+			}
+		}
 		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_MethodType);
-		
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
 	protected void callbackAnalysisMethod() {
+		if (choiceRadioButt_MethodType.equals("Tug of war")) {
+			if (choiceRadioButt_AnalysisMethod.equals("Grey")) {
+				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
+				choiceRadioButt_AnalysisMethod = "Binary";
+			}
+		}
 		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
-		
 	}
 	
 	/** Executed whenever the {@link #spinInteger_NumAccuracy} parameter changes. */
@@ -651,7 +661,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 	 */
 	private void processActiveInputImage(int s) throws InterruptedException{
 		long startTime = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][numBoxes];
+		resultValuesTable = new double[(int) numSlices][numBoxes + 2]; //+2 because of weighted mean L and mean L
 		
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -687,8 +697,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 	private void processAllInputImages() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][numBoxes];
-	
+		resultValuesTable = new double[(int) numSlices][numBoxes + 2]; //+2 because of weighted mean L and mean L
+ 	
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
@@ -756,6 +766,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		IntColumn columnRegMax         = new IntColumn("RegMax");
 		GenericColumn columnMethodType = new GenericColumn("Method type");
 		GenericColumn columnAnalysisType = new GenericColumn("Analysis type");
+		DoubleColumn columnL_RP          = new DoubleColumn("<L>-R&P"); //weighted mean L
+		DoubleColumn columnL_SV          = new DoubleColumn("<L>-S&V");   //mean L
 	
 	    table = new DefaultGenericTable();
 		table.add(columnFileName);
@@ -765,6 +777,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		table.add(columnRegMax);
 		table.add(columnMethodType);
 		table.add(columnAnalysisType);
+		table.add(columnL_RP);
+		table.add(columnL_SV);
 		String preString = "Lac";
 		int epsWidth = 1;
 		for (int i = 0; i < numBoxes; i++) {
@@ -804,10 +818,12 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);	
-			tableColLast = 6;
+			table.set("Analysis type",     table.getRowCount()-1, analysisType);
+			table.set("<L>-R&P",   		   table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
+			table.set("<L>-S&V",   		   table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
+			tableColLast = 8;
 			
-			int numParameters = resultValuesTable[s].length;
+			int numParameters = resultValuesTable[s].length - 2; 
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
@@ -848,10 +864,11 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);	
-			tableColLast = 6;
+			table.set("<L>-R&P",   		   table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
+			table.set("<L>-S&V",   	       table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
+			tableColLast = 8;
 			
-			int numParameters = resultValuesTable[s].length;
+			int numParameters = resultValuesTable[s].length - 2; 
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
@@ -882,7 +899,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		//ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
 		
 		// data array
-		double[]lacunarities = new double[numBoxes];
+		double[]lacunarities = new double[numBoxes + 2]; //+2 because of weighted mean L and mean L
 		int[]boxSizes        = new int[numBoxes];
 		for (int l = 0; l < lacunarities.length; l++) lacunarities[l] = Double.NaN;
 		
@@ -894,9 +911,9 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			double var = 0.0;
 			int epsWidth = 1;
 			int boxSize = 0;
-			long count = 0;
+			double count = 0;
 			int sample = 0;
-			ArrayList<Long> countList;
+			ArrayList<Double> countList;
 			//loop through box sizes, each box size gives a lacunarity
 			for (int l = 0; l < numBoxes; l++) {
 				
@@ -904,7 +921,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 				//Compute dilated image
 				boxSize = 2 * epsWidth + 1;
 				
-				countList = new ArrayList<Long>();
+				countList = new ArrayList<Double>();
 				mean = 0.0;
 				var = 0.0;
 				sample = 0;
@@ -921,21 +938,21 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 							sample = ((UnsignedByteType) cursor.get()).get();
 							if (sample > 0) {
 								// Binary Image: 0 and [1, 255]! and not: 0 and 255
-								if (analysisType.equals("Binary")) count = count + 1;
+								if (analysisType.equals("Binary")) count = count + 1.0;
 								if (analysisType.equals("Grey"))   count = count + sample;
 							}								
 						}//while Box
-						//countList.add(count);
-						if (analysisType.equals("Binary")) countList.add(count);
-						if (analysisType.equals("Grey"))   countList.add(count/255);
+						countList.add(count);
+						//if (analysisType.equals("Binary")) countList.add(count);
+						//if (analysisType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
 					} //y	
 				} //x
 				//mean for this box size
-				for (long c: countList) mean = mean + (double)c;
+				for (double c: countList) mean = mean + c;
 				mean = mean/countList.size();
 				
-				//variance for this boxsize 
-				for (long c: countList) var = (var + ((double)c - mean) * ((double)c - mean));
+				//variance for this box size 
+				for (double c: countList) var = (var + (c - mean) * (c - mean));
 				var = var/countList.size();
 				
 				// calculate and set lacunarity value
@@ -977,7 +994,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 					((UnsignedByteType) cursor.get()).set(0);
 				} else {
 					if (analysisType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
-					if (analysisType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample);
+					if (analysisType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
 				}		
 			}
 			//uiService.show("imgBin2", imgBin);
@@ -1064,8 +1081,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			 * 
 			 *  UPDATES: MR 19.10.2016 elimination of negative values in getTotals() method according to Chaos 2016 paper
 			 */	
-			int s1 = accuracy;   //s1 = 30; Wang paper	//accuracy 	
-			int s2 = confidence; // s2 = 5;	Wang paper 	//confidence
+			int s1 = accuracy;   // s1 = 30; Wang paper	//accuracy 	
+			int s2 = confidence; // s2 = 5;	 Wang paper //confidence
 			int q  = 10501;	//prime number
 			
 			double[] sum2   = new double[numBoxes];
@@ -1100,8 +1117,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 
 			// Get coordinates
 			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-			int[] xCoordinate=new int [(int) L];
-			int[] yCoordinate=new int [(int) L];	
+			int[] xCoordinate = new int[(int) L];
+			int[] yCoordinate = new int[(int) L];	
 			
 			do {
 				for(int i = 0; i < width; i++){	
@@ -1135,8 +1152,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 								int d_prim = getPrimeNumber();
 		
 								for(int i = 0; i < L; i++){	
-									xx=(int) Math.round( xCoordinate[i]/boxSize ); 
-									yy=(int) Math.round( yCoordinate[i]/boxSize ); 
+									xx = (int)Math.round(xCoordinate[i]/boxSize); 
+									yy = (int)Math.round(yCoordinate[i]/boxSize); 
 									// hash function 
 									part1 = a_prim*xx*xx*xx + b_prim*xx*xx + c_prim*xx + d_prim;
 									part2 = a_prim*a_prim*yy*yy*yy + b_prim*b_prim*yy*yy + c_prim*c_prim*yy + d_prim*d_prim;							
@@ -1187,6 +1204,25 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			}		
 		}//Tug of war
 		//---------------------------------------------------------------------------------------------
+		//Compute weighted mean Lacunarity according to Equ.3 of Roy&Perfect, 2014, Fractals, Vol22, No3
+		//DOI: 10.1142/S0218348X14400039
+		double L_RP = 0.0;
+		double sumBoxSize = 0.0;
+		for (int n = 0; n < numBoxes; n++) {	
+			L_RP = L_RP + Math.log10(lacunarities[n]) * Math.log10(boxSizes[n]);
+			sumBoxSize = sumBoxSize + Math.log10(boxSizes[n]);
+		}
+		lacunarities[numBoxes] = L_RP/sumBoxSize; //append it to the list of lacunarities	
+		
+		//Compute mean Lacunarity according to Equ.29 of Sengupta and Vinoy, 2006, Fractals, Vol14 No4 p271-282
+		//DOI: 10.1142/S0218348X06003313 
+		double L_SV = 0.0;
+		for (int n = 0; n < numBoxes; n++) {	
+			L_SV = L_SV + lacunarities[n] * boxSizes[n];
+		}
+		lacunarities[numBoxes + 1] = Math.log(L_SV/(boxSizes[numBoxes-1] - boxSizes[0])); //append it to the list of lacunarities	
+			
+		//prepare plot
 		double[] lnDataX = new double[numBoxes];
 		double[] lnDataY = new double[numBoxes];
 		for (int n = 0; n < numBoxes; n++) {	
