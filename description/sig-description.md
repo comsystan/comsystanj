@@ -158,6 +158,22 @@ Statistical Mechanics, Springer, 2009
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data conversion
 
+### Permutation entropy
+- Computes Permutation entropies
+- Permutation entropy H(n), Permutation entropy per symbol h(n)=H(n)/(n-1), Normalized permutation entropy H(n)/log(n!), Sorting entropy d(n)=H(n)-H(n-1), d(2)=H(2)  
+- n Order of Permutation entropy (>=2)
+- d Additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - n should not be larger than 1/3 of the box size
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Bandt&Pompe, 2002, Phys.Rev.Lett, [https://doi.org/10.1103/PhysRevLett.88.174102](https://doi.or g/10.1103/PhysRevLett.88.174102)
+
 ### Poincare plot
 - Generation of Poincare plots (lag plots)
 - The time lag can be set
