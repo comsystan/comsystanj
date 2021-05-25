@@ -1,16 +1,23 @@
 ComsystanJ change log
 
 29.2.1.2
-- img2d plugin new - Fractal dimension - Directional correlation dimension
-- img2d plugin new - Fractal dimension - Correlation dimension
-- img2d plugin new - Fractal dimension - Tug of war dimension
-- img2d plugin new - Lacunarity
-- img2d plugin new - Succolarity
-- img2d plugin bugfix - Kolmogorov complexcity - did register as signal plugin
-- img2d plugin bugfix - Higuchi1D - roundig errors from rad to grad for lables, angles now in grad
-- img2d plugin bugfix - Image Opener - Did not open grey image stack correctly
-- img2d plugin Box counting - Check maximal number of boxes
-- signal plugin bugfix HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
+
+New-----------------------------------------------------------
+img2d  - Fractal dimension - Directional correlation dimension
+img2d  - Fractal dimension - Correlation dimension
+img2d  - Fractal dimension - Tug of war dimension
+img2d  - Lacunarity
+img2d  - Succolarity
+signal - Permutation entropy
+
+Bugfix--------------------------------------------------------
+img2d  - Kolmogorov complexcity - did register as signal plugin
+img2d  - Higuchi1D - roundig errors from rad to grad for lables, angles now in grad
+img2d  - Image Opener - Did not open grey image stack correctly
+img2d  - Box counting - Check maximal number of boxes
+signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
+
+Changes-------------------------------------------------------
 - Changed some persist entries
 
 29.2.1.1 initial release

@@ -16,6 +16,7 @@
 	<modules>
 		<module>commons</module>
 		<module>img2d-frac-dim-boxcounting</module>
+		<module>img2d-frac-dim-correlation-directional</module>
 		<module>img2d-frac-dim-correlation</module>
 		<module>img2d-frac-dim-higuchi1d</module>
 		<module>img2d-frac-dim-higuchi2d</module>
@@ -33,6 +34,7 @@
 		<module>sig-detect-qrspeaks</module>
 		<module>sig-dfa</module>
 		<module>sig-en-genen</module>
+		<module>sig-en-permen</module>
 		<module>sig-en-sampen</module>
 		<module>sig-fft</module>
 		<module>sig-filter</module>
