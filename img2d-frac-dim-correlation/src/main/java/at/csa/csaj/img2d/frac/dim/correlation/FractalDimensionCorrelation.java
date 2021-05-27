@@ -215,14 +215,14 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Analysis type",
+     @Parameter(label = "Scanning type",
  		    description = "Classical disc (radius)  over pixel or fast estiamtes",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Disc(radius) over pixel", "FFGE - Fast fixed grid estimate"},
+   		    choices = {"Disc(radius) over pixel", "FFGE - Fast fixed grid estimate"}, // "DBC"}, //DBC still not working
    		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialAnalysisType",
-             callback = "callbackAnalysisType")
-     private String choiceRadioButt_AnalysisType;
+ 		    initializer = "initialScanningType",
+             callback = "callbackScanningType")
+     private String choiceRadioButt_ScanningType;
      
      @Parameter(label = "(Disc) Probability %",
   		   description = "% of image pixels to be taken - to lower computation times",
@@ -234,15 +234,6 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 	           initializer = "initialProbability",
 	           callback    = "callbackProbability")
      private int spinnerInteger_Probability;
-     
-     @Parameter(label = "(FFGE) Scanning method",
-    		    description = "Type of fast grid estimate, box size = radius",
-    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-      		    choices = {"Raster box"}, // "Sliding box"}, //Sliding box is implemented but gives not the desired results
-      		    //persist  = false,  //restore previous value default = true
-    		    initializer = "initialScanningType",
-                callback = "callbackScanningType")
-     private String choiceRadioButt_ScanningType;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -294,12 +285,10 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
     	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	spinnerInteger_RegMax =  numBoxes;
     }
-    protected void initialAnalysisType() {
-    	choiceRadioButt_AnalysisType = "Disc(radius) over pixel";
-    }
     protected void initialScanningType() {
-    	choiceRadioButt_ScanningType = "Raster box";
+    	choiceRadioButt_ScanningType = "Disc(radius) over pixel";
     }
+  
     protected void initialProbability() {
       	spinnerInteger_Probability = 100;
     }
@@ -358,15 +347,9 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
+	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
 	protected void callbackScanningType() {
-		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
-		
-	}
-	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
+		logService.info(this.getClass().getName() + " Scanning method set to " + choiceRadioButt_ScanningType);
 		
 	}
 	
@@ -385,8 +368,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Correlation dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Correlation dimensions, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -421,8 +404,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Correlation dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Correlation dimensions, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -729,9 +712,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
-		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
+		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
 		IntColumn columnProbability        = new IntColumn("(Disc) Probability %");
-		GenericColumn columnScanType       = new GenericColumn("(FFGE) Scanning type");
 		DoubleColumn columnDc              = new DoubleColumn("Dc");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
@@ -742,9 +724,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		table.add(columnMaxNumBoxes);
 		table.add(columnRegMin);
 		table.add(columnRegMax);
-		table.add(columnAnalysisType);
+		table.add(columnScanningType);
 		table.add(columnProbability);
-		table.add(columnScanType);
 		table.add(columnDc);
 		table.add(columnR2);
 		table.add(columnStdErr);
@@ -759,12 +740,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		int regMin           = spinnerInteger_RegMin;
 		int regMax           = spinnerInteger_RegMax;
 		int probability      = spinnerInteger_Probability;
-		String analysisType  = choiceRadioButt_AnalysisType;	
 		String scanningType  = choiceRadioButt_ScanningType;	
 		
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-		}	
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
@@ -774,9 +751,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			table.set("# Boxes",    	 table.getRowCount()-1, numBoxes);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);
-			table.set("(Disc) Probability %", table.getRowCount()-1, probability);	
-			table.set("(FFGE) Scanning type", table.getRowCount()-1, scanningType);	
+			table.set("Scanning type",   table.getRowCount()-1, scanningType);
+			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Probability %", table.getRowCount()-1, probability);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -792,7 +768,6 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		int regMin           = spinnerInteger_RegMin;
 		int regMax           = spinnerInteger_RegMax;
 		int probability      = spinnerInteger_Probability;
-		String analysisType  = choiceRadioButt_AnalysisType;	
 		String scanningType  = choiceRadioButt_ScanningType;	
 		
 		//loop over all slices
@@ -805,9 +780,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			table.set("# Boxes",    	 table.getRowCount()-1, numBoxes);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);
-			table.set("(Disc) Probability %", table.getRowCount()-1, probability);	
-			table.set("(FFGE) Scanning type", table.getRowCount()-1, scanningType);	
+			table.set("Scanning type",   table.getRowCount()-1, scanningType);
+			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Probability %", table.getRowCount()-1, probability);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -821,18 +795,13 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
-		
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numBoxes        = spinnerInteger_NumBoxes;
-		String analysisType = choiceRadioButt_AnalysisType;	 
-		String scanningType = choiceRadioButt_ScanningType;	
+		String scanningType = choiceRadioButt_ScanningType;	 
 		int probability     = spinnerInteger_Probability;
-	
+		boolean optShowPlot = booleanShowDoubleLogPlot;
 		int numBands = 1;
-		
-		boolean optShowPlot    = booleanShowDoubleLogPlot;
-		
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		
@@ -861,7 +830,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
 		//Correlation method	
-		if (analysisType.equals("Disc(radius) over pixel")) {
+		if (scanningType.equals("Disc(radius) over pixel")) {
 			//Classical correlation dimension with radius over a pixel
 			//radius is estimated by box
 			ra = rai.randomAccess();
@@ -873,7 +842,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			
 			if  (max_random_number == 1) { // no statistical approach, take all image pixels
 				for (int b = 0; b < numBands; b++) {
-					for (int n = 0; n < numBoxes; n++) { //2^1  to 2^numBoxes		
+					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
 						radius = eps[n][b];			
 						for (int x = 0; x < width; x++){
 							for (int y = 0; y < height; y++){	
@@ -913,7 +882,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			} // no statistical approach
 			else { //statistical approach
 				for (int b = 0; b < numBands; b++) {
-					for (int n = 0; n < numBoxes; n++) { //2^1  to 2^numBoxes		
+					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
 						radius = eps[n][b];				
 						for (int x = 0; x < width; x++){
 							for (int y = 0;  y < height; y++){		
@@ -956,7 +925,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			}
 		} //
 	
-		else if (analysisType.equals("FFGE - Fast fixed grid estimate")) {
+		else if (scanningType.equals("FFGE - Fast fixed grid estimate")) {
 			//Fixed grid
 			/**	KORRELATIONSDIMENSION: Fixed Grid Scan
 			 *  Martin Reiss
@@ -969,10 +938,9 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			int delta = 0;
 			long count = 0;
 			for (int b = 0; b < numBands; b++) {
-				for (int n = 0; n < numBoxes; n++) { //2^1  to 2^numBoxes		
+				for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
 					boxSize = eps[n][b];		
-					if      (scanningType.equals("Raster box"))  delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1; //not sure that values are correct, maybe dim=result/2
+					delta = boxSize;
 					for (int x =0; x <= (width-boxSize); x=x+delta){
 						for (int y =0;  y<= (height-boxSize); y=y+delta){
 							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
@@ -992,6 +960,51 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 				} //n
 			}//b band		
 		} //Fast fixed grid estimate
+		
+		//Sarkar & Chaudhuri „Multifractal and Generalized Dimensions of Gray-Tone Digital Images“. Signal Processing 42, Nr. 2 (1. März 1995): 181–90. https://doi.org/10.1016/0165-1684(94)00126-K.
+		else if (scanningType.equals("DBC")) { //grey value image
+	
+			double greyValue = Double.NaN;
+			int depthZ = 0;
+			int boxSize;
+			double boxSum = 0;
+	
+			//single pixel box
+			for (int b = 0; b < numBands; b++) {
+				//totals[0][b] = 1.0 * width * height; // Grey Image (l-k+1) is always 1 because l=k  //IQM setting
+				//totals[0][b] = Double.NaN; //new in ComsystanJ
+			}		
+			int delta = 0;
+			for (int b = 0; b < numBands; b++) {
+				for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes	
+					boxSize = eps[n][b];	
+					depthZ = (int)Math.round(boxSize * 255/((width + height) / 2.0)); // epsilonZ/255 = epsilon/imageSize
+//					if      (scanningType.equals("Raster box"))  delta = boxSize;
+//					else if (scanningType.equals("Sliding box")) delta = 1;
+					delta = boxSize;
+					for (int x = 0; x <= (width-boxSize); x=x+delta){
+						for (int y = 0;  y<= (height-boxSize); y=y+delta){
+							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+							greyValue = Double.NaN;
+							boxSum = 0;
+							// Loop through all pixels of this box.
+							cursor = Views.iterable(raiBox).localizingCursor();
+							while (cursor.hasNext()) { //Box
+								cursor.fwd();
+								//cursorF.localize(pos);
+								greyValue =((UnsignedByteType) cursor.get()).get();
+								
+								boxSum = boxSum + greyValue;
+								//totals[n][b] = totals[n][b] + greyValue;
+									
+							}//while Box
+							totals[n][b] = totals[n][b] + boxSum*boxSum;
+						} //y	
+					} //x		                                           
+				}//n
+			}//b band
+		}
+		
 		
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
@@ -1039,11 +1052,11 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 				if (numSlices > 1) {
 					preName = "Slice-"+String.format("%03d", plane) +"-";
 				}
-				if (analysisType.equals("Disc(radius) over pixel")) {
+				if (scanningType.equals("Disc(radius) over pixel")) {
 					axisNameX = "ln(Radius)";
 					axisNameY = "ln(Count)";
 				}
-				else if (analysisType.equals("FFGE - Fast fixed grid estimate")) {
+				else if (scanningType.equals("FFGE - Fast fixed grid estimate")) {
 					axisNameX = "ln(Box width)";
 					axisNameY = "ln(Count^2)";
 				}
