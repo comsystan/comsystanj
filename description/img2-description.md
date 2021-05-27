@@ -18,11 +18,23 @@
 - Linear regression parameters can be set 
 - Ref: Grassberger & Procaccia, Physica D, 1983, [https://10.1016/0167-2789(83)90298-1](https://10.1016/0167-2789(83)90298-1)
 
+### Fractal Dimension - Directional correlation
+- A directional dependent fractal correlation dimension is computed
+- For binary 8-bit images
+- Classical pair wise occurrence counting
+- Binary [0, >0] algorithm
+- Directions can be set
+- Horizontal & vertical, 4 radial directions [0-180°], 180 radial directions [0-180°] 
+- Computation times can be lowered by decreasing the probability (% of randomly chosen image pixel)
+- The number of distances with distinct sizes according to the power of 2 can be set
+- Linear regression parameters can be set 
+
 ### Fractal Dimension - Higuhi1D
 - Fractal dimension is computed for 1D grey value profiles extracted from an image
 - For 8-bit grey value images
 - Several extraction methods can be chosen
-- Angle extractions use the Bresenham algorithm that introduce some interpolation errors
+- Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
+- Angle extractions use an interpolated image surface that introduce some errors
 - Linear regression parameters can be set
 - Ref.: Ahammer, PLoS ONE, 2011, [https://doi.org/10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
 
