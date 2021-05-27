@@ -218,7 +218,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private final String labelInterpolation = METHODOPTIONS_LABEL;
 
 	@Parameter(label = "Method", description = "Type of 1D signal gathering", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
-		       "Single centered row/column", "Single meander row/column", "Mean of all rows/columns", "Mean of      4 radial lines [0-pi]", "Mean of 180 radial lines [0-pi]" },
+		       "Single centered row/column", "Single meander row/column", "Mean of all rows/columns", "Mean of      4 radial lines [0-180°]", "Mean of 180 radial lines [0-180°]" },
 			   persist = false, //restore previous value default = true
 			   initializer = "initialMethod", callback = "callbackMethod")
 	private String choiceRadioButt_Method;
@@ -622,9 +622,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private void processActiveInputImage (int s) throws InterruptedException {
 		
 		long startTime = System.currentTimeMillis();
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][194]; //13 + 181
-		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][18]; //13 + 5
 		}	else {
 			resultValuesTable = new double[(int) numSlices][13];
@@ -695,12 +695,12 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		resultValuesTable[s][12] = resultValues[12]; //#Anisotropy index Higuchi Anisotropy index
 		
 		
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 			for (int a = 0; a < 181; a++) {
 			resultValuesTable[s][13+a] = resultValues[13+a];
 			}
 		}
-		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 			for (int a = 0; a < 5; a++) {
 			resultValuesTable[s][13+a] = resultValues[13+a];
 			}
@@ -718,9 +718,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 	private void processAllInputImages() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][194]; //13 + 181
-		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 			resultValuesTable = new double[(int) numSlices][18]; //13 + 5
 		}	else {
 			resultValuesTable = new double[(int) numSlices][13];
@@ -806,12 +806,12 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 				resultValuesTable[s][11] = resultValues[11]; //#RadialLines
 				resultValuesTable[s][12] = resultValues[12]; //Anisotropy index Higuchi anisotropy index
 	
-				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 					for (int a = 0; a < 181; a++) {
 					resultValuesTable[s][13+a] = resultValues[13+a];
 					}
 				} 
-				if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)) {
+				if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]") && (booleanGetAllRadialDhValues)) {
 					for (int a = 0; a < 5; a++) {
 					resultValuesTable[s][13+a] = resultValues[13+a];
 					}
@@ -878,12 +878,12 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		table.add(columnNumColumns);
 		table.add(columnNumRadialLines);
 		table.add(columnAnisotropyIndex);
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 181; a++) {
 				table.add(new DoubleColumn("Dh " + anglesGrad[a] + "°"));
 			}
 		}
-		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 5; a++) {
 				table.add(new DoubleColumn("Dh " + anglesGrad[a] + "°"));
 			}
@@ -927,13 +927,13 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		table.set("Anisotropy index", table.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anistropy index =(Dr-Dc)/(De-Dt)
 
 		//add 181 angles
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 181; a++) {
 				table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 			}
 		}
 		//add 4+1 angles
-		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
+		if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]") && (booleanGetAllRadialDhValues)){
 			for (int a = 0; a < 5; a++) {
 				table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 			}
@@ -977,14 +977,14 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 			table.set("Anisotropy index", table.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anisotropy index =(Dr-Dc)/(De-Dt)
 			
 			//add 181 angles
-			if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
+			if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)){
 				for (int a = 0; a < 181; a++) {
 					table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 			
 				}
 			}
 			//add 5 angles
-			if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]") && (booleanGetAllRadialDhValues)){
+			if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]") && (booleanGetAllRadialDhValues)){
 				for (int a = 0; a < 5; a++) {
 					table.set("Dh "+anglesGrad[a]+"°", table.getRowCount() - 1, resultValuesTable[s][13+a]);
 				}
@@ -1015,9 +1015,9 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		String imageType = "Grey"; // "Grey" "RGB"....
 
 		double[] resultValues;
-		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]")) {
+		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]")) {
 			resultValues = new double[194]; //13 +181 Dhs
-		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]")) {
+		} else if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]")) {
 				resultValues = new double[18]; //13 + 5 Dhs
 		} else {
 			resultValues = new double[13]; // Dim-row, R2-row, StdErr-row, Dim-col, R2-col, StdErr-col, Dim, R2, StdErr
@@ -1295,7 +1295,7 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 				resultValues[12] = Math.abs(resultValues[0] - resultValues[3])/(2-1); //ABS(Dh-row - Dh -col)/(De - Dt);
 			}
 			//******************************************************************************************************************************************
-			if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") || choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]")) {
+			if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") || choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]")) {
 				
 				Higuchi hig;
 				double[] L;
@@ -1305,10 +1305,10 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 				double Dh_90 = Double.NaN; 
 				//define number of angles in the range of 0 - pi
 				//int numAngles = (180 + 1);  //maximal 180, maybe only 4 (0°, 45°, 90°, 135°, 180°)
-				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]")) {
+				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]")) {
 					numAngles = (180 + 1); //range 0 - pi through the center of the image
 				}
-				if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-pi]")) {
+				if (choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]")) {
 					numAngles = (4 + 1);   //range 0 - pi through the center of the image
 				}
 								
