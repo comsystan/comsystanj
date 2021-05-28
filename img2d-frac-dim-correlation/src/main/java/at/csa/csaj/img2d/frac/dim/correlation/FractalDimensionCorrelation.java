@@ -224,16 +224,16 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
              callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
      
-     @Parameter(label = "(Disc) Probability %",
+     @Parameter(label = "(Disc) Pixel %",
   		   description = "% of image pixels to be taken - to lower computation times",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "100",
 	           stepSize = "1",
 	           //persist  = false,  //restore previous value default = true
-	           initializer = "initialProbability",
-	           callback    = "callbackProbability")
-     private int spinnerInteger_Probability;
+	           initializer = "initialPixelPercentage",
+	           callback    = "callbackPixelPercentage")
+     private int spinnerInteger_PixelPercentage;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -289,8 +289,8 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
     	choiceRadioButt_ScanningType = "Disc(radius) over pixel";
     }
   
-    protected void initialProbability() {
-      	spinnerInteger_Probability = 100;
+    protected void initialPixelPercentage() {
+      	spinnerInteger_PixelPercentage = 100;
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
@@ -353,9 +353,9 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		
 	}
 	
-	/** Executed whenever the {@link #spinInteger_Probability} parameter changes. */
-	protected void callbackProbability() {
-		logService.info(this.getClass().getName() + " Probability set to " + spinnerInteger_Probability);
+	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
+	protected void callbackPixelPercentage() {
+		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
 	}
 	
 	/** Executed whenever the {@link #booleanPreview} parameter changes. */
@@ -713,7 +713,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
-		IntColumn columnProbability        = new IntColumn("(Disc) Probability %");
+		IntColumn columnPixelPercentage    = new IntColumn("(Disc) Pixel %");
 		DoubleColumn columnDc              = new DoubleColumn("Dc");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
@@ -725,7 +725,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		table.add(columnRegMin);
 		table.add(columnRegMax);
 		table.add(columnScanningType);
-		table.add(columnProbability);
+		table.add(columnPixelPercentage);
 		table.add(columnDc);
 		table.add(columnR2);
 		table.add(columnStdErr);
@@ -739,7 +739,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		int numBoxes         = spinnerInteger_NumBoxes;
 		int regMin           = spinnerInteger_RegMin;
 		int regMax           = spinnerInteger_RegMax;
-		int probability      = spinnerInteger_Probability;
+		int pixelPercentage      = spinnerInteger_PixelPercentage;
 		String scanningType  = choiceRadioButt_ScanningType;	
 		
 	    int s = sliceNumber;	
@@ -752,7 +752,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
-			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Probability %", table.getRowCount()-1, probability);	
+			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -767,7 +767,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		int numBoxes         = spinnerInteger_NumBoxes;
 		int regMin           = spinnerInteger_RegMin;
 		int regMax           = spinnerInteger_RegMax;
-		int probability      = spinnerInteger_Probability;
+		int pixelPercentage      = spinnerInteger_PixelPercentage;
 		String scanningType  = choiceRadioButt_ScanningType;	
 		
 		//loop over all slices
@@ -781,7 +781,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
-			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Probability %", table.getRowCount()-1, probability);	
+			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -799,7 +799,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 		int regMax          = spinnerInteger_RegMax;
 		int numBoxes        = spinnerInteger_NumBoxes;
 		String scanningType = choiceRadioButt_ScanningType;	 
-		int probability     = spinnerInteger_Probability;
+		int pixelPercentage     = spinnerInteger_PixelPercentage;
 		boolean optShowPlot = booleanShowDoubleLogPlot;
 		int numBands = 1;
 		long width  = rai.dimension(0);
@@ -835,7 +835,7 @@ public class FractalDimensionCorrelation<T extends RealType<T>> extends Interact
 			//radius is estimated by box
 			ra = rai.randomAccess();
 			long number_of_points = 0;
-			int max_random_number = (int) (100/probability); // Evaluate max. random number
+			int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
 			int random_number = 0;
 			int radius;		
 			long count = 0;

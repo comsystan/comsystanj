@@ -211,16 +211,16 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 			   initializer = "initialDirection", callback = "callbackDirection")
 	private String choiceRadioButt_Direction;
 
-	@Parameter(label = "Probability %",
+	@Parameter(label = "Pixel %",
 	  		   description = "% of image pixels to be taken - to lower computation times",
 		       style = NumberWidget.SPINNER_STYLE,
 		       min = "1",
 		       max = "100",
 		       stepSize = "1",
 		       //persist  = false,  //restore previous value default = true
-		       initializer = "initialProbability",
-		       callback    = "callbackProbability")
-	private int spinnerInteger_Probability;
+		       initializer = "initialPixelPercentage",
+		       callback    = "callbackPixelPercentage")
+	private int spinnerInteger_PixelPercentage;
 	
 	//-----------------------------------------------------------------------------------------------------
 	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -287,8 +287,8 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 		choiceRadioButt_Direction = "Horizontal and vertical direction";
 	}
 
-	protected void initialProbability() {
-	    spinnerInteger_Probability = 100;
+	protected void initialPixelPercentage() {
+	    spinnerInteger_PixelPercentage = 100;
 	}
 	
 	protected void initialShowDoubleLogPlots() {
@@ -359,9 +359,9 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 		logService.info(this.getClass().getName() + " Direction set to " + choiceRadioButt_Direction);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_Probability} parameter changes. */
-	protected void callbackProbability() {
-		logService.info(this.getClass().getName() + " Probability set to " + spinnerInteger_Probability);
+	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
+	protected void callbackPixelPercentage() {
+		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
 	}
 	
 	/** Executed whenever the {@link #booleanPreview} parameter changes. */
@@ -989,7 +989,7 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		String direction 	= choiceRadioButt_Direction;	 
-		int probability     = spinnerInteger_Probability;	
+		int pixelPercentage     = spinnerInteger_PixelPercentage;	
 		boolean optShowPlot = booleanShowDoubleLogPlot;
 		
 		int numBands = 1;
@@ -1013,14 +1013,14 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 
 			// Ds-0°  180°--------------------------------------------------------------------------------
 			logService.info(this.getClass().getName() + " Computing horizontal Dc");
-			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, probability, 0, 180, optShowPlot, plane, numBands);	
+			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, pixelPercentage, 0, 180, optShowPlot, plane, numBands);	
 			resultValues[0] = regressionValues[1]; // Dc = slope
 			resultValues[1] = regressionValues[4];
 			resultValues[2] = regressionValues[3];
 		
 			// Dc- +90° -90° ---------------------------------------------------------------------------------
 			logService.info(this.getClass().getName() + " Computing vertical Dc");
-			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, probability, 90, -90, optShowPlot, plane, numBands);
+			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, pixelPercentage, 90, -90, optShowPlot, plane, numBands);
 			
 			resultValues[3] = regressionValues[1]; // Dc = slope
 			resultValues[4] = regressionValues[4];
@@ -1067,7 +1067,7 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 				angle2 = angle1 +180;
 				
 				logService.info(this.getClass().getName() + " Computing Dc at angle " + angle1 +"° and " + angle2 + "°");
-				regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, probability, angle1, angle2, optShowPlot, plane, numBands);
+				regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, pixelPercentage, angle1, angle2, optShowPlot, plane, numBands);
 				
 				double dim = regressionValues[1];
 				if (dim == 0.0) dim = Double.NaN;
@@ -1122,7 +1122,7 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 	 * Compute directional correlations
 	 * @return double[] regressionValues
 	 */
-	private double[] computeRegressionValues(RandomAccessibleInterval<?> rai, int numBoxes, int regMin, int regMax, int probability, 
+	private double[] computeRegressionValues(RandomAccessibleInterval<?> rai, int numBoxes, int regMin, int regMax, int pixelPercentage, 
 																	  double angle1, double angle2, boolean optShowPlot, int plane, int numBands) {
 		//WARNING: Output is only the last band!!
 		double[] regressionValues = null; //output of this method
@@ -1138,7 +1138,7 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 		}	
 		RandomAccess<?> ra=  rai.randomAccess();
 		long number_of_points = 0;
-		int max_random_number = (int) (100/probability); // Evaluate max. random number
+		int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
 		int random_number = 0;
 		int radius;		
 		long count = 0;
