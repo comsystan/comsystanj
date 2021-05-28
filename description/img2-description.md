@@ -12,7 +12,7 @@
 - For binary 8-bit images
 - Classical pair wise occurrence counting
 - Binary [0, >0] algorithm
-- Computation times can be lowered by decreasing the probability (% of randomly chosen image pixel)
+- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
 - or by using a fixed grid estimation of summing up squared counts
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters can be set 
@@ -25,9 +25,21 @@
 - Binary [0, >0] algorithm
 - Directions can be set
 - Horizontal & vertical, 4 radial directions [0-180°], 180 radial directions [0-180°] 
-- Computation times can be lowered by decreasing the probability (% of randomly chosen image pixel)
+- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
 - The number of distances with distinct sizes according to the power of 2 can be set
 - Linear regression parameters can be set 
+
+### Fractal Dimension - Generalized
+- Generalized fractal dimensions are computed
+- For binary 8-bit images
+- Binary [0, >0] algorithm
+- Raster or sliding box scanning
+- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
+- or by using a fixed grid estimation of summing up squared counts
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters can be set 
+- Ref: Ahammer et al., Physica D, 2003, [https://doi.org/10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
+
 
 ### Fractal Dimension - Higuhi1D
 - Fractal dimension is computed for 1D grey value profiles extracted from an image
@@ -43,7 +55,7 @@
 - For 8-bit grey value images
 - Several options can be chosen
 - Linear regression parameters can be set
-- Ref.: Ahammer etal., Chaos, 2015, [https://doi.org/10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
+- Ref.: Ahammer et al., Chaos, 2015, [https://doi.org/10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
 
 ### Fractal Dimension - Pyramid algorithm
 - Fractal dimension is computed by using image pyramids
@@ -102,7 +114,7 @@
 - LD is estimated by the decompression time of the compressed data bytes (ZLIB, GZIB)
 - Iterations should be set to as high a value as possible.
 - LD values should be taken with caution, as computers are not well suited to measure times
-- Ref.: Zenil etal., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+- Ref.: Zenil et al., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
 ### Lacunarity
 - Lacunarity is computed of a binary image  
@@ -112,6 +124,7 @@
 - Raster/Sliding box scanning or Tug of war method
 - Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
 - Grey value algortihm for Raster/Sliding box
+- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
 - \<L\>-R&P Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [https://doi.org/10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
 - \<L\>-S&V Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [https://doi.org/10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
