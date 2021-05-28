@@ -233,7 +233,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
     @Parameter(label = "Method",
    		    description = "Type of analysis",
    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-     		choices = {"Raster box", "Sliding box", "Tug of war"},
+     		choices = {"Raster box", "Sliding box", "Tug of war"}, //"Fast Sliding box" is not reliable
      		//persist  = false,  //restore previous value default = true
    		    initializer = "initialMethodType",
             callback = "callbackMethodType")
@@ -246,7 +246,18 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
    		    //persist  = false,  //restore previous value default = true
  		    initializer = "initialAnalysisMethod",
              callback = "callbackAnalysisMethod")
-     private String choiceRadioButt_AnalysisMethod;
+    private String choiceRadioButt_AnalysisMethod;
+    
+    @Parameter(label = "(Sliding box) Pixel %",
+   		   description = "% of image pixels to be taken - to lower computation times",
+ 	       	   style = NumberWidget.SPINNER_STYLE,
+ 	           min = "1",
+ 	           max = "100",
+ 	           stepSize = "1",
+ 	           //persist  = false,  //restore previous value default = true
+ 	           initializer = "initialPixelPercentage",
+ 	           callback    = "callbackPixelPercentage")
+     private int spinnerInteger_PixelPercentage;
     
     @Parameter(label = "(Tug of war) Accuracy",
 		       description = "Accuracy",
@@ -325,6 +336,10 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
     
     protected void initialAnalysisMethod() {
     	choiceRadioButt_AnalysisMethod = "Binary";
+    }
+    
+    protected void initialPixelPercentage() {
+      	spinnerInteger_PixelPercentage = 100;
     }
     
     protected void initialNumAccuracy() {
@@ -411,6 +426,11 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			}
 		}
 		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
+	}
+	
+	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
+	protected void callbackPixelPercentage() {
+		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_NumAccuracy} parameter changes. */
@@ -588,6 +608,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		logService.info(this.getClass().getName() + " Number of images = " + numSlices); 
 	}
 	
+
 	/**
 	 * This methods gets the index of the active image in a stack
 	 * @return int index
@@ -643,14 +664,26 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		}
 	}
 	
+//	/** This method computes the maximal number of possible boxes*/
+//	private int getMaxBoxNumber(long width, long height) { 
+//		float boxWidth = 0;
+//		int number = 0; 
+//		int epsWidth = 1;
+//		while ((boxWidth <= width) && (boxWidth <= height)) {	
+//			boxWidth = 2 * epsWidth + 1;
+//			epsWidth = epsWidth * 2;
+//			number = number + 1;
+//		}
+//		return number - 1;
+//	}
+	
+	
 	/** This method computes the maximal number of possible boxes*/
 	private int getMaxBoxNumber(long width, long height) { 
-		float boxWidth = 0;
-		int number = 0; 
-		int epsWidth = 1;
-		while ((boxWidth <= width) && (boxWidth <= height)) {	
-			boxWidth = 2 * epsWidth + 1;
-			epsWidth = epsWidth * 2;
+		float boxWidth = 1f;
+		int number = 1; 
+		while ((boxWidth <= width) && (boxWidth <= height)) {
+			boxWidth = boxWidth * 2;
 			number = number + 1;
 		}
 		return number - 1;
@@ -759,12 +792,12 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader(){
 		
-		GenericColumn columnFileName   = new GenericColumn("File name");
-		GenericColumn columnSliceName  = new GenericColumn("Slice name");
-		IntColumn columnMaxNumBoxes    = new IntColumn("# Boxes");
-		IntColumn columnRegMin         = new IntColumn("RegMin");
-		IntColumn columnRegMax         = new IntColumn("RegMax");
-		GenericColumn columnMethodType = new GenericColumn("Method type");
+		GenericColumn columnFileName     = new GenericColumn("File name");
+		GenericColumn columnSliceName    = new GenericColumn("Slice name");
+		IntColumn columnMaxNumBoxes      = new IntColumn("# Boxes");
+		IntColumn columnRegMin           = new IntColumn("RegMin");
+		IntColumn columnRegMax           = new IntColumn("RegMax");
+		GenericColumn columnMethodType   = new GenericColumn("Method type");
 		GenericColumn columnAnalysisType = new GenericColumn("Analysis type");
 		DoubleColumn columnL_RP          = new DoubleColumn("<L>-R&P"); //weighted mean L
 		DoubleColumn columnL_SV          = new DoubleColumn("<L>-S&V");   //mean L
@@ -779,11 +812,14 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		table.add(columnAnalysisType);
 		table.add(columnL_RP);
 		table.add(columnL_SV);
-		String preString = "Lac";
-		int epsWidth = 1;
-		for (int i = 0; i < numBoxes; i++) {
-			table.add(new DoubleColumn(preString + "-" + (2*epsWidth+1) + "x" + (2*epsWidth+1)));
-			epsWidth = epsWidth * 2;
+		String preString = "L";
+//		int epsWidth = 1;
+//		for (int i = 0; i < numBoxes; i++) {
+//			table.add(new DoubleColumn(preString + "-" + (2*epsWidth+1) + "x" + (2*epsWidth+1)));
+//			epsWidth = epsWidth * 2;
+//		}
+		for (int n = 0; n < numBoxes; n++) {
+			table.add(new DoubleColumn(preString + " " + (int)Math.round(Math.pow(2, n)) + "x" + (int)Math.round(Math.pow(2, n))));
 		}
 	}
 	
@@ -796,6 +832,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		int regMin     	  = spinnerInteger_RegMin;
 		int regMax     	  = spinnerInteger_RegMax;
 		String methodType = choiceRadioButt_MethodType;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
 		String analysisType  = choiceRadioButt_AnalysisMethod;	
@@ -814,8 +851,12 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			table.set("RegMin",        table.getRowCount()-1, regMin);	
 			table.set("RegMax",        table.getRowCount()-1, regMax);
 			if (choiceRadioButt_MethodType.equals("Tug of war")) {
-				table.set("Method type",   table.getRowCount()-1, "Tug of war Acc"+accuracy + " Conf"+confidence);
-			} else {
+				table.set("Method type",   table.getRowCount()-1, "Tug of war Acc" + accuracy + " Conf" + confidence);
+			}
+			else if (choiceRadioButt_MethodType.equals("Sliding box")) {
+				table.set("Method type",   table.getRowCount()-1, "Sliding box "  +pixelPercentage + "%");
+			}
+			else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
 			table.set("Analysis type",     table.getRowCount()-1, analysisType);
@@ -888,6 +929,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		int regMin        = spinnerInteger_RegMin;
 		int regMax        = spinnerInteger_RegMax;
 		String method     = choiceRadioButt_MethodType;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		String analysisType = choiceRadioButt_AnalysisMethod;	 //"Binary"  "Grey"
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
@@ -901,70 +943,124 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		// data array
 		double[]lacunarities = new double[numBoxes + 2]; //+2 because of weighted mean L and mean L
 		int[]boxSizes        = new int[numBoxes];
+		// definition of eps
+		for (int n = 0; n < numBoxes; n++) boxSizes[n] = (int)Math.round(Math.pow(2, n));		
 		for (int l = 0; l < lacunarities.length; l++) lacunarities[l] = Double.NaN;
 		
-	
+		long number_of_points = 0;
+		int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
+		if (method.equals("Raster box")) max_random_number = 1; //take always all boxes 
+		int random_number = 0;
 		//------------------------------------------------------------------------------------------
-		if (method.equals("Raster box")) {
-		
+		if (method.equals("Raster box") || method.equals("Sliding box")) {	
 			double mean = 0.0;
 			double var = 0.0;
-			int epsWidth = 1;
+			//int epsWidth = 1;
 			int boxSize = 0;
 			double count = 0;
 			int sample = 0;
+			int delta = 0;
 			ArrayList<Double> countList;
-			//loop through box sizes, each box size gives a lacunarity
-			for (int l = 0; l < numBoxes; l++) {
-				
-				int proz = (int) (l + 1) * 95 / numBoxes;
-				//Compute dilated image
-				boxSize = 2 * epsWidth + 1;
-				
-				countList = new ArrayList<Double>();
-				mean = 0.0;
-				var = 0.0;
-				sample = 0;
-				//Raster through image
-				for (int x = 0; x <= (width-boxSize); x=x+boxSize){
-					for (int y = 0;  y <= (height-boxSize); y=y+boxSize){		
-						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-						count = 0;
-						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
-						while (cursor.hasNext()) { //Box
-							cursor.fwd();
-							//cursorF.localize(pos); 
-							sample = ((UnsignedByteType) cursor.get()).get();
-							if (sample > 0) {
-								// Binary Image: 0 and [1, 255]! and not: 0 and 255
-								if (analysisType.equals("Binary")) count = count + 1.0;
-								if (analysisType.equals("Grey"))   count = count + sample;
-							}								
-						}//while Box
-						countList.add(count);
-						//if (analysisType.equals("Binary")) countList.add(count);
-						//if (analysisType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
-					} //y	
-				} //x
-				//mean for this box size
-				for (double c: countList) mean = mean + c;
-				mean = mean/countList.size();
-				
-				//variance for this box size 
-				for (double c: countList) var = (var + (c - mean) * (c - mean));
-				var = var/countList.size();
-				
-				// calculate and set lacunarity value
-				lacunarities[l] = var/ (mean * mean) + 1; // lacunarity , sometimes + 1, sometimes not
-				boxSizes[l] = boxSize;// = epsWidth; = kernelSize;
-		
-				epsWidth = epsWidth * 2;
-				// epsWidth = epsWidth+1;
-			} 
+			if  (max_random_number == 1) { // no statistical approach, take all image pixels		
+				//loop through box sizes, each box size gives a lacunarity
+				for (int l = 0; l < numBoxes; l++) {		
+					int proz = (int) (l + 1) * 95 / numBoxes;
+					boxSize = boxSizes[l];
+					countList = new ArrayList<Double>();
+					mean = 0.0;
+					var = 0.0;
+					sample = 0;
+					if      (method.equals("Raster box")) delta = boxSize;
+					else if (method.equals("Sliding box")) delta = 1;
+					//Raster through image
+					for (int x = 0; x <= (width-boxSize); x = x+delta){
+						for (int y = 0;  y <= (height-boxSize); y = y+delta){		
+							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+							count = 0;
+							// Loop through all pixels of this box.
+							cursor = Views.iterable(raiBox).localizingCursor();
+							while (cursor.hasNext()) { //Box
+								cursor.fwd();
+								//cursorF.localize(pos); 
+								sample = ((UnsignedByteType) cursor.get()).get();
+								if (sample > 0) {
+									// Binary Image: 0 and [1, 255]! and not: 0 and 255
+									if (analysisType.equals("Binary")) count = count + 1.0;
+									if (analysisType.equals("Grey"))   count = count + sample;
+								}								
+							}//while Box
+							countList.add(count);
+							//if (analysisType.equals("Binary")) countList.add(count);
+							//if (analysisType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
+						} //y	
+					} //x
+					//mean for this box size
+					for (double c: countList) mean = mean + c;
+					mean = mean/countList.size();
+					
+					//variance for this box size 
+					for (double c: countList) var = (var + (c - mean) * (c - mean));
+					var = var/countList.size();
+					
+					// calculate and set lacunarity value
+					lacunarities[l] = var/ (mean * mean) + 1; // lacunarityboxSizes[l] = boxSize;// = epsWidth; = kernelSize;
+				} 
+			}
+			else { //statistical approach
+				//loop through box sizes, each box size gives a lacunarity
+				for (int l = 0; l < numBoxes; l++) {		
+					int proz = (int) (l + 1) * 95 / numBoxes;
+					boxSize = boxSizes[l];
+					countList = new ArrayList<Double>();
+					mean = 0.0;
+					var = 0.0;
+					sample = 0;
+					if      (method.equals("Raster box")) delta = boxSize;
+					else if (method.equals("Sliding box")) delta = 1;
+					//Raster through image
+					for (int x = 0; x <= (width-boxSize); x = x+delta){
+						for (int y = 0;  y <= (height-boxSize); y = y+delta){	
+							random_number = (int) (Math.random()*max_random_number+1);
+							if( random_number == 1 ){ // UPDATE 07.08.2013 
+								raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+								count = 0;
+								// Loop through all pixels of this box.
+								cursor = Views.iterable(raiBox).localizingCursor();
+								while (cursor.hasNext()) { //Box
+									cursor.fwd();
+									//cursorF.localize(pos); 
+									sample = ((UnsignedByteType) cursor.get()).get();
+									if (sample > 0) {
+										// Binary Image: 0 and [1, 255]! and not: 0 and 255
+										if (analysisType.equals("Binary")) count = count + 1.0;
+										if (analysisType.equals("Grey"))   count = count + sample;
+									}								
+								}//while Box
+								countList.add(count);
+								//if (analysisType.equals("Binary")) countList.add(count);
+								//if (analysisType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
+							}
+						} //y	
+					} //x
+					//mean for this box size
+					for (double c: countList) mean = mean + c;
+					mean = mean/countList.size();
+					
+					//variance for this box size 
+					for (double c: countList) var = (var + (c - mean) * (c - mean));
+					var = var/countList.size();
+					
+					// calculate and set lacunarity value
+					lacunarities[l] = var/ (mean * mean) + 1; // lacunarity , sometimes + 1, sometimes not
+				} 
+			}
 		}
+		
+		
 		//------------------------------------------------------------------------------------------
-		else if (method.equals("Sliding box")) {
+		//this seems to be not accurate as it should be
+		//maybe convolution of kernel at boundaries make problems
+		else if (method.equals("Fast Sliding box")) {
 			RectangleShape kernel;
 			Runtime runtime = Runtime.getRuntime();
 			long maxMemory = runtime.maxMemory();
@@ -1138,11 +1234,11 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 			for (int c = 0; c < count.length; c++) count[c] = 0.0;
 			for (int s = 0; s < sum2.length; s++) sum2[s] = 0.0;
 			sum = 0.0;
-			epsWidth = 1;
+			//epsWidth = 1;
 			if (L > 0) {
 				for (int b = 0; b < numBoxes; b++) {	
-						//boxSize = boxSizes[b];
-						boxSize = 2 * epsWidth + 1;
+						boxSize = boxSizes[b];
+						//boxSize = 2 * epsWidth + 1;
 						for(int s2_i = 0; s2_i < s2; s2_i++){
 							for(int s1_i = 0; s1_i < s1; s1_i++){	
 								
@@ -1193,8 +1289,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 						for(int s2_i = 0; s2_i < s2; s2_i++){	
 							meanS1[s2_i] = 0;
 						}
-						boxSizes[b] = boxSize;// = epsWidth; = kernelSize;
-						epsWidth = epsWidth * 2;
+						//boxSizes[b] = boxSize;// = epsWidth; = kernelSize;
+						//epsWidth = epsWidth * 2;
 						// epsWidth = epsWidth+1;
 				} //Box sizes
 				
@@ -1243,7 +1339,7 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 				preName = "Slice-"+String.format("%03d", plane) +"-";
 			}
 			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Lacunarity", 
-					preName + datasetName, "ln(Box width)", "ln(Lacunarity)", "",
+					preName + datasetName, "ln(Box size)", "ln(L)", "",
 					regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
