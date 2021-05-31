@@ -5,17 +5,17 @@
 - For binary or grey 8-bit images
 - Binary [0, >0] counting or DBC and RDBC
 - The number of boxes with distinct sizes according to the power of 2 can be set
-- Linear regression parameters can be set 
+- Linear regression parameters of the double log plot can be set 
 
 ### Fractal Dimension - Correlation
 - Fractal correlation dimension is computed
 - For binary 8-bit images
 - Classical pair wise occurrence counting
 - Binary [0, >0] algorithm
-- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
+- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
 - or by using a fixed grid estimation of summing up squared counts
 - The number of boxes with distinct sizes according to the power of 2 can be set
-- Linear regression parameters can be set 
+- Linear regression parameters of the double log plot can be set 
 - Ref: Grassberger & Procaccia, Physica D, 1983, [https://10.1016/0167-2789(83)90298-1](https://10.1016/0167-2789(83)90298-1)
 
 ### Fractal Dimension - Directional correlation
@@ -25,21 +25,20 @@
 - Binary [0, >0] algorithm
 - Directions can be set
 - Horizontal & vertical, 4 radial directions [0-180°], 180 radial directions [0-180°] 
-- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
+- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
 - The number of distances with distinct sizes according to the power of 2 can be set
-- Linear regression parameters can be set 
+- Linear regression parameters of the double log plot can be set 
 
 ### Fractal Dimension - Generalized
 - Generalized fractal dimensions are computed
 - For binary 8-bit images
 - Binary [0, >0] algorithm
 - Raster or sliding box scanning
-- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
-- or by using a fixed grid estimation of summing up squared counts
+- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
+- Dq and f-spectrum plots can be shown
 - The number of boxes with distinct sizes according to the power of 2 can be set
-- Linear regression parameters can be set 
+- Linear regression parameters of the double log plot can be set 
 - Ref: Ahammer et al., Physica D, 2003, [https://doi.org/10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
-
 
 ### Fractal Dimension - Higuhi1D
 - Fractal dimension is computed for 1D grey value profiles extracted from an image
@@ -47,21 +46,21 @@
 - Several extraction methods can be chosen
 - Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
 - Angle extractions use an interpolated image surface that introduce some errors
-- Linear regression parameters can be set
+- Linear regression parameters of the double log plot can be set
 - Ref.: Ahammer, PLoS ONE, 2011, [https://doi.org/10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
 
 ### Fractal Dimension - Higuchi2D
 - Fractal dimension is computed with Higuchi inspired 2D algorithms
 - For 8-bit grey value images
 - Several options can be chosen
-- Linear regression parameters can be set
+- Linear regression parameters of the double log plot can be set
 - Ref.: Ahammer et al., Chaos, 2015, [https://doi.org/10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
 
 ### Fractal Dimension - Pyramid algorithm
 - Fractal dimension is computed by using image pyramids
 - For binary 8-bit images
 - Binary [0, >0] algorithm
-- Linear regression parameters can be set
+- Linear regression parameters of the double log plot can be set
 - Number of object pixels is counted for subsequently size reduced images
 - Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
 - For other sizes it yields more reliable results, because box truncation is not necessary
@@ -72,7 +71,7 @@
 - For binary 8-bit images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
-- Linear regression parameters can be set 
+- Linear regression parameters of the double log plot can be set 
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
 - In the original paper accuracy=30 and confidence=5  
 - But it is recommended to set accuracy and confidence as high as computation times allow
