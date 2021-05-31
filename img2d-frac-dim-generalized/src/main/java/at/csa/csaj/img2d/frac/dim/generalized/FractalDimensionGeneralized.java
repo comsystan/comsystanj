@@ -86,6 +86,7 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
+import at.csa.csaj.commons.plot.PlotDisplayFrame;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import io.scif.DefaultImageMetadata;
@@ -127,6 +128,8 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 	private static long numSlices  = 0;
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
+	private static ArrayList<PlotDisplayFrame> genDimPlotList       = new ArrayList<PlotDisplayFrame>();
+	private static ArrayList<PlotDisplayFrame> fSpecPlotList        = new ArrayList<PlotDisplayFrame>();
 	private static double[][][] resultValuesTable; //First column is q, then the image index, second column are the corresponding regression values
 	private static final String tableName = "Table - Generalized dimensions";
 	
@@ -281,10 +284,20 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
        
-     @Parameter(label = "Delete existing double log plot",
+     @Parameter(label = "Show Dq plot",
+  		    //persist  = false,  //restore previous value default = true
+ 		        initializer = "initialShowDqPlot")
+ 	 private boolean booleanShowDqPlot;
+      
+      @Parameter(label = "Show F spectrum",
+  		    //persist  = false,  //restore previous value default = true
+ 		        initializer = "initialShowFSpectrum")
+ 	 private boolean booleanShowFSpectrum;
+     
+     @Parameter(label = "Delete existing plots",
     		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingDoubleLogPlots")
-	 private boolean booleanDeleteExistingDoubleLogPlot;
+		        initializer = "initialDeleteExistingPlots")
+	 private boolean booleanDeleteExistingPlots;
      
      @Parameter(label = "Delete existing result table",
     		    //persist  = false,  //restore previous value default = true
@@ -340,8 +353,14 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
-    protected void initialDeleteExistingDoubleLogPlots() {
-    	booleanDeleteExistingDoubleLogPlot = true;
+    protected void initialDeleteExistingPlots() {
+    	booleanDeleteExistingPlots = true;
+    }
+    protected void initialShowDqPlot() {
+    	booleanShowDqPlot = true;
+    }
+    protected void initialShowFSpectrum() {
+    	booleanShowFSpectrum = true;
     }
     protected void initialDeleteExistingTable() {
     	booleanDeleteExistingTable = true;
@@ -621,10 +640,10 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 	
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlot             = booleanDeleteExistingDoubleLogPlot;
-		boolean optDeleteExistingTable            = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots = booleanDeleteExistingPlots;
+		boolean optDeleteExistingTable = booleanDeleteExistingTable;
 		
-		if (optDeleteExistingPlot){
+		if (optDeleteExistingPlots){
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -633,6 +652,22 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 					//doubleLogPlotList.remove(l);  /
 				}
 				doubleLogPlotList.clear();		
+			}
+			if (genDimPlotList != null) {
+				for (int l = 0; l < genDimPlotList.size(); l++) {
+					genDimPlotList.get(l).setVisible(false);
+					genDimPlotList.get(l).dispose();
+					//genDimPlotList.remove(l);  /
+				}
+				genDimPlotList.clear();		
+			}
+			if (fSpecPlotList != null) {
+				for (int l = 0; l < fSpecPlotList.size(); l++) {
+					fSpecPlotList.get(l).setVisible(false);
+					fSpecPlotList.get(l).dispose();
+					//fSpecPlotList.remove(l);  /
+				}
+				fSpecPlotList.clear();		
 			}
 		}
 		if (optDeleteExistingTable){
@@ -898,7 +933,10 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 		int numMaxQ         = spinnerInteger_NumMaxQ;
 		String scanningType = choiceRadioButt_ScanningType;	 
 		int pixelPercentage     = spinnerInteger_PixelPercentage;
-		boolean optShowPlot = booleanShowDoubleLogPlot;
+		boolean optShowDoubleLogPlot = booleanShowDoubleLogPlot;
+		boolean optShowDqPlot        = booleanShowDqPlot;
+		boolean optShowFSpectrum     = booleanShowFSpectrum;
+	
 		int numBands = 1;
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
@@ -1157,7 +1195,7 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 		}
 		
 		//Create double log plot
-		boolean isLineVisible = false; //?
+	
 		for (int b = 0; b < numBands; b++) { // mehrere Bands
 			
 			// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1173,7 +1211,8 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 			// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
 			// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
 		
-			if (optShowPlot) {			
+			if (optShowDoubleLogPlot) {			
+				boolean isLineVisible = false; //?
 				String preName = "";
 				String axisNameX = "";
 				String axisNameY = "";
@@ -1192,7 +1231,7 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 				for (int q = 0; q < numQ; q++) {
 					legendLabels[q] = "q=" + (q + numMinQ); 
 				}
-				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Generalized dimensions", 
+				RegressionPlotFrame doubleLogPlot = DisplayMultipleRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Generalized dimensions", 
 						preName + datasetName, axisNameX, axisNameY, legendLabels,
 						regMin, regMax);
 				doubleLogPlotList.add(doubleLogPlot);
@@ -1204,6 +1243,62 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 				regressionParams[q] = lr.calculateParameters(lnDataX, lnDataY[q], regMin, regMax);
 				//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			}
+			
+			// Compute   Dq's
+			double [] genDimList = new double[numQ];
+			double [] qList   = new double[numQ];
+			for (int q = 0; q < numQ; q++) {
+				qList[q] = q + numMinQ;
+				if (qList[q] == 1) genDimList[q] = regressionParams[q][1]; //Slope
+				else               genDimList[q] = regressionParams[q][1]/(qList[q] - 1);
+			}
+			
+			if (optShowDqPlot) {	
+				boolean isLineVisible = false; //?
+				String preName = "";
+				String axisNameX = "";
+				String axisNameY = "";
+				if (numSlices > 1) {
+					preName = "Slice-"+String.format("%03d", plane) +"-";
+				}
+				axisNameX = "q";
+				axisNameY = "Dq";
+			
+				PlotDisplayFrame dimGenPlot = DisplaySinglePlotXY(qList, genDimList, isLineVisible, "Generalized dimensions", 
+						preName + datasetName, axisNameX, axisNameY, "");
+				genDimPlotList.add(dimGenPlot);
+			}
+			
+			if (optShowFSpectrum) {		
+				// see Vicsek Fractal Growth Phenomena p55
+				boolean isLineVisible = false; //?
+				String preName = "";
+				String axisNameX = "";
+				String axisNameY = "";
+				if (numSlices > 1) {
+					preName = "Slice-"+String.format("%03d", plane) +"-";
+				}
+				axisNameX = "alpha";
+				axisNameY = "f";
+				
+				double[] alphas = new double[numQ];
+				double[] fSpec  = new double[numQ];
+				//first point
+				alphas[0] = (((qList[1] - 1)*genDimList[1]) - ((qList[0] - 1)*genDimList[0])) / 1.0;
+				for (int q = 1; q < numQ-1; q++) {
+					alphas[q] = (((qList[q+1] - 1)*genDimList[q+1]) - ((qList[q-1] - 1)*genDimList[q-1])) / 2.0;	
+				}
+				//Last point
+				alphas[numQ-1] = (((qList[numQ-1] - 1)*genDimList[numQ-1]) - ((qList[numQ-2] - 1)*genDimList[numQ-2]))  /1.0;
+				
+				for (int q = 0; q < numQ; q++) {
+					fSpec[q] = qList[q]*alphas[q] - ((qList[q]-1)*genDimList[q]);
+				}
+				PlotDisplayFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
+						preName + datasetName, axisNameX, axisNameY, "");
+				fSpecPlotList.add(fSpecPlot);
+			}
+			
 			
 		}
 		
@@ -1263,7 +1358,7 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 	}
 	
 	/**
-	 * Displays a regression plot in a separate window.
+	 * Displays a multiple regression plot in a separate window.
 	 * <p>
 	 *		
 	 *
@@ -1282,7 +1377,7 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 	 * @param interpolType The type of interpolation
 	 * @return RegressionPlotFrame
 	 */			
-	private RegressionPlotFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
+	private RegressionPlotFrame DisplayMultipleRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int regMin, int regMax) {
 		// jFreeChart
 		RegressionPlotFrame pl = new RegressionPlotFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
@@ -1299,6 +1394,35 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 		
 	}
 	
+	/**
+	 * Displays a single plot in a separate window.
+	 * @param dataX
+	 * @param dataY
+	 * @param isLineVisible
+	 * @param frameTitle
+	 * @param plotLabel
+	 * @param xAxisLabel
+	 * @param yAxisLabel
+	 * @param legendLabel
+	 * @param regMin
+	 * @param regMax
+	 * @return
+	 */
+	private PlotDisplayFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
+		// jFreeChart
+		PlotDisplayFrame pl = new PlotDisplayFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+				yAxisLabel, legendLabel);
+		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		pl.pack();
+		// int horizontalPercent = 5;
+		// int verticalPercent = 5;
+		// RefineryUtilities.positionFrameOnScreen(pl, horizontalPercent,
+		// verticalPercent);
+		//CommonTools.centerFrameOnScreen(pl);
+		pl.setVisible(true);
+		return pl;	
+	}
 	
 	/**
 	 * 
