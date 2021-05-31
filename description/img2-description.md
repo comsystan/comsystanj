@@ -4,16 +4,17 @@
 - Fractal dimension is computed with box counting
 - For binary or grey 8-bit images
 - Binary [0, >0] counting or DBC and RDBC
+- Raster box scanning
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
 
 ### Fractal Dimension - Correlation
 - Fractal correlation dimension is computed
 - For binary 8-bit images
-- Classical pair wise occurrence counting
 - Binary [0, >0] algorithm
+- Classical pair wise occurrence counting (Sliding box scanning)
 - Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
-- or by using a fixed grid estimation of summing up squared counts
+- or by using a fixed grid estimation of summing up squared counts (Raster box scanning)
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
 - Ref: Grassberger & Procaccia, Physica D, 1983, [https://10.1016/0167-2789(83)90298-1](https://10.1016/0167-2789(83)90298-1)
