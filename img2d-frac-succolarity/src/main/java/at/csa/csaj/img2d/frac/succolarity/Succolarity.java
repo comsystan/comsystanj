@@ -1018,7 +1018,7 @@ public class Succolarity<T extends RealType<T>> extends InteractiveCommand imple
 	 */
 	//flooding imgFlood
 	private void floodingImgFlood() {
-		RectangleShape kernel = new RectangleShape(3, false); //3x3kernel skipCenter = false
+		RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
 		Runtime runtime = Runtime.getRuntime();
 		long maxMemory = runtime.maxMemory();
 		long totalMemory = runtime.totalMemory();
