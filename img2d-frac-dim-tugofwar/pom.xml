@@ -47,7 +47,19 @@
 				<role>maintainer</role>
 			</roles>
 		</developer>
+		<developer>
+			<id>reiss</id>
+			<name>Martin Reiss</name>
+			<url></url>
+			<roles>
+				<role>founder</role>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+			</roles>
+		</developer>
 	</developers>
+	
 	<contributors>
 		<contributor>
 		    <name>Helmut Ahammer</name>
@@ -57,7 +69,6 @@
 		<contributor>
 		    <name>Martin Reiss</name>
 			<url></url>
-			<roles><role>developer</role></roles>
 			<properties><id></id></properties>
 		</contributor>
 	</contributors>
