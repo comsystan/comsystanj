@@ -56,6 +56,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.interpolation.InterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.FloorInterpolatorFactory;
@@ -119,7 +120,8 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 	
 	
 	private static Img<FloatType> imgFloat; 
-	private static Img<FloatType> imgDownscaled;
+	private static Img<FloatType> imgSubSampled;
+	private static Cursor<FloatType> cursorF = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
 	private static boolean isBinary = true;
@@ -224,14 +226,14 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelInterpolation = INTERPOLATION_LABEL;
      
-     @Parameter(label = "Interpolation",
-    		    description = "Type of interpolation for subscaled images",
-    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-      		    choices = {"Linear", "Floor", "Lanczos", "Nearest Neighbor"},
-      		    //persist  = false,  //restore previous value default = true
-    		    initializer = "initialInterpolation",
-                callback = "callbackInterpolation")
-     private String choiceRadioButt_Interpolation;
+//     @Parameter(label = "Interpolation",
+//    		    description = "Type of interpolation for subscaled images",
+//    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+//      		    choices = {"Linear", "Floor", "Lanczos", "Nearest Neighbor"},
+//      		    //persist  = false,  //restore previous value default = true
+//    		    initializer = "initialInterpolation",
+//                callback = "callbackInterpolation")
+//     private String choiceRadioButt_Interpolation;
      
      //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,   persist = false)
@@ -291,9 +293,9 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
     	numbMaxPyramidImages = getMaxPyramidNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
     	spinnerInteger_RegMax =  numbMaxPyramidImages;
     }
-    protected void initialInterpolation() {
-    	choiceRadioButt_Interpolation = "Linear";
-    }
+//    protected void initialInterpolation() {
+//    	choiceRadioButt_Interpolation = "Linear";
+//    }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
@@ -351,10 +353,10 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
-	/** Executed whenever the {@link #choiceRadioButt_Interpolation} parameter changes. */
-	protected void callbackInterpolation() {
-		logService.info(this.getClass().getName() + " Interpolation method set to " + choiceRadioButt_Interpolation);
-	}
+//	/** Executed whenever the {@link #choiceRadioButt_Interpolation} parameter changes. */
+//	protected void callbackInterpolation() {
+//		logService.info(this.getClass().getName() + " Interpolation method set to " + choiceRadioButt_Interpolation);
+//	}
 	
 	/** Executed whenever the {@link #booleanPreview} parameter changes. */
 	protected void callbackPreview() {
@@ -642,10 +644,10 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		//Compute dimension
 		double dim = 0.0;
 		if (isBinary) {
-			dim = regressionValues[1];
+			dim = -regressionValues[1];
 			resultValuesTable[s][1] = dim;
 		} else {
-			dim =0.0;
+			dim = 0.0;
 			resultValuesTable[s][1] = 0.0;
 		}
 		long duration = System.currentTimeMillis() - startTime;
@@ -708,7 +710,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 				//Compute dimension
 				double dim = 0.0;
 				if (isBinary) {
-					dim = regressionValues[1];
+					dim = -regressionValues[1];
 					resultValuesTable[s][1] = dim;
 				} else {
 					dim =0.0;
@@ -740,7 +742,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		IntColumn columnMaxNumbPyramidImgs = new IntColumn("#Pyramid images");
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
-		GenericColumn columnInterpolation  = new GenericColumn("Interpolation");
+		//GenericColumn columnInterpolation  = new GenericColumn("Interpolation");
 		DoubleColumn columnDp              = new DoubleColumn("Dp");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
@@ -751,7 +753,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		table.add(columnMaxNumbPyramidImgs);
 		table.add(columnRegMin);
 		table.add(columnRegMax);
-		table.add(columnInterpolation);
+		//table.add(columnInterpolation);
 		table.add(columnDp);
 		table.add(columnR2);
 		table.add(columnStdErr);
@@ -765,7 +767,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numImages       = spinnerInteger_PyramidImages;
-		String interpolType = choiceRadioButt_Interpolation;
+//		String interpolType = choiceRadioButt_Interpolation;
 		
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -776,7 +778,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 			table.set("#Pyramid images", table.getRowCount()-1, numImages);	
 			table.set("RegMin",          table.getRowCount()-1, regMin);	
 			table.set("RegMax",          table.getRowCount()-1, regMax);	
-			table.set("Interpolation",   table.getRowCount()-1, interpolType);	
+//			table.set("Interpolation",   table.getRowCount()-1, interpolType);	
 			table.set("Dp",              table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",              table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",          table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -791,7 +793,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numImages       = spinnerInteger_PyramidImages;
-		String interpolType = choiceRadioButt_Interpolation;
+//		String interpolType = choiceRadioButt_Interpolation;
 		
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
@@ -803,7 +805,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 			table.set("#Pyramid images", table.getRowCount()-1, numImages);	
 			table.set("RegMin",          table.getRowCount()-1, regMin);	
 			table.set("RegMax",          table.getRowCount()-1, regMax);	
-			table.set("Interpolation",   table.getRowCount()-1, interpolType);	
+//			table.set("Interpolation",   table.getRowCount()-1, interpolType);	
 			table.set("Dp",              table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",              table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",          table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -826,7 +828,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numPyramidImages= spinnerInteger_PyramidImages;
-		String interpolType = choiceRadioButt_Interpolation;
+//		String interpolType = choiceRadioButt_Interpolation;
 		
 		int numBands = 1;
 		
@@ -851,88 +853,60 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 
 		double[][] totals = new double[numPyramidImages][numBands];
 		// double[] totalsMax = new double[numBands]; //for binary images
-		double[][] eps = new double[numPyramidImages][numBands];
+		int[] eps = new int[numPyramidImages];
 		
 		// definition of eps
-		for (int n = 0; n < numPyramidImages; n++) {
-			for (int b = 0; b < numBands; b++) {
-				if (isBinary) {
-					eps[n][b] = 1.0 / Math.pow(2, n);
-				}
-				else {
-					eps[n][b] = 1.0 / Math.pow(2, n); // *width*height (not necessary);		
-				
-				}
-				logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);	
-			}
+		for (int n = 0; n < numPyramidImages; n++) {		
+			eps[n] = (int)Math.pow(2, n);
+			logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);			
 		}		
 		
 		if (isBinary) {// binary image
 			
-			RealRandomAccessible<FloatType> interpolant = interpolate(imgFloat, interpolType);
-		
+			int downSamplingFactor;
 			for (int n = 0; n < numPyramidImages; n++) { //Downscaling incl. no downscaling
-					 // "base-pyramid", i.e. layers of pyramid from base layer
-					long power =  (long)Math.pow(2,n); //of downsampling
+			    // "base-pyramid", i.e. layers of pyramid from base layer
+				downSamplingFactor = (int)Math.pow(2,n); //of downsampling
+				downSamplingFactor =  eps[n]; //of downsampling
+				imgFloat = createImgFloat(rai);
+			    imgSubSampled = subSamplingByAveraging(imgFloat, downSamplingFactor);
+			   // uiService.show("Subsampled image", imgSubSampled);
+				logService.info(this.getClass().getName() + " width:"+ (imgSubSampled.dimension(0)) + " height:" + (imgSubSampled.dimension(1)));
 					
-					//Define REALinterval  *****IMPORTANT TO BE REAL*******
-					//No interpolation with long intervals 
-					double[] min;
-					double[] max;
-//					if (numSlices == 1) { //only one 2D image;
-//						min = new double[]{ 0.0, 0.0 };
-//						max = new double[]{ iv.max(0), iv.max(1)};
-//					} else { // more than one image e.g. image stack
-//						min = new double[]{ 0.0, 0.0, 0.0 };
-//						max = new double[]{ iv.max(0), iv.max(1), 0};
-//					}
-					min = new double[]{ 0.0, 0.0 };
-					max = new double[]{ imgFloat.max(0), imgFloat.max(1)};
-					
-					FinalRealInterval realInterval = new FinalRealInterval( min, max );
-					double magnification = 1.0/power;
-					//Img<FloatType> imgDownscaled;
-					imgDownscaled = magnify(interpolant, realInterval, new ArrayImgFactory<>(new FloatType()), magnification);	
+				//Img<FloatType> img = (Img<FloatType>) opService.run(net.imagej.ops.create.img.CreateImgFromRAI.class, rai);
+				//opService.run(net.imagej.ops.copy.CopyRAI.class, img, rai);
 				
-				
-					logService.info(this.getClass().getName() + " width:"+ (imgDownscaled.dimension(0)) + " height:" + (imgDownscaled.dimension(1)));
-					
-//					Img<FloatType> img = (Img<FloatType>) opService.run(net.imagej.ops.create.img.CreateImgFromRAI.class, rai);
-//					opService.run(net.imagej.ops.copy.CopyRAI.class, img, rai);
-					
-					//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
-					//pushes a 3D array to the display and
-					//yields mouse moving errors because the third dimension is not available
-					
-					
-					if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+power+" downscaled image", imgDownscaled);
+				//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
+				//pushes a 3D array to the display and
+				//yields mouse moving errors because the third dimension is not available	
+				if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+downSamplingFactor+" downscaled image", imgSubSampled);
 			
-					// Declare an array to hold the current position of the cursor.
-					//pos = new long[rai.numDimensions()];
-					// Loop through all pixels.
-					final Cursor<FloatType> cursorF = imgDownscaled.localizingCursor();
-					while (cursorF.hasNext()) {
-						cursorF.fwd();
-						//cursorF.localize(pos);
-						for (int b = 0; b < numBands; b++) {
-							if (cursorF.get().get() > 0) totals[n][b] += 1; // Binary Image //[1, 255] and not [255, 255] because interpolation introduces grey values other than 255!
-							//totals[n][b] = totals[n][b]; // / totalsMax[b];
-						}
-					}	
+				// Loop through all pixels.
+				cursorF = imgSubSampled.localizingCursor();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					//cursorF.localize(pos);
+					for (int b = 0; b < numBands; b++) {
+						if (cursorF.get().get() > 0) totals[n][b] += 1; // Binary Image //[1, 255] and not [255, 255] because interpolation introduces grey values other than 255!
+						//totals[n][b] = totals[n][b]; // / totalsMax[b];
+					}
+				}	
 			}
 			//Computing log values for plot 
 			//Change sequence of entries to start with smallest image
 			double[][] lnTotals = new double[numPyramidImages][numBands];
-			double[][] lnEps    = new double[numPyramidImages][numBands];
+			double[] lnEps      = new double[numPyramidImages];
 			for (int n = 0; n < numPyramidImages; n++) {
 				for (int b = 0; b < numBands; b++) {
 					if (totals[n][b] <= 1) {
-						lnTotals[numPyramidImages - n - 1][b] = 0f; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist
+						lnTotals[n][b] = 0f; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist
+					} else if (Double.isNaN(totals[n][b])) {
+						lnTotals[n][b] = Double.NaN;
 					} else {
-						lnTotals[numPyramidImages - n - 1][b] = Math.log(totals[n][b]);
+						lnTotals[n][b] = Math.log(totals[n][b]);
 					}
-					lnEps[n][b] = Math.log(eps[numPyramidImages - n - 1 ][b]);
-					logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
+					lnEps[n] = Math.log(eps[n]);
+					logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
 					//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
 					logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
 				}
@@ -952,7 +926,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 					} else {
 					lnDataY[n] = lnTotals[n][b];
 					}
-					lnDataX[n] = lnEps[n][b];
+					lnDataX[n] = lnEps[n];
 				}
 				// System.out.println("FractalDimensionPyramid: dataY: "+ dataY);
 				// System.out.println("FractalDimensionPyramid: dataX: "+ dataX);
@@ -964,7 +938,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 							preName = "Slice-"+String.format("%03d", plane) +"-";
 						}
 						RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Pyramid Dimension", 
-								preName + datasetName, "ln(1/2^n)", "ln(Count)", "",
+								preName + datasetName, "ln(2^n)", "ln(Count)", "",
 								regMin, regMax);
 						doubleLogPlotList.add(doubleLogPlot);
 					}
@@ -1071,7 +1045,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 	
 	/**
 	 * 
-	 * This methods creates a Img<FloatType>
+	 * This methods creates an Img<FloatType>
 	 */
 	private Img<FloatType > createImgFloat(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
 		
@@ -1082,9 +1056,10 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		while (cursor.hasNext()){
 			cursor.fwd();
 			cursor.localize(pos);
+			ra.setPosition(pos);
 			//if (numSlices == 1) { //for only one 2D image;
-				ra.setPosition(pos[0], 0);
-				ra.setPosition(pos[1], 1);
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
 			//} else { //for more than one image e.g. image stack
 			//	ra.setPosition(pos[0], 0);
 			//	ra.setPosition(pos[1], 1);
@@ -1097,6 +1072,56 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		return imgFloat;
 	}
 	
+	
+	/**
+	 * This method creates a smaller image by averaging pixel values 
+	 * @param imgFloat
+	 * @param downSamplingFactor
+	 * @return
+	 */	
+	private Img<FloatType> subSamplingByAveraging(Img<FloatType> imgFloat, int downSamplingFactor) {
+		
+		int averagingSize = downSamplingFactor;
+		
+		int numDimensions = imgFloat.numDimensions();
+		// compute the number of pixels of the output and the size of the real interval
+		long[] newSize = new long[numDimensions];
+	
+		for ( int d = 0; d < numDimensions; ++d ){
+			newSize[d] = (int)Math.floor(imgFloat.dimension(d) / downSamplingFactor);
+		}		
+		// create the output image
+		ArrayImgFactory arrayImgFactory = new ArrayImgFactory<>(new FloatType());
+		imgSubSampled = arrayImgFactory.create( newSize );
+
+		// cursor to iterate over all pixels
+		cursorF = imgSubSampled.localizingCursor();
+
+		// create a RandomAccess on the source
+		RandomAccess<FloatType> ra = imgFloat.randomAccess();
+		long[] pos = new long[numDimensions];
+		float mean = 0f;
+		long count = 0;
+		// for all pixels of the output image
+		while (cursorF.hasNext()) {
+			cursorF.fwd();
+			cursorF.localize(pos);
+			//Get average
+			mean = 0f;
+			
+			for (int i = 0; i < averagingSize; i++) {
+				for (int j = 0; j < averagingSize; j++) {
+					ra.setPosition(pos[0]*averagingSize + i, 0);
+					ra.setPosition(pos[1]*averagingSize + j, 1);
+					mean = mean + ra.get().getRealFloat();
+					count = count +1;
+				}
+			}
+			mean = mean/(float)count;
+			cursorF.get().set(mean);
+		}
+		return imgSubSampled;
+	}
 
 	/**
 	 * Performs interpolation.
@@ -1168,7 +1193,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 
 		// create the output image
 		//Img< FloatType > output = arrayImgFactory.create( pixelSize );	
-		imgDownscaled = arrayImgFactory.create( pixelSize );
+		ArrayImg<FloatType, ?> imgDownscaled = arrayImgFactory.create( pixelSize );
 
 		// cursor to iterate over all pixels
 		Cursor <FloatType> cursor = imgDownscaled.localizingCursor();
