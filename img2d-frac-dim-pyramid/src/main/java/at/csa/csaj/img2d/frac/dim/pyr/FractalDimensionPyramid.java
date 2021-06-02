@@ -906,9 +906,9 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 						lnTotals[n][b] = Math.log(totals[n][b]);
 					}
 					lnEps[n] = Math.log(eps[n]);
-					logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
+					//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
 					//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
-					logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
+					//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
 				}
 			}
 			

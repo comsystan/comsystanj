@@ -991,9 +991,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 				}
 				//lnEps[n][b] = Math.log(eps[numBoxes - n - 1 ][b]); //IQM
 				lnEps[n][b] = Math.log(eps[n][b]);
-				logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
+				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
 				//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
-				logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
+				//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
 			}
 		}
 		
