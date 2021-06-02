@@ -36,8 +36,8 @@
 - Binary [0, >0] algorithm
 - FFI = FD of mass - FD of boundary
 - FFI is the fractal dimension of the image - Fractal dimension of the boundary image
-- Boundary image = Image - Eroded image (Erosion with one pixel)
-- Fractal dimenison computations with Box counting (raster box scanning) or Image pyramid algorithm
+- Boundary image = Image - Eroded image (erosion by one pixel)
+- Fractal dimension computations with Box counting (raster box scanning) or Image pyramid algorithm
 - The number of boxes/pyramid images with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
 - Ref: Andronache et al., Chaos, Solitons & Fractals, 2016, [https://doi.org/10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
