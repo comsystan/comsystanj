@@ -6,6 +6,7 @@ New-----------------------------------------------------------
 img2d - Fractal dimension - Correlation dimension
 img2d - Fractal dimension - Directional correlation dimension
 img2d - Fractal dimension - FFI
+img2d - Fractal dimension - Minkowski
 img2d - Fractal dimension - Tug of war dimension
 img2d - Lacunarity
 img2d - Succolarity
