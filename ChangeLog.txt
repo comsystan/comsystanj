@@ -21,6 +21,8 @@ img2d - Pyramid dimension - Subsampling with averaging
 signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 
 Changes-------------------------------------------------------
+- Changed option "Delete" to "Overwrite"
+- Changed option "Preview" to "Immediate processing"
 - Changed some persist entries
 
 29.2.1.1 initial release
