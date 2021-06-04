@@ -232,7 +232,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
              callback = "callbackAnalysisMethod")
      private String choiceRadioButt_AnalysisMethod;
      
- 	//-----------------------------------------------------------------------------------------------------
+ 	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
@@ -241,23 +241,20 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
        
-     @Parameter(label = "Delete existing double log plot",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingDoubleLogPlots")
-	 private boolean booleanDeleteExistingDoubleLogPlot;
+     @Parameter(label = "Overwrite result display(s)",
+    	    	description = "Overwrite already existing result images, plots or tables",
+    	    	//persist  = false,  //restore previous value default = true
+    			initializer = "initialOverwriteDisplays")
+     private boolean booleanOverwriteDisplays;
      
-     @Parameter(label = "Delete existing result table",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingTable")
-	 private boolean booleanDeleteExistingTable;
-     
- 	//-----------------------------------------------------------------------------------------------------
+ 	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
-     @Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	 private boolean booleanPreview;
+     @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+    	    	description = "Immediate processing of active image when a parameter is changed",
+    			callback = "callbackProcessImmediately")
+     private boolean booleanProcessImmediately;
      
      @Parameter(label   = "Process single active image ",
     		    callback = "callbackProcessActiveImage")
@@ -291,11 +288,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
-    protected void initialDeleteExistingDoubleLogPlots() {
-    	booleanDeleteExistingDoubleLogPlot = true;
-    }
-    protected void initialDeleteExistingTable() {
-    	booleanDeleteExistingTable = true;
+    protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
     }
   
     
@@ -355,9 +349,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		
 	}
 	
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
@@ -376,8 +370,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
+        	    	deleteExistingDisplays();
             		getAndValidateActiveDataset();
-            		deleteExistingDisplays();
             		int activeSliceIndex = getActiveImageIndex();
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -410,8 +404,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available images");
-	        		getAndValidateActiveDataset();
-	        		deleteExistingDisplays();
+	            	deleteExistingDisplays();
+	            	getAndValidateActiveDataset();
 	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
@@ -437,7 +431,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
  	// time a widget value changes.
  	public void preview() {
  		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanPreview) callbackProcessActiveImage();
+ 		if (booleanProcessImmediately) callbackProcessActiveImage();
  		//statusService.showStatus(message);
  	}
  	
@@ -553,10 +547,16 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlot             = booleanDeleteExistingDoubleLogPlot;
-		boolean optDeleteExistingTable            = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+		}
 		
-		if (optDeleteExistingPlot){
+		if (optDeleteExistingPlots){
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -567,7 +567,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 				doubleLogPlotList.clear();		
 			}
 		}
-		if (optDeleteExistingTable){
+		if (optDeleteExistingTables){
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
@@ -1060,8 +1060,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			cursor.localize(pos);
-			ra.setPosition(pos[0], 0);
-			ra.setPosition(pos[1], 1);
+			ra.setPosition(pos);
+			//ra.setPosition(pos[0], 0);
+			//ra.setPosition(pos[1], 1);
 			ra.get().setReal(cursor.get().get());
 		}  	
 		
@@ -1101,8 +1102,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		// verticalPercent);
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
-		return pl;
-		
+		return pl;		
 	}
 	
 	
@@ -1119,9 +1119,10 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		while (cursor.hasNext()){
 			cursor.fwd();
 			cursor.localize(pos);
+			ra.setPosition(pos);
 			//if (numSlices == 1) { //for only one 2D image;
-				ra.setPosition(pos[0], 0);
-				ra.setPosition(pos[1], 1);
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
 			//} else { //for more than one image e.g. image stack
 			//	ra.setPosition(pos[0], 0);
 			//	ra.setPosition(pos[1], 1);
@@ -1129,8 +1130,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			//}
 			//ra.get().setReal(cursor.get().get());
 			cursor.get().setReal(ra.get().getRealFloat());
-		}
-		
+		}	
 		return imgFloat;
 	}
 	

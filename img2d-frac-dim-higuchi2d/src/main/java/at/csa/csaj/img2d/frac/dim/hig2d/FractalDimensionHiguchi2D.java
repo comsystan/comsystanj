@@ -243,23 +243,20 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 
-	@Parameter(label = "Delete existing double log plot",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialDeleteExistingDoubleLogPlots")
-	private boolean booleanDeleteExistingDoubleLogPlot;
-
-	@Parameter(label = "Delete existing result table",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialDeleteExistingTable")
-	private boolean booleanDeleteExistingTable;
+	@Parameter(label = "Overwrite result display(s)",
+	    	description = "Overwrite already existing result images, plots or tables",
+	    	//persist  = false,  //restore previous value default = true
+			initializer = "initialOverwriteDisplays")
+	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
 
-	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	private boolean booleanPreview;
+	@Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+	    	description = "Immediate processing of active image when a parameter is changed",
+			callback = "callbackProcessImmediately")
+	private boolean booleanProcessImmediately;
 	
 	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 	private Button buttonProcessActiveImage;
@@ -291,14 +288,9 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 		booleanShowDoubleLogPlot = true;
 	}
 	
-	protected void initialDeleteExistingDoubleLogPlots() {
-		booleanDeleteExistingDoubleLogPlot = true;
+	protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
 	}
-
-	protected void initialDeleteExistingTable() {
-		booleanDeleteExistingTable = true;
-	}
-	
 	
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
@@ -355,9 +347,9 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/**
@@ -378,9 +370,9 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
+        	    	deleteExistingDisplays();
             		int validation = getAndValidateActiveDataset();
             		if (validation == 1){
-	            		deleteExistingDisplays();
 	            		int activeSliceIndex = getActiveImageIndex();
 	            		processActiveInputImage(activeSliceIndex);
 	            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -417,9 +409,9 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available images");
+	            	deleteExistingDisplays();
 	        		int validation = getAndValidateActiveDataset();
 	        		if (validation == 1){
-		        		deleteExistingDisplays();
 		        		processAllInputImages();
 		        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		        		generateTableHeader();
@@ -444,7 +436,7 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 	// time a widget value changes.
 	public void preview() {
 		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanPreview) callbackProcessActiveImage();
+		if (booleanProcessImmediately) callbackProcessActiveImage();
 		// statusService.showStatus(message);
 	}
 
@@ -622,10 +614,16 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 	 * 
 	 */
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlot = booleanDeleteExistingDoubleLogPlot;
-		boolean optDeleteExistingTable = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+		}
 
-		if (optDeleteExistingPlot) {
+		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -645,7 +643,7 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 //			}
 	
 		}
-		if (optDeleteExistingTable) {
+		if (optDeleteExistingTables) {
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
@@ -1213,7 +1211,6 @@ public class FractalDimensionHiguchi2D<T extends RealType<T>> extends Interactiv
 		// CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
 		return pl;
-
 	}
 
 

@@ -311,6 +311,9 @@ public class FractalDimensionMinkowski<T extends RealType<T>> extends Interactiv
     protected void initialShowLastMorphImg() {
     	booleanShowLastMorphImg = true;
     }
+    protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
+    }
     
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
@@ -561,7 +564,7 @@ public class FractalDimensionMinkowski<T extends RealType<T>> extends Interactiv
 		
 		boolean optDeleteExistingPlots  = false;
 		boolean optDeleteExistingTables = false;
-		boolean optDeleteExistingImgs   = true;
+		boolean optDeleteExistingImgs   = false;
 		if (booleanOverwriteDisplays) {
 			optDeleteExistingPlots  = true;
 			optDeleteExistingTables = true;
@@ -809,6 +812,9 @@ public class FractalDimensionMinkowski<T extends RealType<T>> extends Interactiv
 							
 	/** 
 	 * Processing ****************************************************************************************
+	 * <li> Peleg S., Naor J., Hartley R., Avnir D. Multiple Resolution Texture Analysis and Classification, IEEE Trans Patt Anal Mach Intel Vol PAMI-6 No 4 1984, 518-523 !!!
+	 * <li> Y.Y. Tang, E.C.M. Lam, New method for feature extraction based on fractal behavior, Patt. Rec. 35 (2002) 1071-1081   Ref. zu Peleg etal.
+	 * <li> Dubuc B., Zucker S.W., Tricot C., Quiniou J.F., Wehbi D. Evaluating the fractal dimension of surfaces, Proc.R.Soc.Lond. A 425, 113-127, 1989 
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
@@ -1013,8 +1019,7 @@ public class FractalDimensionMinkowski<T extends RealType<T>> extends Interactiv
 				                      
 			} //n
 		}
-		
-		
+			
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
 		double[][] lnTotals = new double[numDilations][numBands];
@@ -1067,8 +1072,7 @@ public class FractalDimensionMinkowski<T extends RealType<T>> extends Interactiv
 			LinearRegression lr = new LinearRegression();
 			regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
 			//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		}
-		
+		}	
 		return regressionParams;
 		//Output
 		//uiService.show(tableName, table);
@@ -1100,8 +1104,9 @@ public class FractalDimensionMinkowski<T extends RealType<T>> extends Interactiv
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			cursor.localize(pos);
-			ra.setPosition(pos[0], 0);
-			ra.setPosition(pos[1], 1);
+			ra.setPosition(pos);
+			//ra.setPosition(pos[0], 0);
+			//ra.setPosition(pos[1], 1);
 			ra.get().setReal(cursor.get().get());
 		}  	
 		

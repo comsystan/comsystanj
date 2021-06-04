@@ -294,23 +294,20 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
  		        initializer = "initialShowFSpectrum")
  	 private boolean booleanShowFSpectrum;
      
-     @Parameter(label = "Delete existing plots",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingPlots")
-	 private boolean booleanDeleteExistingPlots;
-     
-     @Parameter(label = "Delete existing result table",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingTable")
-	 private boolean booleanDeleteExistingTable;
+     @Parameter(label = "Overwrite result display(s)",
+    	    	description = "Overwrite already existing result images, plots or tables",
+    	    	//persist  = false,  //restore previous value default = true
+    			initializer = "initialOverwriteDisplays")
+     private boolean booleanOverwriteDisplays;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
-     @Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	 private boolean booleanPreview;
+     @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+    	    	description = "Immediate processing of active image when a parameter is changed",
+    			callback = "callbackProcessImmediately")
+    private boolean booleanProcessImmediately;
      
      @Parameter(label   = "Process single active image ",
     		    callback = "callbackProcessActiveImage")
@@ -353,20 +350,16 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
-    protected void initialDeleteExistingPlots() {
-    	booleanDeleteExistingPlots = true;
-    }
     protected void initialShowDqPlot() {
     	booleanShowDqPlot = true;
     }
     protected void initialShowFSpectrum() {
     	booleanShowFSpectrum = true;
     }
-    protected void initialDeleteExistingTable() {
-    	booleanDeleteExistingTable = true;
+    protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
     }
-  
-    
+
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
@@ -442,9 +435,9 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
 	}
 	
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
@@ -463,8 +456,8 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
-            		getAndValidateActiveDataset();
             		deleteExistingDisplays();
+            		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -497,8 +490,8 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available images");
-	        		getAndValidateActiveDataset();
 	        		deleteExistingDisplays();
+	        		getAndValidateActiveDataset();
 	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
@@ -524,7 +517,7 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
  	// time a widget value changes.
  	public void preview() {
  		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanPreview) callbackProcessActiveImage();
+ 		if (booleanProcessImmediately) callbackProcessActiveImage();
  		//statusService.showStatus(message);
  	}
  	
@@ -640,8 +633,14 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 	
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlots = booleanDeleteExistingPlots;
-		boolean optDeleteExistingTable = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+		}
 		
 		if (optDeleteExistingPlots){
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
@@ -670,7 +669,7 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 				fSpecPlotList.clear();		
 			}
 		}
-		if (optDeleteExistingTable){
+		if (optDeleteExistingTables){
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
@@ -1349,11 +1348,11 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			cursor.localize(pos);
-			ra.setPosition(pos[0], 0);
-			ra.setPosition(pos[1], 1);
+			ra.setPosition(pos);
+			//ra.setPosition(pos[0], 0);
+			//ra.setPosition(pos[1], 1);
 			ra.get().setReal(cursor.get().get());
 		}  	
-		
 		uiService.show(name, datasetDisplay);
 	}
 	
@@ -1437,9 +1436,10 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 		while (cursor.hasNext()){
 			cursor.fwd();
 			cursor.localize(pos);
+			ra.setPosition(pos);
 			//if (numSlices == 1) { //for only one 2D image;
-				ra.setPosition(pos[0], 0);
-				ra.setPosition(pos[1], 1);
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
 			//} else { //for more than one image e.g. image stack
 			//	ra.setPosition(pos[0], 0);
 			//	ra.setPosition(pos[1], 1);
@@ -1448,7 +1448,6 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 			//ra.get().setReal(cursor.get().get());
 			cursor.get().setReal(ra.get().getRealFloat());
 		}
-		
 		return imgFloat;
 	}
 	

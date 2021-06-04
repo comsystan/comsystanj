@@ -247,23 +247,20 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
        
-     @Parameter(label = "Delete existing double log plot",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingDoubleLogPlots")
-	 private boolean booleanDeleteExistingDoubleLogPlot;
-     
-     @Parameter(label = "Delete existing result table",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingTable")
-	 private boolean booleanDeleteExistingTable;
+     @Parameter(label = "Overwrite result display(s)",
+    	    	description = "Overwrite already existing result images, plots or tables",
+    	    	//persist  = false,  //restore previous value default = true
+    			initializer = "initialOverwriteDisplays")
+     private boolean booleanOverwriteDisplays;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
-     @Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	 private boolean booleanPreview;
+     @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+    	    	description = "Immediate processing of active image when a parameter is changed",
+    			callback = "callbackProcessImmediately")
+     private boolean booleanProcessImmediately;
      
      @Parameter(label   = "Process single active image ",
     		    callback = "callbackProcessActiveImage")
@@ -298,14 +295,10 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
-    protected void initialDeleteExistingDoubleLogPlots() {
-    	booleanDeleteExistingDoubleLogPlot = true;
-    }
-    protected void initialDeleteExistingTable() {
-    	booleanDeleteExistingTable = true;
+    protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
     }
   
-    
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
@@ -360,9 +353,9 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
 		logService.info(this.getClass().getName() + " Confidence set to " + spinnerInteger_NumConfidence);
 	}
 
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
@@ -381,8 +374,8 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
-            		getAndValidateActiveDataset();
             		deleteExistingDisplays();
+            		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -415,8 +408,8 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available images");
-	        		getAndValidateActiveDataset();
 	        		deleteExistingDisplays();
+	        		getAndValidateActiveDataset();
 	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
@@ -442,7 +435,7 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
  	// time a widget value changes.
  	public void preview() {
  		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanPreview) callbackProcessActiveImage();
+ 		if (booleanProcessImmediately) callbackProcessActiveImage();
  		//statusService.showStatus(message);
  	}
  	
@@ -558,10 +551,16 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
 	
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlot             = booleanDeleteExistingDoubleLogPlot;
-		boolean optDeleteExistingTable            = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+		}
 		
-		if (optDeleteExistingPlot){
+		if (optDeleteExistingPlots){
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -572,7 +571,7 @@ public class FractalDimensionTugOfWar<T extends RealType<T>> extends Interactive
 				doubleLogPlotList.clear();		
 			}
 		}
-		if (optDeleteExistingTable){
+		if (optDeleteExistingTables){
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
@@ -1261,11 +1260,11 @@ private int getPrimeNumber(){
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			cursor.localize(pos);
-			ra.setPosition(pos[0], 0);
-			ra.setPosition(pos[1], 1);
+			ra.setPosition(pos);
+			//ra.setPosition(pos[0], 0);
+			//ra.setPosition(pos[1], 1);
 			ra.get().setReal(cursor.get().get());
 		}  	
-		
 		uiService.show(name, datasetDisplay);
 	}
 	
@@ -1302,8 +1301,7 @@ private int getPrimeNumber(){
 		// verticalPercent);
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
-		return pl;
-		
+		return pl;	
 	}
 	
 	
@@ -1320,9 +1318,10 @@ private int getPrimeNumber(){
 		while (cursor.hasNext()){
 			cursor.fwd();
 			cursor.localize(pos);
+			ra.setPosition(pos[0], 0);
 			//if (numSlices == 1) { //for only one 2D image;
-				ra.setPosition(pos[0], 0);
-				ra.setPosition(pos[1], 1);
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
 			//} else { //for more than one image e.g. image stack
 			//	ra.setPosition(pos[0], 0);
 			//	ra.setPosition(pos[1], 1);
@@ -1331,7 +1330,6 @@ private int getPrimeNumber(){
 			//ra.get().setReal(cursor.get().get());
 			cursor.get().setReal(ra.get().getRealFloat());
 		}
-		
 		return imgFloat;
 	}
 	

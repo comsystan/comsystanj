@@ -235,28 +235,24 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 
-	@Parameter(label = "Delete existing double log plot",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialDeleteExistingDoubleLogPlots")
-	private boolean booleanDeleteExistingDoubleLogPlot;
-
-	@Parameter(label = "Delete existing result table",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialDeleteExistingTable")
-	private boolean booleanDeleteExistingTable;
-
 	@Parameter(label = "Get Dc values of all radial directions",
 			   // persist = false, //restore previous value default = true
 			   initializer = "initialGetAllRadialDsValues")
 	private boolean booleanGetAllRadialDsValues;
 
+	@Parameter(label = "Overwrite result display(s)",
+	    	description = "Overwrite already existing result images, plots or tables",
+	    	//persist  = false,  //restore previous value default = true
+			initializer = "initialOverwriteDisplays")
+	private boolean booleanOverwriteDisplays;
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
 
-	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	private boolean booleanPreview;
+	@Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+	    	description = "Immediate processing of active image when a parameter is changed",
+			callback = "callbackProcessImmediately")
+	private boolean booleanProcessImmediately;
 	
 	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 	private Button buttonProcessActiveImage;
@@ -295,12 +291,8 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 		booleanShowDoubleLogPlot = true;
 	}
 	
-	protected void initialDeleteExistingDoubleLogPlots() {
-		booleanDeleteExistingDoubleLogPlot = true;
-	}
-
-	protected void initialDeleteExistingTable() {
-		booleanDeleteExistingTable = true;
+	protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
 	}
 	
 	protected void initialGetAllRadialDsValues() {
@@ -364,9 +356,9 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
 	}
 	
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/**
@@ -387,8 +379,8 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
-            		getAndValidateActiveDataset();
             		deleteExistingDisplays();
+            		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -424,8 +416,8 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available images");
-	        		getAndValidateActiveDataset();
 	        		deleteExistingDisplays();
+	        		getAndValidateActiveDataset();
 	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
@@ -449,7 +441,7 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 	// time a widget value changes.
 	public void preview() {
 		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanPreview) callbackProcessActiveImage();
+		if (booleanProcessImmediately) callbackProcessActiveImage();
 		// statusService.showStatus(message);
 	}
 
@@ -569,10 +561,16 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 	 * 
 	 */
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlot = booleanDeleteExistingDoubleLogPlot;
-		boolean optDeleteExistingTable = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+		}
 
-		if (optDeleteExistingPlot) {
+		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -599,7 +597,7 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 				plotWindowList.clear();
 			}
 		}
-		if (optDeleteExistingTable) {
+		if (optDeleteExistingTables) {
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);

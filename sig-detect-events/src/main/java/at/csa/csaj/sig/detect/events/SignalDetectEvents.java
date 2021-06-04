@@ -351,23 +351,20 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 			   initializer = "initialDisplayAsSignal")
 	private boolean booleanDisplayAsSignal;
 	
-	@Parameter(label = "Delete existing displays",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialDeleteExistingDisplyas")
-	private boolean booleanDeleteExistingDisplays;
-	
-	@Parameter(label = "Delete existing result table",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialDeleteExistingTable")
-	private boolean booleanDeleteExistingTable;
+	@Parameter(label = "Overwrite result display(s)",
+	    	description = "Overwrite already existing result images, plots or tables",
+	    	//persist  = false,  //restore previous value default = true
+			initializer = "initialOverwriteDisplays")
+	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelProcess = PROCESSOPTIONS_LABEL;
 
-	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	private boolean booleanPreview;
+	@Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+	    	description = "Immediate processing when a parameter is changed",
+			callback = "callbackProcessImmediately")
+	private boolean booleanProcessImmediately;
 	
 	@Parameter(label = "Column #", description = "column number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
@@ -473,12 +470,8 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		booleanDisplayAsSignal = false;
 	}
 	
-	protected void initialDeleteExistingDisplyas() {
-		booleanDeleteExistingDisplays = false;
-	}
-	
-	protected void initialDeleteExistingTable() {
-		booleanDeleteExistingTable = true;
+	protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
 	}
 
 	// The following method is known as "callback" which gets executed
@@ -722,19 +715,9 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		logService.info(this.getClass().getName() + " Display events as signal set to " + booleanDisplayAsSignal);
 	}
 	
-	/** Executed whenever the {@link #booleanDeleteExistingDisplays} parameter changes. */
-	protected void callbackDeleteExistingDisplays() {
-		logService.info(this.getClass().getName() + " Delete existing displays set to " + booleanDeleteExistingDisplays);
-	}
-	
-	/** Executed whenever the {@link #booleanDeleteExistingTable} parameter changes. */
-	protected void callbackDeleteExistingTable() {
-		logService.info(this.getClass().getName() + " Delete existing table set to " + booleanDeleteExistingTable);
-	}
-	
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
@@ -765,9 +748,9 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing single signal");
+        	    	deleteExistingDisplays();
             		getAndValidateActiveDataset();
             		generateTableHeader();
-            		deleteExistingDisplays();
             		//int activeColumnIndex = getActiveColumnIndex();
             		//processActiveInputColumn(activeColumnIndex);
               		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
@@ -804,9 +787,9 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available columns");
-	        		getAndValidateActiveDataset();
+	            	deleteExistingDisplays();
+	            	getAndValidateActiveDataset();
 	        		generateTableHeader();
-	        		deleteExistingDisplays();
 	        		processAllInputColumns();
 	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
 	        		//collectAllResultsAndShowTable();
@@ -829,7 +812,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	// time a widget value changes.
 	public void preview() {
 		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanPreview) callbackProcessSingleColumn();
+		if (booleanProcessImmediately) callbackProcessSingleColumn();
 		// statusService.showStatus(message);
 	}
 
@@ -1028,8 +1011,16 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	 */
 	private void deleteExistingDisplays() {
 		
-		boolean optDeleteExistingDisplays = booleanDeleteExistingDisplays;
-		boolean optDeleteExistingTable    = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots    = false;
+		boolean optDeleteExistingTables   = false;
+		boolean optDeleteExistingImgs     = false;
+		boolean optDeleteExistingDisplays = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots    = true;
+			optDeleteExistingTables   = true;
+			optDeleteExistingImgs     = true;
+			optDeleteExistingDisplays = true;
+		}
 		
 		if (optDeleteExistingDisplays) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
@@ -1042,7 +1033,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 				displayList.clear();
 			}
 		}
-		if (optDeleteExistingTable) {
+		if (optDeleteExistingTables) {
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);

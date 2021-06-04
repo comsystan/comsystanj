@@ -249,28 +249,20 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
     		    initializer = "initialShowImages")
  	 private boolean booleanShowImages;
      
-     @Parameter(label = "Delete existing double log plot",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingDoubleLogPlots")
-	 private boolean booleanDeleteExistingDoubleLogPlot;
-     
-     @Parameter(label = "Delete existing downscaled images",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingDownscaledImages")
-	 private boolean booleanDeleteExistingDownscaledImages;
-     
-     @Parameter(label = "Delete existing result table",
-    		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialDeleteExistingTable")
-	 private boolean booleanDeleteExistingTable;
+     @Parameter(label = "Overwrite result display(s)",
+    	    	description = "Overwrite already existing result images, plots or tables",
+    	    	//persist  = false,  //restore previous value default = true
+    			initializer = "initialOverwriteDisplays")
+    private boolean booleanOverwriteDisplays;
      
      //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
-     @Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	 private boolean booleanPreview;
+     @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+    	    	description = "Immediate processing of active image when a parameter is changed",
+    			callback = "callbackProcessImmediately")
+    private boolean booleanProcessImmediately;
      
      @Parameter(label   = "Process single active image ",
     		    callback = "callbackProcessActiveImage")
@@ -302,17 +294,10 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
     protected void initialShowImages() {
     	booleanShowImages = false;
     }
-    protected void initialDeleteExistingDoubleLogPlots() {
-    	booleanDeleteExistingDoubleLogPlot = true;
-    }
-    protected void initialDeleteExistingDownscaledImages() {
-    	booleanDeleteExistingDownscaledImages = true;
-    }
-    protected void initialDeleteExistingTable() {
-    	booleanDeleteExistingTable = true;
+    protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
     }
   
-    
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	/** Executed whenever the {@link #spinInteger_NumImages} parameter changes. */
@@ -358,9 +343,9 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 //		logService.info(this.getClass().getName() + " Interpolation method set to " + choiceRadioButt_Interpolation);
 //	}
 	
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
@@ -379,8 +364,8 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
-            		getAndValidateActiveDataset();
             		deleteExistingDisplays();
+            		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -413,8 +398,8 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available images");
-	        		getAndValidateActiveDataset();
 	        		deleteExistingDisplays();
+	        		getAndValidateActiveDataset();
 	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
@@ -440,7 +425,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
  	// time a widget value changes.
  	public void preview() {
  		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanPreview) callbackProcessActiveImage();
+ 		if (booleanProcessImmediately) callbackProcessActiveImage();
  		//statusService.showStatus(message);
  	}
  	
@@ -557,11 +542,19 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 	
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingPlot             = booleanDeleteExistingDoubleLogPlot;
-		boolean optDeleteExistingTable            = booleanDeleteExistingTable;
-		boolean optDeleteExistingDownscaledImages = booleanDeleteExistingDownscaledImages;
 		
-		if (optDeleteExistingPlot){
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		boolean optDeleteExistingDownscaledImages = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+			optDeleteExistingDownscaledImages = true;
+		}
+	
+		if (optDeleteExistingPlots){
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -572,7 +565,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 				doubleLogPlotList.clear();		
 			}
 		}
-		if (optDeleteExistingTable){
+		if (optDeleteExistingTables){
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
@@ -997,11 +990,11 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			cursor.localize(pos);
-			ra.setPosition(pos[0], 0);
-			ra.setPosition(pos[1], 1);
+			ra.setPosition(pos);
+			//ra.setPosition(pos[0], 0);
+			//ra.setPosition(pos[1], 1);
 			ra.get().setReal(cursor.get().get());
-		}  	
-		
+		}  			
 		uiService.show(name, datasetDisplay);
 	}
 	
@@ -1038,8 +1031,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 		// verticalPercent);
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
-		return pl;
-		
+		return pl;	
 	}
 	
 	
@@ -1067,8 +1059,7 @@ public class FractalDimensionPyramid<T extends RealType<T>> extends InteractiveC
 			//}
 			//ra.get().setReal(cursor.get().get());
 			cursor.get().setReal(ra.get().getRealFloat());
-		}
-		
+		}		
 		return imgFloat;
 	}
 	

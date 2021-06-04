@@ -221,18 +221,20 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
-	@Parameter(label = "Delete existing result table",
-			   // persist = false, //restore previous value default = true
-			   initializer = "initialDeleteExistingTable")
-	private boolean booleanDeleteExistingTable;
+	@Parameter(label = "Overwrite result display(s)",
+	    	description = "Overwrite already existing result images, plots or tables",
+	    	//persist  = false,  //restore previous value default = true
+			initializer = "initialOverwriteDisplays")
+	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelProcess = PROCESSOPTIONS_LABEL;
 
-	@Parameter(label = "Preview", visibility = ItemVisibility.INVISIBLE, persist = false,
-		       callback = "callbackPreview")
-	private boolean booleanPreview;
+	@Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+	    	description = "Immediate processing when a parameter is changed",
+			callback = "callbackProcessImmediately")
+	private boolean booleanProcessImmediately;
 	
 	@Parameter(label = "Column #", description = "column number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
@@ -274,8 +276,8 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 //		booleanRemoveZeroes = false;
 //	}	
 	
-	protected void initialDeleteExistingTable() {
-		booleanDeleteExistingTable = true;
+	protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
 	}
 
 	// The following method is known as "callback" which gets executed
@@ -326,9 +328,9 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 //		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
 //	}
 
-	/** Executed whenever the {@link #booleanPreview} parameter changes. */
-	protected void callbackPreview() {
-		logService.info(this.getClass().getName() + " Preview set to " + booleanPreview);
+	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
+	protected void callbackProcessImmediately() {
+		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
@@ -359,9 +361,9 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
             public void run() {
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing single signal");
-            		getAndValidateActiveDataset();
+        	   		deleteExistingDisplays();
+        	    	getAndValidateActiveDataset();
             		generateTableHeader();
-            		deleteExistingDisplays();
             		//int activeColumnIndex = getActiveColumnIndex();
             		//processActiveInputColumn(activeColumnIndex);
               		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
@@ -398,9 +400,9 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available columns");
+	           		deleteExistingDisplays();
 	        		getAndValidateActiveDataset();
 	        		generateTableHeader();
-	        		deleteExistingDisplays();
 	        		processAllInputColumns();
 	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
 	        		//collectAllResultsAndShowTable();
@@ -423,7 +425,7 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	// time a widget value changes.
 	public void preview() {
 		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanPreview) callbackProcessSingleColumn();
+		if (booleanProcessImmediately) callbackProcessSingleColumn();
 		// statusService.showStatus(message);
 	}
 
@@ -529,9 +531,16 @@ public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	 * 
 	 */
 	private void deleteExistingDisplays() {
-		boolean optDeleteExistingTable = booleanDeleteExistingTable;
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+		}
 		
-		if (optDeleteExistingTable) {
+		if (optDeleteExistingTables) {
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
