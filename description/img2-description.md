@@ -69,6 +69,15 @@
 - Linear regression parameters of the double log plot can be set
 - Ref.: Ahammer et al., Chaos, 2015, [https://doi.org/10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
 
+### Fractal Dimension - Minkowski
+- Fractal dimension is computed with morphological dilations and erosions
+- For binary or grey 8-bit images
+- Binary [0, >0] dilation or grey value blanket dilation/erosion
+- The number of dilation/erosion steps can be set
+- The shape of the morphological structuring element can be set
+- Linear regression parameters of the double log plot can be set 
+- Ref.: Peleg et al., IEEE-TPAMI, 1984, [https://doi.org/10.1109/TPAMI.1984.4767557](https://doi.org/10.1109/TPAMI.1984.4767557)
+
 ### Fractal Dimension - Pyramid algorithm
 - Fractal dimension is computed by using image pyramids
 - For binary 8-bit images
