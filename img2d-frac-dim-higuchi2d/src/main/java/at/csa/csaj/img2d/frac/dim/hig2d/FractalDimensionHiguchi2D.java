@@ -61,6 +61,8 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -103,7 +105,14 @@ import io.scif.MetaTable;
  * A {@link Command} plugin computing <the 2D Higuchi dimension</a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal dimension - Higuchi2D")
+@Plugin(type = InteractiveCommand.class,
+headless = true,
+label = "Higuchi dimension 2D",
+menu = {
+@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+@Menu(label = "ComsystanJ"),
+@Menu(label = "2D Image"),
+@Menu(label = "Higuchi dimension 2D", weight = 10)})
 public class FractalDimensionHiguchi2D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class FractalDimensionHiguchi2D<T extends RealType<T>> implements Command {	//modal GUI
 

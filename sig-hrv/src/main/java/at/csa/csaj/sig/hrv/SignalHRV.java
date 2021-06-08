@@ -54,6 +54,8 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -110,7 +112,14 @@ import at.csa.csaj.sig.open.SignalOpener;
  * @since  2021 03
  
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Standard HRV measurements")
+@Plugin(type = InteractiveCommand.class, 
+	headless = true,
+	label = "Standard HRV measurements",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "Signal"),
+	@Menu(label = "Standard HRV measurements", weight = 13)})
 public class SignalHRV<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalHRV<T extends RealType<T>> implements Command {	//modal GUI
 

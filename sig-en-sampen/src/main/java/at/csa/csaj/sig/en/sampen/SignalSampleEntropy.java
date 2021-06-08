@@ -47,6 +47,8 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -72,7 +74,14 @@ import at.csa.csaj.sig.en.sampen.util.SampleEntropy;
  * A {@link Command} plugin computing <Sample entropy and Approximate entropy</a>
  * of a signal.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Sample entropy")
+@Plugin(type = InteractiveCommand.class, 
+	headless = true,
+	label = "Sample entropy",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "Signal"),
+	@Menu(label = "Sample entropy", weight = 20)})
 public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalSampEn<T extends RealType<T>> implements Command {	//modal GUI
 

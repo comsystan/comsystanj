@@ -54,6 +54,8 @@ import org.scijava.command.Command;
 import org.scijava.command.Previewable;
 import org.scijava.display.DisplayService;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
@@ -84,7 +86,11 @@ import javax.swing.UIManager;
  * </p>
  * @param <C>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Image(2D)>Image generator")
+@Plugin(type = Command.class, label = "Image generator", menu = {
+        @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+        @Menu(label = "ComsystanJ"),
+        @Menu(label = "2D Image"),
+        @Menu(label = "Image generator", weight = 2)})
 public class ImageGenerator<T extends RealType<T>, C> implements Command, Previewable {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Generates 2D images</b></html>";

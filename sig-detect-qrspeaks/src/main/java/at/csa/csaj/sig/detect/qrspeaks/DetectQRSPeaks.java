@@ -32,8 +32,11 @@ import net.imagej.ImageJ;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.ChoiceWidget;
@@ -60,7 +63,14 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Signal>Detect QRS peaks (from file)")
+@Plugin(type = InteractiveCommand.class,
+	headless = true,
+	label = "QRS peaks detection (from file)",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "Signal"),
+	@Menu(label = "QRS peaks detection (from file)", weight = 12)})
 public class DetectQRSPeaks  implements Command, Previewable {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";

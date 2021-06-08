@@ -20,7 +20,8 @@ img2d - Box counting - Check maximal number of boxes
 img2d - Pyramid dimension - Subsampling with averaging
 signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 
-Changes-------------------------------------------------------
+Miscellaneous-------------------------------------------------
+- Added plugin menu weights
 - Changed option "Delete" to "Overwrite"
 - Changed option "Preview" to "Immediate processing"
 - Changed some persist entries

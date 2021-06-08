@@ -45,6 +45,8 @@ import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -65,7 +67,14 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin computing <Poincare plots</a>
  * of a signal.
  */
-@Plugin(type = InteractiveCommand.class, headless = true, menuPath = "Plugins>ComsystanJ>Signal>Poincare plot")
+@Plugin(type = InteractiveCommand.class, 
+	headless = true,
+	label = "Poincare plot",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "Signal"),
+	@Menu(label = "Poincare plot", weight = 14)})
 public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalPoincarePlot<T extends RealType<T>> implements Command {	//modal GUI
 

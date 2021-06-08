@@ -32,29 +32,25 @@ import net.imagej.DatasetService;
 import net.imagej.ImageJ;
 import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
-import net.imagej.axis.CalibratedAxis;
-import net.imagej.axis.DefaultLinearAxis;
-import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
+
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.view.StackView;
-import net.imglib2.view.Views;
 
+
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.ItemIO;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.display.DisplayService;
 import org.scijava.io.IOService;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.ui.UIService;
-import org.scijava.widget.FileWidget;
 
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.image.ImagePreviewPanel;
@@ -66,18 +62,12 @@ import org.scijava.ui.DialogPrompt.Result;
 import io.scif.DefaultImageMetadata;
 import io.scif.DefaultMetaTable;
 import io.scif.MetaTable;
-import io.scif.img.IO;
-import io.scif.img.SCIFIOImgPlus;
-import io.scif.services.DatasetIOService;
 
-import java.awt.Dimension;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -93,7 +83,11 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Image(2D)>Image opener")
+@Plugin(type = Command.class, label = "Image opener", menu = {
+        @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+        @Menu(label = "ComsystanJ"),
+        @Menu(label = "2D Image"),
+        @Menu(label = "Image opener", weight = 1)})
 public class ImageOpener<T extends RealType<T>> implements Command {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens single or multiple images</b></html>";

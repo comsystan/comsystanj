@@ -34,8 +34,11 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemIO;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.io.IOService;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -62,7 +65,14 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = Command.class, menuPath = "Plugins>ComsystanJ>Signal>Signal opener")
+@Plugin(type = InteractiveCommand.class,
+	headless = true,
+	label = "Signal opener",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "Signal"),
+	@Menu(label = "Signal opener", weight = 1)})
 public class SignalOpener<T extends RealType<T>> implements Command {
 	
 	private static final String PLUGIN_LABEL = "Opens single or multiple signals";

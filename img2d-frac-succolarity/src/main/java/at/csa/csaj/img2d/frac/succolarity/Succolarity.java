@@ -69,6 +69,8 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -100,10 +102,14 @@ import io.scif.MetaTable;
  * de Melo, R. H. C., und A. Conci. „How Succolarity Could Be Used as Another Fractal Measure in Image Analysis“. Telecommunication Systems 52, Nr. 3 (1. März 2013): 1643–55. https://doi.org/10.1007/s11235-011-9657-3.
  * 
  */
-
-@Plugin(type = InteractiveCommand.class, 
-        headless = true,
-	    menuPath = "Plugins>ComsystanJ>Image(2D)>Succolarity")
+@Plugin(type = InteractiveCommand.class,
+	headless = true,
+	label = "Succolarity",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "2D Image"),
+	@Menu(label = "Succolarity", weight = 21)})
 public class Succolarity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class Succolarity<T extends RealType<T>> implements Command {	//modal GUI
 	

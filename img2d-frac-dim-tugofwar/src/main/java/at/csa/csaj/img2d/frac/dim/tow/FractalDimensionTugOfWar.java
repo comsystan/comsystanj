@@ -67,6 +67,8 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -92,12 +94,17 @@ import io.scif.MetaTable;
 
 /**
  * A {@link Command} plugin computing
- * <the fractal box counting dimension </a>
+ * <the fractal Tug of war dimension </a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class, 
-        headless = true,
-	    menuPath = "Plugins>ComsystanJ>Image(2D)>Fractal dimension - Tug of war")
+@Plugin(type = InteractiveCommand.class,
+	headless = true,
+	label = "Tug of war dimension",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "2D Image"),
+	@Menu(label = "Tug of war dimension", weight = 11)})
 public class FractalDimensionTugOfWar<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionTugOfWar<T extends RealType<T>> implements Command {	//modal GUI
 	

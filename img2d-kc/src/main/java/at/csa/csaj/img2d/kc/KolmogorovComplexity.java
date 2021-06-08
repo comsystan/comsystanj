@@ -80,6 +80,8 @@ import org.scijava.display.Display;
 import org.scijava.io.IOService;
 import org.scijava.io.location.FileLocation;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -107,9 +109,14 @@ import io.scif.config.SCIFIOConfig;
  * <the Kolmogorov complexity and Logical depth </a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class, 
-        headless = true,
-	    menuPath = "Plugins>ComsystanJ>Image(2D)>Kolmogorov complexity and LD")
+@Plugin(type = InteractiveCommand.class,
+	headless = true,
+	label = "KC and LD",
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "2D Image"),
+	@Menu(label = "Kolmogorov complexity and LD", weight = 33)})
 public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionPyramid<T extends RealType<T>> implements Command {	//modal GUI
 	
