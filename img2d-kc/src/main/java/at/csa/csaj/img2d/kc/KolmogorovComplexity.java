@@ -116,7 +116,7 @@ import io.scif.config.SCIFIOConfig;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "2D Image"),
-	@Menu(label = "Kolmogorov complexity and LD", weight = 33)})
+	@Menu(label = "Kolmogorov complexity and LD", weight = 34)})
 public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionPyramid<T extends RealType<T>> implements Command {	//modal GUI
 	
