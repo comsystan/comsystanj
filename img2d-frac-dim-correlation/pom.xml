@@ -106,7 +106,7 @@
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 		</dependency>
-		<!-- This is needed although it is already refernced in the parent pom scijava-pom, I do not know why-->
+		<!-- This is needed although it is already referenced in the parent pom scijava-pom-->
 		<!-- JFreeChart - http://www.jfree.org/jfreechart/ -->
 		<dependency>
 				<groupId>org.jfree</groupId>
