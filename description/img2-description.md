@@ -156,7 +156,7 @@
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
 - Probabilities are computed with plain pixel grey values
 - For 8-bit grey value images
-- A Renyi entropies plot can be shown
+- A plot of Renyi entropies can be shown
 - Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
 Statistical Mechanics, Springer, 2009
 
