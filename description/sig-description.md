@@ -222,7 +222,7 @@
 ### Generalised entropies
 - Computes generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
-- Probabilities are computed with actual signal values or with differences
+- Probabilities are computed with plain signal values or with differences
 - The time lag can be set
 - Signals should be opened with the CSAJ Signal Opener
 - Surrogate analysis is restricted to one of the entropies, if needed taking the smallest parameter value
