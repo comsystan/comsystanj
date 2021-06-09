@@ -15,6 +15,7 @@
 	Projects are still independent and can be built independently-->
 	<modules>
 		<module>commons</module>
+		<module>img2d-en-genen</module>
 		<module>img2d-frac-dim-boxcounting</module>
 		<module>img2d-frac-dim-correlation-directional</module>
 		<module>img2d-frac-dim-ffi</module>

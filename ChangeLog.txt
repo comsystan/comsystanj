@@ -3,22 +3,24 @@ ComsystanJ change log
 29.2.1.2
 
 New-----------------------------------------------------------
-img2d - Fractal dimension - Correlation dimension
-img2d - Fractal dimension - Directional correlation dimension
-img2d - Fractal dimension - FFI
-img2d - Fractal dimension - Minkowski
-img2d - Fractal dimension - Tug of war dimension
-img2d - Lacunarity
-img2d - Succolarity
-signal - Permutation entropy
+2D Image - Correlation dimension
+2D Image - Directional correlation dimension
+2D Image - Generalized fractal dimensions
+2D Image - Minkowski dimension
+2D Image - Tug of war dimension
+2D Image - Fractal fragmentation index
+2D Image - Lacunarity
+2D Image - Succolarity
+2D Image - Generalized entropies
+Signal - Permutation entropy
 
 Bugfix--------------------------------------------------------
-img2d - Kolmogorov complexcity - Did register as signal plugin
-img2d - Higuchi1D - Roundig errors from rad to grad for lables, angles now in grad
-img2d - Image Opener - Did not open grey image stack correctly
-img2d - Box counting - Check maximal number of boxes
-img2d - Pyramid dimension - Subsampling with averaging
-signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
+2D Image - Kolmogorov complexcity - Did register as signal plugin
+2D Image - Higuchi1D - Roundig errors from rad to grad for lables, angles now in grad
+2D Image - Image Opener - Did not open grey image stack correctly
+2D Image - Box counting - Check maximal number of boxes
+2D Image - Pyramid dimension - Subsampling with averaging
+Signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 
 Miscellaneous-------------------------------------------------
 - Added plugin menu weights
