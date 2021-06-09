@@ -151,6 +151,15 @@
 - Linear regression parameters of the double log plot can be set 
 - Ref: Andronache et al., Chaos, Solitons & Fractals, 2016, [https://doi.org/10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
+### Generalised entropies
+- Computes generalised entropies
+- SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
+- Probabilities are computed with plain pixel grey values
+- For 8-bit grey value images
+- A Renyi entropies plot can be shown
+- Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
+Statistical Mechanics, Springer, 2009
+
 ### Kolmogorov complexity and Logical depth
 - KC is estimated by the memory size of compressed images saved to disk (LZW, PNG, J2K, JPG)
 - KC is estiamted by compressing data bytes (ZLIB, GZIB)
