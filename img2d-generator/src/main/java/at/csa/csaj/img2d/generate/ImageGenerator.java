@@ -89,7 +89,7 @@ import javax.swing.UIManager;
 @Plugin(type = Command.class, label = "Image generator", menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
-        @Menu(label = "2D Image"),
+        @Menu(label = "Image (2D)"),
         @Menu(label = "Image generator", weight = 2)})
 public class ImageGenerator<T extends RealType<T>, C> implements Command, Previewable {
 	

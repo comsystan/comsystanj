@@ -108,7 +108,7 @@ import io.scif.MetaTable;
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
-	@Menu(label = "2D Image"),
+	@Menu(label = "Image (2D)"),
 	@Menu(label = "Succolarity", weight = 21)})
 public class Succolarity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class Succolarity<T extends RealType<T>> implements Command {	//modal GUI

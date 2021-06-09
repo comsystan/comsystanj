@@ -101,7 +101,7 @@ import io.scif.MetaTable;
         label = "Correlation dimension", menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
-        @Menu(label = "2D Image"),
+        @Menu(label = "Image (2D)"),
         @Menu(label = "Correlation dimension", weight = 6)})
 public class FractalDimensionCorrelation<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class FractalDimensionCorrelation<T extends RealType<T>> implements Command {	//modal GUI

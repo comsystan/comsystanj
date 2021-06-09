@@ -86,7 +86,7 @@ import javax.swing.UIManager;
 @Plugin(type = Command.class, label = "Image opener", menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
-        @Menu(label = "2D Image"),
+        @Menu(label = "Image (2D)"),
         @Menu(label = "Image opener", weight = 1)})
 public class ImageOpener<T extends RealType<T>> implements Command {
 	
