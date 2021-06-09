@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin for computing lacunarity.
- * File: Lacunarity.java
+ * File: Img2DLacunarity.java
  * 
  * $Id$
  * $HeadURL$
@@ -112,8 +112,8 @@ import io.scif.MetaTable;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
 	@Menu(label = "Lacunarity", weight = 20)})
-public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class Lacunarity<T extends RealType<T>> implements Command {	//modal GUI
+public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
+//public class Img2DLacunarity<T extends RealType<T>> implements Command {	//modal GUI
 	
 	private static final String PLUGIN_LABEL            = "<html><b>Computes Lacunarity</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -1684,8 +1684,8 @@ public class Lacunarity<T extends RealType<T>> extends InteractiveCommand implem
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(Lacunarity.class, true).get().getOutput("image");
-		ij.command().run(Lacunarity.class, true);
+		//ij.command().run(Img2DLacunarity.class, true).get().getOutput("image");
+		ij.command().run(Img2DLacunarity.class, true);
 	}
 }
 

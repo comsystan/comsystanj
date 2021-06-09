@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin to generate 2D images.
- * File: ImageGenerator.java
+ * File: Img2DImageGenerator.java
  * 
  * $Id$
  * $HeadURL$
@@ -91,7 +91,7 @@ import javax.swing.UIManager;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
         @Menu(label = "Image generator", weight = 2)})
-public class ImageGenerator<T extends RealType<T>, C> implements Command, Previewable {
+public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, Previewable {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Generates 2D images</b></html>";
 	private static final String SPACE_LABEL = "";
@@ -1896,7 +1896,7 @@ public class ImageGenerator<T extends RealType<T>, C> implements Command, Previe
 //        }
 //       
          //invoke the plugin
-         ij.command().run(ImageGenerator.class, true);
+         ij.command().run(Img2DImageGenerator.class, true);
     	
     }
 

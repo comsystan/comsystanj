@@ -95,7 +95,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.frac.dim.ffi</package-name>
-		<main-class>at.csa.csaj.img2d.frac.dim.ffi.FractalDimensionFFI</main-class>
+		<main-class>at.csa.csaj.img2d.frac.dim.ffi.Img2DFractalDimensionFFI</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

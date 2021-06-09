@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin for computing fractal dimension with 1D Higuchi algorithm.
- * File: FractalDimensionHiguchi1D.java
+ * File: Img2DFractalDimensionHiguchi1D.java
  * 
  * $Id$
  * $HeadURL$
@@ -111,8 +111,8 @@ import io.scif.MetaTable;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
         @Menu(label = "Higuchi dimension 1D", weight = 9)})
-public class FractalDimensionHiguchi1D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class FractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
+public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
+//public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> implements Command {	//modal GUI
 
 	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with the Higuchi 1D algorithm</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -1715,8 +1715,8 @@ public class FractalDimensionHiguchi1D<T extends RealType<T>> extends Interactiv
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		if (image != null) ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		// ij.command().run(FractalDimensionHiguchi1D.class,
+		// ij.command().run(Img2DFractalDimensionHiguchi1D.class,
 		// true).get().getOutput("image");
-		ij.command().run(FractalDimensionHiguchi1D.class, true);
+		ij.command().run(Img2DFractalDimensionHiguchi1D.class, true);
 	}
 }

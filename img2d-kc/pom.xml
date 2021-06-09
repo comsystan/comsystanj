@@ -84,7 +84,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.kc</package-name>
-		<main-class>at.csa.csaj.img2d.kc.KolmogorovComplexity</main-class>
+		<main-class>at.csa.csaj.img2d.kc.Img2DKolmogorovComplexity</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

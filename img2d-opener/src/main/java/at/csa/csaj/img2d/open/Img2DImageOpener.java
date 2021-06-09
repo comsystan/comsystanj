@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin to open single or multiple images.
- * File: ImageOpener.java
+ * File: Img2DImageOpener.java
  * 
  * $Id$
  * $HeadURL$
@@ -88,7 +88,7 @@ import javax.swing.UIManager;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
         @Menu(label = "Image opener", weight = 1)})
-public class ImageOpener<T extends RealType<T>> implements Command {
+public class Img2DImageOpener<T extends RealType<T>> implements Command {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens single or multiple images</b></html>";
 	private static final String SPACE_LABEL  = "";
@@ -406,7 +406,7 @@ public class ImageOpener<T extends RealType<T>> implements Command {
 //        }
 //       
          //invoke the plugin
-         ij.command().run(ImageOpener.class, true);
+         ij.command().run(Img2DImageOpener.class, true);
     	
     }
 

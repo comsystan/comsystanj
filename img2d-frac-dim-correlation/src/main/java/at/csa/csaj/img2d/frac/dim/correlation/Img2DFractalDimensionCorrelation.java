@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing the fractal fragmentation index FFI
- * File: FractalDimensionFFI.java
+ * Project: ImageJ plugin for computing the Correlation dimension.
+ * File: Img2DFractalDimensionCorrelation.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,8 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-
-package at.csa.csaj.img2d.frac.dim.ffi;
+package at.csa.csaj.img2d.frac.dim.correlation;
 
 import java.awt.Toolkit;
 import java.io.File;
@@ -52,8 +51,6 @@ import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.morphology.Erosion;
-import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.Type;
@@ -96,21 +93,20 @@ import io.scif.MetaTable;
 
 /**
  * A {@link Command} plugin computing
- * <the fractal fragmentation index </a>
+ * <a>the fractal correlation dimension </a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class,
-	headless = true,
-	label = "FFI",
-	menu = {
-	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-	@Menu(label = "ComsystanJ"),
-	@Menu(label = "Image (2D)"),
-	@Menu(label = "Fractal fragmentation index", weight = 22)})
-public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class FractalDimensionFFI<T extends RealType<T>> implements Command {	//modal GUI
+@Plugin(type = InteractiveCommand.class, 
+        headless = true,
+        label = "Correlation dimension", menu = {
+        @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+        @Menu(label = "ComsystanJ"),
+        @Menu(label = "Image (2D)"),
+        @Menu(label = "Correlation dimension", weight = 6)})
+public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
+//public class Img2DFractalDimensionCorrelation<T extends RealType<T>> implements Command {	//modal GUI
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal fragmentation index</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal Correlation dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -119,12 +115,9 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
-	private static Img<FloatType> imgSubSampled;
-	private static Img<FloatType> imgTemp;
 	private static RandomAccessibleInterval<?> raiBox;
-	private static RandomAccess<UnsignedByteType> ra;
+	private static RandomAccess<?> ra;
 	private static Cursor<?> cursor = null;
-	private static Cursor<FloatType> cursorF = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
 	private static long width  = 0;
@@ -134,7 +127,7 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
-	private static final String tableName = "Table - Box counting dimension";
+	private static final String tableName = "Table - Correlation dimension";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -191,8 +184,8 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "# of boxes/pyramid images",
-    		   description = "Number of distinct box sizes with the power of 2",
+    @Parameter(label = "Number of radii",
+    		   description = "Number of distinct radii following the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
@@ -228,32 +221,25 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Fractal dimension",
-	    description = "Type of fractal dimension computation",
-	    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-	    choices = {"Box counting", "Pyramid"},
-	    //persist  = false,  //restore previous value default = true
-	    initializer = "initialFracalDimType",
-	    callback = "callbackFractalDimType")
-     private String choiceRadioButt_FractalDimType;
+     @Parameter(label = "Scanning type",
+ 		    description = "Classical disc (radius)  over pixel or fast estiamtes",
+ 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		    choices = {"Disc(radius) over pixel", "FFGE - Fast fixed grid estimate"}, // "DBC"}, //DBC still not working
+   		    //persist  = false,  //restore previous value default = true
+ 		    initializer = "initialScanningType",
+             callback = "callbackScanningType")
+     private String choiceRadioButt_ScanningType;
      
-//     @Parameter(label = "Scanning method",
-//    		    description = "Type of box scanning",
-//    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-//      		    choices = {"Raster box"} //, "Sliding box"}, //does not give the right dimension values
-//      		    //persist  = false,  //restore previous value default = true
-//    		    initializer = "initialScanningType",
-//                callback = "callbackScanningType")
-//     private String choiceRadioButt_ScanningType;
-//     
-//     @Parameter(label = "Analysis type",
-// 		    description = "Type of image and computation",
-// 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-//   		    choices = {"Binary"}, //grey value does make sense "DBC", "RDBC"},
-//   		    //persist  = false,  //restore previous value default = true
-// 		    initializer = "initialAnalysisMethod",
-//             callback = "callbackAnalysisMethod")
-//     private String choiceRadioButt_AnalysisMethod;
+     @Parameter(label = "(Disc) Pixel %",
+  		   description = "% of image pixels to be taken - to lower computation times",
+	       	   style = NumberWidget.SPINNER_STYLE,
+	           min = "1",
+	           max = "100",
+	           stepSize = "1",
+	           //persist  = false,  //restore previous value default = true
+	           initializer = "initialPixelPercentage",
+	           callback    = "callbackPixelPercentage")
+     private int spinnerInteger_PixelPercentage;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -268,7 +254,7 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
     	    	description = "Overwrite already existing result images, plots or tables",
     	    	//persist  = false,  //restore previous value default = true
     			initializer = "initialOverwriteDisplays")
-    private boolean booleanOverwriteDisplays;
+     private boolean booleanOverwriteDisplays;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
@@ -292,25 +278,23 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
  
     //The following initialzer functions set initial values
     protected void initialNumBoxes() {
-      	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
+      	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
       	spinnerInteger_NumBoxes = numBoxes;
     }
     protected void initialRegMin() {
     	spinnerInteger_RegMin = 1;
     }
     protected void initialRegMax() {
-    	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
+    	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	spinnerInteger_RegMax =  numBoxes;
     }
-    protected void initialFractalDimType() {
-    	choiceRadioButt_FractalDimType = "Box counting";
+    protected void initialScanningType() {
+    	choiceRadioButt_ScanningType = "Disc(radius) over pixel";
     }
-//    protected void initialScanningType() {
-//    	choiceRadioButt_ScanningType = "Raster box";
-//    }
-//    protected void initialAnalysisMethod() {
-//    	choiceRadioButt_AnalysisMethod = "Binary";
-//    }
+  
+    protected void initialPixelPercentage() {
+      	spinnerInteger_PixelPercentage = 100;
+    }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
@@ -361,24 +345,17 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
-
-	/** Executed whenever the {@link #choiceRadioButtFractalDimType} parameter changes. */
-	protected void callbackFractalDimType() {
-		logService.info(this.getClass().getName() + " Fractal dimension computation method set to " + choiceRadioButt_FractalDimType);
+	
+	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
+	protected void callbackScanningType() {
+		logService.info(this.getClass().getName() + " Scanning method set to " + choiceRadioButt_ScanningType);
 		
 	}
 	
-//	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
-//	protected void callbackScanningType() {
-//		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
-//		
-//	}
-//	
-//	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
-//	protected void callbackAnalysisMethod() {
-//		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
-//		
-//	}
+	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
+	protected void callbackPixelPercentage() {
+		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
+	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
@@ -390,8 +367,8 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Correlation dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Correlation dimensions, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -402,7 +379,7 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
             		deleteExistingDisplays();
-             		getAndValidateActiveDataset();
+            		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -426,8 +403,8 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Correlation dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Correlation dimensions, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -641,21 +618,17 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 
 		//Compute regression parameters
 		double[] regressionValues = process(rai, s);	
-		//Mass      0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		//Perimeter 5 Intercept, 6 Slope, 7 InterceptStdErr, 8 SlopeStdErr, 9 RSquared
+			//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			
 		//set values for output table
 		for (int i = 0; i < regressionValues.length; i++ ) {
 				resultValuesTable[s][i] = regressionValues[i]; 
 		}
 		//Compute dimension
-		double dimMass  = Double.NaN;
-		double dimPerim = Double.NaN;
+		double dim = Double.NaN;
 		
-		dimMass  = -regressionValues[1];
-		dimPerim = -regressionValues[6];
-		resultValuesTable[s][1] = dimMass;
-		resultValuesTable[s][6] = dimPerim;
+		dim = regressionValues[1];
+		resultValuesTable[s][1] = dim;
 		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -714,13 +687,10 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 					resultValuesTable[s][i] = regressionValues[i]; 
 				}
 				//Compute dimension
-				double dimMass  = Double.NaN;
-				double dimPerim = Double.NaN;
-				
-				dimMass  = -regressionValues[1];
-				dimPerim = -regressionValues[6];
-				resultValuesTable[s][1] = dimMass;
-				resultValuesTable[s][6] = dimPerim;
+				double dim = Double.NaN;
+			
+				dim = regressionValues[1];
+				resultValuesTable[s][1] = dim;
 				
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -747,25 +717,23 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
-		GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
-		DoubleColumn columnFFI             = new DoubleColumn("FFI");
-		DoubleColumn columnDmass           = new DoubleColumn("D-mass");
-		DoubleColumn columnR2mass          = new DoubleColumn("R2-mass");
-		DoubleColumn columnDbound          = new DoubleColumn("D-boundary");
-		DoubleColumn columnR2bound         = new DoubleColumn("R2-boundary");
-	
+		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
+		IntColumn columnPixelPercentage    = new IntColumn("(Disc) Pixel %");
+		DoubleColumn columnDc              = new DoubleColumn("Dc");
+		DoubleColumn columnR2              = new DoubleColumn("R2");
+		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
+		
 	    table = new DefaultGenericTable();
 		table.add(columnFileName);
 		table.add(columnSliceName);
 		table.add(columnMaxNumBoxes);
 		table.add(columnRegMin);
 		table.add(columnRegMax);
-		table.add(columnFractalDimType);
-		table.add(columnFFI);
-		table.add(columnDmass);
-		table.add(columnR2mass);
-		table.add(columnDbound);
-		table.add(columnR2bound);
+		table.add(columnScanningType);
+		table.add(columnPixelPercentage);
+		table.add(columnDc);
+		table.add(columnR2);
+		table.add(columnStdErr);
 	}
 	
 	/** collects current result and shows table
@@ -773,32 +741,27 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 	 */
 	private void collectActiveResultAndShowTable(int sliceNumber) {
 	
-		int regMin             = spinnerInteger_RegMin;
-		int regMax             = spinnerInteger_RegMax;
-		int numImages          = spinnerInteger_NumBoxes;
-		String fractalDimType  = choiceRadioButt_FractalDimType;
-		//String scanningType  = choiceRadioButt_ScanningType;	
-		//String analysisType  = choiceRadioButt_AnalysisMethod;	
-//		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-//			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-//		}	
+		int numBoxes         = spinnerInteger_NumBoxes;
+		int regMin           = spinnerInteger_RegMin;
+		int regMax           = spinnerInteger_RegMax;
+		int pixelPercentage      = spinnerInteger_PixelPercentage;
+		String scanningType  = choiceRadioButt_ScanningType;	
+		
 	    int s = sliceNumber;	
-			//Mass     0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		    //Boundary 5 Intercept, 6 Dim, 7 InterceptStdErr, 8 SlopeStdErr, 9 RSquared		
+			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
 			table.appendRow();
 			table.set("File name",   	 table.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null) 	 table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
+			table.set("# Boxes",    	 table.getRowCount()-1, numBoxes);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
-			table.set("FFI",         	 table.getRowCount()-1, resultValuesTable[s][1] - resultValuesTable[s][6]);
-			table.set("D-mass",          table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("R2-mass",         table.getRowCount()-1, resultValuesTable[s][4]);
-			table.set("D-boundary",      table.getRowCount()-1, resultValuesTable[s][6]);
-			table.set("R2-boundary",     table.getRowCount()-1, resultValuesTable[s][9]);
-			
+			table.set("Scanning type",   table.getRowCount()-1, scanningType);
+			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
+			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
+			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
+			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
+		
 		//Show table
 		uiService.show(tableName, table);
 	}
@@ -806,32 +769,27 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 	/** collects all results and shows table */
 	private void collectAllResultsAndShowTable() {
 	
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
-		int numImages    	= spinnerInteger_NumBoxes;
-		String fractalDimType  = choiceRadioButt_FractalDimType;
-//		String scanningType = choiceRadioButt_ScanningType;	
-//		String analysisType = choiceRadioButt_AnalysisMethod;	
-//		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-//			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-//		}
+		int numBoxes         = spinnerInteger_NumBoxes;
+		int regMin           = spinnerInteger_RegMin;
+		int regMax           = spinnerInteger_RegMax;
+		int pixelPercentage      = spinnerInteger_PixelPercentage;
+		String scanningType  = choiceRadioButt_ScanningType;	
+		
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
-			//Mass     0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		    //Boundary 5 Intercept, 6 Dim, 7 InterceptStdErr, 8 SlopeStdErr, 9 RSquared		
+			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
 			table.appendRow();
 			table.set("File name",	   	 table.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null)	 table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
+			table.set("# Boxes",    	 table.getRowCount()-1, numBoxes);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
-			table.set("FFI",         	 table.getRowCount()-1, resultValuesTable[s][1] - resultValuesTable[s][6]);
-			table.set("D-mass",          table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("R2-mass",         table.getRowCount()-1, resultValuesTable[s][4]);
-			table.set("D-boundary",      table.getRowCount()-1, resultValuesTable[s][6]);
-			table.set("R2-boundary",     table.getRowCount()-1, resultValuesTable[s][9]);
+			table.set("Scanning type",   table.getRowCount()-1, scanningType);
+			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
+			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
+			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
+			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
 		}
 		//Show table
 		uiService.show(tableName, table);
@@ -842,23 +800,13 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
-		
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numBoxes        = spinnerInteger_NumBoxes;
-		String fractalDimType  = choiceRadioButt_FractalDimType;
-		//String scanningType  = choiceRadioButt_ScanningType;	
-		//String analysisType  = choiceRadioButt_AnalysisMethod;	
-//		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-//			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-//		}	
-		String scanningType = "Raster box";
-		String analysisType = "Binary";	
-		
+		String scanningType = choiceRadioButt_ScanningType;	 
+		int pixelPercentage     = spinnerInteger_PixelPercentage;
+		boolean optShowPlot = booleanShowDoubleLogPlot;
 		int numBands = 1;
-		
-		boolean optShowPlot    = booleanShowDoubleLogPlot;
-		
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		
@@ -873,335 +821,263 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
 		
 
-		double[][] totalsMass        = new double[numBoxes][numBands];
-		double[][] totalsBoundary    = new double[numBoxes][numBands];
-		double[]   totalsMassMax     = new double[numBands]; //for binary images
-		double[]   totalsBoundaryMax = new double[numBands]; //for binary images
-		int[]      eps               = new int[numBoxes];
+		double[][] totals = new double[numBoxes][numBands];
+		// double[] totalsMax = new double[numBands]; //for binary images
+		int[][] eps = new int[numBoxes][numBands];
 		
 		// definition of eps
 		for (int n = 0; n < numBoxes; n++) {
-				eps[n] = (int) Math.pow(2, n);
-				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);	
+			for (int b = 0; b < numBands; b++) {	
+				eps[n][b] = (int)Math.round(Math.pow(2, n));
+				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);	
+			}
 		}		
 		
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		if (fractalDimType.equals("Box counting")) {//"Box counting", "Pyramid"
-			//Box counting
-			//n=0  2^0 = 1 ... single pixel
-			// Loop through all pixels.
-			for (int b = 0; b < numBands; b++) {
-				cursor = Views.iterable(rai).localizingCursor();	
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					//cursor.localize(pos);			
-					if (((UnsignedByteType) cursor.get()).get() > 0) {
-						totalsMass[0][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-						totalsMassMax[b] = totalsMassMax[b] + 1; // / totalsMax[b];
-					}
-					//totals[n][b] = totals[n][b]; // / totalsMax[b];
-				}
-			}//b	
+		//Correlation method	
+		if (scanningType.equals("Disc(radius) over pixel")) {
+			//Classical correlation dimension with radius over a pixel
+			//radius is estimated by box
+			ra = rai.randomAccess();
+			long number_of_points = 0;
+			int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
+			int random_number = 0;
+			int radius;		
+			long count = 0;
+			
+			if  (max_random_number == 1) { // no statistical approach, take all image pixels
+				for (int b = 0; b < numBands; b++) {
+					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
+						radius = eps[n][b];			
+						for (int x = 0; x < width; x++){
+							for (int y = 0; y < height; y++){	
+								ra.setPosition(x, 0);
+								ra.setPosition(y, 1);	
+								if((((UnsignedByteType) ra.get()).get() > 0) ){
+									number_of_points++; // total number of points 	
+									// scroll through sub-array 
+									for (int xx = x - radius + 1; xx < x + radius ; xx++) {
+										if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
+											for (int yy = y - radius + 1; yy < y + radius; yy++) {
+												if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
+													if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
+														ra.setPosition(xx, 0);
+														ra.setPosition(yy, 1);	
+														if((((UnsignedByteType) ra.get()).get() > 0) ){
+															count++;
+														}
+													}//<= radius	
+												}
+											}//yy
+										}
+									}//XX
+								}
+							} //y	
+						} //x  
+						// calculate the average number of neighboring points within distance "radius":  
+						//number of neighbors = counts-total_number_of_points
+						//average number of neighbors = number of neighbors / total_number_of_points		 
+						totals[n][b]=(double)(count-number_of_points)/number_of_points;
+						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
+						// set counts equal to zero
+						count=0;	
+						number_of_points=0;
+					} //n Box sizes		
+				}//b band
+			} // no statistical approach
+			else { //statistical approach
+				for (int b = 0; b < numBands; b++) {
+					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
+						radius = eps[n][b];				
+						for (int x = 0; x < width; x++){
+							for (int y = 0;  y < height; y++){		
+								random_number = (int) (Math.random()*max_random_number+1);
+								if( random_number == 1 ){ // UPDATE 07.08.2013 
+									ra.setPosition(x, 0);
+									ra.setPosition(y, 1);	
+									if((((UnsignedByteType) ra.get()).get() > 0) ){
+										number_of_points++; // total number of points 	
+										// scroll through sub-array 
+										for (int xx = x - radius + 1; xx < x + radius ; xx++) {
+											if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
+												for (int yy = y - radius + 1; yy < y + radius; yy++) {
+													if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
+														if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
+															ra.setPosition(xx, 0);
+															ra.setPosition(yy, 1);	
+															if((((UnsignedByteType) ra.get()).get() > 0) ){
+																count++;
+															}
+														}//<= radius	
+													 }
+												}//yy
+											}
+										}//XX
+									}
+								}
+							} //y	
+						} //x  
+						// calculate the average number of neighboring points within distance "radius":  
+						//number of neighbors = counts-total_number_of_points
+						//average number of neighbors = number of neighbors / total_number_of_points
+						totals[n][b]=(double)(count-number_of_points)/number_of_points;
+						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
+						// set counts equal to zero
+						count=0;	
+						number_of_points=0;
+					} //n Box sizes		
+				}//b band
+			}
+		} //
+	
+		else if (scanningType.equals("FFGE - Fast fixed grid estimate")) {
+			//Fixed grid
+			/**	KORRELATIONSDIMENSION: Fixed Grid Scan
+			 *  Martin Reiss
+			 * 	Eine schnelle Näherung der Korrelationsdimension wird durch einen Fixed-Grid Scan ermöglicht. 
+			 * 	Der Datensatz wird einer Diskretisierung durch ein Gitter bei einer festen Boxgröße unterworfen. 
+			 * 	Im Anschluss wird lediglich das Quadrat der Besetzungszahlen jeder Zelle kalkuliert. 
+			 *  Wong A, Wu L,Gibbons P, Faloutsos C, Fast estimation of fractal dimension and correlation integral on stream data. Inf.Proc.Lett 93 (2005) 91-97
+			 */ 
 			int boxSize;		
 			int delta = 0;
+			long count = 0;
 			for (int b = 0; b < numBands; b++) {
-				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-					boxSize = eps[n];	
-					if      (scanningType.equals("Raster box"))  delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1;
+				for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
+					boxSize = eps[n][b];		
+					delta = boxSize;
 					for (int x =0; x <= (width-boxSize); x=x+delta){
 						for (int y =0;  y<= (height-boxSize); y=y+delta){
 							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-							boolean isGreaterZeroFound = false;
 							// Loop through all pixels of this box.
 							cursor = Views.iterable(raiBox).localizingCursor();
 							while (cursor.hasNext()) { //Box
 								cursor.fwd();
 								//cursorF.localize(pos);				
 								if (((UnsignedByteType) cursor.get()).get() > 0) {
-									totalsMass[n][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-									totalsMassMax[b] = totalsMassMax[b] + 1; // / totalsMax[b];
-									isGreaterZeroFound = true;
+									count++; // Binary Image: 0 and [1, 255]! and not: 0 and 255
 								}			
-								if (isGreaterZeroFound) break; //do not search in this box any more
 							}//while Box
+							totals[n][b] += count*count;
+							count = 0;
 						} //y	
 					} //x                                          
 				} //n
-			}//b band	
-			
-			//*********create boundary image
-			
-			//Compute erode image
-			RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
-			Runtime runtime  = Runtime.getRuntime();
-			long maxMemory   = runtime.maxMemory();
-			long totalMemory = runtime.totalMemory();
-			long freeMemory  = runtime.freeMemory();
-			int availableProcessors = runtime.availableProcessors();
-			//System.out.println("availabel processors: " + availableProcessors);
-			
-			int numThreads = 6; //For erosion //with 6 it was 3 times faster than only with one thread
-			if (numThreads > availableProcessors) numThreads = availableProcessors;
-
-			long[] pos = new long[2];
-			int pixelValueImgOrig;
-			float pixelValueImgTemp;
-			
-			imgFloat = createImgFloat(rai);
-			imgTemp = Erosion.erode(imgFloat, kernel, numThreads); //eroded image
-			//uiService.show("Eroded image", imgTemp);
-			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-			//subtraction ImgOrig - ImgErode
-			cursorF = imgTemp.localizingCursor();
-			while (cursorF.hasNext()) {
-				cursorF.fwd();
-				cursorF.localize(pos);
-				ra.setPosition(pos);
-				pixelValueImgTemp = ((FloatType) cursorF.get()).get();    //eroded image
-				pixelValueImgOrig = ((UnsignedByteType) ra.get()).getInteger(); //original image
-				// Binary Image: 0 and [1, 255]! and not: 0 and 255
-				if ((pixelValueImgOrig > 0) && (pixelValueImgTemp == 0)) {
-					((FloatType) cursorF.get()).set(255f);					
-				} else {
-					((FloatType) cursorF.get()).set(0f);		
-				}
-			}
-			//uiService.show("Boundary image", imgTemp);
-			
-			//do again Box counting with boundary image
-			//n=0  2^0 = 1 ... single pixel
-			// Loop through all pixels.
-			for (int b = 0; b < numBands; b++) {
-				cursorF = imgTemp.localizingCursor();	
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					//cursor.localize(pos);			
-					if (((FloatType) cursorF.get()).get() > 0) {
-						totalsBoundary[0][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-						totalsBoundaryMax[b] = totalsBoundaryMax[b] + 1;
-					}
-				}
-			}//b	
+			}//b band		
+		} //Fast fixed grid estimate
 		
+		//Sarkar & Chaudhuri „Multifractal and Generalized Dimensions of Gray-Tone Digital Images“. Signal Processing 42, Nr. 2 (1. März 1995): 181–90. https://doi.org/10.1016/0165-1684(94)00126-K.
+		else if (scanningType.equals("DBC")) { //grey value image
+	
+			double greyValue = Double.NaN;
+			int depthZ = 0;
+			int boxSize;
+			double boxSum = 0;
+	
+			//single pixel box
 			for (int b = 0; b < numBands; b++) {
-				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-					boxSize = eps[n];		
-					if      (scanningType.equals("Raster box"))  delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1;
-					for (int x =0; x <= (width-boxSize); x=x+delta){
-						for (int y =0;  y<= (height-boxSize); y=y+delta){
-							raiBox = Views.interval(imgTemp, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-							boolean isGreaterZeroFound = false;
+				//totals[0][b] = 1.0 * width * height; // Grey Image (l-k+1) is always 1 because l=k  //IQM setting
+				//totals[0][b] = Double.NaN; //new in ComsystanJ
+			}		
+			int delta = 0;
+			for (int b = 0; b < numBands; b++) {
+				for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes	
+					boxSize = eps[n][b];	
+					depthZ = (int)Math.round(boxSize * 255/((width + height) / 2.0)); // epsilonZ/255 = epsilon/imageSize
+//					if      (scanningType.equals("Raster box"))  delta = boxSize;
+//					else if (scanningType.equals("Sliding box")) delta = 1;
+					delta = boxSize;
+					for (int x = 0; x <= (width-boxSize); x=x+delta){
+						for (int y = 0;  y<= (height-boxSize); y=y+delta){
+							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+							greyValue = Double.NaN;
+							boxSum = 0;
 							// Loop through all pixels of this box.
-							cursorF = (Cursor<FloatType>) Views.iterable(raiBox).localizingCursor();
-							while (cursorF.hasNext()) { //Box
-								cursorF.fwd();
-								//cursorF.localize(pos);				
-								if (((FloatType) cursorF.get()).get() > 0) {
-									totalsBoundary[n][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-									totalsBoundaryMax[b] = totalsBoundaryMax[b] + 1; // / totalsMax[b];
-									isGreaterZeroFound = true;
-								}			
-								if (isGreaterZeroFound) break; //do not search in this box any more
+							cursor = Views.iterable(raiBox).localizingCursor();
+							while (cursor.hasNext()) { //Box
+								cursor.fwd();
+								//cursorF.localize(pos);
+								greyValue =((UnsignedByteType) cursor.get()).get();
+								
+								boxSum = boxSum + greyValue;
+								//totals[n][b] = totals[n][b] + greyValue;
+									
 							}//while Box
+							totals[n][b] = totals[n][b] + boxSum*boxSum;
 						} //y	
-					} //x                                          
-				} //n
-			}//b band				
-		} //Box Counting dimension
-		else if (fractalDimType.equals("Pyramid")) {//"Box counting", "Pyramid"
-			//only sub-sampling by averaging of original image works.
-			//interpolation and then sub-sampling does not give the same results as Box counting
-			int numPyramidImages = numBoxes;
-			int downSamplingFactor;
-			
-			//Compute Mass
-			for (int n = 0; n < numPyramidImages; n++) { //Downscaling incl. no downscaling
-				 // "base-pyramid", i.e. layers of pyramid from base layer
-				downSamplingFactor =  eps[n]; //of downsampling
-				imgFloat = createImgFloat(rai);
-			    imgSubSampled = subSamplingByAveraging(imgFloat, downSamplingFactor);
-			   // uiService.show("Subsampled image", imgSubSampled);
-				//logService.info(this.getClass().getName() + " width:"+ (imgDownscaled.dimension(0)) + " height:" + (imgDownscaled.dimension(1)));
-
-				//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
-				//pushes a 3D array to the display and
-				//yields mouse moving errors because the third dimension is not available		
-				
-				//if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+power+" downscaled image", imgDownscaled);
-				// Loop through all pixels.
-				cursorF = imgSubSampled.localizingCursor();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					//cursorF.localize(pos);
-					for (int b = 0; b < numBands; b++) {
-						if (cursorF.get().get() > 0) { // Binary Image //[1, 255] and not [255, 255] because interpolation introduces grey values other than 255!
-							totalsMass[n][b] += 1; 
-							totalsMassMax[b] = totalsMassMax[b]  + 1; // / totalsMax[b];
-						}
-						
-					}
-				}	
-			}//n
-			//*********create boundary image	
-			//Compute erode image
-			RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
-			Runtime runtime  = Runtime.getRuntime();
-			long maxMemory   = runtime.maxMemory();
-			long totalMemory = runtime.totalMemory();
-			long freeMemory  = runtime.freeMemory();
-			int availableProcessors = runtime.availableProcessors();
-			//System.out.println("availabel processors: " + availableProcessors);
-			
-			int numThreads = 6; //For erosion //with 6 it was 3 times faster than only with one thread
-			if (numThreads > availableProcessors) numThreads = availableProcessors;
-
-			long[] pos = new long[2];
-			int pixelValueImgOrig;
-			float pixelValueImgTemp;
-			imgFloat = this.createImgFloat(rai);
-			imgTemp = Erosion.erode(imgFloat, kernel, numThreads); //eroded image
-			//uiService.show("Eroded image", imgTemp);
-			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-			//subtraction ImgOrig - ImgErode
-			cursorF = imgTemp.localizingCursor();
-			while (cursorF.hasNext()) {
-				cursorF.fwd();
-				cursorF.localize(pos);
-				ra.setPosition(pos);
-				pixelValueImgTemp = ((FloatType) cursorF.get()).get();    //eroded image
-				pixelValueImgOrig = ((UnsignedByteType) ra.get()).getInteger(); //original image
-				// Binary Image: 0 and [1, 255]! and not: 0 and 255
-				if ((pixelValueImgOrig > 0) && (pixelValueImgTemp == 0)) {
-					((FloatType) cursorF.get()).set(255f);					
-				} else {
-					((FloatType) cursorF.get()).set(0f);		
-				}
-			}
-			//uiService.show("Boundary image", imgTemp);
-			//Compute Boundary
-			for (int n = 0; n < numPyramidImages; n++) { //Downscaling incl. no downscaling
-				 // "base-pyramid", i.e. layers of pyramid from base layer
-				downSamplingFactor =  eps[n]; //of downsampling
-			    imgSubSampled = subSamplingByAveraging(imgTemp, downSamplingFactor);
-				//logService.info(this.getClass().getName() + " width:"+ (imgDownscaled.dimension(0)) + " height:" + (imgDownscaled.dimension(1)));
-
-				//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
-				//pushes a 3D array to the display and
-				//yields mouse moving errors because the third dimension is not available		
-				
-				//if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+power+" downscaled image", imgDownscaled);
-				// Loop through all pixels.
-				cursorF = imgSubSampled.localizingCursor();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					//cursorF.localize(pos);
-					for (int b = 0; b < numBands; b++) {
-						if (cursorF.get().get() > 0) { // Binary Image //[1, 255] and not [255, 255] because interpolation introduces grey values other than 255!
-							totalsBoundary[n][b] += 1; 
-							totalsBoundaryMax[b] = totalsBoundaryMax[b]  + 1; // / totalsMax[b];
-						}
-					}
-				}	
-			}//n
+					} //x		                                           
+				}//n
+			}//b band
 		}
 		
 		
-		//Normalization 
-//		for (int n = 0; n < numBoxes; n++) {
-//			for (int b = 0; b < numBands; b++) {
-//				totalsMass[n][b] = totalsMass[n][b] / totalsMassMax[b];
-//				totalsBoundary[n][b] = totalsBoundary[n][b] / totalsBoundaryMax[b];
-//			}
-//		}	
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
-		double[][] lnTotalsMass     = new double[numBoxes][numBands];
-		double[][] lnTotalsBoundary = new double[numBoxes][numBands];
-		double[] lnEps              = new double[numBoxes];
+		double[][] lnTotals = new double[numBoxes][numBands];
+		double[][] lnEps    = new double[numBoxes][numBands];
 		for (int n = 0; n < numBoxes; n++) {
 			for (int b = 0; b < numBands; b++) {
-				if (totalsMass[n][b] <= 1) {
+				if (totals[n][b] <= 1) {
 					//lnTotals[numBoxes - n - 1][b] = 0.0; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist//IQM
-					lnTotalsMass[n][b] = 0.0;
-				} else if (Double.isNaN(totalsMass[n][b])) {
+					lnTotals[n][b] = 0.0;
+				} else if (Double.isNaN(totals[n][b])) {
 					//lnTotals[numBoxes - n - 1][b] = 0.0;
-					lnTotalsMass[n][b] = Double.NaN;
+					lnTotals[n][b] = Double.NaN;
 				} else {
 					//lnTotals[numBoxes - n - 1][b] = Math.log(totals[n][b]);//IQM
-					lnTotalsMass[n][b] = Math.log(totalsMass[n][b]); //
+					lnTotals[n][b] = Math.log(totals[n][b]); //
 				}
-				if (totalsBoundary[n][b] <= 1) {
-					//lnTotals[numBoxes - n - 1][b] = 0.0; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist//IQM
-					lnTotalsBoundary[n][b] = 0.0;
-				} else if (Double.isNaN(totalsBoundary[n][b])) {
-					//lnTotals[numBoxes - n - 1][b] = 0.0;
-					lnTotalsBoundary[n][b] = Double.NaN;
-				} else {
-					//lnTotals[numBoxes - n - 1][b] = Math.log(totals[n][b]);//IQM
-					lnTotalsBoundary[n][b] = Math.log(totalsBoundary[n][b]); //
-				}
-				
 				//lnEps[n][b] = Math.log(eps[numBoxes - n - 1 ][b]); //IQM
-				lnEps[n] = Math.log(eps[n]);
+				lnEps[n][b] = Math.log(eps[n][b]);
 				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
 				//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
-				//logService.info(this.getClass().getName() + " n:" + n + " totalsMass[n][b]: " + totalsMass[n][b]);
+				//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
 			}
 		}
 		
 		//Create double log plot
 		boolean isLineVisible = false; //?
-				
-		// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		double[]   lnDataX  = new double[numBoxes];
-		double[][] lnDataY  = new double[2][numBoxes];
-	
+		for (int b = 0; b < numBands; b++) { // mehrere Bands
 			
-		//only first band!!!!!!!!!
-		for (int n = 0; n < numBoxes; n++) {	
-			lnDataY[0][n]  = lnTotalsMass[n][0];	
-			lnDataY[1][n]  = lnTotalsBoundary[n][0];	
-			lnDataX[n]     = lnEps[n];
-		}
-		// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
-		// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
-	
-		if (optShowPlot) {			
-			String preName = "";
-			if (numSlices > 1) {
-				preName = "Slice-"+String.format("%03d", plane) +"-";
+			// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			double[] lnDataX = new double[numBoxes];
+			double[] lnDataY = new double[numBoxes];
+				
+			for (int n = 0; n < numBoxes; n++) {	
+				lnDataY[n] = lnTotals[n][b];		
+				lnDataX[n] = lnEps[n][b];
 			}
-			String xAxisLabel = "";
-			if      (fractalDimType.equals("Box counting")) xAxisLabel = "ln(Box size)";
-			else if (fractalDimType.equals("Pyramid"))      xAxisLabel = "ln(2^n)";
-			
-			String[] legendLabels = new String[2];
-			legendLabels[0] = "Mass";
-			legendLabels[1] = "Boundary";
-			
-			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - FFI", 
-					preName + datasetName, xAxisLabel, "ln(Count)", legendLabels,
-					regMin, regMax);
-			doubleLogPlotList.add(doubleLogPlot);
-		}
-				
-		// Compute regressions
-		LinearRegression lr = new LinearRegression();
-		double[] regressionParamsMass = lr.calculateParameters(lnDataX, lnDataY[0], regMin, regMax);
-		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		lr = new LinearRegression();
-		double[] regressionParamsPerim = lr.calculateParameters(lnDataX, lnDataY[1], regMin, regMax);
+			// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
+			// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
 		
-		regressionParams = new double[regressionParamsMass.length + regressionParamsPerim.length]; 
-		for (int r = 0; r < regressionParamsMass.length; r++) {
-			regressionParams[r] = regressionParamsMass[r];
-		}
-		for (int r = 0; r < regressionParamsPerim.length; r++) {
-			regressionParams[r + regressionParamsMass.length] = regressionParamsPerim[r];
-		}
+			if (optShowPlot) {			
+				String preName = "";
+				String axisNameX = "";
+				String axisNameY = "";
+				if (numSlices > 1) {
+					preName = "Slice-"+String.format("%03d", plane) +"-";
+				}
+				if (scanningType.equals("Disc(radius) over pixel")) {
+					axisNameX = "ln(Radius)";
+					axisNameY = "ln(Count)";
+				}
+				else if (scanningType.equals("FFGE - Fast fixed grid estimate")) {
+					axisNameX = "ln(Box width)";
+					axisNameY = "ln(Count^2)";
+				}
+				
+				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Correlation dimension", 
+						preName + datasetName, axisNameX, axisNameY, "",
+						regMin, regMax);
+				doubleLogPlotList.add(doubleLogPlot);
+			}
 			
+			// Compute regression
+			LinearRegression lr = new LinearRegression();
+			regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
+			//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+		}
+		
 		return regressionParams;
 		//Output
 		//uiService.show(tableName, table);
@@ -1210,7 +1086,6 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 	}
 
 	
-
 	//This methods reduces dimensionality to 2D just for the display 	
 	//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
 	//pushes a 3D array to the display and
@@ -1263,11 +1138,11 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 	 * @param interpolType The type of interpolation
 	 * @return RegressionPlotFrame
 	 */			
-	private RegressionPlotFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
-			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int regMin, int regMax) {
+	private RegressionPlotFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel, int regMin, int regMax) {
 		// jFreeChart
 		RegressionPlotFrame pl = new RegressionPlotFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabels, regMin, regMax);
+				yAxisLabel, legendLabel, regMin, regMax);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;
@@ -1276,13 +1151,13 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		// verticalPercent);
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
-		return pl;	
+		return pl;		
 	}
 	
 	
 	/**
 	 * 
-	 * This methods creates an Img<FloatType>
+	 * This methods creates a Img<FloatType>
 	 */
 	private Img<FloatType > createImgFloat(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
 		
@@ -1308,56 +1183,7 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		return imgFloat;
 	}
 	
-	/**
-	 * This method creates a smaller image by averaging pixel values 
-	 * @param imgFloat
-	 * @param downSamplingFactor
-	 * @return
-	 */	
-	private Img<FloatType> subSamplingByAveraging(Img<FloatType> imgFloat, int downSamplingFactor) {
-		
-		int averagingSize = downSamplingFactor;
-		
-		int numDimensions = imgFloat.numDimensions();
-		// compute the number of pixels of the output and the size of the real interval
-		long[] newSize = new long[numDimensions];
-	
-		for ( int d = 0; d < numDimensions; ++d ){
-			newSize[d] = (int)Math.floor(imgFloat.dimension(d) / downSamplingFactor);
-		}		
-		// create the output image
-		ArrayImgFactory arrayImgFactory = new ArrayImgFactory<>(new FloatType());
-		imgSubSampled = arrayImgFactory.create( newSize );
 
-		// cursor to iterate over all pixels
-		cursorF = imgSubSampled.localizingCursor();
-
-		// create a RandomAccess on the source
-		RandomAccess<FloatType> ra = imgFloat.randomAccess();
-		long[] pos = new long[numDimensions];
-		float mean = 0f;
-		long count = 0;
-		// for all pixels of the output image
-		while (cursorF.hasNext()) {
-			cursorF.fwd();
-			cursorF.localize(pos);
-			//Get average
-			mean = 0f;
-			
-			for (int i = 0; i < averagingSize; i++) {
-				for (int j = 0; j < averagingSize; j++) {
-					ra.setPosition(pos[0]*averagingSize + i, 0);
-					ra.setPosition(pos[1]*averagingSize + j, 1);
-					mean = mean + ra.get().getRealFloat();
-					count = count +1;
-				}
-			}
-			mean = mean/(float)count;
-			cursorF.get().set(mean);
-		}
-		return imgSubSampled;
-	}
-	
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
 		try {
@@ -1376,8 +1202,8 @@ public class FractalDimensionFFI<T extends RealType<T>> extends InteractiveComma
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(FractalDimensionFFI.class, true).get().getOutput("image");
-		ij.command().run(FractalDimensionFFI.class, true);
+		//ij.command().run(Img2DFractalDimensionCorrelation.class, true).get().getOutput("image");
+		ij.command().run(Img2DFractalDimensionCorrelation.class, true);
 	}
 }
 

@@ -93,7 +93,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.frac.lacunarity</package-name>
-		<main-class>at.csa.csaj.img2d.frac.lacunarity.Lacunarity</main-class>
+		<main-class>at.csa.csaj.img2d.frac.lacunarity.Img2DLacunarity</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

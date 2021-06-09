@@ -96,7 +96,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.frac.dim.tow</package-name>
-		<main-class>at.csa.csaj.img2d.frac.dim.tow.FractalDimensionTugOfWar</main-class>
+		<main-class>at.csa.csaj.img2d.frac.dim.tow.Img2DFractalDimensionTugOfWar</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

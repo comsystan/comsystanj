@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin for computing the Generalized fractal dimensions
- * File: FractalDimensionGeneralized.java
+ * File: Img2DFractalDimensionGeneralized.java
  * 
  * $Id$
  * $HeadURL$
@@ -106,8 +106,8 @@ import io.scif.MetaTable;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
         @Menu(label = "Generalized dimensions", weight = 8)})
-public class FractalDimensionGeneralized<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class FractalDimensionGeneralized<T extends RealType<T>> implements Command {	//modal GUI
+public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
+//public class Img2DFractalDimensionGeneralized<T extends RealType<T>> implements Command {	//modal GUI
 	
 	private static final String PLUGIN_LABEL            = "<html><b>Computes Generalized fractal dimensions</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -1476,8 +1476,8 @@ public class FractalDimensionGeneralized<T extends RealType<T>> extends Interact
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(FractalDimensionGeneralized.class, true).get().getOutput("image");
-		ij.command().run(FractalDimensionGeneralized.class, true);
+		//ij.command().run(Img2DFractalDimensionGeneralized.class, true).get().getOutput("image");
+		ij.command().run(Img2DFractalDimensionGeneralized.class, true);
 	}
 }
 

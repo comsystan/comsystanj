@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing fractal dimension with box counting.
- * File: FractalDimensionBoxCounting.java
+ * Project: ImageJ plugin for computing fractal Minkowski dimension
+ * File: Img2DFractalDimensionMinkowski.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,8 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.img2d.frac.dim.box;
+
+package at.csa.csaj.img2d.frac.dim.minkowski;
 
 import java.awt.Toolkit;
 import java.io.File;
@@ -48,9 +49,16 @@ import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
+import net.imglib2.FinalInterval;
+import net.imglib2.Interval;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.morphology.Dilation;
+import net.imglib2.algorithm.morphology.Erosion;
+import net.imglib2.algorithm.neighborhood.HorizontalLineShape;
+import net.imglib2.algorithm.neighborhood.RectangleShape;
+import net.imglib2.algorithm.neighborhood.Shape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.Type;
@@ -93,40 +101,50 @@ import io.scif.MetaTable;
 
 /**
  * A {@link Command} plugin computing
- * <the fractal box counting dimension </a>
+ * <the fractal Minkowski dimension </a>
  * of an image.
  */
 @Plugin(type = InteractiveCommand.class, 
         headless = true,
-	    label = "Box counting", menu = {
+        label = "Minkowski dimension", menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
-        @Menu(label = "Box counting dimension", weight = 3)})
-public class FractalDimensionBoxCounting<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class FractalDimensionBoxCounting<T extends RealType<T>> implements Command {	//modal GUI
+        @Menu(label = "Minkowski dimension", weight = 5)})
+public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
+//public class Img2DFractalDimensionMinkowski<T extends RealType<T>> implements Command {	//modal GUI
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with box counting</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal Minkowski dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
-	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
+	private static final String MORPHOLOGYOPTIONS_LABEL = "<html><b>Morphology options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
-	RandomAccessibleInterval<?> raiBox;
-	Cursor<?> cursor = null;
+	private static Img<FloatType> imgU;
+	private static Img<FloatType> imgB; 
+	private static Img<FloatType> imgUplusOne;
+	private static Img<FloatType> imgBminusOne; 
+	private static Img<FloatType> imgUDil;
+	private static Img<FloatType> imgBErode;
+	private static Img<FloatType> imgV;
+	private static Img<UnsignedByteType>imgUnsignedByte;
+	private static RandomAccess<FloatType> raF1;
+	private static RandomAccess<FloatType> raF2;
+	private static RandomAccessibleInterval<FloatType> raiF;	
+	private static Cursor<UnsignedByteType> cursorUBT = null;
+	private static Cursor<FloatType> cursorF = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
 	private static long width  = 0;
 	private static long height = 0;
 	private static long numDimensions = 0;
 	private static long numSlices  = 0;
-	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
-	private static final String tableName = "Table - Box counting dimension";
+	private static final String tableName = "Table - Minkowski dimension";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -183,16 +201,16 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "Number of boxes",
-    		   description = "Number of distinct box sizes with the power of 2",
+    @Parameter(label = "Number of dilations",
+    		   description = "Number of dilations to increase object size",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
 	           persist  = false,  //restore previous value default = true
-	           initializer = "initialNumBoxes",
-	           callback    = "callbackNumBoxes")
-    private int spinnerInteger_NumBoxes;
+	           initializer = "initialNumDilations",
+	           callback    = "callbackNumDilations")
+    private int spinnerInteger_NumDilations;
     
     @Parameter(label = "Regression Min",
     		   description = "Minimum x value of linear regression",
@@ -218,27 +236,27 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     
 	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-     private final String labelMethodOptions = METHODOPTIONS_LABEL;
+     private final String labelMethodOptions = MORPHOLOGYOPTIONS_LABEL;
      
-     @Parameter(label = "Scanning method",
-    		    description = "Type of box scanning",
-    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-      		    choices = {"Raster box"}, //"Sliding box" does not give the right dimension values
-      		    //persist  = false,  //restore previous value default = true
-    		    initializer = "initialScanningType",
-                callback = "callbackScanningType")
-     private String choiceRadioButt_ScanningType;
+     @Parameter(label = "Kernel shape type",
+  		    description = "Shape of morphological structuring element",
+  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+    		    choices = {"Square", "Horizontal", "Vertical"},
+    		    //persist  = false,  //restore previous value default = true
+  		    initializer = "initialShapeType",
+              callback = "callbackShapeType")
+      private String choiceRadioButt_ShapeType;
      
-     @Parameter(label = "Analysis type",
- 		    description = "Type of image and computation",
+     @Parameter(label = "Morphological operator",
+ 		    description = "Type of image and according morphological operation",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Binary", "DBC", "RDBC"},
+   		    choices = {"Binary dilation", "Blanket dilation/erosion"},
    		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialAnalysisMethod",
-             callback = "callbackAnalysisMethod")
-     private String choiceRadioButt_AnalysisMethod;
+ 		    initializer = "initialMorphologicalOperator",
+             callback = "callbackMorphologicalOperator")
+     private String choiceRadioButt_MorphologicalOperator;
      
- 	 //-----------------------------------------------------------------------------------------------------
+ 	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
@@ -246,21 +264,26 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
     		    //persist  = false,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
-       
-     @Parameter(label = "Overwrite result display(s)",
-    	    	description = "Overwrite already existing result images, plots or tables",
-    	    	//persist  = false,  //restore previous value default = true
-    			initializer = "initialOverwriteDisplays")
-     private boolean booleanOverwriteDisplays;
      
- 	 //-----------------------------------------------------------------------------------------------------
+     @Parameter(label = "Show last dilated/eroded image",
+ 		    //persist  = false,  //restore previous value default = true
+		        initializer = "initialShowLastMorphImg")
+	 private boolean booleanShowLastMorphImg;
+         
+     @Parameter(label = "Overwrite result display(s)",
+    		    description = "Overwrite already existing result images, plots or tables",
+    		    //persist  = false,  //restore previous value default = true
+		        initializer = "initialOverwriteDisplays")
+	 private boolean booleanOverwriteDisplays;
+     
+ 	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
      @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
-    	    	description = "Immediate processing of active image when a parameter is changed",
-    			callback = "callbackProcessImmediately")
-     private boolean booleanProcessImmediately;
+    		  description = "Immediate processing of active image when a parameter is changed",
+		      callback = "callbackProcessImmediately")
+	 private boolean booleanProcessImmediately;
      
      @Parameter(label   = "Process single active image ",
     		    callback = "callbackProcessActiveImage")
@@ -270,56 +293,49 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
  		        callback = "callbackProcessAllImages")
 	 private Button buttonProcessAllImages;
 
-
     //---------------------------------------------------------------------
  
     //The following initialzer functions set initial values
-    protected void initialNumBoxes() {
-      	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
-      	spinnerInteger_NumBoxes = numBoxes;
+    protected void initialNumDilations() {
+      	spinnerInteger_NumDilations = 20;
     }
     protected void initialRegMin() {
     	spinnerInteger_RegMin = 1;
     }
     protected void initialRegMax() {
-    	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
-    	spinnerInteger_RegMax =  numBoxes;
+    	spinnerInteger_RegMax =  20;
     }
-    protected void initialScanningType() {
-    	choiceRadioButt_ScanningType = "Raster box";
+    protected void initialShapeType() {
+    	choiceRadioButt_ShapeType = "Square";
     }
-    protected void initialAnalysisMethod() {
-    	choiceRadioButt_AnalysisMethod = "Binary";
+    protected void initialMorphologicalOperator() {
+    	choiceRadioButt_MorphologicalOperator = "Binary dilation";
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
+    protected void initialShowLastMorphImg() {
+    	booleanShowLastMorphImg = true;
+    }
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
-  
     
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
-	protected void callbackNumBoxes() {
+	protected void callbackNumDilations() {
 		
-		if  (spinnerInteger_NumBoxes < 3) {
-			spinnerInteger_NumBoxes = 3;
+		if  (spinnerInteger_NumDilations < 3) {
+			spinnerInteger_NumDilations = 3;
 		}
-		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
-		if (spinnerInteger_NumBoxes > numMaxBoxes) {
-			spinnerInteger_NumBoxes = numMaxBoxes;
-		};
-		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
-			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
+		if (spinnerInteger_RegMax > spinnerInteger_NumDilations) {
+			spinnerInteger_RegMax = spinnerInteger_NumDilations;
 		}
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
 		}
-
-		numBoxes = spinnerInteger_NumBoxes;
-		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
+		logService.info(this.getClass().getName() + " Number of dilations set to " + spinnerInteger_NumDilations);
 	}
     /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
@@ -336,22 +352,22 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
 		}		
-		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
-			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
+		if (spinnerInteger_RegMax > spinnerInteger_NumDilations) {
+			spinnerInteger_RegMax = spinnerInteger_NumDilations;
 		}
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
-	
-	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
-	protected void callbackScanningType() {
-		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
+
+	/** Executed whenever the {@link #choiceRadioButt_ShapeType} parameter changes. */
+	protected void callbackShapeType() {
+		logService.info(this.getClass().getName() + " Shape type set to " + choiceRadioButt_ShapeType);
 		
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
-	protected void callbackAnalysisMethod() {
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
+	/** Executed whenever the {@link #choiceRadioButt_MorphologicalOperator} parameter changes. */
+	protected void callbackMorphologicalOperator() {
+		logService.info(this.getClass().getName() + " Morphological operator set to " + choiceRadioButt_MorphologicalOperator);
 		
 	}
 	
@@ -365,8 +381,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Minkowski dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Minkowski dimensions, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -377,7 +393,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
         	    try {
         	    	logService.info(this.getClass().getName() + " Processing active image");
         	    	deleteExistingDisplays();
-            		getAndValidateActiveDataset();
+        	    	getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -401,8 +417,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Minkowski dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Minkowski dimensions, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -410,8 +426,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
             public void run() {	
             	try {
 	            	logService.info(this.getClass().getName() + " Processing all available images");
-	            	deleteExistingDisplays();
-	            	getAndValidateActiveDataset();
+	        		deleteExistingDisplays();
+	            	getAndValidateActiveDataset(); 
 	        		processAllInputImages();
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
@@ -429,9 +445,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
         });	
 		
 	}
-	
-	
-	
+
     // You can control how previews work by overriding the "preview" method.
  	// The code written in this method will be automatically executed every
  	// time a widget value changes.
@@ -553,6 +567,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
+		
 		boolean optDeleteExistingPlots  = false;
 		boolean optDeleteExistingTables = false;
 		boolean optDeleteExistingImgs   = false;
@@ -561,7 +576,6 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			optDeleteExistingTables = true;
 			optDeleteExistingImgs   = true;
 		}
-		
 		if (optDeleteExistingPlots){
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
@@ -579,6 +593,15 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
 				if (display.getName().equals(tableName)) display.close();
+			}			
+		}
+		if (optDeleteExistingImgs){
+			List<Display<?>> list = defaultDisplayService.getDisplays();
+			for (int i = 0; i < list.size(); i++) {
+				Display<?> display = list.get(i);
+				//System.out.println("display name: " + display.getName());
+				if (display.getName().equals("Last dilated image")) display.close();
+				if (display.getName().equals("Last eroded image"))  display.close();
 			}			
 		}
 	}
@@ -625,7 +648,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		//Compute dimension
 		double dim = Double.NaN;
 		
-		dim = -regressionValues[1];
+		if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))          dim  = 2-regressionValues[1]; //Standard Dm according to Peleg et al.
+		else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion")) dim  = -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
 		resultValuesTable[s][1] = dim;
 		
 		long duration = System.currentTimeMillis() - startTime;
@@ -687,7 +711,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 				//Compute dimension
 				double dim = Double.NaN;
 			
-				dim = -regressionValues[1];
+				if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))          dim  = 2-regressionValues[1]; //Standard Dm according to Peleg et al.
+				else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion")) dim  = -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
 				resultValuesTable[s][1] = dim;
 				
 				long duration = System.currentTimeMillis() - startTime;
@@ -712,12 +737,12 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
-		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
+		IntColumn columnMaxNumBoxes        = new IntColumn("# Dilations");
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
-		GenericColumn columnScanType       = new GenericColumn("Scanning type");
-		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
-		DoubleColumn columnDp              = new DoubleColumn("Db");
+		GenericColumn columnShapeType      = new GenericColumn("Shape type");
+		GenericColumn columnMorphOp        = new GenericColumn("Morphological operator");
+		DoubleColumn columnDm              = new DoubleColumn("Dm");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 		
@@ -727,9 +752,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		table.add(columnMaxNumBoxes);
 		table.add(columnRegMin);
 		table.add(columnRegMax);
-		table.add(columnScanType);
-		table.add(columnAnalysisType);
-		table.add(columnDp);
+		table.add(columnShapeType);
+		table.add(columnMorphOp);
+		table.add(columnDm);
 		table.add(columnR2);
 		table.add(columnStdErr);
 	}
@@ -741,24 +766,21 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	
 		int regMin           = spinnerInteger_RegMin;
 		int regMax           = spinnerInteger_RegMax;
-		int numImages        = spinnerInteger_NumBoxes;
-		String scanningType  = choiceRadioButt_ScanningType;	
-		String analysisType  = choiceRadioButt_AnalysisMethod;	
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-		}	
+		int numDilations     = spinnerInteger_NumDilations;
+		String shapeType     = choiceRadioButt_ShapeType; 
+		String morphOp       = choiceRadioButt_MorphologicalOperator;	
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
 			table.appendRow();
 			table.set("File name",   	 table.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null) 	 table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
+			table.set("# Dilations",     table.getRowCount()-1, numDilations);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Scanning type",   table.getRowCount()-1, scanningType);	
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);	
-			table.set("Db",          	 table.getRowCount()-1, resultValuesTable[s][1]);
+			table.set("Shape type",      table.getRowCount()-1, shapeType);	
+			table.set("Morphological operator",   table.getRowCount()-1, morphOp);	
+			table.set("Dm",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
 		
@@ -771,12 +793,9 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 	
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
-		int numImages    	= spinnerInteger_NumBoxes;
-		String scanningType = choiceRadioButt_ScanningType;	
-		String analysisType = choiceRadioButt_AnalysisMethod;	
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-		}
+		int numDilations    = spinnerInteger_NumDilations;
+		String shapeType    = choiceRadioButt_ShapeType; 
+		String morphOp      = choiceRadioButt_MorphologicalOperator;	
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -784,12 +803,12 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			table.appendRow();
 			table.set("File name",	   	 table.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null)	 table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
+			table.set("# Dilations",     table.getRowCount()-1, numDilations);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Scanning type",   table.getRowCount()-1, scanningType);	
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);		
-			table.set("Db",          	 table.getRowCount()-1, resultValuesTable[s][1]);
+			table.set("Shape type",      table.getRowCount()-1, shapeType);	
+			table.set("Morphological operator",   table.getRowCount()-1, morphOp);		
+			table.set("Dm",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
 		}
@@ -799,23 +818,21 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 							
 	/** 
 	 * Processing ****************************************************************************************
+	 * <li> Peleg S., Naor J., Hartley R., Avnir D. Multiple Resolution Texture Analysis and Classification, IEEE Trans Patt Anal Mach Intel Vol PAMI-6 No 4 1984, 518-523 !!!
+	 * <li> Y.Y. Tang, E.C.M. Lam, New method for feature extraction based on fractal behavior, Patt. Rec. 35 (2002) 1071-1081   Ref. zu Peleg etal.
+	 * <li> Dubuc B., Zucker S.W., Tricot C., Quiniou J.F., Wehbi D. Evaluating the fractal dimension of surfaces, Proc.R.Soc.Lond. A 425, 113-127, 1989 
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
 		
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
-		int numBoxes        = spinnerInteger_NumBoxes;
-		String scanningType = choiceRadioButt_ScanningType;	
-		String analysisType = choiceRadioButt_AnalysisMethod;	 //binary  DBC   RDBC
-		
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
-			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
-		}
-		int numBands = 1;
-		
+		int numDilations    = spinnerInteger_NumDilations;
+		String shapeType    = choiceRadioButt_ShapeType; 
+		String MorphologicalType = choiceRadioButt_MorphologicalOperator;	 //binary  Blanket
 		boolean optShowPlot    = booleanShowDoubleLogPlot;
 		
+		int numBands = 1;
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		
@@ -830,160 +847,190 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
 		
 
-		double[][] totals = new double[numBoxes][numBands];
+		double[][] totals = new double[numDilations][numBands];
 		// double[] totalsMax = new double[numBands]; //for binary images
-		double[][] eps = new double[numBoxes][numBands];
+		int[]      eps    = new int[numDilations];
 		
 		// definition of eps
-		for (int n = 0; n < numBoxes; n++) {
-			for (int b = 0; b < numBands; b++) {	
-				eps[n][b] = Math.pow(2, n);
-				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);	
-			}
+		for (int n = 0; n < numDilations; n++) {
+				eps[n] = n + 1;
+				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);	
 		}		
 		
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		if (analysisType.equals("Binary")) {//{"Binary", "DBC", "RDBC"}
-			//Box counting
+		if (MorphologicalType.equals("Binary dilation")) {//{"Binary dilation", "Blanket dilation/erosion"}
+			//Minkowski
 			//n=0  2^0 = 1 ... single pixel
 			// Loop through all pixels.
+			//get count(area) and copy image 
+//			for (int b = 0; b < numBands; b++) {
+//				cursor = (Cursor<UnsignedByteType>) Views.iterable(rai).localizingCursor();	
+//				while (cursor.hasNext()) {
+//					cursor.fwd();
+//					//cursor.localize(pos);			
+//					if (((UnsignedByteType) cursor.get()).get() > 0) totals[0][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+//					//totals[n][b] = totals[n][b]; // / totalsMax[b];
+//				}
+//			}//b
+			imgUnsignedByte = createImgUnsignedByte(rai); //This copies the image, otherwise the original image would be dilated
+			Shape kernel = null;
+			if (shapeType.equals("Square"))          kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
+			else if (shapeType.equals("Horizontal")) kernel = new HorizontalLineShape(1, 0, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			else if (shapeType.equals("Vertical"))   kernel = new HorizontalLineShape(1, 1, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			Runtime runtime  = Runtime.getRuntime();
+			long maxMemory   = runtime.maxMemory();
+			long totalMemory = runtime.totalMemory();
+			long freeMemory  = runtime.freeMemory();
+			int availableProcessors = runtime.availableProcessors();
+			//System.out.println("available processors: " + availableProcessors);
+			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
+			if (numThreads > availableProcessors) numThreads = availableProcessors;
+			long[] pos = new long[2];
+			long[] min = new long[] {0,0};
+			long[] max = new long[] {rai.dimension(0), rai.dimension(1)};
+			Interval interval = new FinalInterval(min, max);
 			for (int b = 0; b < numBands; b++) {
-				cursor = Views.iterable(rai).localizingCursor();	
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					//cursor.localize(pos);			
-					if (((UnsignedByteType) cursor.get()).get() > 0) totals[0][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-					//totals[n][b] = totals[n][b]; // / totalsMax[b];
-				}
-			}//b	
-			int boxSize;		
-			int delta = 0;
-			for (int b = 0; b < numBands; b++) {
-				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-					boxSize = (int) Math.pow(2, n);		
-					if      (scanningType.equals("Raster box"))  delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1;
-					for (int x =0; x <= (width-boxSize); x=x+delta){
-						for (int y =0;  y<= (height-boxSize); y=y+delta){
-							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-							boolean isGreaterZeroFound = false;
-							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
-							while (cursor.hasNext()) { //Box
-								cursor.fwd();
-								//cursorF.localize(pos);				
-								if (((UnsignedByteType) cursor.get()).get() > 0) {
-									totals[n][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-									//totals[n][b] = totals[n][b]; // / totalsMax[b];
-									isGreaterZeroFound = true;
-								}			
-								if (isGreaterZeroFound) break; //do not search in this box any more
-							}//while Box
-						} //y	
-					} //x                                          
+				for (int n = 0; n < numDilations; n++) { //	
+					//Compute dilated image
+					Dilation.dilateInPlace(imgUnsignedByte, interval, kernel, numThreads); //dilateds image
+					//uiService.show("Dilated image", imgUnsignedByte);
+					if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUnsignedByte);
+					cursorUBT = imgUnsignedByte.localizingCursor();	
+					while (cursorUBT.hasNext()) {
+						cursorUBT.fwd();
+						//cursor.localize(pos);			
+						if (((UnsignedByteType) cursorUBT.get()).get() > 0) totals[n][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+						//totals[n][b] = totals[n][b]; // / totalsMax[b];
+					}		                      
 				} //n
 			}//b band		
 		}
 		//*******************************Grey Value Image
-		if (analysisType.equals("DBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
-			//Box counting
-			//n=0  2^0 = 1 ... single pixel
-			double greyMax = 0.0;
-			double greyMin = Double.MAX_VALUE;
-			double greyValue = Double.NaN;
-			double depthZ = Double.NaN;
-			double l = Double.NaN;
-			double k = Double.NaN;	
-			//single pixel box
-			for (int b = 0; b < numBands; b++) {
-				//totals[0][b] = 1.0 * width * height; // Grey Image (l-k+1) is always 1 because l=k  //IQM setting
-				totals[0][b] = Double.NaN; //new in ComsystanJ
-			}
-			int boxSize = (int) Math.pow(2, 0);		
-			int delta = 0;
-			for (int b = 0; b < numBands; b++) {
-				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
-					boxSize = (int) Math.pow(2, n);	
-					if      (scanningType.equals("Raster box"))  delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1;
-					for (int x =0; x <= (width-boxSize); x=x+delta){
-						for (int y =0;  y<= (height-boxSize); y=y+delta){
-							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-							greyMax = 0.0;
-							greyMin = Double.MAX_VALUE;
-							greyValue = Double.NaN;
-							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
-							while (cursor.hasNext()) { //Box
-								cursor.fwd();
-								//cursorF.localize(pos);
-								greyValue =((UnsignedByteType) cursor.get()).get();
-								if (greyValue > greyMax) greyMax = greyValue;
-								if (greyValue < greyMin) greyMin = greyValue;			
-							}//while Box
-							depthZ = boxSize * 255/((width + height) / 2.0); // epsilonZ/255 = epsilon/imageSize
-							l = greyMax/depthZ; // number of boxes in z direction
-							k = greyMin/depthZ;
-							l = Math.ceil(l);
-							k = Math.ceil(k);
-							totals[n][b] = totals[n][b] + (l - k + 1);
-						} //y	
-					} //x		                                           
-				}//n
-			}//b band
-		}
-		//***********************************Grey value Image
-		if (analysisType.equals("RDBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
-			//Box counting
-			//n=0  2^0 = 1 ... single pixel
-			double greyMax = 0.0;
-			double greyMin = Double.MAX_VALUE;
-			double greyValue = Double.NaN;
-			double depthZ = Double.NaN;
-			double l = Double.NaN;
-			double k = Double.NaN;	
-			//single pixel box
-			for (int b = 0; b < numBands; b++) {
-				//totals[0][b] = 1.0 * width * height; // Grey Image (l-k+1) is always 1 because l=k
-				totals[0][b] = Double.NaN; //new in ComsystanJ
-			}
-			int boxSize = (int) Math.pow(2, 0);		
-			int delta = 0;
-			for (int b = 0; b < numBands; b++) {
-				for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
-					boxSize = (int) Math.pow(2, n);	
-					if      (scanningType.equals("Raster box"))  delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1;
-					for (int x =0; x <= (width-boxSize); x=x+delta){
-						for (int y =0;  y<= (height-boxSize); y=y+delta){
-							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-							greyMax = 0.0;
-							greyMin = Double.MAX_VALUE;
-							greyValue = Double.NaN;
-							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
-							while (cursor.hasNext()) { //Box
-								cursor.fwd();
-								//cursorF.localize(pos);
-								greyValue =((UnsignedByteType) cursor.get()).get();
-								if (greyValue > greyMax) greyMax = greyValue;
-								if (greyValue < greyMin) greyMin = greyValue;			
-							}//while Box
-							depthZ = boxSize * 255/((width + height) / 2.0); // epsilonZ/255 = epsilon/imageSize
-							double diff = greyMax-greyMin;  //only these three lines are different from DBC
-							diff = Math.ceil(diff/depthZ);
-							totals[n][b] = totals[n][b] + diff;
-						} //y	
-					} //x		                                           
-				}//n
-			}//b band
-		}
+		else if (MorphologicalType.equals("Blanket dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion"}
+			imgFloat = createImgFloat(rai); //This copies the image, otherwise the original image would be dilated
+			imgU = imgFloat.copy();
+			imgB = imgFloat.copy();
+			imgUplusOne  = imgFloat.copy();
+			imgBminusOne = imgFloat.copy();
+			imgV = imgFloat.copy();
+			
+			Shape kernel = null;
+			if (shapeType.equals("Square"))          kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
+			else if (shapeType.equals("Horizontal")) kernel = new HorizontalLineShape(1, 0, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			else if (shapeType.equals("Vertical"))   kernel = new HorizontalLineShape(1, 1, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			Runtime runtime  = Runtime.getRuntime();
+			long maxMemory   = runtime.maxMemory();
+			long totalMemory = runtime.totalMemory();
+			long freeMemory  = runtime.freeMemory();
+			int availableProcessors = runtime.availableProcessors();
+			//System.out.println("available processors: " + availableProcessors);
+			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
+			if (numThreads > availableProcessors) numThreads = availableProcessors;
+			long[] pos = new long[2];
+			float sample1;
+			float sample2;
+
 		
+			for (int n = 0; n < numDilations; n++) { //
+				
+				//Add plus one to imgU
+				cursorF = imgU.localizingCursor();
+				raF1 = imgUplusOne.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();	
+					cursorF.localize(pos);
+					raF1.setPosition(pos);
+					raF1.get().set(cursorF.get().get() + 1f); 
+				}			
+				//Dilated imgU
+				imgUDil = Dilation.dilate(imgU, kernel, numThreads);
+				//uiService.show("Dilated image", imgUDil);
+				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUDil);
+				
+				//Get Max and overwrite imgU
+				cursorF = imgU.localizingCursor();
+				raF1 = imgUplusOne.randomAccess();
+				raF2 = imgUDil.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					raF1.setPosition(pos);
+					raF2.setPosition(pos);
+					sample1 = raF1.get().get();
+					sample2 = raF2.get().get();
+					if ((sample2 > sample1)) cursorF.get().set(sample2);
+					else cursorF.get().set(sample1);
+				}	
+				
+				//Subtract one to imgB
+				cursorF = imgB.localizingCursor();
+				raF1 = imgBminusOne.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();	
+					cursorF.localize(pos);
+					raF1.setPosition(pos);
+					raF1.get().set(cursorF.get().get() - 1f); 
+				}			
+				//Erode imgB
+				imgBErode = Erosion.erode(imgB, kernel, numThreads);
+				//uiService.show("Eroded image", imgBErode);
+				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last eroded image", imgBErode);
+				
+				//Get Min and overwrite imgB
+				cursorF = imgB.localizingCursor();
+				raF1 = imgBminusOne.randomAccess();
+				raF2 = imgBErode.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					raF1.setPosition(pos);
+					raF2.setPosition(pos);
+					sample1 = raF1.get().get();
+					sample2 = raF2.get().get();
+					if ((sample2 < sample1)) cursorF.get().set(sample2);
+					else cursorF.get().set(sample1);
+				}	
+				
+				//Compute volume imgV
+				cursorF = imgV.localizingCursor();
+				raF1 = imgU.randomAccess();
+				raF2 = imgB.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					raF1.setPosition(pos);
+					raF2.setPosition(pos);
+					sample1 = raF1.get().get();
+					sample2 = raF2.get().get();
+					cursorF.get().set(sample1 - sample2);
+				}	
+				
+				//Get counts with imgV
+				cursorF = imgV.localizingCursor();
+				raF1 = imgU.randomAccess();
+				raF2 = imgB.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					for (int b = 0; b < numBands; b++) {
+						totals[n][b] = totals[n][b] + cursorF.get().get(); //totalAreas
+					}
+				}
+				
+				// for (int b = 0; b < numBands; b++) totalAreas[ee][b] =
+				// totalAreas[n][b] / (2* (n+1)); //Peleg et al.
+				// better is following according to Dubuc et al. equation 9
+				for (int b = 0; b < numBands; b++)
+					totals[n][b] = totals[n][b] / ((n+ 1) * (n + 1) * (n + 1)); // eq.9 Dubuc et.al.
+				
+				                      
+			} //n
+		}
+			
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
-		double[][] lnTotals = new double[numBoxes][numBands];
-		double[][] lnEps    = new double[numBoxes][numBands];
-		for (int n = 0; n < numBoxes; n++) {
+		double[][] lnTotals = new double[numDilations][numBands];
+		double[]   lnEps    = new double[numDilations];
+		for (int n = 0; n < numDilations; n++) {
 			for (int b = 0; b < numBands; b++) {
 				if (totals[n][b] <= 1) {
 					//lnTotals[numBoxes - n - 1][b] = 0.0; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist//IQM
@@ -996,8 +1043,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 					lnTotals[n][b] = Math.log(totals[n][b]); //
 				}
 				//lnEps[n][b] = Math.log(eps[numBoxes - n - 1 ][b]); //IQM
-				lnEps[n][b] = Math.log(eps[n][b]);
-				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
+				lnEps[n] = Math.log(eps[n]);
+				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
 				//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
 				//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
 			}
@@ -1008,23 +1055,21 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		for (int b = 0; b < numBands; b++) { // mehrere Bands
 			
 			// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			double[] lnDataX = new double[numBoxes];
-			double[] lnDataY = new double[numBoxes];
+			double[] lnDataX = new double[numDilations];
+			double[] lnDataY = new double[numDilations];
 				
-			for (int n = 0; n < numBoxes; n++) {	
+			for (int n = 0; n < numDilations; n++) {	
 				lnDataY[n] = lnTotals[n][b];		
-				lnDataX[n] = lnEps[n][b];
+				lnDataX[n] = lnEps[n];
 			}
-			// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
-			// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
 		
 			if (optShowPlot) {			
 				String preName = "";
 				if (numSlices > 1) {
 					preName = "Slice-"+String.format("%03d", plane) +"-";
 				}
-				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Box Counting Dimension", 
-						preName + datasetName, "ln(Box width)", "ln(Count)", "",
+				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double log plot - Minkowski Dimension", 
+						preName + datasetName, "ln(Dilation span)", "ln(Area)", "",
 						regMin, regMax);
 				doubleLogPlotList.add(doubleLogPlot);
 			}
@@ -1033,8 +1078,7 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			LinearRegression lr = new LinearRegression();
 			regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
 			//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		}
-		
+		}	
 		return regressionParams;
 		//Output
 		//uiService.show(tableName, table);
@@ -1108,9 +1152,38 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		// verticalPercent);
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
-		return pl;		
+		return pl;
 	}
 	
+
+	/**
+	 * 
+	 * This methods creates an Img<UnsignedByteType>
+	 */
+	private Img<UnsignedByteType > createImgUnsignedByte(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
+		
+		imgUnsignedByte = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
+		Cursor<UnsignedByteType> cursor = imgUnsignedByte.localizingCursor();
+		final long[] pos = new long[imgUnsignedByte.numDimensions()];
+		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+		while (cursor.hasNext()){
+			cursor.fwd();
+			cursor.localize(pos);
+			ra.setPosition(pos);
+			//if (numSlices == 1) { //for only one 2D image;
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
+			//} else { //for more than one image e.g. image stack
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
+			//	ra.setPosition(s, 2);
+			//}
+			//ra.get().setReal(cursor.get().get());
+			cursor.get().setReal(ra.get().getRealFloat());
+		}
+		
+		return imgUnsignedByte;
+	}
 	
 	/**
 	 * 
@@ -1136,7 +1209,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 			//}
 			//ra.get().setReal(cursor.get().get());
 			cursor.get().setReal(ra.get().getRealFloat());
-		}	
+		}
+		
 		return imgFloat;
 	}
 	
@@ -1159,8 +1233,8 @@ public class FractalDimensionBoxCounting<T extends RealType<T>> extends Interact
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(FractalDimensionBoxCounting.class, true).get().getOutput("image");
-		ij.command().run(FractalDimensionBoxCounting.class, true);
+		//ij.command().run(Img2DFractalDimensionMinkowski.class, true).get().getOutput("image");
+		ij.command().run(Img2DFractalDimensionMinkowski.class, true);
 	}
 }
 

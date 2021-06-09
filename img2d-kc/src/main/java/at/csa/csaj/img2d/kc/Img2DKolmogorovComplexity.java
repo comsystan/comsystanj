@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin for computing Kolmogorov complexity and Logical depth.
- * File: KolmogorovComplexity.java
+ * File: Img2DKolmogorovComplexity.java
  * 
  * $Id$
  * $HeadURL$
@@ -117,8 +117,8 @@ import io.scif.config.SCIFIOConfig;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
 	@Menu(label = "Kolmogorov complexity and LD", weight = 34)})
-public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class FractalDimensionPyramid<T extends RealType<T>> implements Command {	//modal GUI
+public class Img2DKolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
+//public class Img2DKolmogorovComplexity<T extends RealType<T>> implements Command {	//modal GUI
 	
 	private static final String PLUGIN_LABEL            = "<html><b>Computes Kolmogorov complexity KC and Logical depth LD</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -1434,8 +1434,8 @@ public class KolmogorovComplexity<T extends RealType<T>> extends InteractiveComm
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(KolmogorovComplexity.class, true).get().getOutput("image");
-		ij.command().run(KolmogorovComplexity.class, true);
+		//ij.command().run(Img2DKolmogorovComplexity.class, true).get().getOutput("image");
+		ij.command().run(Img2DKolmogorovComplexity.class, true);
 	}
 }
 

@@ -84,7 +84,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.frac.dim.correlation</package-name>
-		<main-class>at.csa.csaj.img2d.frac.dim.correlation.FractalDimensionDirectionalCorrelation</main-class>
+		<main-class>at.csa.csaj.img2d.frac.dim.correlation.Img2DFractalDimensionDirectionalCorrelation</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

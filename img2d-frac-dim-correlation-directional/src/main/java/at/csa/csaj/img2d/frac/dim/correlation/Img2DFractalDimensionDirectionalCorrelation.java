@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ plugin for computing direction dependent correlation dimension.
- * File: FractalDimensionDirectionalCorrelation.java
+ * File: Img2DFractalDimensionDirectionalCorrelation.java
  * 
  * $Id$
  * $HeadURL$
@@ -99,8 +99,8 @@ import io.scif.MetaTable;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
         @Menu(label = "Directional correlation dimension", weight = 7)})
-public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> implements Command {	//modal GUI
+public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
+//public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> implements Command {	//modal GUI
 
 	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with directinal correlation</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -1413,8 +1413,8 @@ public class FractalDimensionDirectionalCorrelation<T extends RealType<T>> exten
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		if (image != null) ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		// ij.command().run(FractalDimensionDirectionalCorrelation.class,
+		// ij.command().run(Img2DFractalDimensionDirectionalCorrelation.class,
 		// true).get().getOutput("image");
-		ij.command().run(FractalDimensionDirectionalCorrelation.class, true);
+		ij.command().run(Img2DFractalDimensionDirectionalCorrelation.class, true);
 	}
 }

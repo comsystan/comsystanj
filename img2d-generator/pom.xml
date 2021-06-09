@@ -79,7 +79,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.generate</package-name>
-		<main-class>at.csa.csaj.img2d.generate.ImageGenerator</main-class>
+		<main-class>at.csa.csaj.img2d.generate.Img2DImageGenerator</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

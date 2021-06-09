@@ -79,7 +79,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.frac.dim.generalized</package-name>
-		<main-class>at.csa.csaj.img2d.frac.dim.generalized.FractalDimensionGeneralized</main-class>
+		<main-class>at.csa.csaj.img2d.frac.dim.generalized.Img2DFractalDimensionGeneralized</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

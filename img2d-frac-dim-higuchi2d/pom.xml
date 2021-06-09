@@ -79,7 +79,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.frac.dim.hig2d</package-name>
-		<main-class>at.csa.csaj.img2d.frac.dim.hig2dFractalDimensionHiguchi2D</main-class>
+		<main-class>at.csa.csaj.img2d.frac.dim.hig2d.Img2DFractalDimensionHiguchi2D</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

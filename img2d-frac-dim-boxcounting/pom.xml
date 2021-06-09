@@ -79,7 +79,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.img2d.frac.dim.box</package-name>
-		<main-class>at.csa.csaj.img2d.frac.dim.box.FractalDimensionBoxCounting</main-class>
+		<main-class>at.csa.csaj.img2d.frac.dim.box.Img2DFractalDimensionBoxCounting</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>
