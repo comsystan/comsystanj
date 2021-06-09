@@ -241,14 +241,14 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelEntropyOptions = ENTROPYOPTIONS_LABEL;
 	
-	@Parameter(label = "pixelPercentage type",
-			description = "Selection of pixelPercentage type",
+	@Parameter(label = "Probability type",
+			description = "Selection of probability type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Actual", "Pairwise differences", "Sum of differences", "SD"}, 
+			choices = {"Signal values", "Pairwise differences", "Sum of differences", "SD"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialPixelPercentageType",
-			callback = "callbackPixelPercentageType")
-	private String choiceRadioButt_pixelPercentageType;
+			initializer = "initialProbabilityType",
+			callback = "callbackProbabilityType")
+	private String choiceRadioButt_ProbabilityType;
 
 	@Parameter(label = "lag", description = "delta for computation", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
@@ -400,8 +400,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	// ---------------------------------------------------------------------
 	// The following initialzer functions set initial values
 	
-	protected void initialPixelPercentageType() {
-		choiceRadioButt_pixelPercentageType = "Actual"; //"Actual", "Pairwise differences", "Sum of differences", "SD"
+	protected void initialProbabilityType() {
+		choiceRadioButt_ProbabilityType = "Signal values"; //"Signal values", "Pairwise differences", "Sum of differences", "SD"
 	} 
 	
 	protected void initialLag() {
@@ -492,9 +492,9 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	
-	/** Executed whenever the {@link #choiceRadioButt_pixelPercentageType} parameter changes. */
-	protected void callbackPixelPercentageType() {
-		logService.info(this.getClass().getName() + " Propability type set to " + choiceRadioButt_pixelPercentageType);
+	/** Executed whenever the {@link #choiceRadioButt_ProbabilityType} parameter changes. */
+	protected void callbackProbabilityType() {
+		logService.info(this.getClass().getName() + " Propability type set to " + choiceRadioButt_ProbabilityType);
 	}
 	
 
@@ -793,7 +793,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		tableResult.add(new IntColumn("Box length"));
 		tableResult.add(new BoolColumn("Zeroes removed"));
 	
-		tableResult.add(new GenericColumn("pixelPercentage type"));		
+		tableResult.add(new GenericColumn("Probability type"));		
 		tableResult.add(new IntColumn("Lag"));
 		
 		minQ       = spinnerInteger_MinQ;
@@ -1073,7 +1073,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		}	
 		tableResult.set(6, row, booleanRemoveZeroes); //Zeroes removed
 		
-		tableResult.set(7, row, choiceRadioButt_pixelPercentageType);    // Lag
+		tableResult.set(7, row, choiceRadioButt_ProbabilityType);    // Lag
 		tableResult.set(8, row, spinnerInteger_Lag);    // Lag
 		tableColLast = 8;
 		
@@ -1125,7 +1125,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		String  surrType      = choiceRadioButt_SurrogateType;
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
-		String  probType      = choiceRadioButt_pixelPercentageType;
+		String  probType      = choiceRadioButt_ProbabilityType;
 		int     numLag        = spinnerInteger_Lag;
 		
 		boolean removeZeores  = booleanRemoveZeroes;
@@ -1368,14 +1368,14 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	 * @param probOption
 	 * @return probabilities[]
 	 */
-	//"Actual", "Pairwise differences", "Sum of differences", "SD"
+	//"Signal values", "Pairwise differences", "Sum of differences", "SD"
 	private double[] compProbabilities(double[] signal, int lag, String probType) {
-		if (probType.equals("Actual")) lag = 0; //to be sure that eps = 0 for that case
+		if (probType.equals("Signal values")) lag = 0; //to be sure that eps = 0 for that case
 		double signalMin = Double.MAX_VALUE;
 		double signalMax = -Double.MAX_VALUE;
 		double signalDouble[] = new double[signal.length - lag]; 
 		
-		if (probType.equals("Actual")) {//Actual values
+		if (probType.equals("Signal values")) {//Actual values
 			for (int i = 0; i < signal.length - lag; i++) {
 				signalDouble[i] = signal[i];
 				if (signalDouble[i] < signalMin) signalMin = signalDouble[i];  
@@ -1658,7 +1658,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	
 	/**
 	 * This method computes the gneralized SEta entropies
-	 * According to Amigo etal. and Anteneodo, C.; Plastino, A.R. Maximum entropy approach to stretched exponential pixelPercentage distributions. J. Phys. A Math. Gen. 1999, 32, 1089–1098.
+	 * According to Amigo etal. and Anteneodo, C.; Plastino, A.R. Maximum entropy approach to stretched exponential probability distributions. J. Phys. A Math. Gen. 1999, 32, 1089–1098.
 	 * @param minEta
 	 * @param maxEta
 	 * @param stepEta
