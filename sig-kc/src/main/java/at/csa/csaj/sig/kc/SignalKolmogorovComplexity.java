@@ -203,14 +203,14 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
-	@Parameter(label = "Analysis type",
+	@Parameter(label = "Signal range",
 			description = "Entire signal, Subsequent boxes or Gliding box",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialAnalysisType",
-			callback = "callbackAnalysisType")
-		private String choiceRadioButt_AnalysisType;
+			initializer = "initialSignalRange",
+			callback = "callbackSignalRange")
+		private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -283,8 +283,8 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 	    spinnerInteger_NumIterations = 10;
 	}
 	 
-	protected void initialAnalysisType() {
-		choiceRadioButt_AnalysisType = "Entire signal";
+	protected void initialSignalRange() {
+		choiceRadioButt_SignalRange = "Entire signal";
 	} 
 	
 	protected void initialSurrogateType() {
@@ -323,10 +323,10 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 		logService.info(this.getClass().getName() + " Number of iterations images set to " + spinnerInteger_NumIterations);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
+	protected void callbackSignalRange() {
+		logService.info(this.getClass().getName() + " Signal range set to " + choiceRadioButt_SignalRange);
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -334,7 +334,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -542,7 +542,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 		tableResult = new DefaultGenericTable();
 		tableResult.add(new GenericColumn("File name"));
 		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Analysis type")); //"Entire signal", "Subsequent boxes", "Gliding box" 
+		tableResult.add(new GenericColumn("Signal range")); //"Entire signal", "Subsequent boxes", "Gliding box" 
 		tableResult.add(new GenericColumn("Surrogate type"));
 		tableResult.add(new IntColumn("# Surrogates"));
 		tableResult.add(new IntColumn("Box length"));
@@ -550,7 +550,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 	
 		tableResult.add(new GenericColumn("Compression"));	
 		
-		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (choiceRadioButt_SignalRange.equals("Entire signal")){
 			tableResult.add(new DoubleColumn("Signal size [kB]")); //0 SigSize, 1 KC, 2 SigSize-KC, 3 KC/SigSize, 4 numIter, 5 LD
 			tableResult.add(new DoubleColumn("KC [kB]"));
 			tableResult.add(new DoubleColumn("Signal size - KC [kB]"));
@@ -566,7 +566,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("LD_Surr-#"+(s+1)+" [ns]")); 
 			}	
 		} 
-		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableResult.add(new DoubleColumn("KC-#" + n + " [kB]"));	
 			}
@@ -574,7 +574,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 				tableResult.add(new DoubleColumn("LD-#" + n + " [ns]"));	
 			}
 		}
-		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
+		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableResult.add(new DoubleColumn("KC-#" + n + " [kB]"));	
 			}
@@ -690,14 +690,14 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 		tableResult.appendRow();
 		tableResult.set(0, row, tableInName);//File Name
 		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
-		tableResult.set(2, row, choiceRadioButt_AnalysisType); //Signal Method
+		tableResult.set(2, row, choiceRadioButt_SignalRange); //Signal Method
 		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
-		if (choiceRadioButt_AnalysisType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
+		if (choiceRadioButt_SignalRange.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
 			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
 			tableResult.set(4, row, null); //# Surrogates
 		}
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
 			tableResult.set(5, row, null);
@@ -708,7 +708,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 		tableColLast = 7;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (choiceRadioButt_SignalRange.equals("Entire signal")){
 			int numParameters = resultValues.length;
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
@@ -721,14 +721,14 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 				//already set
 			}	
 		} 
-		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); //1,2,3...  for 1,2,3... parameters
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
 				tableResult.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
-		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
+		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); //1,2,3.. for 1,2,3.... parameters 
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
@@ -751,7 +751,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		String  analysisType  = choiceRadioButt_AnalysisType;
+		String  signalRange  = choiceRadioButt_SignalRange;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
@@ -789,7 +789,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (analysisType.equals("Entire signal")){	
+		if (signalRange.equals("Entire signal")){	
 			if (surrType.equals("No surrogates")) {
 				resultValues = new double[6]; //0 SigSize, 1 KC, 2 SigSize-KC, 3 KC/SigSize, 4 numIter, 5 LD
 			} else {
@@ -865,7 +865,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 			}	
 			
 		//********************************************************************************************************	
-		} else if (analysisType.equals("Subsequent boxes")){
+		} else if (signalRange.equals("Subsequent boxes")){
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // KC LD == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];
@@ -901,7 +901,7 @@ public class SignalKolmogorovComplexity<T extends RealType<T>> extends Interacti
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
-		} else if (analysisType.equals("Gliding box")){
+		} else if (signalRange.equals("Gliding box")){
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // KC LD == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];

@@ -189,9 +189,9 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
 //			//persist  = false,  //restore previous value default = true
-//			initializer = "initialAnalysisType",
-//			callback = "callbackAnalysisType")
-//	private String choiceRadioButt_AnalysisType;
+//			initializer = "initialSignalRange",
+//			callback = "callbackSignalRange")
+//	private String choiceRadioButt_SignalRange;
 //	
 //	@Parameter(label = "(Entire signal) Surrogates",
 //			description = "Surrogates types - Only for Entire signal type!",
@@ -263,8 +263,8 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 		spinnerInteger_RangeEnd = 2;
 	} 
 	
-//	protected void initialAnalysisType() {
-//		choiceRadioButt_AnalysisType = "Entire signal";
+//	protected void initialSignalRange() {
+//		choiceRadioButt_SignalRange = "Entire signal";
 //	} 
 //	
 //	protected void initialSurrogateType() {
@@ -305,10 +305,10 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 		logService.info(this.getClass().getName() + " End index set to " + spinnerInteger_RangeEnd);
 	}
 	
-//	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-//	protected void callbackAnalysisType() {
-//		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
-//		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+//	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
+//	protected void callbackSignalRange() {
+//		logService.info(this.getClass().getName() + " Signal range set to " + choiceRadioButt_SignalRange);
+//		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 //			choiceRadioButt_SurrogateType = "No surrogates";
 //			callbackSurrogateType();
 //		}
@@ -316,7 +316,7 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 	
 //	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 //	protected void callbackSurrogateType() {	
-//		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+//		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 //			choiceRadioButt_SurrogateType = "No surrogates";
 //			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 //		}	
@@ -716,7 +716,7 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		//String analysisType= choiceRadioButt_AnalysisType;
+		//String signalRange= choiceRadioButt_SignalRange;
 		//String surrType    = choiceRadioButt_SurrogateType;
 		//int  boxLength     = spinnerInteger_BoxLength;
 		int    numDataPoints = dgt.getRowCount();

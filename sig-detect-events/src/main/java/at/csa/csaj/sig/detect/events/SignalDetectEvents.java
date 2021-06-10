@@ -294,14 +294,14 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
-	@Parameter(label = "Analysis type",
+	@Parameter(label = "Signal range",
 			description = "Entire signal, Subsequent boxes or Gliding box",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialAnalysisType",
-			callback = "callbackAnalysisType")
-	private String choiceRadioButt_AnalysisType;
+			initializer = "initialSignalRange",
+			callback = "callbackSignalRange")
+	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -437,8 +437,8 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		choiceRadioButt_OutputType = "Intervals";
 	} 
 	
-	protected void initialAnalysisType() {
-		choiceRadioButt_AnalysisType = "Entire signal";
+	protected void initialSignalRange() {
+		choiceRadioButt_SignalRange = "Entire signal";
 	} 
 	
 	protected void initialSurrogateType() {
@@ -664,10 +664,10 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		logService.info(this.getClass().getName() + " Output type set to " + choiceRadioButt_OutputType);
 	}
 		
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
+	protected void callbackSignalRange() {
+		logService.info(this.getClass().getName() + " Signal range set to " + choiceRadioButt_SignalRange);
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -675,7 +675,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -1278,7 +1278,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	 */
 	private void process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		String  analysisType   = choiceRadioButt_AnalysisType;
+		String  signalRange   = choiceRadioButt_SignalRange;
 		String  surrType       = choiceRadioButt_SurrogateType;
 		//int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints  = dgt.getRowCount();
@@ -1374,7 +1374,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (analysisType.equals("Entire signal")){	//only this option is possible for FFT
+		if (signalRange.equals("Entire signal")){	//only this option is possible for FFT
 			
 			if (!surrType.equals("No surrogates")) {
 				Surrogate surrogate = new Surrogate();	
@@ -1604,10 +1604,10 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 				eventDataY2.remove(0);
 			}
 		//********************************************************************************************************	
-		} else if (analysisType.equals("Subsequent boxes")){ //not for Detect events
+		} else if (signalRange.equals("Subsequent boxes")){ //not for Detect events
 		
 		//********************************************************************************************************			
-		} else if (analysisType.equals("Gliding box")){ //not for Detect events
+		} else if (signalRange.equals("Gliding box")){ //not for Detect events
 		
 		}
 		

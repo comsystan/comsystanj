@@ -199,14 +199,14 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 //
-//	@Parameter(label = "Analysis type",
+//	@Parameter(label = "Signal range",
 //			description = "Entire signal, Subsequent boxes or Gliding box",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
 //			//persist  = false,  //restore previous value default = true
-//			initializer = "initialAnalysisType",
-//			callback = "callbackAnalysisType")
-//	private String choiceRadioButt_AnalysisType;
+//			initializer = "initialSignalRange",
+//			callback = "callbackSignalRange")
+//	private String choiceRadioButt_SignalRange;
 	
 //	@Parameter(label = "(Entire signal) Surrogates",
 //			description = "Surrogates types - Only for Entire signal type!",
@@ -281,8 +281,8 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 	protected void initialInterpolationType() {
 		choiceRadioButt_InterpolationType = "Linear";
 	} 
-//	protected void initialAnalysisType() {
-//		choiceRadioButt_AnalysisType = "Entire signal";
+//	protected void initialSignalRange() {
+//		choiceRadioButt_SignalRange = "Entire signal";
 //	} 
 //	
 //	protected void initialSurrogateType() {
@@ -325,10 +325,10 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 		logService.info(this.getClass().getName() + " Interpolation type set to " + choiceRadioButt_InterpolationType);
 	}
 	
-//	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-//	protected void callbackAnalysisType() {
-//		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
-//		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+//	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
+//	protected void callbackSignalRange() {
+//		logService.info(this.getClass().getName() + " Signal range set to " + choiceRadioButt_SignalRange);
+//		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 //			choiceRadioButt_SurrogateType = "No surrogates";
 //			callbackSurrogateType();
 //		}
@@ -336,7 +336,7 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 //	
 //	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 //	protected void callbackSurrogateType() {	
-//		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+//		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 //			choiceRadioButt_SurrogateType = "No surrogates";
 //			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 //		}	
@@ -747,7 +747,7 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 		String rsType       = this.choiceRadioButt_ResamplingType;
 		int    rsFactor     = this.spinnerInteger_NumFactor;
 		String interpolType = this.choiceRadioButt_InterpolationType;
-		//String  analysisType     = choiceRadioButt_AnalysisType;
+		//String  signalRange     = choiceRadioButt_SignalRange;
 		//int     boxLength        = spinnerInteger_BoxLength;
 		int     numDataPointsIn    = dgt.getRowCount();
 		//boolean removeZeores     = booleanRemoveZeroes;
@@ -782,7 +782,7 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		//if (analysisType.equals("Entire signal")){	//only this option is possible for FFT
+		//if (signalRange.equals("Entire signal")){	//only this option is possible for FFT
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
 			
@@ -848,10 +848,10 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 		
 		
 		//********************************************************************************************************	
-		//} else if (analysisType.equals("Subsequent boxes")){ //not for Surrogate
+		//} else if (signalRange.equals("Subsequent boxes")){ //not for Surrogate
 		
 		//********************************************************************************************************			
-		//} else if (analysisType.equals("Gliding box")){ //not for Surrogate
+		//} else if (signalRange.equals("Gliding box")){ //not for Surrogate
 		
 		//}
 		

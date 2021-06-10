@@ -246,14 +246,14 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
-	@Parameter(label = "Analysis type",
+	@Parameter(label = "Signal range",
 		description = "Entire signal, Subsequent boxes or Gliding box",
 		style = ChoiceWidget.LIST_BOX_STYLE,
 		choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
 		//persist  = false,  //restore previous value default = true
-		initializer = "initialAnalysisType",
-		callback = "callbackAnalysisType")
-	private String choiceRadioButt_AnalysisType;
+		initializer = "initialSignalRange",
+		callback = "callbackSignalRange")
+	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -376,8 +376,8 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 	protected void initialSWVType() {
 		choiceRadioButt_SWVType = "bdSWV";
 	}
-	protected void initialAnalysisType() {
-		choiceRadioButt_AnalysisType = "Entire signal";
+	protected void initialSignalRange() {
+		choiceRadioButt_SignalRange = "Entire signal";
 	} 
 	protected void initialSurrogateType() {
 		choiceRadioButt_SurrogateType = "No surrogates";
@@ -454,10 +454,10 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 		logService.info(this.getClass().getName() + " SWV type set to " + choiceRadioButt_SWVType);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Analysis type set to " + choiceRadioButt_AnalysisType);
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
+	protected void callbackSignalRange() {
+		logService.info(this.getClass().getName() + " Signal range set to " + choiceRadioButt_SignalRange);
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -465,7 +465,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -678,7 +678,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 		tableResult = new DefaultGenericTable();
 		tableResult.add(new GenericColumn("File name"));
 		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Analysis type"));
+		tableResult.add(new GenericColumn("Signal range"));
 		tableResult.add(new GenericColumn("Surrogate type"));
 		tableResult.add(new IntColumn("# Surrogates"));
 		tableResult.add(new IntColumn("Box length"));
@@ -688,7 +688,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 		tableResult.add(new IntColumn("Reg Max"));
 	
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (choiceRadioButt_SignalRange.equals("Entire signal")){
 			tableResult.add(new GenericColumn("Signal type"));
 	 
 			tableResult.add(new DoubleColumn(choiceRadioButt_PSDType+"_Beta"));	
@@ -719,7 +719,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
 			}	
 		} 
-		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableResult.add(new DoubleColumn(choiceRadioButt_PSDType+"_Beta-#" + n));	
 			}
@@ -727,7 +727,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 				tableResult.add(new DoubleColumn("R2-#" + n));	
 			}
 		}
-		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
+		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableResult.add(new DoubleColumn(choiceRadioButt_PSDType+"_Beta-#" + n));	
 			}
@@ -863,14 +863,14 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 		tableResult.appendRow();
 		tableResult.set(0, row, tableInName);//File Name
 		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
-		tableResult.set(2, row, choiceRadioButt_AnalysisType);  //Analysis type
+		tableResult.set(2, row, choiceRadioButt_SignalRange);  //Signal range
 		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
-		if (choiceRadioButt_AnalysisType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
+		if (choiceRadioButt_SignalRange.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
 			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
 			tableResult.set(4, row, null); //# Surrogates
 		}
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
 			tableResult.set(5, row, null);
@@ -882,7 +882,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 		tableColLast = 8;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (choiceRadioButt_SignalRange.equals("Entire signal")){
 			tableResult.set(tableColLast + 1, row, signalType); //Signal type fGn or fBm or ?
 			int numParameters = resultValues.length;
 			tableColStart = tableColLast + 1 + 1;
@@ -896,7 +896,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 				//already set
 			}	
 		} 
-		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			//Dh R2 StdErr
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); // 2 parameters
@@ -904,7 +904,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 				tableResult.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
-		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
+		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			//Dh R2 StdErr
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); // 2 parameters 
@@ -929,7 +929,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
 
-		String analysisType   = choiceRadioButt_AnalysisType;
+		String signalRange   = choiceRadioButt_SignalRange;
 		String surrType       = choiceRadioButt_SurrogateType;
 		int boxLength         = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
@@ -968,7 +968,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (analysisType.equals("Entire signal")){	
+		if (signalRange.equals("Entire signal")){	
 			if (surrType.equals("No surrogates")) {
 				resultValues = new double[15]; // 4xPSD, 3xSCC, 4xDisp, 4xSWV
 			} else {
@@ -1218,7 +1218,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 				//resultValues[lastMainResultsIndex + 3] = sum/?;				
 			} 
 		//********************************************************************************************************	
-		} else if (analysisType.equals("Subsequent boxes")){
+		} else if (signalRange.equals("Subsequent boxes")){
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];
@@ -1276,7 +1276,7 @@ public class SignalHurst<T extends RealType<T>> extends InteractiveCommand imple
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
-		} else if (analysisType.equals("Gliding box")){
+		} else if (signalRange.equals("Gliding box")){
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];

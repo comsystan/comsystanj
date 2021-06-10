@@ -185,14 +185,14 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
-	@Parameter(label = "Analysis type",
+	@Parameter(label = "Signal range",
 			description = "Entire signal, Subsequent boxes or Gliding box",
 			style = ChoiceWidget.LIST_BOX_STYLE,
 			choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
 			//persist  = false,  //restore previous value default = true
-			initializer = "initialAnalysisType",
-			callback = "callbackAnalysisType")
-		private String choiceRadioButt_AnalysisType;
+			initializer = "initialSignalRange",
+			callback = "callbackSignalRange")
+		private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
 			description = "Surrogates types - Only for Entire signal type!",
@@ -265,8 +265,8 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 		spinnerInteger_ParamD = 1;
 	}
 	
-	protected void initialAnalysisType() {
-		choiceRadioButt_AnalysisType = "Entire signal";
+	protected void initialSignalRange() {
+		choiceRadioButt_SignalRange = "Entire signal";
 	} 
 	
 	protected void initialSurrogateType() {
@@ -310,10 +310,10 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_ParamD);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Signal type set to " + choiceRadioButt_AnalysisType);
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
+	protected void callbackSignalRange() {
+		logService.info(this.getClass().getName() + " Signal range set to " + choiceRadioButt_SignalRange);
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			callbackSurrogateType();
 		}
@@ -321,7 +321,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 	
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {	
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			choiceRadioButt_SurrogateType = "No surrogates";
 			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
 		}	
@@ -533,7 +533,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 		tableResult = new DefaultGenericTable();
 		tableResult.add(new GenericColumn("File name"));
 		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Analysis type"));
+		tableResult.add(new GenericColumn("Signal range"));
 		tableResult.add(new GenericColumn("Surrogate type"));
 		tableResult.add(new IntColumn("# Surrogates"));
 		tableResult.add(new IntColumn("Box length"));
@@ -543,7 +543,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 		tableResult.add(new IntColumn("Delay d"));
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (choiceRadioButt_SignalRange.equals("Entire signal")){
 			tableResult.add(new DoubleColumn(entropyHeader));	
 			tableResult.add(new DoubleColumn(entropyPerSymbolHeader));	
 			tableResult.add(new DoubleColumn(entropyNormalizedHeader));
@@ -555,14 +555,14 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn(entropyHeader+"_Surr-#"+(s+1))); 
 			}	
 		} 
-		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableResult.add(new DoubleColumn(entropyHeader+"-#" + n));	
 			}
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 			}
 		}
-		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
+		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableResult.add(new DoubleColumn(entropyHeader+"-#" + n));	
 			}
@@ -677,14 +677,14 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 		tableResult.set(0, row, tableInName);//File Name
 		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
 	
-		tableResult.set(2, row, choiceRadioButt_AnalysisType); //Signal Method
+		tableResult.set(2, row, choiceRadioButt_SignalRange); //Signal Method
 		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
-		if (choiceRadioButt_AnalysisType.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
+		if (choiceRadioButt_SignalRange.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
 			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
 			tableResult.set(4, row, null); //# Surrogates
 		}
-		if (!choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
 			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
 			tableResult.set(5, row, null);
@@ -696,7 +696,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 		tableColLast = 8;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_AnalysisType.equals("Entire signal")){
+		if (choiceRadioButt_SignalRange.equals("Entire signal")){
 			int numParameters = resultValues.length;
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
@@ -709,14 +709,14 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 				//already set
 			}	
 		} 
-		else if (choiceRadioButt_AnalysisType.equals("Subsequent boxes")){
+		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 1 * numSubsequentBoxes); //1 or 2  for 1 or 2 parameters
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
 				tableResult.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
-		else if (choiceRadioButt_AnalysisType.equals("Gliding box")){
+		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 1 * numGlidingBoxes); //1 or 2 for 1 or 2 parameters 
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
@@ -739,7 +739,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		String  analysisType  = choiceRadioButt_AnalysisType;
+		String  signalRange  = choiceRadioButt_SignalRange;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
@@ -781,7 +781,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (analysisType.equals("Entire signal")){	
+		if (signalRange.equals("Entire signal")){	
 			if (surrType.equals("No surrogates")) {
 				resultValues = new double[4]; // PermEn, PermEn per symbol, normalized PermEn, Sorting entropy
 			} else {
@@ -831,7 +831,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 				}	
 			} 
 		//********************************************************************************************************	
-		} else if (analysisType.equals("Subsequent boxes")){
+		} else if (signalRange.equals("Subsequent boxes")){
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];
@@ -854,7 +854,7 @@ public class SignalPermutationEntropy<T extends RealType<T>> extends Interactive
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
-		} else if (analysisType.equals("Gliding box")){
+		} else if (signalRange.equals("Gliding box")){
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSignal1D = new double[(int) boxLength];
