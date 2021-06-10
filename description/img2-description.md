@@ -76,8 +76,8 @@
 
 ### Generalized dimensions
 - Generalized fractal dimensions are computed
-- For binary 8-bit images
-- Binary [0, >0] algorithm
+- For binary or grey 8-bit images
+- Binary [0, >0] or grey value mass algorithm
 - Raster or sliding box scanning
 - Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
 - Dq and f-spectrum plots can be shown
