@@ -54,8 +54,8 @@
 
 ### Correlation dimension
 - Fractal correlation dimension is computed
-- For binary 8-bit images
-- Binary [0, >0] algorithm
+- For binary or grey 8-bit images
+- Binary [0, >0] or grey value mass algorithm
 - Classical pair wise occurrence counting (Sliding box scanning)
 - Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
 - or by using a fixed grid estimation of summing up squared counts (Raster box scanning)
