@@ -222,9 +222,9 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
      @Parameter(label = "Scanning type",
- 		    description = "Classical disc (radius)  over pixel or fast estiamtes",
+ 		    description = "Raster box or classical disc (radius) over each pixel",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Disc(radius) over pixel", "FFGE - Fast fixed grid estimate"}, // "DBC"}, //DBC still not working
+   		    choices = {"Raster box", "Sliding box"}, // "DBC"}, //DBC still not working
    		    //persist  = false,  //restore previous value default = true
  		    initializer = "initialScanningType",
              callback = "callbackScanningType")
@@ -298,7 +298,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
     	spinnerInteger_RegMax =  numBoxes;
     }
     protected void initialScanningType() {
-    	choiceRadioButt_ScanningType = "Disc(radius) over pixel";
+    	choiceRadioButt_ScanningType = "Sliding box";
     }
   
     protected void initialAnalysisMethod() {
@@ -779,7 +779,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
 			table.set("Analysis type",   table.getRowCount()-1, analysisType);
-			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
+			if (scanningType.equals("Sliding box")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -810,7 +810,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
 			table.set("Analysis type",   table.getRowCount()-1, analysisType);
-			if (scanningType.equals("Disc(radius) over pixel")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
+			if (scanningType.equals("Sliding box")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -844,10 +844,9 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 		//RandomAccessibleInterval<T> rai = (RandomAccessibleInterval<T>)dataset.getImgPlus();
 		//IterableInterval ii = dataset.getImgPlus();
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
-		
-
-		double[][] totals = new double[numBoxes][numBands];
-		// double[] totalsMax = new double[numBands]; //for binary images
+	
+		double[][] totals     = new double[numBoxes][numBands];
+		//double[][] totalsMax  = new double[numBoxes][numBands]; //for binary images
 		int[][] eps = new int[numBoxes][numBands];
 		
 		// definition of eps
@@ -857,110 +856,8 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);	
 			}
 		}		
-		
-		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		//Correlation method	
-		if (scanningType.equals("Disc(radius) over pixel")) {
-			//Classical correlation dimension with radius over a pixel
-			//radius is estimated by box
-			ra = rai.randomAccess();
-			long number_of_points = 0;
-			int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
-			int random_number = 0;
-			int radius;		
-			long count = 0;
-			int sample = 0;
-			
-			if  (max_random_number == 1) { // no statistical approach, take all image pixels
-				for (int b = 0; b < numBands; b++) {
-					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
-						radius = eps[n][b];			
-						for (int x = 0; x < width; x++){
-							for (int y = 0; y < height; y++){	
-								ra.setPosition(x, 0);
-								ra.setPosition(y, 1);	
-								if((((UnsignedByteType) ra.get()).get() > 0) ){
-									number_of_points++; // total number of points 	
-									// scroll through sub-array 
-									for (int xx = x - radius + 1; xx < x + radius ; xx++) {
-										if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
-											for (int yy = y - radius + 1; yy < y + radius; yy++) {
-												if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-													if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
-														ra.setPosition(xx, 0);
-														ra.setPosition(yy, 1);	
-														sample = ((UnsignedByteType) ra.get()).get();
-														if((sample > 0) ){
-															if (analysisType.equals("Binary")) count = count + 1;
-															if (analysisType.equals("Grey"))   count = count + sample;
-														}
-													}//<= radius	
-												}
-											}//yy
-										}
-									}//XX
-								}
-							} //y	
-						} //x  
-						// calculate the average number of neighboring points within distance "radius":  
-						//number of neighbors = counts-total_number_of_points
-						//average number of neighbors = number of neighbors / total_number_of_points		 
-						totals[n][b]=(double)(count-number_of_points)/number_of_points;
-						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
-						// set counts equal to zero
-						count=0;	
-						number_of_points=0;
-					} //n Box sizes		
-				}//b band
-			} // no statistical approach
-			else { //statistical approach
-				for (int b = 0; b < numBands; b++) {
-					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
-						radius = eps[n][b];				
-						for (int x = 0; x < width; x++){
-							for (int y = 0;  y < height; y++){		
-								random_number = (int) (Math.random()*max_random_number+1);
-								if( random_number == 1 ){ // UPDATE 07.08.2013 
-									ra.setPosition(x, 0);
-									ra.setPosition(y, 1);	
-									if((((UnsignedByteType) ra.get()).get() > 0) ){
-										number_of_points++; // total number of points 	
-										// scroll through sub-array 
-										for (int xx = x - radius + 1; xx < x + radius ; xx++) {
-											if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
-												for (int yy = y - radius + 1; yy < y + radius; yy++) {
-													if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-														if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
-															ra.setPosition(xx, 0);
-															ra.setPosition(yy, 1);	
-															sample = ((UnsignedByteType) ra.get()).get();
-															if((sample > 0) ){
-																if (analysisType.equals("Binary")) count = count + 1;
-																if (analysisType.equals("Grey"))   count = count + sample;
-															}
-														}//<= radius	
-													 }
-												}//yy
-											}
-										}//XX
-									}
-								}
-							} //y	
-						} //x  
-						// calculate the average number of neighboring points within distance "radius":  
-						//number of neighbors = counts-total_number_of_points
-						//average number of neighbors = number of neighbors / total_number_of_points
-						totals[n][b]=(double)(count-number_of_points)/number_of_points;
-						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
-						// set counts equal to zero
-						count=0;	
-						number_of_points=0;
-					} //n Box sizes		
-				}//b band
-			}
-		} //
 	
-		else if (scanningType.equals("FFGE - Fast fixed grid estimate")) {
+		if (scanningType.equals("Raster box")) {
 			//Fixed grid
 			/**	KORRELATIONSDIMENSION: Fixed Grid Scan
 			 *  Martin Reiss
@@ -991,13 +888,119 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 									if (analysisType.equals("Grey"))   count = count + sample;
 								}			
 							}//while Box
-							totals[n][b] += count*count;
+							totals[n][b]   += count*count;
+							//totalsMax[n][b] = totalsMax[n][b] + count*count; // calculate total count for normalization
 							count = 0;
 						} //y	
-					} //x                                          
+					} //x  
+					//totals[n][b] = totals[n][b] / totalsMax[n][b];
 				} //n
 			}//b band		
 		} //Fast fixed grid estimate
+		
+		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
+		//Correlation method	
+		else if (scanningType.equals("Sliding box")) {
+			//Classical correlation dimension with radius over a pixel
+			//radius is estimated by box
+			ra = rai.randomAccess();
+			long number_of_points = 0;
+			int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
+			int random_number = 0;
+			int radius;		
+			long count = 0;
+			int sample = 0;
+			
+			if  (max_random_number == 1) { // no statistical approach, take all image pixels
+				for (int b = 0; b < numBands; b++) {
+					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
+						radius = eps[n][b];			
+						for (int x = 0; x < width; x++){
+							for (int y = 0; y < height; y++){	
+								ra.setPosition(x, 0);
+								ra.setPosition(y, 1);	
+								if((((UnsignedByteType) ra.get()).get() > 0) ){
+									number_of_points++; // total number of points 	
+									// scroll through sub-array 
+									for (int xx = x - radius + 1; xx < x + radius ; xx++) {
+										if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
+											for (int yy = y - radius + 1; yy < y + radius; yy++) {
+												if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
+													//if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
+														ra.setPosition(xx, 0);
+														ra.setPosition(yy, 1);	
+														sample = ((UnsignedByteType) ra.get()).get();
+														if((sample > 0) ){
+															if (analysisType.equals("Binary")) count = count + 1;
+															if (analysisType.equals("Grey"))   count = count + sample;
+														}
+													//}//<= radius	
+												}
+											}//yy
+										}
+									}//XX
+								}
+							} //y	
+						} //x  
+						// calculate the average number of neighboring points within distance "radius":  
+						//number of neighbors = counts-total_number_of_points
+						//average number of neighbors = number of neighbors / total_number_of_points		 
+						//totals[n][b]=(double)(count-number_of_points)/number_of_points; //MR
+						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
+						// set counts equal to zero
+						count=0;	
+						number_of_points=0;
+					} //n Box sizes		
+				}//b band
+			} // no statistical approach
+			else { //statistical approach
+				for (int b = 0; b < numBands; b++) {
+					for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
+						radius = eps[n][b];				
+						for (int x = 0; x < width; x++){
+							for (int y = 0;  y < height; y++){		
+								random_number = (int) (Math.random()*max_random_number+1);
+								if( random_number == 1 ){ // UPDATE 07.08.2013 
+									ra.setPosition(x, 0);
+									ra.setPosition(y, 1);	
+									if((((UnsignedByteType) ra.get()).get() > 0) ){
+										number_of_points++; // total number of points 	
+										// scroll through sub-array 
+										for (int xx = x - radius + 1; xx < x + radius ; xx++) {
+											if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
+												for (int yy = y - radius + 1; yy < y + radius; yy++) {
+													if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
+														//if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
+															ra.setPosition(xx, 0);
+															ra.setPosition(yy, 1);	
+															sample = ((UnsignedByteType) ra.get()).get();
+															if((sample > 0) ){
+																if (analysisType.equals("Binary")) count = count + 1;
+																if (analysisType.equals("Grey"))   count = count + sample;
+															}
+														//}//<= radius	
+													 }
+												}//yy
+											}
+										}//XX
+									}
+								}
+							} //y	
+						} //x  
+						// calculate the average number of neighboring points within distance "radius":  
+						//number of neighbors = counts-total_number_of_points
+						//average number of neighbors = number of neighbors / total_number_of_points
+						totals[n][b]=(double)(count-number_of_points)/number_of_points; 	
+						//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
+						// set counts equal to zero
+						count=0;	
+						number_of_points=0;
+					} //n Box sizes		
+				}//b band
+			}
+		} //
+	
+	
 		
 		//Sarkar & Chaudhuri „Multifractal and Generalized Dimensions of Gray-Tone Digital Images“. Signal Processing 42, Nr. 2 (1. März 1995): 181–90. https://doi.org/10.1016/0165-1684(94)00126-K.
 		else if (scanningType.equals("DBC")) { //grey value image
@@ -1090,11 +1093,11 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 				if (numSlices > 1) {
 					preName = "Slice-"+String.format("%03d", plane) +"-";
 				}
-				if (scanningType.equals("Disc(radius) over pixel")) {
+				if (scanningType.equals("Sliding box")) {
 					axisNameX = "ln(Radius)";
 					axisNameY = "ln(Count)";
 				}
-				else if (scanningType.equals("FFGE - Fast fixed grid estimate")) {
+				else if (scanningType.equals("Raster box")) {
 					axisNameX = "ln(Box width)";
 					axisNameY = "ln(Count^2)";
 				}
