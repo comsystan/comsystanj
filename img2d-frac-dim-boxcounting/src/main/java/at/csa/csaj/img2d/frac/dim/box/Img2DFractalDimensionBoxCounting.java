@@ -229,14 +229,14 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
                 callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
      
-     @Parameter(label = "Analysis type",
+     @Parameter(label = "Color model",
  		    description = "Type of image and computation",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
    		    choices = {"Binary", "DBC", "RDBC"},
    		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialAnalysisType",
-             callback = "callbackAnalysisType")
-     private String choiceRadioButt_AnalysisType;
+ 		    initializer = "initialColorModelType",
+             callback = "callbackColorModelType")
+     private String choiceRadioButt_ColorModelType;
      
  	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -288,8 +288,8 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
     }
-    protected void initialAnalysisType() {
-    	choiceRadioButt_AnalysisType = "Binary";
+    protected void initialColorModelType() {
+    	choiceRadioButt_ColorModelType = "Binary";
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
@@ -349,9 +349,9 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 		
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
+	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+	protected void callbackColorModelType() {
+		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 		
 	}
 	
@@ -716,7 +716,7 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnScanType       = new GenericColumn("Scanning type");
-		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
+		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		DoubleColumn columnDp              = new DoubleColumn("Db");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
@@ -728,7 +728,7 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 		table.add(columnRegMin);
 		table.add(columnRegMax);
 		table.add(columnScanType);
-		table.add(columnAnalysisType);
+		table.add(columnColorModelType);
 		table.add(columnDp);
 		table.add(columnR2);
 		table.add(columnStdErr);
@@ -743,8 +743,8 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 		int regMax           = spinnerInteger_RegMax;
 		int numImages        = spinnerInteger_NumBoxes;
 		String scanningType  = choiceRadioButt_ScanningType;	
-		String analysisType  = choiceRadioButt_AnalysisType;	
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
+		String colorModelType  = choiceRadioButt_ColorModelType;	
+		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 		}	
 	    int s = sliceNumber;	
@@ -757,7 +757,7 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);	
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);	
+			table.set("Color model",     table.getRowCount()-1, colorModelType);	
 			table.set("Db",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -773,8 +773,8 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 		int regMax          = spinnerInteger_RegMax;
 		int numImages    	= spinnerInteger_NumBoxes;
 		String scanningType = choiceRadioButt_ScanningType;	
-		String analysisType = choiceRadioButt_AnalysisType;	
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
+		String colorModelType = choiceRadioButt_ColorModelType;	
+		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 		}
 		//loop over all slices
@@ -788,7 +788,7 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);	
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);		
+			table.set("Color model",   	 table.getRowCount()-1, colorModelType);		
 			table.set("Db",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -803,13 +803,13 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
 		
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
-		int numBoxes        = spinnerInteger_NumBoxes;
-		String scanningType = choiceRadioButt_ScanningType;	
-		String analysisType = choiceRadioButt_AnalysisType;	 //binary  DBC   RDBC
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		String scanningType   = choiceRadioButt_ScanningType;	
+		String colorModelType = choiceRadioButt_ColorModelType;	 //binary  DBC   RDBC
 		
-		if ((!analysisType.equals("Binary")) && (regMin == 1)){
+		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 		}
 		int numBands = 1;
@@ -843,7 +843,7 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 		}		
 		
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		if (analysisType.equals("Binary")) {//{"Binary", "DBC", "RDBC"}
+		if (colorModelType.equals("Binary")) {//{"Binary", "DBC", "RDBC"}
 			//Box counting
 			//n=0  2^0 = 1 ... single pixel
 			// Loop through all pixels.
@@ -885,7 +885,7 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 			}//b band		
 		}
 		//*******************************Grey Value Image
-		if (analysisType.equals("DBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
+		if (colorModelType.equals("DBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
 			//Box counting
 			//n=0  2^0 = 1 ... single pixel
 			double greyMax = 0.0;
@@ -933,7 +933,7 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Int
 			}//b band
 		}
 		//***********************************Grey value Image
-		if (analysisType.equals("RDBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
+		if (colorModelType.equals("RDBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
 			//Box counting
 			//n=0  2^0 = 1 ... single pixel
 			double greyMax = 0.0;

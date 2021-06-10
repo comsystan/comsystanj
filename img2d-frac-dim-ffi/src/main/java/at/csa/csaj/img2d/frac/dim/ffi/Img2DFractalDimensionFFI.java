@@ -246,14 +246,14 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 //                callback = "callbackScanningType")
 //     private String choiceRadioButt_ScanningType;
 //     
-//     @Parameter(label = "Analysis type",
+//     @Parameter(label = "Color model",
 // 		    description = "Type of image and computation",
 // 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 //   		    choices = {"Binary"}, //grey value does make sense "DBC", "RDBC"},
 //   		    //persist  = false,  //restore previous value default = true
-// 		    initializer = "initialAnalysisType",
-//             callback = "callbackAnalysisType")
-//     private String choiceRadioButt_AnalysisType;
+// 		    initializer = "initialColorModelType",
+//             callback = "callbackColorModelType")
+//     private String choiceRadioButt_ColorModelType;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -308,8 +308,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 //    protected void initialScanningType() {
 //    	choiceRadioButt_ScanningType = "Raster box";
 //    }
-//    protected void initialAnalysisType() {
-//    	choiceRadioButt_AnalysisType = "Binary";
+//    protected void initialColorModelType() {
+//    	choiceRadioButt_ColorModelType = "Binary";
 //    }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
@@ -374,9 +374,9 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 //		
 //	}
 //	
-//	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-//	protected void callbackAnalysisType() {
-//		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
+//	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+//	protected void callbackColorModelType() {
+//		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 //		
 //	}
 	
@@ -778,8 +778,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int numImages          = spinnerInteger_NumBoxes;
 		String fractalDimType  = choiceRadioButt_FractalDimType;
 		//String scanningType  = choiceRadioButt_ScanningType;	
-		//String analysisType  = choiceRadioButt_AnalysisType;	
-//		if ((!analysisType.equals("Binary")) && (regMin == 1)){
+		//String colorModelType  = choiceRadioButt_ColorModelType;	
+//		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 //		}	
 	    int s = sliceNumber;	
@@ -811,8 +811,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int numImages    	= spinnerInteger_NumBoxes;
 		String fractalDimType  = choiceRadioButt_FractalDimType;
 //		String scanningType = choiceRadioButt_ScanningType;	
-//		String analysisType = choiceRadioButt_AnalysisType;	
-//		if ((!analysisType.equals("Binary")) && (regMin == 1)){
+//		String colorModelType = choiceRadioButt_ColorModelType;	
+//		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 //		}
 		//loop over all slices
@@ -848,12 +848,12 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int numBoxes        = spinnerInteger_NumBoxes;
 		String fractalDimType  = choiceRadioButt_FractalDimType;
 		//String scanningType  = choiceRadioButt_ScanningType;	
-		//String analysisType  = choiceRadioButt_AnalysisType;	
-//		if ((!analysisType.equals("Binary")) && (regMin == 1)){
+		//String colorModelType  = choiceRadioButt_ColorModelType;	
+//		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 //		}	
 		String scanningType = "Raster box";
-		String analysisType = "Binary";	
+		String colorModelType = "Binary";	
 		
 		int numBands = 1;
 		

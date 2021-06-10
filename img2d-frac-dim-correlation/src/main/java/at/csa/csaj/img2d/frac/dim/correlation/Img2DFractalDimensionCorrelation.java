@@ -230,14 +230,14 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
              callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
      
-     @Parameter(label = "Analysis type",
+     @Parameter(label = "Color model",
   		    description = "Type of image and computation",
   		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		    choices = {"Binary", "Grey"},
     		    //persist  = false,  //restore previous value default = true
-  		    initializer = "initialAnalysisType",
-              callback = "callbackAnalysisType")
-     private String choiceRadioButt_AnalysisType;
+  		    initializer = "initialColorModelType",
+              callback = "callbackColorModelType")
+     private String choiceRadioButt_ColorModelType;
      
      @Parameter(label = "(Disc) Pixel %",
   		   description = "% of image pixels to be taken - to lower computation times",
@@ -301,8 +301,8 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
     	choiceRadioButt_ScanningType = "Sliding box";
     }
   
-    protected void initialAnalysisType() {
-    	choiceRadioButt_AnalysisType = "Binary";
+    protected void initialColorModelType() {
+    	choiceRadioButt_ColorModelType = "Binary";
     }
     
     protected void initialPixelPercentage() {
@@ -365,9 +365,9 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 		
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
+	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+	protected void callbackColorModelType() {
+		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
@@ -736,7 +736,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
-		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
+		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		IntColumn columnPixelPercentage    = new IntColumn("(Disc) Pixel %");
 		DoubleColumn columnDc              = new DoubleColumn("Dc");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
@@ -749,7 +749,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 		table.add(columnRegMin);
 		table.add(columnRegMax);
 		table.add(columnScanningType);
-		table.add(columnAnalysisType);
+		table.add(columnColorModelType);
 		table.add(columnPixelPercentage);
 		table.add(columnDc);
 		table.add(columnR2);
@@ -766,7 +766,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 		int regMax           = spinnerInteger_RegMax;
 		int pixelPercentage  = spinnerInteger_PixelPercentage;
 		String scanningType  = choiceRadioButt_ScanningType;
-		String analysisType  = choiceRadioButt_AnalysisType;	
+		String colorModelType  = choiceRadioButt_ColorModelType;	
 		
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -778,7 +778,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);
+			table.set("Color model",     table.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
@@ -796,7 +796,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 		int regMax           = spinnerInteger_RegMax;
 		int pixelPercentage  = spinnerInteger_PixelPercentage;
 		String scanningType  = choiceRadioButt_ScanningType;
-		String analysisType  = choiceRadioButt_AnalysisType;	
+		String colorModelType  = choiceRadioButt_ColorModelType;	
 		
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
@@ -809,7 +809,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);
+			table.set("Color model",     table.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
@@ -824,13 +824,13 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
-		int numBoxes        = spinnerInteger_NumBoxes;
-		String scanningType = choiceRadioButt_ScanningType;	
-		String analysisType  = choiceRadioButt_AnalysisType;	
-		int pixelPercentage  = spinnerInteger_PixelPercentage;
-		boolean optShowPlot = booleanShowDoubleLogPlot;
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		String scanningType   = choiceRadioButt_ScanningType;	
+		String colorModelType = choiceRadioButt_ColorModelType;	
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
+		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		int numBands = 1;
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
@@ -884,8 +884,8 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 								//cursorF.localize(pos);	
 								sample = ((UnsignedByteType) cursor.get()).get();
 								if ( sample > 0) { //Binary Image: 0 and [1, 255]! and not: 0 and 255
-									if (analysisType.equals("Binary")) count = count + 1;
-									if (analysisType.equals("Grey"))   count = count + sample;
+									if (colorModelType.equals("Binary")) count = count + 1;
+									if (colorModelType.equals("Grey"))   count = count + sample;
 								}			
 							}//while Box
 							totals[n][b]   += count*count;
@@ -931,8 +931,8 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 														ra.setPosition(yy, 1);	
 														sample = ((UnsignedByteType) ra.get()).get();
 														if((sample > 0) ){
-															if (analysisType.equals("Binary")) count = count + 1;
-															if (analysisType.equals("Grey"))   count = count + sample;
+															if (colorModelType.equals("Binary")) count = count + 1;
+															if (colorModelType.equals("Grey"))   count = count + sample;
 														}
 													//}//<= radius	
 												}
@@ -975,8 +975,8 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 															ra.setPosition(yy, 1);	
 															sample = ((UnsignedByteType) ra.get()).get();
 															if((sample > 0) ){
-																if (analysisType.equals("Binary")) count = count + 1;
-																if (analysisType.equals("Grey"))   count = count + sample;
+																if (colorModelType.equals("Binary")) count = count + 1;
+																if (colorModelType.equals("Grey"))   count = count + sample;
 															}
 														//}//<= radius	
 													 }

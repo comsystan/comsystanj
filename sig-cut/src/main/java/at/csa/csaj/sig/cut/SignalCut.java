@@ -716,8 +716,8 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		//String analysisType    = choiceRadioButt_AnalysisType;
-		//String surrType      = choiceRadioButt_SurrogateType;
+		//String analysisType= choiceRadioButt_AnalysisType;
+		//String surrType    = choiceRadioButt_SurrogateType;
 		//int  boxLength     = spinnerInteger_BoxLength;
 		int    numDataPoints = dgt.getRowCount();
 		//boolean removeZeores  = booleanRemoveZeroes;

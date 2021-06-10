@@ -219,14 +219,14 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 			   initializer = "initialDirection", callback = "callbackDirection")
 	private String choiceRadioButt_Direction;
 
-    @Parameter(label = "Analysis type",
+    @Parameter(label = "Color model",
   		    description = "Type of image and computation",
   		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		    choices = {"Binary", "Grey"},
     		    //persist  = false,  //restore previous value default = true
-  		    initializer = "initialAnalysisType",
-              callback = "callbackAnalysisType")
-    private String choiceRadioButt_AnalysisType;
+  		    initializer = "initialColorModelType",
+              callback = "callbackColorModelType")
+    private String choiceRadioButt_ColorModelType;
 	
 	@Parameter(label = "Pixel %",
 	  		   description = "% of image pixels to be taken - to lower computation times",
@@ -300,8 +300,8 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		choiceRadioButt_Direction = "Horizontal and vertical direction";
 	}
 
-	protected void initialAnalysisType() {
-	    choiceRadioButt_AnalysisType = "Binary";
+	protected void initialColorModelType() {
+	    choiceRadioButt_ColorModelType = "Binary";
 	}
 	
 	protected void initialPixelPercentage() {
@@ -372,9 +372,9 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		logService.info(this.getClass().getName() + " Direction set to " + choiceRadioButt_Direction);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
+	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+	protected void callbackColorModelType() {
+		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
@@ -864,7 +864,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnMethod         = new GenericColumn("Method");
-		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
+		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		DoubleColumn columnDsRow      	   = new DoubleColumn("Dc-hor");
 		DoubleColumn columnDsCol      	   = new DoubleColumn("Dc-vert");
 		DoubleColumn columnDs         	   = new DoubleColumn("Dc");
@@ -884,7 +884,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		table.add(columnRegMin);
 		table.add(columnRegMax);
 		table.add(columnMethod);
-		table.add(columnAnalysisType);
+		table.add(columnColorModelType);
 		table.add(columnDsRow);
 		table.add(columnDsCol);
 		table.add(columnDs);
@@ -919,7 +919,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		int regMin   = spinnerInteger_RegMin;
 		int regMax   = spinnerInteger_RegMax;
 		String direction     = choiceRadioButt_Direction;
-		String analysisType  = choiceRadioButt_AnalysisType;
+		String colorModelType  = choiceRadioButt_ColorModelType;
 	
 		int s = sliceNumber;
 		// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
@@ -931,7 +931,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		table.set("RegMin",         	 table.getRowCount() - 1, regMin);
 		table.set("RegMax",         	 table.getRowCount() - 1, regMax);
 		table.set("Method",        	     table.getRowCount() - 1, direction);
-		table.set("Analysis type",  	 table.getRowCount() - 1, analysisType);
+		table.set("Color model",  		 table.getRowCount() - 1, colorModelType);
 		table.set("Dc-hor",     		 table.getRowCount() - 1, resultValuesTable[s][0]);
 		table.set("Dc-vert",    		 table.getRowCount() - 1, resultValuesTable[s][1]);
 		table.set("Dc",         		 table.getRowCount() - 1, resultValuesTable[s][2]);
@@ -968,7 +968,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		int regMin   = spinnerInteger_RegMin;
 		int regMax   = spinnerInteger_RegMax;
 		String direction     = choiceRadioButt_Direction;
-		String analysisType  = choiceRadioButt_AnalysisType;	
+		String colorModelType  = choiceRadioButt_ColorModelType;	
 
 		// loop over all slices
 		for (int s = 0; s < numSlices; s++) { // slices of an image stack
@@ -981,7 +981,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 			table.set("RegMin",        		 table.getRowCount() - 1, regMin);
 			table.set("RegMax",         	 table.getRowCount() - 1, regMax);
 			table.set("Method",        	     table.getRowCount() - 1, direction);
-			table.set("Analysis type",  	 table.getRowCount() - 1, analysisType);
+			table.set("Color model",  	 	 table.getRowCount() - 1, colorModelType);
 			table.set("Dc-hor",     		 table.getRowCount() - 1, resultValuesTable[s][0]);
 			table.set("Dc-vert",     		 table.getRowCount() - 1, resultValuesTable[s][1]);
 			table.set("Dc",        			 table.getRowCount() - 1, resultValuesTable[s][2]);
@@ -1017,13 +1017,13 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 	*/
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { // plane plane (Image) number
 		
-		int numBoxes         = spinnerInteger_NumBoxes;
-		int regMin           = spinnerInteger_RegMin;
-		int regMax           = spinnerInteger_RegMax;
-		String direction 	 = choiceRadioButt_Direction;	
-		String analysisType  = choiceRadioButt_AnalysisType;	
-		int pixelPercentage  = spinnerInteger_PixelPercentage;	
-		boolean optShowPlot  = booleanShowDoubleLogPlot;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		String direction 	  = choiceRadioButt_Direction;	
+		String colorModelType = choiceRadioButt_ColorModelType;	
+		int pixelPercentage   = spinnerInteger_PixelPercentage;	
+		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
 		int numBands = 1;
 
@@ -1046,14 +1046,14 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 
 			// Ds-0°  180°--------------------------------------------------------------------------------
 			logService.info(this.getClass().getName() + " Computing horizontal Dc");
-			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, analysisType, pixelPercentage, 0, 180, optShowPlot, plane, numBands);	
+			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, colorModelType, pixelPercentage, 0, 180, optShowPlot, plane, numBands);	
 			resultValues[0] = regressionValues[1]; // Dc = slope
 			resultValues[1] = regressionValues[4];
 			resultValues[2] = regressionValues[3];
 		
 			// Dc- +90° -90° ---------------------------------------------------------------------------------
 			logService.info(this.getClass().getName() + " Computing vertical Dc");
-			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, analysisType, pixelPercentage, 90, -90, optShowPlot, plane, numBands);
+			regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, colorModelType, pixelPercentage, 90, -90, optShowPlot, plane, numBands);
 			
 			resultValues[3] = regressionValues[1]; // Dc = slope
 			resultValues[4] = regressionValues[4];
@@ -1100,7 +1100,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 				angle2 = angle1 +180;
 				
 				logService.info(this.getClass().getName() + " Computing Dc at angle " + angle1 +"° and " + angle2 + "°");
-				regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, analysisType, pixelPercentage, angle1, angle2, optShowPlot, plane, numBands);
+				regressionValues =this.computeRegressionValues(rai, numBoxes, regMin, regMax, colorModelType, pixelPercentage, angle1, angle2, optShowPlot, plane, numBands);
 				
 				double dim = regressionValues[1];
 				if (dim == 0.0) dim = Double.NaN;
@@ -1155,7 +1155,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 	 * Compute directional correlations
 	 * @return double[] regressionValues
 	 */
-	private double[] computeRegressionValues(RandomAccessibleInterval<?> rai, int numBoxes, int regMin, int regMax, String analysisType, int pixelPercentage, 
+	private double[] computeRegressionValues(RandomAccessibleInterval<?> rai, int numBoxes, int regMin, int regMax, String colorModelType, int pixelPercentage, 
 																	  double angle1, double angle2, boolean optShowPlot, int plane, int numBands) {
 		//WARNING: Output is only the last band!!
 		double[] regressionValues = null; //output of this method
@@ -1202,8 +1202,8 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 										ra.setPosition(y+yWert, 1);	
 										sample = ((UnsignedByteType) ra.get()).get();	
 										if((sample > 0) ){
-											if (analysisType.equals("Binary")) count = count + 1;
-											if (analysisType.equals("Grey"))   count = count + sample;
+											if (colorModelType.equals("Binary")) count = count + 1;
+											if (colorModelType.equals("Grey"))   count = count + sample;
 										}
 									}
 									xWert =  (int)Math.round(  r  * Math.cos( Math.toRadians(phi2)) )  ;
@@ -1213,8 +1213,8 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 										ra.setPosition(y+yWert, 1);	
 										sample = ((UnsignedByteType) ra.get()).get();	
 										if((sample > 0) ){
-											if (analysisType.equals("Binary")) count = count + 1;
-											if (analysisType.equals("Grey"))   count = count + sample;
+											if (colorModelType.equals("Binary")) count = count + 1;
+											if (colorModelType.equals("Grey"))   count = count + sample;
 										}				
 									}
 								}// radius
@@ -1254,8 +1254,8 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 											ra.setPosition(y+yWert, 1);	
 											sample = ((UnsignedByteType) ra.get()).get();	
 											if((sample > 0) ){
-												if (analysisType.equals("Binary")) count = count + 1;
-												if (analysisType.equals("Grey"))   count = count + sample;
+												if (colorModelType.equals("Binary")) count = count + 1;
+												if (colorModelType.equals("Grey"))   count = count + sample;
 											}				
 										}
 										xWert =  (int)Math.round(  r  * Math.cos( Math.toRadians(phi2)) )  ;
@@ -1265,8 +1265,8 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 											ra.setPosition(y+yWert, 1);	
 											sample = ((UnsignedByteType) ra.get()).get();	
 											if((sample > 0) ){
-												if (analysisType.equals("Binary")) count = count + 1;
-												if (analysisType.equals("Grey"))   count = count + sample;
+												if (colorModelType.equals("Binary")) count = count + 1;
+												if (colorModelType.equals("Grey"))   count = count + sample;
 											}				
 										}
 									}// radius

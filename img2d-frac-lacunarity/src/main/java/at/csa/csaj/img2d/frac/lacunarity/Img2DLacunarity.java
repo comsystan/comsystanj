@@ -245,14 +245,14 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
             callback = "callbackMethodType")
     private String choiceRadioButt_MethodType;
     
-    @Parameter(label = "Analysis type",
+    @Parameter(label = "Color model",
  		    description = "Type of image and computation",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
    		    choices = {"Binary", "Grey"},
    		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialAnalysisType",
-             callback = "callbackAnalysisType")
-    private String choiceRadioButt_AnalysisType;
+ 		    initializer = "initialColorModelType",
+             callback = "callbackColorModelType")
+    private String choiceRadioButt_ColorModelType;
     
     @Parameter(label = "(Sliding box) Pixel %",
    		   description = "% of image pixels to be taken - to lower computation times",
@@ -337,8 +337,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
     	choiceRadioButt_MethodType = "Raster box";
     }
     
-    protected void initialAnalysisType() {
-    	choiceRadioButt_AnalysisType = "Binary";
+    protected void initialColorModelType() {
+    	choiceRadioButt_ColorModelType = "Binary";
     }
     
     protected void initialPixelPercentage() {
@@ -408,23 +408,23 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 	/** Executed whenever the {@link #choiceRadioButt_MethodType} parameter changes. */
 	protected void callbackMethodType() {
 		if (choiceRadioButt_MethodType.equals("Tug of war")) {
-			if (choiceRadioButt_AnalysisType.equals("Grey")) {
+			if (choiceRadioButt_ColorModelType.equals("Grey")) {
 				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
-				choiceRadioButt_AnalysisType = "Binary";
+				choiceRadioButt_ColorModelType = "Binary";
 			}
 		}
 		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_MethodType);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
+	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+	protected void callbackColorModelType() {
 		if (choiceRadioButt_MethodType.equals("Tug of war")) {
-			if (choiceRadioButt_AnalysisType.equals("Grey")) {
+			if (choiceRadioButt_ColorModelType.equals("Grey")) {
 				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
-				choiceRadioButt_AnalysisType = "Binary";
+				choiceRadioButt_ColorModelType = "Binary";
 			}
 		}
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
+		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
@@ -796,15 +796,15 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader(){
 		
-		GenericColumn columnFileName     = new GenericColumn("File name");
-		GenericColumn columnSliceName    = new GenericColumn("Slice name");
-		IntColumn columnMaxNumBoxes      = new IntColumn("# Boxes");
-		IntColumn columnRegMin           = new IntColumn("RegMin");
-		IntColumn columnRegMax           = new IntColumn("RegMax");
-		GenericColumn columnMethodType   = new GenericColumn("Method type");
-		GenericColumn columnAnalysisType = new GenericColumn("Analysis type");
-		DoubleColumn columnL_RP          = new DoubleColumn("<L>-R&P"); //weighted mean L
-		DoubleColumn columnL_SV          = new DoubleColumn("<L>-S&V");   //mean L
+		GenericColumn columnFileName       = new GenericColumn("File name");
+		GenericColumn columnSliceName      = new GenericColumn("Slice name");
+		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
+		IntColumn columnRegMin             = new IntColumn("RegMin");
+		IntColumn columnRegMax             = new IntColumn("RegMax");
+		GenericColumn columnMethodType     = new GenericColumn("Method type");
+		GenericColumn columnColorModelType = new GenericColumn("Color model");
+		DoubleColumn columnL_RP            = new DoubleColumn("<L>-R&P"); //weighted mean L
+		DoubleColumn columnL_SV            = new DoubleColumn("<L>-S&V");   //mean L
 	
 	    table = new DefaultGenericTable();
 		table.add(columnFileName);
@@ -813,7 +813,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 		table.add(columnRegMin);
 		table.add(columnRegMax);
 		table.add(columnMethodType);
-		table.add(columnAnalysisType);
+		table.add(columnColorModelType);
 		table.add(columnL_RP);
 		table.add(columnL_SV);
 		String preString = "L";
@@ -833,13 +833,13 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 	private void collectActiveResultAndShowTable(int sliceNumber) {
 	
 		//int numBoxes   = spinnerInteger_NumBoxes;
-		int regMin     	  = spinnerInteger_RegMin;
-		int regMax     	  = spinnerInteger_RegMax;
-		String methodType = choiceRadioButt_MethodType;
+		int regMin     	      = spinnerInteger_RegMin;
+		int regMax     	      = spinnerInteger_RegMax;
+		String methodType     = choiceRadioButt_MethodType;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
-		int accuracy 	  = spinnerInteger_NumAcurracy;
-		int confidence    = spinnerInteger_NumConfidence;
-		String analysisType  = choiceRadioButt_AnalysisType;	
+		int accuracy 	      = spinnerInteger_NumAcurracy;
+		int confidence        = spinnerInteger_NumConfidence;
+		String colorModelType = choiceRadioButt_ColorModelType;	
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -863,7 +863,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 			else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
-			table.set("Analysis type",     table.getRowCount()-1, analysisType);
+			table.set("Color model",       table.getRowCount()-1, colorModelType);
 			table.set("<L>-R&P",   		   table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
 			table.set("<L>-S&V",   		   table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
 			tableColLast = 8;
@@ -883,12 +883,12 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 	private void collectAllResultsAndShowTable() {
 	
 		//int numBoxes       = spinnerInteger_NumBoxes;
-		int regMin        = spinnerInteger_RegMin;
-		int regMax        = spinnerInteger_RegMax;
-		String methodType = choiceRadioButt_MethodType;
-		int accuracy 	  = spinnerInteger_NumAcurracy;
-		int confidence    = spinnerInteger_NumConfidence;
-		String analysisType  = choiceRadioButt_AnalysisType;	
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		String methodType     = choiceRadioButt_MethodType;
+		int accuracy 	      = spinnerInteger_NumAcurracy;
+		int confidence        = spinnerInteger_NumConfidence;
+		String colorModelType = choiceRadioButt_ColorModelType;	
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -909,7 +909,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
-			table.set("Analysis type",     table.getRowCount()-1, analysisType);	
+			table.set("Color model",       table.getRowCount()-1, colorModelType);	
 			table.set("<L>-R&P",   		   table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
 			table.set("<L>-S&V",   	       table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
 			tableColLast = 8;
@@ -931,13 +931,13 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 	
 		//int numBoxes        = spinnerInteger_NumBoxes;
-		int regMin        = spinnerInteger_RegMin;
-		int regMax        = spinnerInteger_RegMax;
-		String method     = choiceRadioButt_MethodType;
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		String method         = choiceRadioButt_MethodType;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
-		String analysisType = choiceRadioButt_AnalysisType;	 //"Binary"  "Grey"
-		int accuracy 	  = spinnerInteger_NumAcurracy;
-		int confidence    = spinnerInteger_NumConfidence;
+		String colorModelType = choiceRadioButt_ColorModelType;	 //"Binary"  "Grey"
+		int accuracy 	      = spinnerInteger_NumAcurracy;
+		int confidence        = spinnerInteger_NumConfidence;
 		
 		boolean optShowPlot = booleanShowDoubleLogPlot;
 		
@@ -990,13 +990,13 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 								sample = ((UnsignedByteType) cursor.get()).get();
 								if (sample > 0) {
 									// Binary Image: 0 and [1, 255]! and not: 0 and 255
-									if (analysisType.equals("Binary")) count = count + 1.0;
-									if (analysisType.equals("Grey"))   count = count + sample;
+									if (colorModelType.equals("Binary")) count = count + 1.0;
+									if (colorModelType.equals("Grey"))   count = count + sample;
 								}								
 							}//while Box
 							countList.add(count);
-							//if (analysisType.equals("Binary")) countList.add(count);
-							//if (analysisType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
+							//if (colorModelType.equals("Binary")) countList.add(count);
+							//if (colorModelType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
 						} //y	
 					} //x
 					//mean for this box size
@@ -1037,13 +1037,13 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 									sample = ((UnsignedByteType) cursor.get()).get();
 									if (sample > 0) {
 										// Binary Image: 0 and [1, 255]! and not: 0 and 255
-										if (analysisType.equals("Binary")) count = count + 1.0;
-										if (analysisType.equals("Grey"))   count = count + sample;
+										if (colorModelType.equals("Binary")) count = count + 1.0;
+										if (colorModelType.equals("Grey"))   count = count + sample;
 									}								
 								}//while Box
 								countList.add(count);
-								//if (analysisType.equals("Binary")) countList.add(count);
-								//if (analysisType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
+								//if (colorModelType.equals("Binary")) countList.add(count);
+								//if (colorModelType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
 							}
 						} //y	
 					} //x
@@ -1094,8 +1094,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 				if (sample == 0.0) {
 					((UnsignedByteType) cursor.get()).set(0);
 				} else {
-					if (analysisType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
-					if (analysisType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
+					if (colorModelType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
+					if (colorModelType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
 				}		
 			}
 			//uiService.show("imgBin2", imgBin);

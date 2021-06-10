@@ -270,14 +270,14 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
              callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
      
-     @Parameter(label = "Analysis type",
+     @Parameter(label = "Color model",
   		    description = "Type of image and computation",
   		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		    choices = {"Binary", "Grey"},
     		    //persist  = false,  //restore previous value default = true
-  		    initializer = "initialAnalysisType",
-              callback = "callbackAnalysisType")
-     private String choiceRadioButt_AnalysisType;
+  		    initializer = "initialColorModelType",
+              callback = "callbackColorModelType")
+     private String choiceRadioButt_ColorModelType;
      
      @Parameter(label = "(Sliding box) Pixel %",
   		   description = "% of image pixels to be taken - to lower computation times",
@@ -359,8 +359,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
     }
-    protected void initialAnalysisType() {
-    	choiceRadioButt_AnalysisType = "Binary";
+    protected void initialColorModelType() {
+    	choiceRadioButt_ColorModelType = "Binary";
     }
     protected void initialPixelPercentage() {
       	spinnerInteger_PixelPercentage = 100;
@@ -448,9 +448,9 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
-	protected void callbackAnalysisType() {
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
+	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+	protected void callbackColorModelType() {
+		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
 	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
 	protected void callbackPixelPercentage() {
@@ -845,7 +845,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		IntColumn columnNumMinQ            = new IntColumn("Min q");
 		IntColumn columnNumMaxQ            = new IntColumn("Max q");
 		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
-		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
+		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		IntColumn columnPixelPercentage    = new IntColumn("(Sliding box) Pixel %");
 	
 	    table = new DefaultGenericTable();
@@ -857,7 +857,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		table.add(columnNumMinQ);
 		table.add(columnNumMaxQ);
 		table.add(columnScanningType);
-		table.add(columnAnalysisType);
+		table.add(columnColorModelType);
 		table.add(columnPixelPercentage);
 		
 		int numMinQ = spinnerInteger_NumMinQ;
@@ -875,14 +875,14 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 	 */
 	private void collectActiveResultAndShowTable(int sliceNumber) {
 	
-		int numBoxes         = spinnerInteger_NumBoxes;
-		int regMin           = spinnerInteger_RegMin;
-		int regMax           = spinnerInteger_RegMax;
-		int numMinQ          = spinnerInteger_NumMinQ;
-		int numMaxQ          = spinnerInteger_NumMaxQ;
-		int pixelPercentage      = spinnerInteger_PixelPercentage;
-		String scanningType  = choiceRadioButt_ScanningType;
-		String analysisType  = choiceRadioButt_AnalysisType;	
+		int numBoxes          = spinnerInteger_NumBoxes;
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		int numMinQ           = spinnerInteger_NumMinQ;
+		int numMaxQ           = spinnerInteger_NumMaxQ;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
+		String scanningType   = choiceRadioButt_ScanningType;
+		String colorModelType = choiceRadioButt_ColorModelType;	
 		
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -896,7 +896,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 			table.set("Min q",      	 table.getRowCount()-1, numMinQ);	
 			table.set("Max q",      	 table.getRowCount()-1, numMaxQ);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
-			table.set("Analysis type",     table.getRowCount()-1, analysisType);
+			table.set("Color model",     table.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) table.set("(Sliding box) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			
 			int numQ = numMaxQ - numMinQ + 1;
@@ -912,14 +912,14 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 	/** collects all results and shows table */
 	private void collectAllResultsAndShowTable() {
 	
-		int numBoxes         = spinnerInteger_NumBoxes;
-		int regMin           = spinnerInteger_RegMin;
-		int regMax           = spinnerInteger_RegMax;
-		int numMinQ          = spinnerInteger_NumMinQ;
-		int numMaxQ          = spinnerInteger_NumMaxQ;
-		int pixelPercentage  = spinnerInteger_PixelPercentage;
-		String scanningType  = choiceRadioButt_ScanningType;	
-		String analysisType  = choiceRadioButt_AnalysisType;	
+		int numBoxes          = spinnerInteger_NumBoxes;
+		int regMin            = spinnerInteger_RegMin;
+		int regMax            = spinnerInteger_RegMax;
+		int numMinQ           = spinnerInteger_NumMinQ;
+		int numMaxQ           = spinnerInteger_NumMaxQ;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
+		String scanningType   = choiceRadioButt_ScanningType;	
+		String colorModelType = choiceRadioButt_ColorModelType;	
 		
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
@@ -934,7 +934,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 			table.set("Min q",      	 table.getRowCount()-1, numMinQ);	
 			table.set("Max q",      	 table.getRowCount()-1, numMaxQ);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
-			table.set("Analysis type",   table.getRowCount()-1, analysisType);
+			table.set("Color model",     table.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) table.set("(Sliding box) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			
 			int numQ = numMaxQ - numMinQ + 1;
@@ -952,15 +952,15 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 	 * */
 	private double[][] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
-		int numBoxes        = spinnerInteger_NumBoxes;
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
+		int numBoxes                 = spinnerInteger_NumBoxes;
+		int regMin                   = spinnerInteger_RegMin;
+		int regMax                   = spinnerInteger_RegMax;
 		//String boxSizeDistribution = this.choiceRadioButt_BoxSizeDistribution;
-		int numMinQ         = spinnerInteger_NumMinQ;
-		int numMaxQ         = spinnerInteger_NumMaxQ;
-		String scanningType = choiceRadioButt_ScanningType;	 
-		String analysisType = choiceRadioButt_AnalysisType;	
-		int pixelPercentage     = spinnerInteger_PixelPercentage;
+		int numMinQ                  = spinnerInteger_NumMinQ;
+		int numMaxQ                  = spinnerInteger_NumMaxQ;
+		String scanningType          = choiceRadioButt_ScanningType;	 
+		String colorModelType        = choiceRadioButt_ColorModelType;	
+		int pixelPercentage          = spinnerInteger_PixelPercentage;
 		boolean optShowDoubleLogPlot = booleanShowDoubleLogPlot;
 		boolean optShowDqPlot        = booleanShowDqPlot;
 		boolean optShowFSpectrum     = booleanShowFSpectrum;
@@ -1046,8 +1046,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 									//cursor.localize(pos);
 									sample = ((UnsignedByteType) cursor.get()).get();
 									if ( sample > 0) {
-										if      (analysisType.equals("Binary")) count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-										else if (analysisType.equals("Grey"))   count = count + sample;
+										if      (colorModelType.equals("Binary")) count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+										else if (colorModelType.equals("Grey"))   count = count + sample;
 									}			
 								}//while Box
 								//count = count / numObjectPixels; // normalized mass of current box
@@ -1084,8 +1084,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 										//cursor.localize(pos);
 										sample = ((UnsignedByteType) cursor.get()).get();
 										if ( sample > 0) {
-											if      (analysisType.equals("Binary")) count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-											else if (analysisType.equals("Grey"))   count = count + sample;
+											if      (colorModelType.equals("Binary")) count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+											else if (colorModelType.equals("Grey"))   count = count + sample;
 										}			
 									}//while Box
 									//count = count / numObjectPixels; // normalized mass of current box
@@ -1141,8 +1141,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 					((UnsignedByteType) cursor.get()).set(0);
 				} else {
 					//((UnsignedByteType) cursor.get()).set(1);
-					if (analysisType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
-					if (analysisType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
+					if (colorModelType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
+					if (colorModelType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
 				}		
 			}
 			//uiService.show("imgBin2", imgBin);
