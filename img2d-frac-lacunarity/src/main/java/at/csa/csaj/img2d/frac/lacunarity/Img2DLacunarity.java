@@ -250,9 +250,9 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
    		    choices = {"Binary", "Grey"},
    		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialAnalysisMethod",
-             callback = "callbackAnalysisMethod")
-    private String choiceRadioButt_AnalysisMethod;
+ 		    initializer = "initialAnalysisType",
+             callback = "callbackAnalysisType")
+    private String choiceRadioButt_AnalysisType;
     
     @Parameter(label = "(Sliding box) Pixel %",
    		   description = "% of image pixels to be taken - to lower computation times",
@@ -337,8 +337,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
     	choiceRadioButt_MethodType = "Raster box";
     }
     
-    protected void initialAnalysisMethod() {
-    	choiceRadioButt_AnalysisMethod = "Binary";
+    protected void initialAnalysisType() {
+    	choiceRadioButt_AnalysisType = "Binary";
     }
     
     protected void initialPixelPercentage() {
@@ -408,23 +408,23 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 	/** Executed whenever the {@link #choiceRadioButt_MethodType} parameter changes. */
 	protected void callbackMethodType() {
 		if (choiceRadioButt_MethodType.equals("Tug of war")) {
-			if (choiceRadioButt_AnalysisMethod.equals("Grey")) {
+			if (choiceRadioButt_AnalysisType.equals("Grey")) {
 				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
-				choiceRadioButt_AnalysisMethod = "Binary";
+				choiceRadioButt_AnalysisType = "Binary";
 			}
 		}
 		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_MethodType);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
-	protected void callbackAnalysisMethod() {
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+	protected void callbackAnalysisType() {
 		if (choiceRadioButt_MethodType.equals("Tug of war")) {
-			if (choiceRadioButt_AnalysisMethod.equals("Grey")) {
+			if (choiceRadioButt_AnalysisType.equals("Grey")) {
 				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
-				choiceRadioButt_AnalysisMethod = "Binary";
+				choiceRadioButt_AnalysisType = "Binary";
 			}
 		}
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
+		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
@@ -839,7 +839,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
-		String analysisType  = choiceRadioButt_AnalysisMethod;	
+		String analysisType  = choiceRadioButt_AnalysisType;	
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -888,7 +888,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 		String methodType = choiceRadioButt_MethodType;
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
-		String analysisType  = choiceRadioButt_AnalysisMethod;	
+		String analysisType  = choiceRadioButt_AnalysisType;	
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -935,7 +935,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 		int regMax        = spinnerInteger_RegMax;
 		String method     = choiceRadioButt_MethodType;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
-		String analysisType = choiceRadioButt_AnalysisMethod;	 //"Binary"  "Grey"
+		String analysisType = choiceRadioButt_AnalysisType;	 //"Binary"  "Grey"
 		int accuracy 	  = spinnerInteger_NumAcurracy;
 		int confidence    = spinnerInteger_NumConfidence;
 		

@@ -251,9 +251,9 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 // 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 //   		    choices = {"Binary"}, //grey value does make sense "DBC", "RDBC"},
 //   		    //persist  = false,  //restore previous value default = true
-// 		    initializer = "initialAnalysisMethod",
-//             callback = "callbackAnalysisMethod")
-//     private String choiceRadioButt_AnalysisMethod;
+// 		    initializer = "initialAnalysisType",
+//             callback = "callbackAnalysisType")
+//     private String choiceRadioButt_AnalysisType;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -308,8 +308,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 //    protected void initialScanningType() {
 //    	choiceRadioButt_ScanningType = "Raster box";
 //    }
-//    protected void initialAnalysisMethod() {
-//    	choiceRadioButt_AnalysisMethod = "Binary";
+//    protected void initialAnalysisType() {
+//    	choiceRadioButt_AnalysisType = "Binary";
 //    }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
@@ -374,9 +374,9 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 //		
 //	}
 //	
-//	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
-//	protected void callbackAnalysisMethod() {
-//		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
+//	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+//	protected void callbackAnalysisType() {
+//		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
 //		
 //	}
 	
@@ -778,7 +778,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int numImages          = spinnerInteger_NumBoxes;
 		String fractalDimType  = choiceRadioButt_FractalDimType;
 		//String scanningType  = choiceRadioButt_ScanningType;	
-		//String analysisType  = choiceRadioButt_AnalysisMethod;	
+		//String analysisType  = choiceRadioButt_AnalysisType;	
 //		if ((!analysisType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 //		}	
@@ -811,7 +811,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int numImages    	= spinnerInteger_NumBoxes;
 		String fractalDimType  = choiceRadioButt_FractalDimType;
 //		String scanningType = choiceRadioButt_ScanningType;	
-//		String analysisType = choiceRadioButt_AnalysisMethod;	
+//		String analysisType = choiceRadioButt_AnalysisType;	
 //		if ((!analysisType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 //		}
@@ -848,7 +848,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int numBoxes        = spinnerInteger_NumBoxes;
 		String fractalDimType  = choiceRadioButt_FractalDimType;
 		//String scanningType  = choiceRadioButt_ScanningType;	
-		//String analysisType  = choiceRadioButt_AnalysisMethod;	
+		//String analysisType  = choiceRadioButt_AnalysisType;	
 //		if ((!analysisType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 //		}	

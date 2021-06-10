@@ -275,9 +275,9 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
   		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		    choices = {"Binary", "Grey"},
     		    //persist  = false,  //restore previous value default = true
-  		    initializer = "initialAnalysisMethod",
-              callback = "callbackAnalysisMethod")
-     private String choiceRadioButt_AnalysisMethod;
+  		    initializer = "initialAnalysisType",
+              callback = "callbackAnalysisType")
+     private String choiceRadioButt_AnalysisType;
      
      @Parameter(label = "(Sliding box) Pixel %",
   		   description = "% of image pixels to be taken - to lower computation times",
@@ -359,8 +359,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
     }
-    protected void initialAnalysisMethod() {
-    	choiceRadioButt_AnalysisMethod = "Binary";
+    protected void initialAnalysisType() {
+    	choiceRadioButt_AnalysisType = "Binary";
     }
     protected void initialPixelPercentage() {
       	spinnerInteger_PixelPercentage = 100;
@@ -448,9 +448,9 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
-	protected void callbackAnalysisMethod() {
-		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisType} parameter changes. */
+	protected void callbackAnalysisType() {
+		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisType);
 	}
 	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
 	protected void callbackPixelPercentage() {
@@ -882,7 +882,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		int numMaxQ          = spinnerInteger_NumMaxQ;
 		int pixelPercentage      = spinnerInteger_PixelPercentage;
 		String scanningType  = choiceRadioButt_ScanningType;
-		String analysisType  = choiceRadioButt_AnalysisMethod;	
+		String analysisType  = choiceRadioButt_AnalysisType;	
 		
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -919,7 +919,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		int numMaxQ          = spinnerInteger_NumMaxQ;
 		int pixelPercentage  = spinnerInteger_PixelPercentage;
 		String scanningType  = choiceRadioButt_ScanningType;	
-		String analysisType  = choiceRadioButt_AnalysisMethod;	
+		String analysisType  = choiceRadioButt_AnalysisType;	
 		
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
@@ -959,7 +959,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		int numMinQ         = spinnerInteger_NumMinQ;
 		int numMaxQ         = spinnerInteger_NumMaxQ;
 		String scanningType = choiceRadioButt_ScanningType;	 
-		String analysisType = choiceRadioButt_AnalysisMethod;	
+		String analysisType = choiceRadioButt_AnalysisType;	
 		int pixelPercentage     = spinnerInteger_PixelPercentage;
 		boolean optShowDoubleLogPlot = booleanShowDoubleLogPlot;
 		boolean optShowDqPlot        = booleanShowDqPlot;
