@@ -56,6 +56,7 @@
 - Fractal correlation dimension is computed
 - For binary or grey 8-bit images
 - Binary [0, >0] or grey value mass algorithm
+- Raster box scanning or
 - Classical pair wise occurrence counting (Sliding box scanning)
 - Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
 - or by using a fixed grid estimation of summing up squared counts (Raster box scanning)
@@ -65,9 +66,9 @@
 
 ### Directional correlation dimension
 - A directional dependent fractal correlation dimension is computed
-- For binary 8-bit images
+- For binary or grey 8-bit images
+- Binary [0, >0] or grey value mass algorithm
 - Classical pair wise occurrence counting
-- Binary [0, >0] algorithm
 - Directions can be set
 - Horizontal & vertical, 4 radial directions [0-180°], 180 radial directions [0-180°] 
 - Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
