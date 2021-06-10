@@ -909,6 +909,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
 			} else {
 				table.set("Method type",   table.getRowCount()-1, methodType);
 			}
+			table.set("Analysis type",     table.getRowCount()-1, analysisType);	
 			table.set("<L>-R&P",   		   table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
 			table.set("<L>-S&V",   	       table.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
 			tableColLast = 8;
