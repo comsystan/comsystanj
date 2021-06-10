@@ -262,13 +262,22 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
      private int spinnerInteger_NumMaxQ;
      
      @Parameter(label = "Scanning type",
- 		    description = "fixed raster boxes or sliding boxes",
+ 		    description = "Fixed raster boxes or sliding boxes",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
    		    choices = {"Raster box", "Sliding box"}, //"Fast sliding box"}, //Fast sliding box with image dilation does not work properly
    		    //persist  = false,  //restore previous value default = true
  		    initializer = "initialScanningType",
              callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
+     
+     @Parameter(label = "Analysis type",
+  		    description = "Type of image and computation",
+  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+    		    choices = {"Binary", "Grey"},
+    		    //persist  = false,  //restore previous value default = true
+  		    initializer = "initialAnalysisMethod",
+              callback = "callbackAnalysisMethod")
+     private String choiceRadioButt_AnalysisMethod;
      
      @Parameter(label = "(Sliding box) Pixel %",
   		   description = "% of image pixels to be taken - to lower computation times",
@@ -349,6 +358,9 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
     }
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
+    }
+    protected void initialAnalysisMethod() {
+    	choiceRadioButt_AnalysisMethod = "Binary";
     }
     protected void initialPixelPercentage() {
       	spinnerInteger_PixelPercentage = 100;
@@ -436,6 +448,10 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		
 	}
 	
+	/** Executed whenever the {@link #choiceRadioButt_AnalysisMethod} parameter changes. */
+	protected void callbackAnalysisMethod() {
+		logService.info(this.getClass().getName() + " Analysis method set to " + choiceRadioButt_AnalysisMethod);
+	}
 	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
 	protected void callbackPixelPercentage() {
 		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
@@ -829,6 +845,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		IntColumn columnNumMinQ            = new IntColumn("Min q");
 		IntColumn columnNumMaxQ            = new IntColumn("Max q");
 		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
+		GenericColumn columnAnalysisType   = new GenericColumn("Analysis type");
 		IntColumn columnPixelPercentage    = new IntColumn("(Sliding box) Pixel %");
 	
 	    table = new DefaultGenericTable();
@@ -840,6 +857,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		table.add(columnNumMinQ);
 		table.add(columnNumMaxQ);
 		table.add(columnScanningType);
+		table.add(columnAnalysisType);
 		table.add(columnPixelPercentage);
 		
 		int numMinQ = spinnerInteger_NumMinQ;
@@ -863,7 +881,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		int numMinQ          = spinnerInteger_NumMinQ;
 		int numMaxQ          = spinnerInteger_NumMaxQ;
 		int pixelPercentage      = spinnerInteger_PixelPercentage;
-		String scanningType  = choiceRadioButt_ScanningType;	
+		String scanningType  = choiceRadioButt_ScanningType;
+		String analysisType  = choiceRadioButt_AnalysisMethod;	
 		
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -877,6 +896,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 			table.set("Min q",      	 table.getRowCount()-1, numMinQ);	
 			table.set("Max q",      	 table.getRowCount()-1, numMaxQ);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
+			table.set("Analysis type",     table.getRowCount()-1, analysisType);
 			if (scanningType.equals("Sliding box")) table.set("(Sliding box) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			
 			int numQ = numMaxQ - numMinQ + 1;
@@ -899,6 +919,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		int numMaxQ          = spinnerInteger_NumMaxQ;
 		int pixelPercentage  = spinnerInteger_PixelPercentage;
 		String scanningType  = choiceRadioButt_ScanningType;	
+		String analysisType  = choiceRadioButt_AnalysisMethod;	
 		
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
@@ -913,6 +934,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 			table.set("Min q",      	 table.getRowCount()-1, numMinQ);	
 			table.set("Max q",      	 table.getRowCount()-1, numMaxQ);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
+			table.set("Analysis type",   table.getRowCount()-1, analysisType);
 			if (scanningType.equals("Sliding box")) table.set("(Sliding box) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			
 			int numQ = numMaxQ - numMinQ + 1;
@@ -937,6 +959,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 		int numMinQ         = spinnerInteger_NumMinQ;
 		int numMaxQ         = spinnerInteger_NumMaxQ;
 		String scanningType = choiceRadioButt_ScanningType;	 
+		String analysisType = choiceRadioButt_AnalysisMethod;	
 		int pixelPercentage     = spinnerInteger_PixelPercentage;
 		boolean optShowDoubleLogPlot = booleanShowDoubleLogPlot;
 		boolean optShowDqPlot        = booleanShowDqPlot;
@@ -1023,7 +1046,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 									//cursor.localize(pos);
 									sample = ((UnsignedByteType) cursor.get()).get();
 									if ( sample > 0) {
-										count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+										if      (analysisType.equals("Binary")) count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+										else if (analysisType.equals("Grey"))   count = count + sample;
 									}			
 								}//while Box
 								//count = count / numObjectPixels; // normalized mass of current box
@@ -1060,7 +1084,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 										//cursor.localize(pos);
 										sample = ((UnsignedByteType) cursor.get()).get();
 										if ( sample > 0) {
-											count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+											if      (analysisType.equals("Binary")) count = count + 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+											else if (analysisType.equals("Grey"))   count = count + sample;
 										}			
 									}//while Box
 									//count = count / numObjectPixels; // normalized mass of current box
@@ -1081,7 +1106,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 				}//b band
 			}
 		}
-		//does not work properly
+		//Fast sliding box does not work properly
 		//for some kernel sizes 5x5 it produces for  negative q strange results
 		//e.g. for Menger carpet
 		//and largest kernels are larger than image itself! 
@@ -1115,9 +1140,9 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 				if (sample == 0.0) {
 					((UnsignedByteType) cursor.get()).set(0);
 				} else {
-					((UnsignedByteType) cursor.get()).set(1);
-					//if (analysisType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
-					//if (analysisType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
+					//((UnsignedByteType) cursor.get()).set(1);
+					if (analysisType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
+					if (analysisType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
 				}		
 			}
 			//uiService.show("imgBin2", imgBin);
