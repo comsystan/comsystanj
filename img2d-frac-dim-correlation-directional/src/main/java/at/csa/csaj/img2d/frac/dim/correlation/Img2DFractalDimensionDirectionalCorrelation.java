@@ -305,7 +305,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 	}
 	
 	protected void initialPixelPercentage() {
-	    spinnerInteger_PixelPercentage = 100;
+	    spinnerInteger_PixelPercentage = 10;
 	}
 	
 	protected void initialShowDoubleLogPlots() {

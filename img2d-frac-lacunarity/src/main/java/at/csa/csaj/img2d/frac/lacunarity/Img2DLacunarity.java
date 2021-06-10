@@ -342,7 +342,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends InteractiveCommand i
     }
     
     protected void initialPixelPercentage() {
-      	spinnerInteger_PixelPercentage = 100;
+      	spinnerInteger_PixelPercentage = 10;
     }
     
     protected void initialNumAccuracy() {

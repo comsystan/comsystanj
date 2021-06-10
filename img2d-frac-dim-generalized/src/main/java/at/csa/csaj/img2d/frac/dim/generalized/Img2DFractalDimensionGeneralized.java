@@ -363,7 +363,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
     	choiceRadioButt_ColorModelType = "Binary";
     }
     protected void initialPixelPercentage() {
-      	spinnerInteger_PixelPercentage = 100;
+      	spinnerInteger_PixelPercentage = 10;
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;

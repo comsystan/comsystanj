@@ -239,7 +239,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
               callback = "callbackColorModelType")
      private String choiceRadioButt_ColorModelType;
      
-     @Parameter(label = "(Disc) Pixel %",
+     @Parameter(label = "(Sliding box) Pixel %",
   		   description = "% of image pixels to be taken - to lower computation times",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
@@ -306,7 +306,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
     }
     
     protected void initialPixelPercentage() {
-      	spinnerInteger_PixelPercentage = 100;
+      	spinnerInteger_PixelPercentage = 10;
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
@@ -737,7 +737,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		IntColumn columnPixelPercentage    = new IntColumn("(Disc) Pixel %");
+		IntColumn columnPixelPercentage    = new IntColumn("(Sliding Box) Pixel %");
 		DoubleColumn columnDc              = new DoubleColumn("Dc");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
@@ -779,7 +779,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
 			table.set("Color model",     table.getRowCount()-1, colorModelType);
-			if (scanningType.equals("Sliding box")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
+			if (scanningType.equals("Sliding box")) table.set("(Sliding Box) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
@@ -810,7 +810,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Int
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			table.set("Scanning type",   table.getRowCount()-1, scanningType);
 			table.set("Color model",     table.getRowCount()-1, colorModelType);
-			if (scanningType.equals("Sliding box")) table.set("(Disc) Pixel %", table.getRowCount()-1, pixelPercentage);	
+			if (scanningType.equals("Sliding box")) table.set("(Sliding Box) Pixel %", table.getRowCount()-1, pixelPercentage);	
 			table.set("Dc",          	 table.getRowCount()-1, resultValuesTable[s][1]);
 			table.set("R2",          	 table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("StdErr",      	 table.getRowCount()-1, resultValuesTable[s][3]);		
