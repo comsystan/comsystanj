@@ -243,9 +243,20 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
     		callback = "callbackProcessImmediately")
     private boolean booleanProcessImmediately;
      
-    @Parameter(label   = "Process single active image ",
-    		    callback = "callbackProcessActiveImage")
- 	private Button buttonProcessActiveImage;
+	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialNumImageSlice",
+			   callback = "callbackNumImageSlice")
+	private int spinnerInteger_NumImageSlice;
+	
+	@Parameter(label   = "   Process single image #    ",
+		    	callback = "callbackProcessSingleImage")
+	private Button buttonProcessSingelImage;
+	
+//	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
+//	@Parameter(label   = "Process single active image ",
+//		    callback = "callbackProcessActiveImage")
+//	private Button buttonProcessActiveImage;
      
     @Parameter(label   = "Process all available images",
  		        callback = "callbackProcessAllImages")
@@ -271,6 +282,10 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
+    
+	protected void initialNumImageSlice() {
+    	spinnerInteger_NumImageSlice = 1;
+	}
   
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
@@ -288,6 +303,53 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
+	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	protected void callbackNumImageSlice() {
+		getAndValidateActiveDataset();
+		if (spinnerInteger_NumImageSlice > numSlices){
+			logService.info(this.getClass().getName() + " No more images available");
+			spinnerInteger_NumImageSlice = (int)numSlices;
+		}
+		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
+	}
+	
+
+	/** Executed whenever the {@link #buttonProcessSingelImage} button is pressed. */
+	protected void callbackProcessSingleImage() {
+    	//prepare  executer service
+		exec = Executors.newSingleThreadExecutor();
+				
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+
+       	exec.execute(new Runnable() {
+            public void run() {
+        	    try {
+            		deleteExistingDisplays();
+            		getAndValidateActiveDataset();
+            		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+            	    logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+            		processActiveInputImage(sliceIndex);
+            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+            		generateTableHeader();
+            		collectActiveResultAndShowTable(sliceIndex);
+            		deleteTempDirectory();
+            		dlgProgress.setVisible(false);
+            		dlgProgress.dispose();
+            		Toolkit.getDefaultToolkit().beep();
+                } catch(InterruptedException e){
+                	 exec.shutdown();
+                } finally {
+                	exec.shutdown();
+                }		
+            }
+        });
+	}
+	
 	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
 	protected void callbackProcessActiveImage() {
 		//prepare  executer service
@@ -303,15 +365,15 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
        	exec.execute(new Runnable() {
             public void run() {
         	    try {
-        	    	logService.info(this.getClass().getName() + " Processing active image");
             		deleteExistingDisplays();
             		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
+            		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(activeSliceIndex);
-            		//deleteTempDirectory();
+            		deleteTempDirectory();
             		dlgProgress.setVisible(false);
             		dlgProgress.dispose();
             		Toolkit.getDefaultToolkit().beep();
@@ -321,15 +383,6 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
                 	exec.shutdown();
                 }		
             }
-
-			private void deleteTempDirectory() {
-				boolean success = kolmogorovComplexityDir.delete();
-				if (success)  logService.info(this.getClass().getName() + " Successfully deleted temp director " + kolmogorovComplexityDir.getName());
-				else {
-					logService.info(this.getClass().getName() + " Could not delete temp directory " + kolmogorovComplexityDir.getName());
-				}
-				
-			}
         });
 	}
 	
@@ -354,7 +407,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 	        		generateTableHeader();
 	        		collectAllResultsAndShowTable();
-	        		//deleteTempDirectory();
+	        		deleteTempDirectory();
 	        		dlgProgress.setVisible(false);
 	        		dlgProgress.dispose();
 	        		Toolkit.getDefaultToolkit().beep();
@@ -365,11 +418,6 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
                 	exec.shutdown();
                 }      	
             }
-
-			private void deleteTempDirectory() {
-				// TODO Auto-generated method stub
-				
-			}
         });			
 	}
 		
@@ -378,7 +426,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
  	// time a widget value changes.
  	public void preview() {
  		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanProcessImmediately) callbackProcessActiveImage();
+ 		if (booleanProcessImmediately) callbackProcessSingleImage();
  		//statusService.showStatus(message);
  	}
  	
@@ -1222,6 +1270,18 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 				}
 			}
 		}	
+	}
+	
+	/**
+	 * This method deletes the temp directory
+	 */
+	private void deleteTempDirectory() {
+		boolean success = kolmogorovComplexityDir.delete();
+		if (success)  logService.info(this.getClass().getName() + " Successfully deleted temp director " + kolmogorovComplexityDir.getName());
+		else {
+			logService.info(this.getClass().getName() + " Could not delete temp directory " + kolmogorovComplexityDir.getName());
+		}
+		
 	}
 	
 	//This methods reduces dimensionality to 2D just for the display 	

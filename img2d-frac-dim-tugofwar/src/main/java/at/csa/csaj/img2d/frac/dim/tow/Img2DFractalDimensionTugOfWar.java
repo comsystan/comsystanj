@@ -74,7 +74,6 @@ import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
-import org.scijava.table.FloatColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
 import org.scijava.ui.DialogPrompt.MessageType;
@@ -82,7 +81,6 @@ import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
-import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -269,9 +267,20 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Intera
     			callback = "callbackProcessImmediately")
      private boolean booleanProcessImmediately;
      
-     @Parameter(label   = "Process single active image ",
-    		    callback = "callbackProcessActiveImage")
- 	 private Button buttonProcessActiveImage;
+ 	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialNumImageSlice",
+			   callback = "callbackNumImageSlice")
+	private int spinnerInteger_NumImageSlice;
+	
+	@Parameter(label   = "   Process single image #    ",
+		    	callback = "callbackProcessSingleImage")
+	private Button buttonProcessSingelImage;
+	
+//	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
+//	@Parameter(label   = "Process single active image ",
+//		    callback = "callbackProcessActiveImage")
+//	private Button buttonProcessActiveImage;
      
      @Parameter(label   = "Process all available images",
  		        callback = "callbackProcessAllImages")
@@ -305,12 +314,14 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Intera
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
+	protected void initialNumImageSlice() {
+    	spinnerInteger_NumImageSlice = 1;
+	}
   
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
 	protected void callbackNumBoxes() {
-		
 		if  (spinnerInteger_NumBoxes < 3) {
 			spinnerInteger_NumBoxes = 3;
 		}
@@ -324,7 +335,6 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Intera
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
 		}
-
 		numBoxes = spinnerInteger_NumBoxes;
 		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
@@ -365,6 +375,52 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Intera
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
+	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	protected void callbackNumImageSlice() {
+		getAndValidateActiveDataset();
+		if (spinnerInteger_NumImageSlice > numSlices){
+			logService.info(this.getClass().getName() + " No more images available");
+			spinnerInteger_NumImageSlice = (int)numSlices;
+		}
+		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
+	}
+	
+
+	/** Executed whenever the {@link #buttonProcessSingelImage} button is pressed. */
+	protected void callbackProcessSingleImage() {
+		//prepare  executer service
+		exec = Executors.newSingleThreadExecutor();
+				
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Tug of war dimension, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Tug of war dimension, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+
+       	exec.execute(new Runnable() {
+            public void run() {
+        	    try {
+            		deleteExistingDisplays();
+            		getAndValidateActiveDataset();
+            		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+            		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+            		processActiveInputImage(sliceIndex);
+            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+            		generateTableHeader();
+            		collectActiveResultAndShowTable(sliceIndex);
+            		dlgProgress.setVisible(false);
+            		dlgProgress.dispose();
+            		Toolkit.getDefaultToolkit().beep();
+                } catch(InterruptedException e){
+                	 exec.shutdown();
+                } finally {
+                	exec.shutdown();
+                }		
+            }
+        });
+	}
+	
 	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
 	protected void callbackProcessActiveImage() {
 		//prepare  executer service
@@ -380,10 +436,10 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Intera
        	exec.execute(new Runnable() {
             public void run() {
         	    try {
-        	    	logService.info(this.getClass().getName() + " Processing active image");
             		deleteExistingDisplays();
             		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
+            		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
@@ -442,7 +498,7 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Intera
  	// time a widget value changes.
  	public void preview() {
  		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanProcessImmediately) callbackProcessActiveImage();
+ 		if (booleanProcessImmediately) callbackProcessSingleImage();
  		//statusService.showStatus(message);
  	}
  	

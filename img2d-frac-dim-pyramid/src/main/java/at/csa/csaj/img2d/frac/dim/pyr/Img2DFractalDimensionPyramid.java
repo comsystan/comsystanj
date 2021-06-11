@@ -48,7 +48,6 @@ import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -91,7 +90,6 @@ import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
-import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -270,13 +268,24 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
     			callback = "callbackProcessImmediately")
     private boolean booleanProcessImmediately;
      
-     @Parameter(label   = "Process single active image ",
-    		    callback = "callbackProcessActiveImage")
- 	 private Button buttonProcessActiveImage;
+ 	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialNumImageSlice",
+			   callback = "callbackNumImageSlice")
+	private int spinnerInteger_NumImageSlice;
+	
+	@Parameter(label   = "   Process single image #    ",
+		    	callback = "callbackProcessSingleImage")
+	private Button buttonProcessSingelImage;
+	
+//	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
+//	@Parameter(label   = "Process single active image ",
+//		    callback = "callbackProcessActiveImage")
+//	private Button buttonProcessActiveImage;
      
-     @Parameter(label   = "Process all available images",
+    @Parameter(label   = "Process all available images",
  		        callback = "callbackProcessAllImages")
-	 private Button buttonProcessAllImages;
+	private Button buttonProcessAllImages;
 
     //---------------------------------------------------------------------
     //The following initialzer functions set initial values
@@ -303,12 +312,14 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
+	protected void initialNumImageSlice() {
+    	spinnerInteger_NumImageSlice = 1;
+	}
   
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	/** Executed whenever the {@link #spinInteger_NumImages} parameter changes. */
-	protected void callbackNumImages() {
-		
+	protected void callbackNumImages() {	
 		if  (spinnerInteger_PyramidImages < 3) {
 			spinnerInteger_PyramidImages = 3;
 		}
@@ -354,6 +365,52 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
+	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	protected void callbackNumImageSlice() {
+		getAndValidateActiveDataset();
+		if (spinnerInteger_NumImageSlice > numSlices){
+			logService.info(this.getClass().getName() + " No more images available");
+			spinnerInteger_NumImageSlice = (int)numSlices;
+		}
+		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
+	}
+	
+
+	/** Executed whenever the {@link #buttonProcessSingelImage} button is pressed. */
+	protected void callbackProcessSingleImage() {
+		//prepare  executer service
+		exec = Executors.newSingleThreadExecutor();
+				
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Pyramid dimensions, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Pyramid dimensions, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+
+       	exec.execute(new Runnable() {
+            public void run() {
+        	    try {
+            		deleteExistingDisplays();
+            		getAndValidateActiveDataset();
+            		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+            		 logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+            		processActiveInputImage(sliceIndex);
+            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+            		generateTableHeader();
+            		collectActiveResultAndShowTable(sliceIndex);
+            		dlgProgress.setVisible(false);
+            		dlgProgress.dispose();
+            		Toolkit.getDefaultToolkit().beep();
+                } catch(InterruptedException e){
+                	 exec.shutdown();
+                } finally {
+                	exec.shutdown();
+                }		
+            }
+        });
+	}
+	
 	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
 	protected void callbackProcessActiveImage() {
 		//prepare  executer service
@@ -369,10 +426,10 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
        	exec.execute(new Runnable() {
             public void run() {
         	    try {
-        	    	logService.info(this.getClass().getName() + " Processing active image");
             		deleteExistingDisplays();
             		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
+            		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
             		processActiveInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
@@ -431,7 +488,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
  	// time a widget value changes.
  	public void preview() {
  		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanProcessImmediately) callbackProcessActiveImage();
+ 		if (booleanProcessImmediately) callbackProcessSingleImage();
  		//statusService.showStatus(message);
  	}
  	
