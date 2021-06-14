@@ -140,15 +140,18 @@
 - Flooding of image can be set to Top2down, Down2top, Left2right, Right2left or the mean of all four directions
 - Ref.: de Melo & Conci, Telecommunication Systems, 2013, [https://doi.org/10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
 
-### Fractal fragmentation index
+### Fractal fragmentation indices
 - Fractal fragmentation index FFI
+- Fractal fragmentation and disorder index FFDI
 - For binary 8-bit images
 - Binary [0, >0] algorithm
 - FFI = FD of mass - FD of boundary
 - FFI is the fractal dimension of the image - Fractal dimension of the boundary image
 - Boundary image = Image - Eroded image (erosion by one pixel)
-- Fractal dimension computations with Box counting (raster box scanning) or Image pyramid algorithm
-- The number of boxes/pyramid images with distinct sizes according to the power of 2 can be set
+- FFDI = D1(1-FFI)
+- D1 is the Information dimension
+- Fractal dimension computations with Box counting (raster box scanning)
+- The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
 - Ref: Andronache et al., Chaos, Solitons & Fractals, 2016, [https://doi.org/10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
