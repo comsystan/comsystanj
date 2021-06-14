@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing the fractal fragmentation and disorder index FFDI
- * File: Img2DFractalDimensionFFDI.java
+ * Project: ImageJ plugin for computing the FFI and FFDI
+ * File: Img2DFractalFragmentation.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,8 +26,7 @@
  * #L%
  */
 
-
-package at.csa.csaj.img2d.frac.dim.ffdi;
+package at.csa.csaj.img2d.frac.dim.ff;
 
 import java.awt.Toolkit;
 import java.io.File;
@@ -85,7 +84,6 @@ import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
-import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -97,21 +95,21 @@ import io.scif.MetaTable;
 
 /**
  * A {@link Command} plugin computing
- * <the fractal fragmentation and disorder index </a>
+ * <the fractal fragmentation index FFI an the fractal fragmentation and disorder index FFDI</a>
  * of an image.
  */
 @Plugin(type = InteractiveCommand.class,
 	headless = true,
-	label = "FFDI",
+	label = "FFI & FFDI",
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
-	@Menu(label = "FFDI index", weight = 23)})
-public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class Img2DFractalDimensionFFDI<T extends RealType<T>> implements Command {	//modal GUI
+	@Menu(label = "Fractal fragmentation indices", weight = 22)})
+public class Img2DFractalFragmentation<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
+//public class Img2DFractalFragmentation<T extends RealType<T>> implements Command {	//modal GUI
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal fragmentation and disorder index</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes FFI and FFDI</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -135,7 +133,7 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
-	private static final String tableName = "Table - FFDI";
+	private static final String tableName = "Table - FFI & FFDI";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -730,7 +728,7 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 	private void processAllInputImages() throws InterruptedException{
 		
 		long startTimeAll = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][10];
+		resultValuesTable = new double[(int) numSlices][15];
 	
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -811,6 +809,7 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		//GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
+		DoubleColumn columnFFI            = new DoubleColumn("FFI");
 		DoubleColumn columnFFDI            = new DoubleColumn("FFDI");
 		DoubleColumn columnD1              = new DoubleColumn("D1");
 		DoubleColumn columnDmass           = new DoubleColumn("D-mass");
@@ -826,6 +825,7 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 		table.add(columnRegMin);
 		table.add(columnRegMax);
 		//table.add(columnFractalDimType);
+		table.add(columnFFI);
 		table.add(columnFFDI);
 		table.add(columnD1);
 		table.add(columnDmass);
@@ -861,6 +861,7 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
+			table.set("FFI",         	 table.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
 			table.set("FFDI",         	 table.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
 			table.set("D1",         	 table.getRowCount()-1, resultValuesTable[s][1]); //D1
 			table.set("D-mass",          table.getRowCount()-1, resultValuesTable[s][6]); //Dmass
@@ -897,6 +898,7 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
 			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
+			table.set("FFI",         	 table.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
 			table.set("FFDI",         	 table.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
 			table.set("D1",         	 table.getRowCount()-1, resultValuesTable[s][1]); //D1
 			table.set("D-mass",          table.getRowCount()-1, resultValuesTable[s][6]); //Dmass
@@ -1372,14 +1374,15 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 			String xAxisLabel = "";
 			if      (fractalDimType.equals("Box counting")) xAxisLabel = "ln(Box size)";
 			else if (fractalDimType.equals("Pyramid"))      xAxisLabel = "ln(2^n)";
+			String yAxisLabel = "ln(Count)";
 			
 			String[] legendLabels = new String[3];
 			legendLabels[0] = "D1";
 			legendLabels[1] = "D Mass";
 			legendLabels[2] = "D Boundary";
 			
-			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - FFI", 
-					preName + datasetName, xAxisLabel, "ln(Count)", legendLabels,
+			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - FFI & FFDI", 
+					preName + datasetName, xAxisLabel, yAxisLabel, legendLabels,
 					regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
@@ -1578,8 +1581,8 @@ public class Img2DFractalDimensionFFDI<T extends RealType<T>> extends Interactiv
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(Img2DFractalDimensionFFDI.class, true).get().getOutput("image");
-		ij.command().run(Img2DFractalDimensionFFDI.class, true);
+		//ij.command().run(Img2DFractalFragmentation.class, true).get().getOutput("image");
+		ij.command().run(Img2DFractalFragmentation.class, true);
 	}
 }
 

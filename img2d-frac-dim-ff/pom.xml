@@ -13,12 +13,12 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-img2d-frac-dim-ffdi</artifactId>
+	<artifactId>comsystanj-img2d-frac-dim-ff</artifactId>
 	<!-- first numbers of plugin version are identical to used pom-scijava version-->
 	<version>29.2.1.2</version>
 
-	<name>Image(2D) - Fractal dimension - FFDI</name>
-	<description>ImageJ plugin for computing the fractal fragmentation and disorder index FFDI</description>
+	<name>Image(2D) - Fractal dimension - Fractal fragmentation indices</name>
+	<description>ImageJ plugin for computing the FFI and FFDI</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>
@@ -94,8 +94,8 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>at.csa.csaj.img2d.frac.dim.ffdi</package-name>
-		<main-class>at.csa.csaj.img2d.frac.dim.ffdi.Img2DFractalDimensionFFDI</main-class>
+		<package-name>at.csa.csaj.img2d.frac.dim.ff</package-name>
+		<main-class>at.csa.csaj.img2d.frac.dim.ff.Img2DFractalFragmentation</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>
