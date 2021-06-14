@@ -411,7 +411,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
             		getAndValidateActiveDataset();
             		int sliceIndex = spinnerInteger_NumImageSlice - 1;
                     logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-            		processActiveInputImage(sliceIndex);
+            		processSingleInputImage(sliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(sliceIndex);
@@ -448,7 +448,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
             		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
-            		processActiveInputImage(activeSliceIndex);
+            		processSingleInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(activeSliceIndex);
@@ -678,7 +678,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 	/** This method takes the active image and computes results. 
 	 *
 	 **/
-	private void processActiveInputImage (int s) throws InterruptedException {
+	private void processSingleInputImage (int s) throws InterruptedException {
 		
 		long startTime = System.currentTimeMillis();
 		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-pi]") && (booleanGetRadialDhValues)) {

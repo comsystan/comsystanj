@@ -427,7 +427,7 @@ public class Img2DFractalFragmentation<T extends RealType<T>> extends Interactiv
              		getAndValidateActiveDataset();
              		int sliceIndex = spinnerInteger_NumImageSlice - 1;
                     logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-            		processActiveInputImage(sliceIndex);
+            		processSingleInputImage(sliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(sliceIndex);
@@ -462,7 +462,7 @@ public class Img2DFractalFragmentation<T extends RealType<T>> extends Interactiv
              		getAndValidateActiveDataset();
             		int activeSliceIndex = getActiveImageIndex();
             		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
-            		processActiveInputImage(activeSliceIndex);
+            		processSingleInputImage(activeSliceIndex);
             		dlgProgress.addMessage("Processing finished! Collecting data for table...");
             		generateTableHeader();
             		collectActiveResultAndShowTable(activeSliceIndex);
@@ -678,7 +678,7 @@ public class Img2DFractalFragmentation<T extends RealType<T>> extends Interactiv
 	/** This method takes the active image and computes results. 
 	 *
 	 */
-	private void processActiveInputImage(int s) throws InterruptedException{
+	private void processSingleInputImage(int s) throws InterruptedException{
 		long startTime = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][15];//three times 5 regression parameters
 		
