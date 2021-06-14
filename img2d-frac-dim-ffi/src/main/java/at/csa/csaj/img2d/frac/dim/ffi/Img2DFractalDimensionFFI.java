@@ -106,7 +106,7 @@ import io.scif.MetaTable;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
-	@Menu(label = "Fractal fragmentation index", weight = 22)})
+	@Menu(label = "FFI index", weight = 22)})
 public class Img2DFractalDimensionFFI<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class Img2DFractalDimensionFFI<T extends RealType<T>> implements Command {	//modal GUI
 	
@@ -134,7 +134,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
-	private static final String tableName = "Table - Box counting dimension";
+	private static final String tableName = "Table - FFI";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -191,7 +191,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "# of boxes/pyramid images",
+    @Parameter(label = "# of boxes",
     		   description = "Number of distinct box sizes with the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
@@ -224,18 +224,18 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
     
-	//-----------------------------------------------------------------------------------------------------
-     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-     private final String labelMethodOptions = METHODOPTIONS_LABEL;
-     
-     @Parameter(label = "Fractal dimension",
-	    description = "Type of fractal dimension computation",
-	    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-	    choices = {"Box counting", "Pyramid"},
-	    //persist  = false,  //restore previous value default = true
-	    initializer = "initialFracalDimType",
-	    callback = "callbackFractalDimType")
-     private String choiceRadioButt_FractalDimType;
+//	//-----------------------------------------------------------------------------------------------------
+//     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+//     private final String labelMethodOptions = METHODOPTIONS_LABEL;
+//     
+//     @Parameter(label = "Fractal dimension",
+//	    description = "Type of fractal dimension computation",
+//	    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+//	    choices = {"Box counting", "Pyramid"},
+//	    //persist  = false,  //restore previous value default = true
+//	    initializer = "initialFracalDimType",
+//	    callback = "callbackFractalDimType")
+//     private String choiceRadioButt_FractalDimType;
      
 //     @Parameter(label = "Scanning method",
 //    		    description = "Type of box scanning",
@@ -313,9 +313,9 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
     	numBoxes = getMaxBoxNumber(datasetIn.max(0)+1, datasetIn.max(1)+1);
     	spinnerInteger_RegMax =  numBoxes;
     }
-    protected void initialFractalDimType() {
-    	choiceRadioButt_FractalDimType = "Box counting";
-    }
+//    protected void initialFractalDimType() {
+//    	choiceRadioButt_FractalDimType = "Box counting";
+//    }
 //    protected void initialScanningType() {
 //    	choiceRadioButt_ScanningType = "Raster box";
 //    }
@@ -375,11 +375,11 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
 
-	/** Executed whenever the {@link #choiceRadioButtFractalDimType} parameter changes. */
-	protected void callbackFractalDimType() {
-		logService.info(this.getClass().getName() + " Fractal dimension computation method set to " + choiceRadioButt_FractalDimType);
-		
-	}
+//	/** Executed whenever the {@link #choiceRadioButtFractalDimType} parameter changes. */
+//	protected void callbackFractalDimType() {
+//		logService.info(this.getClass().getName() + " Fractal dimension computation method set to " + choiceRadioButt_FractalDimType);
+//		
+//	}
 	
 //	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
 //	protected void callbackScanningType() {
@@ -414,8 +414,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing FFI index, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing FFI index, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -449,8 +449,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing FFI index, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing FFI index, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -485,8 +485,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Box dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing FFI index, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing FFI index, please wait... Open console window for further info.",
 																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -807,8 +807,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
 		DoubleColumn columnFFI             = new DoubleColumn("FFI");
 		DoubleColumn columnDmass           = new DoubleColumn("D-mass");
-		DoubleColumn columnR2mass          = new DoubleColumn("R2-mass");
 		DoubleColumn columnDbound          = new DoubleColumn("D-boundary");
+		DoubleColumn columnR2mass          = new DoubleColumn("R2-mass");
 		DoubleColumn columnR2bound         = new DoubleColumn("R2-boundary");
 	
 	    table = new DefaultGenericTable();
@@ -820,8 +820,8 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		table.add(columnFractalDimType);
 		table.add(columnFFI);
 		table.add(columnDmass);
-		table.add(columnR2mass);
 		table.add(columnDbound);
+		table.add(columnR2mass);
 		table.add(columnR2bound);
 	}
 	
@@ -833,7 +833,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int regMin             = spinnerInteger_RegMin;
 		int regMax             = spinnerInteger_RegMax;
 		int numImages          = spinnerInteger_NumBoxes;
-		String fractalDimType  = choiceRadioButt_FractalDimType;
+		//String fractalDimType  = choiceRadioButt_FractalDimType;
 		//String scanningType  = choiceRadioButt_ScanningType;	
 		//String colorModelType  = choiceRadioButt_ColorModelType;	
 //		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
@@ -849,11 +849,11 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
+			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
 			table.set("FFI",         	 table.getRowCount()-1, resultValuesTable[s][1] - resultValuesTable[s][6]);
 			table.set("D-mass",          table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("R2-mass",         table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("D-boundary",      table.getRowCount()-1, resultValuesTable[s][6]);
+			table.set("R2-mass",         table.getRowCount()-1, resultValuesTable[s][4]);		
 			table.set("R2-boundary",     table.getRowCount()-1, resultValuesTable[s][9]);
 			
 		//Show table
@@ -866,7 +866,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numImages    	= spinnerInteger_NumBoxes;
-		String fractalDimType  = choiceRadioButt_FractalDimType;
+//		String fractalDimType  = choiceRadioButt_FractalDimType;
 //		String scanningType = choiceRadioButt_ScanningType;	
 //		String colorModelType = choiceRadioButt_ColorModelType;	
 //		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
@@ -883,11 +883,11 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 			table.set("# Boxes",    	 table.getRowCount()-1, numImages);	
 			table.set("RegMin",      	 table.getRowCount()-1, regMin);	
 			table.set("RegMax",      	 table.getRowCount()-1, regMax);	
-			table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
+			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
 			table.set("FFI",         	 table.getRowCount()-1, resultValuesTable[s][1] - resultValuesTable[s][6]);
 			table.set("D-mass",          table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("R2-mass",         table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("D-boundary",      table.getRowCount()-1, resultValuesTable[s][6]);
+			table.set("R2-mass",         table.getRowCount()-1, resultValuesTable[s][4]);
 			table.set("R2-boundary",     table.getRowCount()-1, resultValuesTable[s][9]);
 		}
 		//Show table
@@ -903,7 +903,7 @@ public class Img2DFractalDimensionFFI<T extends RealType<T>> extends Interactive
 		int regMin          = spinnerInteger_RegMin;
 		int regMax          = spinnerInteger_RegMax;
 		int numBoxes        = spinnerInteger_NumBoxes;
-		String fractalDimType  = choiceRadioButt_FractalDimType;
+		String fractalDimType  = "Box counting"; //choiceRadioButt_FractalDimType;
 		//String scanningType  = choiceRadioButt_ScanningType;	
 		//String colorModelType  = choiceRadioButt_ColorModelType;	
 //		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
