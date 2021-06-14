@@ -18,6 +18,7 @@
 		<module>img2d-en-genen</module>
 		<module>img2d-frac-dim-boxcounting</module>
 		<module>img2d-frac-dim-correlation-directional</module>
+		<module>img2d-frac-dim-ffdi</module>
 		<module>img2d-frac-dim-ffi</module>
 		<module>img2d-frac-dim-generalized</module>
 		<module>img2d-frac-dim-correlation</module>
