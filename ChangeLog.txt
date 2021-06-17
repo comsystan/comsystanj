@@ -23,6 +23,7 @@ Bugfix--------------------------------------------------------
 Signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 
 Miscellaneous-------------------------------------------------
+- Previous images are now succesfully deleted for "Overwrite" option and focus is set to input image
 - Added plugin menu weights
 - Changed option "Delete" to "Overwrite"
 - Changed option "Preview" to "Immediate processing"

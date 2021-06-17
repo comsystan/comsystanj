@@ -258,7 +258,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
      @Parameter(label = "Morphological operator",
  		    description = "Type of image and according morphological operation",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Binary dilation", "Blanket dilation/erosion"},
+   		    choices = {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"},
    		    //persist  = false,  //restore previous value default = true
  		    initializer = "initialMorphologicalOperator",
              callback = "callbackMorphologicalOperator")
@@ -735,9 +735,12 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 		//Compute dimension
 		double dim = Double.NaN;
 		
-		if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))          dim  = 2-regressionValues[1]; //Standard Dm according to Peleg et al.
-		else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion")) dim  = -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
+		if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))            dim  = 2-regressionValues[1]; //Standard Dm according to Peleg et al.
+		else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion"))   dim  =  -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
+		else if (choiceRadioButt_MorphologicalOperator.equals("Variation dilation/erosion")) dim  =  -regressionValues[1];  //
+		
 		resultValuesTable[s][1] = dim;
+		
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
@@ -812,8 +815,10 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 				//Compute dimension
 				double dim = Double.NaN;
 			
-				if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))          dim  = 2-regressionValues[1]; //Standard Dm according to Peleg et al.
-				else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion")) dim  = -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
+				if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))            dim  = 2-regressionValues[1]; //Standard Dm according to Peleg et al.
+				else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion"))   dim  =  -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
+				else if (choiceRadioButt_MorphologicalOperator.equals("Variation dilation/erosion")) dim  =  -regressionValues[1];  //
+
 				resultValuesTable[s][1] = dim;
 				
 				long duration = System.currentTimeMillis() - startTime;
@@ -973,7 +978,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 		}		
 		
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		if (MorphologicalType.equals("Binary dilation")) {//{"Binary dilation", "Blanket dilation/erosion"}
+		if (MorphologicalType.equals("Binary dilation")) {//{"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
 			//Minkowski
 			//n=0  2^0 = 1 ... single pixel
 			// Loop through all pixels.
@@ -1021,7 +1026,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 			}//b band		
 		}
 		//*******************************Grey Value Image
-		else if (MorphologicalType.equals("Blanket dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion"}
+		else if (MorphologicalType.equals("Blanket dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
 			imgFloat = createImgFloat(rai); //This copies the image, otherwise the original image would be dilated
 			imgU = imgFloat.copy();
 			imgB = imgFloat.copy();
@@ -1136,10 +1141,100 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 				// better is following according to Dubuc et al. equation 9
 				for (int b = 0; b < numBands; b++)
 					totals[n][b] = totals[n][b] / ((n+ 1) * (n + 1) * (n + 1)); // eq.9 Dubuc et.al.
-				
-				                      
+						                      
 			} //n
 		}
+		
+		else if (MorphologicalType.equals("Variation dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
+			imgFloat = createImgFloat(rai); //This copies the image, otherwise the original image would be dilated
+			imgU = imgFloat.copy();
+			imgB = imgFloat.copy();
+			imgUplusOne  = imgFloat.copy();
+			imgBminusOne = imgFloat.copy();
+			imgV = imgFloat.copy();
+			
+			Shape kernel = null;
+			if (shapeType.equals("Square"))          kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
+			else if (shapeType.equals("Horizontal")) kernel = new HorizontalLineShape(1, 0, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			else if (shapeType.equals("Vertical"))   kernel = new HorizontalLineShape(1, 1, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			Runtime runtime  = Runtime.getRuntime();
+			long maxMemory   = runtime.maxMemory();
+			long totalMemory = runtime.totalMemory();
+			long freeMemory  = runtime.freeMemory();
+			int availableProcessors = runtime.availableProcessors();
+			//System.out.println("available processors: " + availableProcessors);
+			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
+			if (numThreads > availableProcessors) numThreads = availableProcessors;
+			long[] pos = new long[2];
+			float sample1;
+			float sample2;
+
+		
+			for (int n = 0; n < numDilations; n++) { //
+				
+				//Dilated imgU
+				imgUDil = Dilation.dilate(imgU, kernel, numThreads);
+				//uiService.show("Dilated image", imgUDil);
+				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUDil);
+				
+				//Overwrite imgU
+				cursorF = imgU.localizingCursor();
+				raF2 = imgUDil.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					raF2.setPosition(pos);
+					sample2 = raF2.get().get();
+					cursorF.get().set(sample2);
+				}	
+							
+				//Erode imgB
+				imgBErode = Erosion.erode(imgB, kernel, numThreads);
+				//uiService.show("Eroded image", imgBErode);
+				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last eroded image", imgBErode);
+				
+				//Overwrite imgB
+				cursorF = imgB.localizingCursor();
+				raF2 = imgBErode.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					raF2.setPosition(pos);
+					sample2 = raF2.get().get();
+					cursorF.get().set(sample2);
+				}	
+				
+				//Compute volume imgV
+				cursorF = imgV.localizingCursor();
+				raF1 = imgU.randomAccess();
+				raF2 = imgB.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					raF1.setPosition(pos);
+					raF2.setPosition(pos);
+					sample1 = raF1.get().get();
+					sample2 = raF2.get().get();
+					cursorF.get().set(sample1 - sample2);
+				}	
+				
+				//Get counts with imgV
+				cursorF = imgV.localizingCursor();
+				raF1 = imgU.randomAccess();
+				raF2 = imgB.randomAccess();
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					for (int b = 0; b < numBands; b++) {
+						totals[n][b] = totals[n][b] + cursorF.get().get(); //totalAreas
+					}
+				}
+				
+				for (int b = 0; b < numBands; b++)
+					totals[n][b] = totals[n][b] / ((n+ 1) * (n + 1) * (n + 1)); // eq.17 Dubuc et.al.		
+				//Without this normalization Dim would be: Dim = 3-slope;
+			} //n
+		}
+		
 			
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
