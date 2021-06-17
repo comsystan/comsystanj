@@ -1857,6 +1857,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		//ij.ui().show("Image", datasetOut);
 		//if (choiceRadioButt_ImageType.equals("Random"))   uiService.show("Random",   datasetOut);
 		//if (choiceRadioButt_ImageType.equals("Constant")) uiService.show("Constant", datasetOut);
+		uiService.show(datasetOut.getName(), datasetOut);
 		
 		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));

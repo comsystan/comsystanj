@@ -27,6 +27,7 @@
  */
 package at.csa.csaj.img2d.frac.dim.pyr;
 
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -37,6 +38,8 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import net.imagej.Dataset;
@@ -45,6 +48,7 @@ import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
+import net.imagej.display.ImageDisplay;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
@@ -606,18 +610,36 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
 		
+		boolean optDeleteExistingImgs   = false;
 		boolean optDeleteExistingPlots  = false;
 		boolean optDeleteExistingTables = false;
-		boolean optDeleteExistingImgs   = false;
-		boolean optDeleteExistingDownscaledImages = false;
 		if (booleanOverwriteDisplays) {
+			optDeleteExistingImgs   = true;
 			optDeleteExistingPlots  = true;
 			optDeleteExistingTables = true;
-			optDeleteExistingImgs   = true;
-			optDeleteExistingDownscaledImages = true;
 		}
 	
-		if (optDeleteExistingPlots){
+		if (optDeleteExistingImgs) {
+			//List<Display<?>> list = defaultDisplayService.getDisplays();
+			//for (int i = 0; i < list.size(); i++) {
+			//	display = list.get(i);
+			//	System.out.println("display name: " + display.getName());
+			//	if (display.getName().equals("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
+			//}			
+			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Does not also close in Fiji
+		
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().contains("downscaled image")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
+		}
+		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -628,20 +650,13 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 				doubleLogPlotList.clear();		
 			}
 		}
-		if (optDeleteExistingTables){
+		if (optDeleteExistingTables) {
+			Display<?> display;
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
-				Display<?> display = list.get(i);
-				System.out.println("display name: " + display.getName());
+				display = list.get(i);
+				//System.out.println("display name: " + display.getName());
 				if (display.getName().equals(tableName)) display.close();
-			}			
-		}
-		if (optDeleteExistingDownscaledImages){
-			List<Display<?>> list = defaultDisplayService.getDisplays();
-			for (int i = 0; i < list.size(); i++) {
-				Display<?> display = list.get(i);
-				System.out.println("display name: " + display.getName());
-				if (display.getName().contains("downscaled image")) display.close();
 			}			
 		}
 	}
@@ -706,6 +721,21 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 			dim = 0.0;
 			resultValuesTable[s][1] = 0.0;
 		}
+		
+		//Set/Reset focus to DatasetIn display
+		//may not work for all Fiji/ImageJ2 versions or operating systems
+		Frame frame;
+		Frame[] listFrames = JFrame.getFrames();
+		for (int i = 0; i < listFrames.length; i++) {
+			frame = listFrames[i];
+			//System.out.println("frame name: " + frame.getTitle());
+			if (frame.getTitle().contains(datasetIn.getName())) { //sometimes Fiji adds some characters to the frame title such as "(V)"
+				frame.setVisible(true);
+				frame.toFront();
+				frame.requestFocus();
+			}
+		}
+	
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		SimpleDateFormat sdf = new SimpleDateFormat();
@@ -782,6 +812,20 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
+	
+		//Set/Reset focus to DatasetIn display
+		//may not work for all Fiji/ImageJ2 versions or operating systems
+		Frame frame;
+		Frame[] listFrames = JFrame.getFrames();
+		for (int i = 0; i < listFrames.length; i++) {
+			frame = listFrames[i];
+			//System.out.println("frame name: " + frame.getTitle());
+			if (frame.getTitle().contains(datasetIn.getName())) { //sometimes Fiji adds some characters to the frame title such as "(V)"
+				frame.setVisible(true);
+				frame.toFront();
+				frame.requestFocus();
+			}
+		}
 		
 		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -914,7 +958,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 		// definition of eps
 		for (int n = 0; n < numPyramidImages; n++) {		
 			eps[n] = (int)Math.pow(2, n);
-			logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);			
+			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);			
 		}		
 		
 		if (isBinary) {// binary image
@@ -927,7 +971,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 				imgFloat = createImgFloat(rai);
 			    imgSubSampled = subSamplingByAveraging(imgFloat, downSamplingFactor);
 			   // uiService.show("Subsampled image", imgSubSampled);
-				logService.info(this.getClass().getName() + " width:"+ (imgSubSampled.dimension(0)) + " height:" + (imgSubSampled.dimension(1)));
+				//logService.info(this.getClass().getName() + " width:"+ (imgSubSampled.dimension(0)) + " height:" + (imgSubSampled.dimension(1)));
 					
 				//Img<FloatType> img = (Img<FloatType>) opService.run(net.imagej.ops.create.img.CreateImgFromRAI.class, rai);
 				//opService.run(net.imagej.ops.copy.CopyRAI.class, img, rai);

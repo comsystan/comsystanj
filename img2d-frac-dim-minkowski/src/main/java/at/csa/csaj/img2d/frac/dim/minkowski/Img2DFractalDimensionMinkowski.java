@@ -28,6 +28,7 @@
 
 package at.csa.csaj.img2d.frac.dim.minkowski;
 
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -38,6 +39,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import net.imagej.Dataset;
@@ -46,6 +48,8 @@ import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
+import net.imagej.display.DefaultImageDisplayService;
+import net.imagej.display.ImageDisplay;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
@@ -88,6 +92,7 @@ import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
+import org.scijava.ui.UserInterface;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
@@ -169,6 +174,9 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 	
 	@Parameter
 	private ImageDisplayService imageDisplayService;
+	
+	@Parameter
+	private DefaultImageDisplayService defaultImageDisplayService;
 	
 	//This parameter does not work in an InteractiveCommand plugin (duplicate displayService error during startup) pom-scijava 24.0.0
 	//in Command Plugin no problem
@@ -636,6 +644,34 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 			optDeleteExistingTables = true;
 			optDeleteExistingImgs   = true;
 		}
+		
+		if (optDeleteExistingImgs){
+//			List<Display<?>> list = defaultDisplayService.getDisplays();
+//			for (int i = 0; i < list.size(); i++) {
+//				display = list.get(i);
+//				System.out.println("display name: " + display.getName());
+//				if (display.getName().equals("Last dilated image")) display.close(); //does not close correctly in Fiji, it is only not available any more
+//				if (display.getName().equals("Last eroded image"))  display.close();
+//			}			
+//			List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Does not also close in Fiji
+		
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				System.out.println("display name: " + frame.getTitle());
+				if (frame.getTitle().equals("Last dilated image")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+				if (frame.getTitle().equals("Last eroded image")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
+		}
+		
+		Display<?> display;
 		if (optDeleteExistingPlots){
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
@@ -650,18 +686,9 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 		if (optDeleteExistingTables){
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
-				Display<?> display = list.get(i);
-				//System.out.println("display name: " + display.getName());
+				display = list.get(i);
+				System.out.println("display name: " + display.getName());
 				if (display.getName().equals(tableName)) display.close();
-			}			
-		}
-		if (optDeleteExistingImgs){
-			List<Display<?>> list = defaultDisplayService.getDisplays();
-			for (int i = 0; i < list.size(); i++) {
-				Display<?> display = list.get(i);
-				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals("Last dilated image")) display.close();
-				if (display.getName().equals("Last eroded image"))  display.close();
 			}			
 		}
 	}
@@ -711,6 +738,20 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 		if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))          dim  = 2-regressionValues[1]; //Standard Dm according to Peleg et al.
 		else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion")) dim  = -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
 		resultValuesTable[s][1] = dim;
+		
+		//Set/Reset focus to DatasetIn display
+		//may not work for all Fiji/ImageJ2 versions or operating systems
+		Frame frame;
+		Frame[] listFrames = JFrame.getFrames();
+		for (int i = 0; i < listFrames.length; i++) {
+			frame = listFrames[i];
+			//System.out.println("frame name: " + frame.getTitle());
+			if (frame.getTitle().contains(datasetIn.getName())) { //sometimes Fiji adds some characters to the frame title such as "(V)"
+				frame.setVisible(true);
+				frame.toFront();
+				frame.requestFocus();
+			}
+		}
 		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -784,6 +825,20 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Inter
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
+		
+		//Set/Reset focus to DatasetIn display
+		//may not work for all Fiji/ImageJ2 versions or operating systems
+		Frame frame;
+		Frame[] listFrames = JFrame.getFrames();
+		for (int i = 0; i < listFrames.length; i++) {
+			frame = listFrames[i];
+			//System.out.println("frame name: " + frame.getTitle());
+			if (frame.getTitle().contains(datasetIn.getName())) { //sometimes Fiji adds some characters to the frame title such as "(V)"
+				frame.setVisible(true);
+				frame.toFront();
+				frame.requestFocus();
+			}
+		}
 		
 		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));

@@ -27,6 +27,7 @@
  */
 package at.csa.csaj.img2d.kc;
 
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
@@ -49,6 +50,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.Inflater;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 
 import net.imagej.Dataset;
@@ -544,19 +546,40 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
 		
+		boolean optDeleteExistingImgs   = false;
 		boolean optDeleteExistingPlots  = false;
 		boolean optDeleteExistingTables = false;
-		boolean optDeleteExistingImgs   = false;
 		if (booleanOverwriteDisplays) {
+			optDeleteExistingImgs   = true;
 			optDeleteExistingPlots  = true;
 			optDeleteExistingTables = true;
-			optDeleteExistingImgs   = true;
 		}
 		
-		if (optDeleteExistingTables){
+		if (optDeleteExistingImgs) {
+//			//List<Display<?>> list = defaultDisplayService.getDisplays();
+//			//for (int i = 0; i < list.size(); i++) {
+//			//	display = list.get(i);
+//			//	System.out.println("display name: " + display.getName());
+//			//	if (display.getName().equals("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
+//			//}			
+//			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Does not also close in Fiji
+//		
+//			Frame frame;
+//			Frame[] listFrames = JFrame.getFrames();
+//			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+//				frame = listFrames[i];
+//				//System.out.println("frame name: " + frame.getTitle());
+//				if (frame.getTitle().equals("Name")) {
+//					frame.setVisible(false); //Successfully closes also in Fiji
+//					frame.dispose();
+//				}
+//			}
+		}
+		if (optDeleteExistingTables) {
+			Display<?> display;
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
-				Display<?> display = list.get(i);
+				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
 				if (display.getName().equals(tableName)) display.close();
 			}			
@@ -590,6 +613,20 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 		//set values for output table
 		for (int i = 0; i < resultValues.length; i++ ) {
 				resultValuesTable[s][i] = resultValues[i]; 
+		}
+		
+		//Set/Reset focus to DatasetIn display
+		//may not work for all Fiji/ImageJ2 versions or operating systems
+		Frame frame;
+		Frame[] listFrames = JFrame.getFrames();
+		for (int i = 0; i < listFrames.length; i++) {
+			frame = listFrames[i];
+			//System.out.println("frame name: " + frame.getTitle());
+			if (frame.getTitle().contains(datasetIn.getName())) { //sometimes Fiji adds some characters to the frame title such as "(V)"
+				frame.setVisible(true);
+				frame.toFront();
+				frame.requestFocus();
+			}
 		}
 		
 		long duration = System.currentTimeMillis() - startTime;
@@ -657,6 +694,20 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
+		
+		//Set/Reset focus to DatasetIn display
+		//may not work for all Fiji/ImageJ2 versions or operating systems
+		Frame frame;
+		Frame[] listFrames = JFrame.getFrames();
+		for (int i = 0; i < listFrames.length; i++) {
+			frame = listFrames[i];
+			//System.out.println("frame name: " + frame.getTitle());
+			if (frame.getTitle().contains(datasetIn.getName())) { //sometimes Fiji adds some characters to the frame title such as "(V)"
+				frame.setVisible(true);
+				frame.toFront();
+				frame.requestFocus();
+			}
+		}
 		
 		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
