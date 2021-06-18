@@ -186,6 +186,51 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Higuchi, 1988, Physica D, [https://doi.org/10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
 
+### Katz dimension
+- Computes Katz dimensions
+- Signal lengths are computed by Euclidean distances 
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Katz, 1988, Comp Biol Med, [https://doi.org/10.1016/0010-4825(88)90041-8](https://doi.org/10.1016/0010-4825(88)90041-8)
+
+### Petrosian dimension
+- Computes Petrosian dimensions
+- Construction of a binary signal sequence by following a criterion
+- Possible criterions:
+- Greater or smaller than the mean of signal
+- Greater or smaller than the mean+-SD range of signal
+- Positive or negative sign of subsequent difference
+- Greater or smaller than the mean of differences +-SD range of signal
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Petrosian, 1988, Proc 8th IEEE Symp Comp Med Syst, [https://doi.org/10.1109/CBMS.1995.465426](https://doi.org/10.1109/CBMS.1995.465426)
+
+### Sevcik dimension
+- Computes Sevcik dimensions
+- Gives better results than Katz dimension
+- Signal lengths are computed by Euclidean distances 
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Sevcik, 1988, Complexity International, [http://arxiv.org/abs/1003.5266](http://arxiv.org/abs/1003.5266)
+
 ### Sample entropy
 - Computes Sample or Approximate entropy
 - Approximate entropy is not recommended for different signal lengths
@@ -244,6 +289,11 @@ Statistical Mechanics, Springer, 2009
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Zenil et al., 2012, Complexity, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
 ### Allometric scaling
