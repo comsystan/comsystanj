@@ -85,13 +85,13 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Symbolic aggregation", weight = 25)})
+	@Menu(label = "Symbolic aggregation", weight = 42)})
 public class SignalSymbolicAggregation<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalSymbolicAggregation<T extends RealType<T>> implements Command {	//modal GUI
 
 	private static final String PLUGIN_LABEL                      = "<html><b>Symbolic aggregation</b></html>";
 	private static final String SPACE_LABEL                       = "";
-	private static final String SYMBOLICAGGREGATIONOPTIONS_LABEL = "<html><b>Symbolic aggregation options</b></html>";
+	private static final String SYMBOLICAGGREGATIONOPTIONS_LABEL  = "<html><b>Symbolic aggregation options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL             = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL           = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL              = "<html><b>Display option</b></html>";

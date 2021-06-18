@@ -81,7 +81,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Allometric scaling", weight = 24)})
+	@Menu(label = "Allometric scaling", weight = 41)})
 public class SignalAllomScale<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalAllomScale<T extends RealType<T>> implements Command {	//modal GUI
 

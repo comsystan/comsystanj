@@ -80,7 +80,7 @@ import at.csa.csaj.sig.en.permen.util.PermutationEntropy;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Permuation entropy", weight = 21)})
+	@Menu(label = "Permuation entropy", weight = 31)})
 public class SignalPermutationEntropy<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
 //public class SignalPermutationEntropy<T extends RealType<T>> implements Command {	//modal GUI
 
