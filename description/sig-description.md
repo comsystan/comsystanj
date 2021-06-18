@@ -89,7 +89,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-  - 
+
 ### Event detection
 - Detects events such as peaks, valleys, slopes, or QRS peaks
 - Output can be the event time, event value, interval, heigth, energy, or delta height
@@ -243,6 +243,7 @@ Statistical Mechanics, Springer, 2009
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
 - Ref.: Zenil et al., 2012, Complexity, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
 ### Allometric scaling
@@ -251,6 +252,8 @@ Statistical Mechanics, Springer, 2009
 - The slope of the linear regression is the result
 - According to West: FD = 2 - slope/2, but this does not always yield reasonable values
 - Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - Regression Max should not be larger than 1/3 of the signal length
 - Notes for Subsequent/Gliding box:
