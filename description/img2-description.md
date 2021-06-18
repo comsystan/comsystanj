@@ -46,7 +46,8 @@
 ### Minkowski dimension
 - Fractal dimension is computed with morphological dilations and erosions
 - For binary or grey 8-bit images
-- Binary [0, >0] dilation or grey value blanket dilation/erosion
+- Binary [0, >0] dilation
+- Blanket or Variation method with grey value dilation/erosion
 - The number of dilation/erosion steps can be set
 - The shape of the morphological structuring element can be set
 - Linear regression parameters of the double log plot can be set 
@@ -91,7 +92,7 @@
 - For 8-bit grey value images
 - Several extraction methods can be chosen
 - Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
-- Angle extractions use an interpolated image surface that introduce some errors
+- Radial lines (grey value profiles) are length corrected and grey values are interpolated
 - Linear regression parameters of the double log plot can be set
 - Ref.: Ahammer, PLoS ONE, 2011, [https://doi.org/10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
 
