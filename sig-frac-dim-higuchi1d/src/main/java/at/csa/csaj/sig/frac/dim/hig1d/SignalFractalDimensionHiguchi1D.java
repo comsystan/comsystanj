@@ -76,7 +76,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  */
 @Plugin(type = InteractiveCommand.class, 
 	headless = true,
-	label = "Higuchi dimenion",
+	label = "Higuchi dimension",
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
