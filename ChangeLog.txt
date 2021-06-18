@@ -13,6 +13,9 @@ New-----------------------------------------------------------
 2D Image - Succolarity
 2D Image - Generalized entropies
 Signal - Permutation entropy
+Signal - Katz dimension
+Signal - Petrosian dimension
+Signal - Sevcik dimension
 
 Bugfix--------------------------------------------------------
 2D Image - Kolmogorov complexcity - Did register as signal plugin
