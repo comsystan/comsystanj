@@ -104,7 +104,7 @@ import io.scif.MetaTable;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
-	@Menu(label = "Tug of war dimension", weight = 11)})
+	@Menu(label = "Tug of war dimension", weight = 12)})
 public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
 //public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> implements Command {	//modal GUI
 	
