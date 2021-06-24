@@ -1572,7 +1572,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 	 */
 	private Img<FloatType > createImgFloat(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
 		
-		imgFloat = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+		imgFloat = new ArrayImgFactory<>(new FloatType()).create(rai.dimension(0), rai.dimension(1)); //always single 2D
 		Cursor<FloatType> cursor = imgFloat.localizingCursor();
 		final long[] pos = new long[imgFloat.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();

@@ -1765,7 +1765,7 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends Interactiv
 	 */
 	private Img<UnsignedByteType > createImgUnsignedByte(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
 		
-		imgUnsignedByte = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
+		imgUnsignedByte = new ArrayImgFactory<>(new UnsignedByteType()).create(rai.dimension(0), rai.dimension(1)); //always single 2D
 		Cursor<UnsignedByteType> cursor = imgUnsignedByte.localizingCursor();
 		final long[] pos = new long[imgUnsignedByte.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
@@ -1794,7 +1794,7 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends Interactiv
 	 */
 	private Img<FloatType > createImgFloat(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
 		
-		imgFloat = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+		imgFloat = new ArrayImgFactory<>(new FloatType()).create(rai.dimension(0), rai.dimension(1)); //always single 2D
 		Cursor<FloatType> cursor = imgFloat.localizingCursor();
 		final long[] pos = new long[imgFloat.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();

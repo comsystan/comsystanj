@@ -511,21 +511,44 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		RandomAccessibleInterval<C> raifft = opService.filter().fft(img);
 		
 	
-//    	//Optinally Show fft image
-//		Img<FloatType> fftMag1 = new ArrayImgFactory<>(new FloatType()).create(fft.dimension(0), fft.dimension(1));
-//		RandomAccess<FloatType> fftMag1Ra = fftMag1.randomAccess();
-//		final long[] posFFT1 = new long[fftMag1.numDimensions()];
+//    	//Optionally Show FFT image
+//		Img<FloatType> fft = new ArrayImgFactory<>(new FloatType()).create(raifft.dimension(0), raifft.dimension(1));
+//		RandomAccess<FloatType> fftRa = fft.randomAccess();
+//		long[] pos = new long[fft.numDimensions()];
+//		float power1;
 //		// Loop through all pixels.
-//		final Cursor<C> cursorFFT1 = Views.iterable(fft).localizingCursor();
-//		while (cursorFFT1.hasNext()) {
-//			cursorFFT1.fwd();
-//			cursorFFT1.localize(posFFT1);
-//			//float power = (float) Math.sqrt(cursorFFT1.get().getRealFloat() * cursorFFT1.get().getRealFloat() + cursorFFT1.get().getImaginaryFloat() * cursorFFT1.get().getImaginaryFloat()  );
-//			float power = cursorFFT1.get().getPowerFloat();
-//			fftMag1Ra.setPosition(posFFT1);
-//			fftMag1Ra.get().set(power);
+//		Cursor<?> cursor = Views.iterable(raifft).localizingCursor();
+//		while (cursor.hasNext()) {
+//			cursor.fwd();
+//			cursor.localize(pos);
+//			//float power = (float) cursor.get().getRealFloat() * cursor.get().getRealFloat() + cursor.get().getImaginaryFloat() * cursor.get().getImaginaryFloat();
+//			power1 = ((ComplexType) cursor.get()).getPowerFloat();
+//			fftRa.setPosition(pos);
+//			fftRa.get().set(power1);
 //		}
-//		uiService.show("fftMag1", fftMag1);		
+//		
+//		//Get min max
+//		float min = Float.MAX_VALUE;
+//		float max = -Float.MAX_VALUE;
+//		float val;
+//		Cursor<FloatType>cursorf = fft.cursor();
+//		while (cursorf.hasNext()) {
+//			cursorf.fwd();
+//			cursorf.localize(pos);
+//			val = cursorf.get().get();
+//			if (val > max) max = val;
+//			if (val < min) min = val;
+//		}
+//		
+//		//Rescael to 0...255
+//		cursorf = fft.cursor();
+//		while (cursorf.hasNext()) {
+//			cursorf.fwd();
+//			cursorf.localize(pos);
+//			cursorf.get().set(255f*(cursorf.get().get() - min)/(max - min));		
+//		}	
+//		uiService.show("rai", rai);	
+//		uiService.show("Power", fft);		
 		
 		// Declare an array to hold the current position of the cursor.
 		final long[] posFFT = new long[raifft.numDimensions()];
@@ -545,6 +568,13 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		// generate random pixel values
 		Random generator = new Random();
 		double b = 8.0f - (2.0f * fracDim);		// FD = (B+6)/2 laut Closed contour fracatal dimension estimation... J.B. Florindo
+		double dist;
+		double dist2;
+		double g;
+		double u;
+		double n;
+		double m;
+		
 
 		// Loop through all pixels.
 		final Cursor<C> cursorFFT = Views.iterable(raifft).localizingCursor();
@@ -554,16 +584,16 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 			
 			if (posFFT[1] <= fftHalfHeight) {
 				// Calculate distance from 0,0 
-				final double dist = Util.distance(origin, posFFT);	
+				dist = Util.distance(origin, posFFT);	
 				//double newMagnitude = Math.pow(dist+1, -b / 2);
 				//float imag = cursorFFT.get().getImaginaryFloat();
 				//float real = (float) Math.sqrt(newMagnitude*newMagnitude - (imag*imag));
 				//cursorFFT.get().setReal(real);
 				
-				double g = generator.nextGaussian();
-				double u = generator.nextFloat();
-				double n = g * Math.cos(2 * Math.PI * u);
-				double m = g * Math.sin(2 * Math.PI * u);
+				g = generator.nextGaussian();
+				u = generator.nextFloat();
+				n = g * Math.cos(2 * Math.PI * u);
+				m = g * Math.sin(2 * Math.PI * u);
 				n = n * Math.pow(dist+1, -b / 2);
 				m = m * Math.pow(dist+1, -b / 2);
 				cursorFFT.get().setReal(n);
@@ -574,11 +604,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 			}
 			else if (posFFT[1] > fftHalfHeight) {
 				// Calculate distance from bottom left corner
-				final double dist2 = Util.distance(origin2, posFFT);
-				double g = generator.nextGaussian();
-				double u = generator.nextFloat();
-				double n = g * Math.cos(2 * Math.PI * u);
-				double m = g * Math.sin(2 * Math.PI * u);
+				dist2 = Util.distance(origin2, posFFT);
+				g = generator.nextGaussian();
+				u = generator.nextFloat();
+				n = g * Math.cos(2 * Math.PI * u);
+				m = g * Math.sin(2 * Math.PI * u);
 				n = n * Math.pow(dist2+1, -b / 2);
 				m = m * Math.pow(dist2+1, -b / 2);
 				cursorFFT.get().setReal(n);
