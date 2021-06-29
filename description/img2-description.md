@@ -41,7 +41,7 @@
 - Number of object pixels is counted for subsequently size reduced images
 - Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
 - For other sizes it yields more reliable results, because box truncation is not necessary
-- Ref.: Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [https://doi.org/10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
+- Ref.: Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [DOI 10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
 
 ### Minkowski dimension
 - Fractal dimension is computed with morphological dilations and erosions
@@ -51,7 +51,7 @@
 - The number of dilation/erosion steps can be set
 - The shape of the morphological structuring element can be set
 - Linear regression parameters of the double log plot can be set 
-- Ref.: Peleg et al., IEEE-TPAMI, 1984, [https://doi.org/10.1109/TPAMI.1984.4767557](https://doi.org/10.1109/TPAMI.1984.4767557)
+- Ref.: Peleg et al., IEEE-TPAMI, 1984, [DOI 10.1109/TPAMI.1984.4767557](https://doi.org/10.1109/TPAMI.1984.4767557)
 
 ### Correlation dimension
 - Fractal correlation dimension is computed
@@ -63,7 +63,7 @@
 - or by using a fixed grid estimation of summing up squared counts (Raster box scanning)
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
-- Ref: Grassberger & Procaccia, Physica D, 1983, [https://10.1016/0167-2789(83)90298-1](https://10.1016/0167-2789(83)90298-1)
+- Ref: Grassberger & Procaccia, Physica D, 1983, [DOI 10.1016/0167-2789(83)90298-1](https:/doi.org/10.1016/0167-2789(83)90298-1)
 
 ### Directional correlation dimension
 - A directional dependent fractal correlation dimension is computed
@@ -85,7 +85,7 @@
 - Dq and f-spectrum plots can be shown
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
-- Ref: Ahammer et al., Physica D, 2003, [https://doi.org/10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
+- Ref: Ahammer et al., Physica D, 2003, [DOI 10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
 
 ### Higuhi dimension 1D
 - Fractal dimension is computed for 1D grey value profiles extracted from an image
@@ -94,14 +94,25 @@
 - Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
 - Radial lines (grey value profiles) are length corrected and grey values are interpolated
 - Linear regression parameters of the double log plot can be set
-- Ref.: Ahammer, PLoS ONE, 2011, [https://doi.org/10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
+- Ref.: Ahammer, PLoS ONE, 2011, [DOI 10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
 
 ### Higuchi dimension 2D
 - Fractal dimension is computed with Higuchi inspired 2D algorithms
 - For 8-bit grey value images
 - Several options can be chosen
 - Linear regression parameters of the double log plot can be set
-- Ref.: Ahammer et al., Chaos, 2015, [https://doi.org/10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
+- Ref.: Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
+
+### FFT dimension
+- Fractal dimension is computed with FFT algorithm
+- For 8-bit grey value images
+- Circluar average of k values or
+- Mean of separate line scans (horizontal and verical) or
+- Integrated line scans (k should be restricted to low values - frequencies)
+- Dt=2, Topological dimension is assumed to be 2
+- Linear regression parameters of the double log plot can be set
+- For circular averaging, the number of regression points is higher than k itself and will be automatically lowered to the number of averages.  
+- Ref.:  Anguiano et al., Journal of Microscopy, 1993, [DOI 10.1111/j.1365-2818.1993.tb03416.x](https://doi.org/10.1111/j.1365-2818.1993.tb03416.x)
 
 ### Tug of war dimension
 - Fractal dimension is computed by using a tug of war algorithm
@@ -112,7 +123,7 @@
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
 - In the original paper accuracy=30 and confidence=5  
 - But it is recommended to set accuracy and confidence as high as computation times allow
-- Ref.: Reiss et al., Chaos, 2016, [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+- Ref.: Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Lacunarity
 - Lacunarity is computed of a binary image  
@@ -123,12 +134,12 @@
 - Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
 - Grey value algortihm for Raster/Sliding box
 - Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
-- \<L\>-R&P Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [https://doi.org/10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
-- \<L\>-S&V Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [https://doi.org/10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
+- \<L\>-R&P Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [DOI10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
+- \<L\>-S&V Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [DOI 10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
 - In the original paper accuracy=30 and confidence=5  
 - But it is recommended to set accuracy and confidence as high as computation times allow
-- Ref.: Reiss et al., Chaos, 2016, [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+- Ref.: Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Succolarity
 - Succolarity is computed by flooding of a binary image  
@@ -139,7 +150,7 @@
 - Raster box or Sliding box scanning
 - Binary [0, >0] algorithm
 - Flooding of image can be set to Top2down, Down2top, Left2right, Right2left or the mean of all four directions
-- Ref.: de Melo & Conci, Telecommunication Systems, 2013, [https://doi.org/10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
+- Ref.: de Melo & Conci, Telecommunication Systems, 2013, [DOI 10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
 
 ### Fractal fragmentation indices
 - Fractal fragmentation index FFI
@@ -154,7 +165,7 @@
 - Fractal dimension computations with Box counting (raster box scanning)
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
-- Ref: Andronache et al., Chaos, Solitons & Fractals, 2016, [https://doi.org/10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
+- Ref: Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
 ### Generalised entropies
 - Computes generalised entropies
@@ -162,7 +173,7 @@
 - Probabilities are computed with plain pixel grey values
 - For 8-bit grey value images
 - A plot of Renyi entropies can be shown
-- Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
+- Ref.: Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
 Statistical Mechanics, Springer, 2009
 
 ### Kolmogorov complexity and Logical depth
@@ -176,4 +187,4 @@ Statistical Mechanics, Springer, 2009
 - LD is estimated by the decompression time of the compressed data bytes (ZLIB, GZIB)
 - Iterations should be set to as high a value as possible.
 - LD values should be taken with caution, as computers are not well suited to measure times
-- Ref.: Zenil et al., Complexity, 2012, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+- Ref.: Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
