@@ -19,9 +19,9 @@
 - Following signal types are supported:
   - Constant, Sine, Square, Triangle, Sawtooth
   - Gaussian an Uniform noise
-  - Discrete chaotical maps (Logistic, Henon, Cubic, Spence), Silva & Murta Jr., 2012, Chaos, [http://dx.doi.org/10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
+  - Discrete chaotical maps (Logistic, Henon, Cubic, Spence), Silva & Murta Jr., 2012, Chaos, [DOI 10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
   - Fractional Gaussian noise signals depending on the Hurst coefficient and using Davis and Harte autocorrelation method DHM
-  - Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [https://doi.org/10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
+  - Fractional Gaussian motion signals depending on the Hurst coefficient and using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [DOI 10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
 - Optionally generates a plot display of signals
 - Table can be exported as comma delimited text file in Fiji
 - Note: Select to export column and row headers
@@ -101,9 +101,9 @@
 - Optional up- or downscaling
 - Signals should be opened with the CSAJ Signal Opener
 - The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
-- See [https://github.com/MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
-- Ref.: Lu et al., 2006, Medical Physics, [https://doi.org/10.1118/1.2348764](https://doi.org/10.1118/1.2348764), Chen & Chen, 2003, Computers in Cardiology, [https://doi.org/10.1109/CIC.2003.1291223](https://doi.org/10.1109/CIC.2003.1291223),
- Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [https://doi.org/10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
+- See [MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
+- Ref.: Lu et al., 2006, Medical Physics, [DOI 10.1118/1.2348764](https://doi.org/10.1118/1.2348764), Chen & Chen, 2003, Computers in Cardiology, [DOI 10.1109/CIC.2003.1291223](https://doi.org/10.1109/CIC.2003.1291223),
+ Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [DOI 10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
 
 ### QRS peak detection (from file)
 - Detects QRS peaks and peak to peak intervals of ECG data
@@ -111,8 +111,8 @@
 - Output is directly saved into a csv file as a table 
 - Based on the OSEA algorithm
 - The osea-4-java algorithm/library developed by Patrick S. Hamilton from EP Limited is implemented
-- See [https://github.com/MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
-- Ref.: Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [https://doi.org/10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
+- See [MEDEVIT/OSEA-4-Java](https://github.com/MEDEVIT/OSEA-4-Java)
+- Ref.: Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [DOI 10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
 
 ### Standard HRV measurements
 - Computes standard HRV measurements (e.g. for 24h ECG Holter recordings)
@@ -127,7 +127,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Malik et al., 1996, Circulation, [https://doi.org/10.1161/01.CIR.93.5.1043](https://doi.org/10.1161/01.CIR.93.5.1043)
+- Ref.: Malik et al., 1996, Circulation, [DOI 10.1161/01.CIR.93.5.1043](https://doi.org/10.1161/01.CIR.93.5.1043)
 
 ### Poincare plot
 - Generation of Poincare plots (lag plots)
@@ -148,7 +148,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Peng et al., 1994, Phys.Rev.E., [https://doi.org/10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
+- Ref.: Peng et al., 1994, Phys.Rev.E., [DOI 10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
 ### Hurst coefficient
 - Computes the Hurst coefficient
@@ -169,7 +169,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [https://doi.org/10.1007/s004249900135](https://doi.org/10.1007/s004249900135)
+- Ref.: Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135)
 
 ### Higuchi dimension
 - Computes Higuchi dimensions
@@ -184,7 +184,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Higuchi, 1988, Physica D, [https://doi.org/10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
+- Ref.: Higuchi, 1988, Physica D, [DOI 10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
 
 ### Katz dimension
 - Computes Katz dimensions
@@ -197,7 +197,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Katz, 1988, Comp Biol Med, [https://doi.org/10.1016/0010-4825(88)90041-8](https://doi.org/10.1016/0010-4825(88)90041-8)
+- Ref.: Katz, 1988, Comp Biol Med, [DOI 10.1016/0010-4825(88)90041-8](https://doi.org/10.1016/0010-4825(88)90041-8)
 
 ### Petrosian dimension
 - Computes Petrosian dimensions
@@ -215,7 +215,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Petrosian, 1988, Proc 8th IEEE Symp Comp Med Syst, [https://doi.org/10.1109/CBMS.1995.465426](https://doi.org/10.1109/CBMS.1995.465426)
+- Ref.: Petrosian, 1988, Proc 8th IEEE Symp Comp Med Syst, [DOI 10.1109/CBMS.1995.465426](https://doi.org/10.1109/CBMS.1995.465426)
 
 ### Sevcik dimension
 - Computes Sevcik dimensions
@@ -229,14 +229,14 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Sevcik, 1988, Complexity International, [http://arxiv.org/abs/1003.5266](http://arxiv.org/abs/1003.5266)
+- Ref.: Sevcik, 1988, Complexity International, [arxiv.org/abs/1003.5266](http://arxiv.org/abs/1003.5266)
 
 ### Sample entropy
 - Computes Sample or Approximate entropy
 - Approximate entropy is not recommended for different signal lengths
 - m length of subsignals (m=2 is often used)
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
-- d additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- d additional delay according to Govindan et.al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
@@ -246,13 +246,13 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Richman & Moorman, 2000, Am.J.Physiol.Heart.Circ.Physiol., [https://doi.org/10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
+- Ref.: Richman & Moorman, 2000, Am.J.Physiol.Heart.Circ.Physiol., [DOI 10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
 
 ### Permutation entropy
 - Computes Permutation entropies
 - Permutation entropy H(n), Permutation entropy per symbol h(n)=H(n)/(n-1), Normalized permutation entropy H(n)/log(n!), Sorting entropy d(n)=H(n)-H(n-1), d(2)=H(2)  
 - n Order of Permutation entropy (>=2)
-- d Additional delay according to Govindan et.al., 2007, PhysicaA, [https://doi.org/10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- d Additional delay according to Govindan et.al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
@@ -262,7 +262,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Bandt&Pompe, 2002, Phys.Rev.Lett, [https://doi.org/10.1103/PhysRevLett.88.174102](https://doi.or g/10.1103/PhysRevLett.88.174102)
+- Ref.: Bandt&Pompe, 2002, Phys.Rev.Lett, [DOI 10.1103/PhysRevLett.88.174102](https://doi.org/10.1103/PhysRevLett.88.174102)
 
 ### Generalised entropies
 - Computes generalised entropies
@@ -278,7 +278,7 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Amigo et al., 2018, Entropy, [https://doi.org/10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
+- Ref.: Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
 Statistical Mechanics, Springer, 2009
 
 ### Kolmogorov complexity and Logical depth
@@ -294,7 +294,7 @@ Statistical Mechanics, Springer, 2009
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Zenil et al., 2012, Complexity, [https://doi.org/10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+- Ref.: Zenil et al., 2012, Complexity, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
 ### Allometric scaling
 - Computes a double log plot of aggregated variances and means
@@ -312,7 +312,7 @@ Statistical Mechanics, Springer, 2009
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: West, 2006, Complexity, [https://doi.org/10.1002/cplx.20114](https://doi.org/10.1002/cplx.20114)
+- Ref.: West, 2006, Complexity, [DOI 10.1002/cplx.20114](https://doi.org/10.1002/cplx.20114)
 
 ### Symbolic aggregation
 - Generates symbolic aggregation
@@ -326,6 +326,6 @@ Statistical Mechanics, Springer, 2009
 - Grey or color image(s)
 - Optional surrogate data conversion
 - Signals should be opened with the CSAJ Signal Opener
-- Ref: Lin et al., 2003, DMKD '03: Proceedings of the 8th ACM SIGMOD workshop on Research issues in data mining and knowledge discovery [https://doi.org/10.1145/882082.882086](https://doi.org/10.1145/882082.882086)
+- Ref: Lin et al., 2003, DMKD '03: Proceedings of the 8th ACM SIGMOD workshop on Research issues in data mining and knowledge discovery [DOI 10.1145/882082.882086](https://doi.org/10.1145/882082.882086)
   
 
