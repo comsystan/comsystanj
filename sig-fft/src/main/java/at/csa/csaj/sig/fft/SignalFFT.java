@@ -112,7 +112,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 //	private static long numSubsequentBoxes = 0;
 //	private static long numGlidingBoxes = 0;
 	
-	private static final int numTableOutPreCols = 3; //Number of columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
+	private static final int numTableOutPreCols = 4; //Number of columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
 	private static final String tableOutName = "Table - FFT";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
@@ -172,6 +172,15 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelFFTOptions = FFTOPTIONS_LABEL;
+	
+	@Parameter(label = "Windowing",
+			description = "Windowing type",
+			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			choices = {"Rectangular", "Bartlett", "Hanning", "Hamming", "Blackman"}, 
+			//persist  = false,  //restore previous value default = true
+			initializer = "initialWindowingType",
+			callback = "callbackWindowingType")
+	private String choiceRadioButt_WindowingType;
 	
 	@Parameter(label = "Output",
 			description = "Output type",
@@ -290,6 +299,10 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	// ---------------------------------------------------------------------
 	// The following initialzer functions set initial values
 	
+	protected void initialWindowingType() {
+		choiceRadioButt_WindowingType = "Bartlett";
+	} 
+	
 	protected void initialOutputType() {
 		choiceRadioButt_OutputType = "Power";
 	} 
@@ -338,6 +351,11 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
+	
+	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
+	protected void callbackWindowingType() {
+		logService.info(this.getClass().getName() + " Windowing type set to " + choiceRadioButt_WindowingType);
+	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_OutputType} parameter changes. */
 	protected void callbackOutputType() {
@@ -584,6 +602,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		tableResult.add(new GenericColumn("Surrogate type"));
 		tableResult.add(new GenericColumn("Normalization"));	
 		
+		tableResult.add(new GenericColumn("Windowing"));
 		String output = "";
 		if      (this.choiceRadioButt_OutputType.equals("Power"))     output = "Power";
 		else if (this.choiceRadioButt_OutputType.equals("Magnitude")) output = "Magnitude";
@@ -769,7 +788,8 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		for (int r = 0; r < resultValues.length; r++ ) {
 			tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 			tableResult.set(1, r, this.choiceRadioButt_NormalizationType);
-			tableResult.set(2, r, domain1D[r]); // time domain column	
+			tableResult.set(2, r, this.choiceRadioButt_WindowingType);
+			tableResult.set(3, r, domain1D[r]); // time domain column	
 			tableResult.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
 		}
 		
@@ -778,7 +798,8 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 			for (int r = resultValues.length; r < tableResult.getRowCount(); r++ ) {
 				tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableResult.set(1, r, this.choiceRadioButt_NormalizationType);
-				tableResult.set(2, r, domain1D[r]); // time domain column	
+				tableResult.set(2, r, this.choiceRadioButt_WindowingType);
+				tableResult.set(3, r, domain1D[r]); // time domain column	
 				tableResult.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
 			}
 		}
@@ -808,6 +829,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		String  scalingType    = choiceRadioButt_ScalingType;//"Standard", "Unitary"
 		String  timeDomainType = choiceRadioButt_TimeDomainType;//"Unitary", "Hz"
 		int     sampleRate     = spinnerInteger_SampleRate;
+		String  windowingType  = choiceRadioButt_WindowingType;
 		//******************************************************************************************************
 		
 	
@@ -824,6 +846,24 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		
 		//numDataPoints may be smaller now
 		numDataPoints = signal1D.length;
+		
+		
+		
+		if (windowingType.equals("Rectangular")) {
+			signal1D = windowingRectangular(signal1D);
+		}
+		else if (windowingType.equals("Bartlett")) {
+			signal1D = windowingBartlett(signal1D);
+		}
+		else if (windowingType.equals("Hanning")) {
+			signal1D = windowingHanning(signal1D);
+		}
+		else if (windowingType.equals("Hamming")) {
+			signal1D = windowingHamming(signal1D);
+		}
+		else if (windowingType.equals("Blackman")) {
+			signal1D = windowingBlackman(signal1D);
+		}
 		
 		double[] signalOut = null;
 		
@@ -1000,6 +1040,92 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	}
 	
 
+	/**
+	 * This method doses Rectangular windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingRectangular (double[] signal) {
+		 double[]window = new double[signal.length];
+	     for(int n = 0; n < signal.length; ++n) {
+	    	 window[n] = 1.0;
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method doses a Bartlett windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBartlett (double[] signal) {
+		 double[]window = new double[signal.length];
+		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
+	     for(int n = 0; n < signal.length; ++n) {
+	    	 window[n] = 1-(2*Math.abs((double)n-M/2.0)/M);
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method doses a Hanning windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHanning (double[] signal) {
+		 double[]window = new double[signal.length];
+		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
+	     for(int n = 0; n < signal.length; ++n) {
+	    	 window[n] = 0.5 - 0.5 * Math.cos(2 * Math.PI * n / M);
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
+	/**
+	 * This method doses a Hamming windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHamming (double[] signal) {
+		 double[]window = new double[signal.length];
+		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
+	     for(int n = 0; n < signal.length; ++n) {
+	    	 window[n] = 0.54 - 0.46 * Math.cos(2 * Math.PI * n / M);
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
+	/**
+	 * This method doses a Blackman windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBlackman (double[] signal) {
+		 double[]window = new double[signal.length];
+		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
+	     for(int n = 0; n < signal.length; ++n) {
+	    	 window[n] = 0.42 - 0.5 * Math.cos(2 * Math.PI * n / M) + 0.008 * Math.cos(4 * Math.PI * n / M);
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
 
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
