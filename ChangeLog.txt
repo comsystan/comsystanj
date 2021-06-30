@@ -7,6 +7,7 @@ New-----------------------------------------------------------
 2D Image - Directional correlation dimension
 2D Image - Generalized fractal dimensions
 2D Image - Minkowski dimension
+2D Image - FFT Dimension
 2D Image - Tug of war dimension
 2D Image - Fractal fragmentation indices (FFI and FFDI)
 2D Image - Lacunarity

@@ -19,6 +19,7 @@
 		<module>img2d-frac-dim-boxcounting</module>
 		<module>img2d-frac-dim-correlation-directional</module>
 		<module>img2d-frac-dim-ff</module>
+		<module>img2d-frac-dim-fft</module>
 		<module>img2d-frac-dim-generalized</module>
 		<module>img2d-frac-dim-correlation</module>
 		<module>img2d-frac-dim-higuchi1d</module>
