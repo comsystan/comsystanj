@@ -111,7 +111,7 @@
 - Integrated line scans (k should be restricted to low values - frequencies)
 - Dt=2, Topological dimension is assumed to be 2
 - Linear regression parameters of the double log plot can be set
-- For circular averaging, the number of regression points is higher than k itself and will be automatically lowered to the number of averages.  
+- For circular averaging, the number of regression points is higher than k itself and additionally, will be automatically lowered to the number of averages.  
 - Ref.:  Anguiano et al., Journal of Microscopy, 1993, [DOI 10.1111/j.1365-2818.1993.tb03416.x](https://doi.org/10.1111/j.1365-2818.1993.tb03416.x)
 
 ### Tug of war dimension
