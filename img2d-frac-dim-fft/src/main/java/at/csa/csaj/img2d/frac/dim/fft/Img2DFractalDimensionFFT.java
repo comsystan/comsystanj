@@ -248,7 +248,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 			description = "Windowing type with increasing filter strength",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"Rectangular", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, //In the order of increasing filter strength
-			//persist  = false,  //restore previous value default = true
+			persist  = false,  //restore previous value default = true
 			initializer = "initialWindowingType",
 			callback = "callbackWindowingType")
 	private String choiceRadioButt_WindowingType;
@@ -327,7 +327,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
     	spinnerInteger_RegMax =  numOfK;
     }
     protected void initialWindowingType() {
-		choiceRadioButt_WindowingType = "Bartlett";
+		choiceRadioButt_WindowingType = "Hanning";
 	} 
     protected void initialPowerSpecType() {
     	choiceRadioButt_PowerSpecType = "Circular average";

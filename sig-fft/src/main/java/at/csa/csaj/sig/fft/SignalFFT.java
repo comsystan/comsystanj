@@ -180,8 +180,8 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	@Parameter(label = "Windowing",
 			description = "Windowing type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Rectangular", "Bartlett", "Hanning", "Hamming", "Blackman", "Cosine", "Lanczos", "Gaussian"}, 
-			//persist  = false,  //restore previous value default = true
+			choices = {"Rectangular", "Cosine", "Lanczos", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
+			persist  = false,  //restore previous value default = true
 			initializer = "initialWindowingType",
 			callback = "callbackWindowingType")
 	private String choiceRadioButt_WindowingType;
@@ -304,7 +304,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	// The following initialzer functions set initial values
 	
 	protected void initialWindowingType() {
-		choiceRadioButt_WindowingType = "Bartlett";
+		choiceRadioButt_WindowingType = "Hanning";
 	} 
 	
 	protected void initialOutputType() {
@@ -876,26 +876,29 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		if (windowingType.equals("Rectangular")) {
 			signal1D = windowingRectangular(signal1D);
 		}
-		else if (windowingType.equals("Bartlett")) {
-			signal1D = windowingBartlett(signal1D);
-		}
-		else if (windowingType.equals("Hanning")) {
-			signal1D = windowingHanning(signal1D);
-		}
-		else if (windowingType.equals("Hamming")) {
-			signal1D = windowingHamming(signal1D);
-		}
-		else if (windowingType.equals("Blackman")) {
-			signal1D = windowingBlackman(signal1D);
-		}
 		else if (windowingType.equals("Cosine")) {
 			signal1D = windowingCosine(signal1D);
 		}
 		else if (windowingType.equals("Lanczos")) {
 			signal1D = windowingLanczos(signal1D);
 		}
+		else if (windowingType.equals("Bartlett")) {
+			signal1D = windowingBartlett(signal1D);
+		}
+		else if (windowingType.equals("Hamming")) {
+			signal1D = windowingHamming(signal1D);
+		}
+		else if (windowingType.equals("Hanning")) {
+			signal1D = windowingHanning(signal1D);
+		}
+		else if (windowingType.equals("Blackman")) {
+			signal1D = windowingBlackman(signal1D);
+		}	
 		else if (windowingType.equals("Gaussian")) {
 			signal1D = windowingGaussian(signal1D);
+		}
+		else if (windowingType.equals("Parzen")) {
+			signal1D = windowingParzen(signal1D);
 		}
 		
 		signalOut = null;
@@ -1031,7 +1034,6 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		return sum / data1D.length;
 	}
 	
-	
 	// This method removes zero background from field signal1D
 	private double[] removeZeroes(double[] signal) {
 		int lengthOld = signal.length;
@@ -1072,160 +1074,175 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		return signal1D;
 	}
 	
-
 	/**
-	 * This method doses Rectangular windowing
+	 * This method does Rectangular windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
 	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
 	private double[] windowingRectangular (double[] signal) {
-		 double[]window = new double[signal.length];
-	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 1.0;
-	     }
+		double weight = 1.0;
 	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
+	    	 signal[i] = signal[i] * weight;
 	     }
 	     return signal; 
 	}
 	
 	/**
-	 * This method doses a Bartlett windowing
-	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
-	 * https://de.wikipedia.org/wiki/Fensterfunktion
-	 * @param signal
-	 * @return windowed signal
-	 */
-	private double[] windowingBartlett (double[] signal) {
-		 double[]window = new double[signal.length];
-		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
-	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 1.0-(2.0*Math.abs((double)n-M/2.0)/M);
-	     }
-	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
-	     }
-	     return signal; 
-	}
-
-	/**
-	 * This method doses a Hanning windowing
-	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
-	 * https://de.wikipedia.org/wiki/Fensterfunktion
-	 * @param signal
-	 * @return windowed signal
-	 */
-	private double[] windowingHanning (double[] signal) {
-		 double[]window = new double[signal.length];
-		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
-	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * n / M);
-	     }
-	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
-	     }
-	     return signal; 
-	}
-	/**
-	 * This method doses a Hamming windowing
-	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
-	 * https://de.wikipedia.org/wiki/Fensterfunktion
-	 * @param signal
-	 * @return windowed signal
-	 */
-	private double[] windowingHamming (double[] signal) {
-		 double[]window = new double[signal.length];
-		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
-	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * n / M);
-	     }
-	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
-	     }
-	     return signal; 
-	}
-	/**
-	 * This method doses a Blackman windowing
-	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
-	 * https://de.wikipedia.org/wiki/Fensterfunktion
-	 * @param signal
-	 * @return windowed signal
-	 */
-	private double[] windowingBlackman (double[] signal) {
-		 double[]window = new double[signal.length];
-		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
-	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 0.42 - 0.5 * Math.cos(2.0 * Math.PI * n / M) + 0.008 * Math.cos(4.0 * Math.PI * n / M);
-	     }
-	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
-	     }
-	     return signal; 
-	}
-	/**
-	 * This method doses a Cosine windowing
+	 * This method does Cosine windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
 	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
 	private double[] windowingCosine (double[] signal) {
-		 double[]window = new double[signal.length];
-		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
-	     for(int n = 0; n < signal.length; ++n) {
-	    
-	    	 window[n] = Math.sin(Math.PI*n/M);
-	     }
-	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = Math.sin(Math.PI*n/M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Cosine weight " + weight);
 	     }
 	     return signal; 
 	}
+
 	/**
-	 * This method doses a Lanczos windowing
+	 * This method does  Lanczos windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
 	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
 	private double[] windowingLanczos (double[] signal) {
-		 double[]window = new double[signal.length];
-		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
-	     for(int n = 0; n < signal.length; ++n) {
-	    
-	    	 window[n] = Math.sin(Math.PI*(2.0*n/M-1))/(Math.PI*(2.0*n/M-1));
-	     }
-	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+		 double x = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 x = Math.PI*(2.0*n/M-1);
+	    	 if (x == 0) weight = 1.0;
+	    	 else weight =  Math.sin(x)/x;
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Lanczos weight  n " + n + "  "  + weight);
 	     }
 	     return signal; 
 	}
+
 	/**
-	 * This method doses a Gaussian windowing
+	 * This method does Bartlett windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBartlett (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 1.0-(2.0*Math.abs((double)n-M/2.0)/M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Bartlett weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Hamming windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHamming (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Hamming weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Hanning windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHanning (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Hanning weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Blackman windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBlackman (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.42 - 0.5 * Math.cos(2.0 * Math.PI * n / M) + 0.008 * Math.cos(4.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Blackman weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Gaussian windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
 	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
 	private double[] windowingGaussian (double[] signal) {
-		 double[]window = new double[signal.length];
-		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
-		 double sigma = 0.5;
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+		 double sigma = 0.3;
 		 double exponent = 0.0;
-	     for(int n = 0; n < signal.length; ++n) {
-	    	 exponent = (((double)n-M)/2)/(sigma*M/2.0);
+	     for(int n = 0; n < signal.length; n++) {
+	    	 exponent = ((double)n-M/2)/(sigma*M/2.0);
 	    	 exponent *= exponent;
-	    	 window[n] = Math.exp(-0.5*exponent);
-	     }
-	     for(int i = 0; i < signal.length; ++i) {
-	    	 signal[i] = signal[i] * window[i];
+	    	 weight = Math.exp(-0.5*exponent);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Gaussian weight " + weight);
 	     }
 	     return signal; 
 	}
 	
-
+	/**
+	 * This method does Parzen windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingParzen (double[] signal) {
+		double M = signal.length - 1;
+		double nn;
+		double weight = 0.0;
+	    for(int n = 0; n < signal.length; n++) {
+	    	nn = Math.abs((double)n-M/2);
+	    	if      ((nn >= 0.0) && (nn < M/4))  weight = 1.0 - 6.0*Math.pow(nn/(M/2), 2) * (1- nn/(M/2));
+	    	else if ((nn >= M/4) && (nn <= M/2)) weight = 2.0*Math.pow(1-nn/(M/2), 3);
+	    	signal[n] = signal[n] * weight;
+	      	//System.out.println("SignalFFT Parzen weight n " + n + "  "  + weight);
+	     }
+	     return signal; 
+	}
+	
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
 		try {
