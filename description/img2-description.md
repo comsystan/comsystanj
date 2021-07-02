@@ -106,6 +106,7 @@
 ### FFT dimension
 - Fractal dimension is computed with FFT algorithm
 - For 8-bit grey value images
+- Several windowing filters can be set
 - Circluar average of k values or
 - Mean of separate line scans (horizontal and verical) or
 - Integrated line scans (k should be restricted to low values - frequencies)
