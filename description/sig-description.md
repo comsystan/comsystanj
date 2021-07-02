@@ -62,6 +62,7 @@
 
 ### FFT
 - Computes the Power- or Magnitude spectrum
+- Several windowing filters can be set
 - Normalization can be set to Standard or Unitary
 - Output value scaling can be set to Log, Ln or Linear
 - Time domain axis can be set to unitary units or to Hz 
