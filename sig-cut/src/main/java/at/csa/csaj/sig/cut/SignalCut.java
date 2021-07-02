@@ -28,6 +28,7 @@
 
 package at.csa.csaj.sig.cut;
 
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,7 +64,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.sig.open.SignalOpener;
 
@@ -108,7 +109,7 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 //	private static long numGlidingBoxes = 0;
 	
 	private static final String tableOutName = "Table - Cut out";
-	private static ArrayList<PlotDisplayFrame> plotDisplayFrameList = new ArrayList<PlotDisplayFrame>();
+	private static ArrayList<SignalPlotFrame> plotDisplayFrameList = new ArrayList<SignalPlotFrame>();
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -596,8 +597,12 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 				cols[c] = c; 	
 				seriesLabels[c] = tableResult.getColumnHeader(c); 					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Cut signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			plotDisplayFrameList.add(pdf);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);		
 			pdf.setVisible(true);
 		//}
 		
@@ -669,8 +674,12 @@ public class SignalCut<T extends RealType<T>> extends InteractiveCommand impleme
 				cols[c] = c;  
 				seriesLabels[c] = tableResult.getColumnHeader(c);				
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Cut signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			plotDisplayFrameList.add(pdf);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 			

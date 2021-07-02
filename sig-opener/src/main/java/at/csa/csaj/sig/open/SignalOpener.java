@@ -47,7 +47,7 @@ import org.scijava.ui.UIService;
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import java.io.File;
 import java.io.IOException;
@@ -190,7 +190,7 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 			}
 			
 			int numColumns = defaultGenericTable.getColumnCount();
-			PlotDisplayFrame pdf = null;
+			SignalPlotFrame pdf = null;
 			if (numColumns == 1) {
 				boolean isLineVisible = true;
 				String signalTitle = files[0].getName();
@@ -203,7 +203,7 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 				 
 				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 				if (selectedOption == JOptionPane.YES_OPTION) {
-					pdf = new PlotDisplayFrame(defaultGenericTable, 0, isLineVisible, "Plot(s)", signalTitle, xLabel, yLabel);
+					pdf = new SignalPlotFrame(defaultGenericTable, 0, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel);
 					pdf.setVisible(true);
 				}		
 			}
@@ -225,7 +225,7 @@ public class SignalOpener<T extends RealType<T>> implements Command {
 				 
 				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 				if (selectedOption == JOptionPane.YES_OPTION) {
-					pdf = new PlotDisplayFrame(defaultGenericTable, cols, isLineVisible, "Plot(s)", signalTitle, xLabel, yLabel, seriesLabels);
+					pdf = new SignalPlotFrame(defaultGenericTable, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 					pdf.setVisible(true);
 				}				
 			}				

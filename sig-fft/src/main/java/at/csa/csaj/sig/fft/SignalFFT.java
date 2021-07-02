@@ -28,6 +28,8 @@
 
 package at.csa.csaj.sig.fft;
 
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -35,6 +37,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
@@ -69,7 +72,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.sig.open.SignalOpener;
 
 
@@ -100,6 +103,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	private static double[] domain1D;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
+	private static double[] signalOut;
 	Column<? extends Object> signalColumn;
 	//Column<? extends Object> domainColumn;
 	
@@ -176,7 +180,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	@Parameter(label = "Windowing",
 			description = "Windowing type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Rectangular", "Bartlett", "Hanning", "Hamming", "Blackman"}, 
+			choices = {"Rectangular", "Bartlett", "Hanning", "Hamming", "Blackman", "Cosine", "Lanczos", "Gaussian"}, 
 			//persist  = false,  //restore previous value default = true
 			initializer = "initialWindowingType",
 			callback = "callbackWindowingType")
@@ -652,6 +656,18 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 					display.close();
 			}
 		}
+		if (optDeleteExistingImgs) {
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().equals("FFT Signal(s)")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
+		}
 	}
 
   	/** 
@@ -688,7 +704,11 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 				cols[c-numTableOutPreCols] = c; //- because of first text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c); //- because of first two text columns					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(domain1D, tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableResult, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 		
@@ -765,7 +785,11 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c);	//-because of first text columns				
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(domain1D, tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableResult, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 			
@@ -864,8 +888,17 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		else if (windowingType.equals("Blackman")) {
 			signal1D = windowingBlackman(signal1D);
 		}
+		else if (windowingType.equals("Cosine")) {
+			signal1D = windowingCosine(signal1D);
+		}
+		else if (windowingType.equals("Lanczos")) {
+			signal1D = windowingLanczos(signal1D);
+		}
+		else if (windowingType.equals("Gaussian")) {
+			signal1D = windowingGaussian(signal1D);
+		}
 		
-		double[] signalOut = null;
+		signalOut = null;
 		
 //		double[] signalOut = new double[numDataPoints];
 //		for (double d: signalOut) {
@@ -1043,6 +1076,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	/**
 	 * This method doses Rectangular windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
@@ -1060,6 +1094,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	/**
 	 * This method doses a Bartlett windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
@@ -1067,7 +1102,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		 double[]window = new double[signal.length];
 		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
 	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 1-(2*Math.abs((double)n-M/2.0)/M);
+	    	 window[n] = 1.0-(2.0*Math.abs((double)n-M/2.0)/M);
 	     }
 	     for(int i = 0; i < signal.length; ++i) {
 	    	 signal[i] = signal[i] * window[i];
@@ -1078,6 +1113,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	/**
 	 * This method doses a Hanning windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
@@ -1085,7 +1121,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		 double[]window = new double[signal.length];
 		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
 	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 0.5 - 0.5 * Math.cos(2 * Math.PI * n / M);
+	    	 window[n] = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * n / M);
 	     }
 	     for(int i = 0; i < signal.length; ++i) {
 	    	 signal[i] = signal[i] * window[i];
@@ -1095,6 +1131,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	/**
 	 * This method doses a Hamming windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
@@ -1102,7 +1139,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		 double[]window = new double[signal.length];
 		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
 	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 0.54 - 0.46 * Math.cos(2 * Math.PI * n / M);
+	    	 window[n] = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * n / M);
 	     }
 	     for(int i = 0; i < signal.length; ++i) {
 	    	 signal[i] = signal[i] * window[i];
@@ -1112,6 +1149,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	/**
 	 * This method doses a Blackman windowing
 	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
 	 * @param signal
 	 * @return windowed signal
 	 */
@@ -1119,13 +1157,74 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		 double[]window = new double[signal.length];
 		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
 	     for(int n = 0; n < signal.length; ++n) {
-	    	 window[n] = 0.42 - 0.5 * Math.cos(2 * Math.PI * n / M) + 0.008 * Math.cos(4 * Math.PI * n / M);
+	    	 window[n] = 0.42 - 0.5 * Math.cos(2.0 * Math.PI * n / M) + 0.008 * Math.cos(4.0 * Math.PI * n / M);
 	     }
 	     for(int i = 0; i < signal.length; ++i) {
 	    	 signal[i] = signal[i] * window[i];
 	     }
 	     return signal; 
 	}
+	/**
+	 * This method doses a Cosine windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingCosine (double[] signal) {
+		 double[]window = new double[signal.length];
+		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
+	     for(int n = 0; n < signal.length; ++n) {
+	    
+	    	 window[n] = Math.sin(Math.PI*n/M);
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
+	/**
+	 * This method doses a Lanczos windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingLanczos (double[] signal) {
+		 double[]window = new double[signal.length];
+		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
+	     for(int n = 0; n < signal.length; ++n) {
+	    
+	    	 window[n] = Math.sin(Math.PI*(2.0*n/M-1))/(Math.PI*(2.0*n/M-1));
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
+	/**
+	 * This method doses a Gaussian windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingGaussian (double[] signal) {
+		 double[]window = new double[signal.length];
+		 double M = signal.length - 1;  //Filter order, it is always equal to the number of taps minus 1
+		 double sigma = 0.5;
+		 double exponent = 0.0;
+	     for(int n = 0; n < signal.length; ++n) {
+	    	 exponent = (((double)n-M)/2)/(sigma*M/2.0);
+	    	 exponent *= exponent;
+	    	 window[n] = Math.exp(-0.5*exponent);
+	     }
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * window[i];
+	     }
+	     return signal; 
+	}
+	
 
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {

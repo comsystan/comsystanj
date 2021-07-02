@@ -28,6 +28,8 @@
 
 package at.csa.csaj.sig.filter;
 
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -35,6 +37,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
@@ -71,7 +74,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.sig.open.SignalOpener;
 
 
@@ -569,6 +572,18 @@ public class SignalFilter<T extends RealType<T>> extends InteractiveCommand impl
 					display.close();
 			}
 		}
+		if (optDeleteExistingImgs) {
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().equals("Filtered signal(s)")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
+		}
 	}
 
   	/** 
@@ -600,7 +615,11 @@ public class SignalFilter<T extends RealType<T>> extends InteractiveCommand impl
 				cols[c-numTableOutPreCols] = c; //- because of first text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c); //- because of first two text columns					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Filtered signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 		
@@ -672,7 +691,11 @@ public class SignalFilter<T extends RealType<T>> extends InteractiveCommand impl
 				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c);	//-because of first text columns				
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Filtered signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 			

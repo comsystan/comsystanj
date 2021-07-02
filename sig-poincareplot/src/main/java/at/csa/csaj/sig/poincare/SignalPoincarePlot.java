@@ -28,11 +28,15 @@
 
 package at.csa.csaj.sig.poincare;
 
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
@@ -59,7 +63,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.sig.open.SignalOpener;
 
 
@@ -206,14 +210,14 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	private boolean booleanRemoveZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
-//	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-//	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
-//	@Parameter(label = "Overwrite result display(s)",
-//	    	description = "Overwrite already existing result images, plots or tables",
-//	    	//persist  = false,  //restore previous value default = true
-//			initializer = "initialOverwriteDisplays")
-//	private boolean booleanOverwriteDisplays;
+	@Parameter(label = "Overwrite result display(s)",
+	    	description = "Overwrite already existing result images, plots or tables",
+	    	//persist  = false,  //restore previous value default = true
+			initializer = "initialOverwriteDisplays")
+	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -267,9 +271,9 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 		booleanRemoveZeroes = false;
 	}	
 	
-//	protected void initialOverwriteDisplays() {
-//    	booleanOverwriteDisplays = true;
-//	}
+	protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
+	}
 	
 	protected void initialNumColumn() {
 		spinnerInteger_NumColumn = 1;
@@ -511,14 +515,14 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	 * 
 	 */
 	private void deleteExistingDisplays() {
-//		boolean optDeleteExistingPlots  = false;
-//		boolean optDeleteExistingTables = false;
-//		boolean optDeleteExistingImgs   = false;
-//		if (booleanOverwriteDisplays) {
-//			optDeleteExistingPlots  = true;
-//			optDeleteExistingTables = true;
-//			optDeleteExistingImgs   = true;
-//		}
+		boolean optDeleteExistingPlots  = false;
+		boolean optDeleteExistingTables = false;
+		boolean optDeleteExistingImgs   = false;
+		if (booleanOverwriteDisplays) {
+			optDeleteExistingPlots  = true;
+			optDeleteExistingTables = true;
+			optDeleteExistingImgs   = true;
+		}
 //		
 //		if (optDeleteExistingTables) {
 //			List<Display<?>> list = defaultDisplayService.getDisplays();
@@ -529,6 +533,18 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 //					display.close();
 //			}
 //		}
+		if (optDeleteExistingImgs) {
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().equals("Poincare plot(s)")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
+		}
 	}
 
 	/** 
@@ -554,7 +570,11 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 				cols[c] = c;
 				seriesLabels[c] = tableIn.getColumnHeader(s);					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(signal1D, dataY, isLineVisible, "Poincare plot", signalTitle, xLabel, yLabel, seriesLabels[0]);
+			SignalPlotFrame pdf = new SignalPlotFrame(signal1D, dataY, isLineVisible, "Poincare plot(s)", signalTitle, xLabel, yLabel, seriesLabels[0]);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 		
@@ -616,7 +636,11 @@ public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveComman
 				cols[c] = c;
 				seriesLabels[c] = tableIn.getColumnHeader(c);					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(signal1D, dataY, isLineVisible, "Poincare plots", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(signal1D, dataY, isLineVisible, "Poincare plot(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 		

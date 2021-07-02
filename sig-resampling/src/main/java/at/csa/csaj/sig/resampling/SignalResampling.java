@@ -65,7 +65,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.sig.open.SignalOpener;
 
 
@@ -618,7 +618,7 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 				cols[c-numTableOutPreCols] = c; //- because of first text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c); //- because of first two text columns					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		//}
 		
@@ -690,7 +690,7 @@ public class SignalResampling<T extends RealType<T>> extends InteractiveCommand 
 				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
 				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c);	//-because of first text columns				
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		//}
 			

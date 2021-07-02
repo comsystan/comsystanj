@@ -48,7 +48,7 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
@@ -1251,7 +1251,7 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 				cols[c] = c;
 				seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(defaultGenericTable, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(defaultGenericTable, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		}
 		

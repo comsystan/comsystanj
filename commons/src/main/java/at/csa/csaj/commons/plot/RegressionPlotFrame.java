@@ -45,7 +45,7 @@ import java.util.Vector;
  * @author Helmut Ahammer
  */
 @SuppressWarnings("rawtypes")
-public class RegressionPlotFrame extends PlotDisplayFrame {
+public class RegressionPlotFrame extends CSAJPlotFrame {
 
 	/**
 	 * 

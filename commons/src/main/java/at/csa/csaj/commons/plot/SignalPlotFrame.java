@@ -29,6 +29,10 @@
 package at.csa.csaj.commons.plot;
 
 import java.awt.BorderLayout;
+import java.awt.GraphicsConfiguration;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -47,58 +51,35 @@ import org.scijava.table.DefaultGenericTable;
  * 
  * @author 2021 Helmut Ahammer,
  */
-public class PlotDisplayFrame extends JFrame {
-
+public class SignalPlotFrame extends CSAJPlotFrame {
+	
 	/**
-	 * The UID for serialization.
-	 */
-	private static final long serialVersionUID = -2779916167018195984L;
-
-	/**
-	 * The default constructor.
-	 */
-	public PlotDisplayFrame() {
-		//this.setIconImage(new ImageIcon(Resources.getImageURL("icon.application.magenta.32x32")).getImage());
-		this.setIconImage(new ImageIcon(getClass().getResource("/images/comsystan-logo.png")).getImage());
-		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		this.setAlwaysOnTop(false);
-		ToolTipManager ttm = ToolTipManager.sharedInstance();
-		ttm.setInitialDelay(0); // ms
-		ttm.setReshowDelay(10000);
-		ttm.setDismissDelay(5000);
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				closeAndDestroyFrame();
-			}
-		});
-	}
-
-	/**
-	 * Constructor to be used, if a title should be directly set to the
-	 * {@link JFrame}.
 	 * 
-	 * @param frameTitle
 	 */
-	public PlotDisplayFrame(String frameTitle) {
-		this();
-		this.setTitle(frameTitle);
-	}
+	private static final long serialVersionUID = 2888121190097316789L;
+
 
 	/**
 	 * This constructor creates an instance that displays a plot containing a
 	 * single data series.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
+	public SignalPlotFrame(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xLabel, String yLabel) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(defaultGenericTable, col,
 				isLineVisible, imageTitle, xLabel, yLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 
 	/**
@@ -106,16 +87,23 @@ public class PlotDisplayFrame extends JFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(DefaultGenericTable defaultGenericTable, int[] cols,
+	public SignalPlotFrame(DefaultGenericTable defaultGenericTable, int[] cols,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] seriesLabels) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(defaultGenericTable, cols,
 				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 	
 	/**
@@ -123,15 +111,22 @@ public class PlotDisplayFrame extends JFrame {
 	 * single data series.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
+	public SignalPlotFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xLabel, String yLabel) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, defaultGenericTable, col,
 				isLineVisible, imageTitle, xLabel, yLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 	
 	/**
@@ -139,16 +134,23 @@ public class PlotDisplayFrame extends JFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols,
+	public SignalPlotFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] seriesLabels) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, defaultGenericTable, cols,
 				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 	
 	/**
@@ -156,16 +158,23 @@ public class PlotDisplayFrame extends JFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(double dataX[], double[] dataY,
+	public SignalPlotFrame(double dataX[], double[] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String legendLabel) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY,
 				isLineVisible, imageTitle, xLabel, yLabel, legendLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 	
 	/**
@@ -173,16 +182,23 @@ public class PlotDisplayFrame extends JFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(double dataX[], double[][] dataY,
+	public SignalPlotFrame(double dataX[], double[][] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] seriesLabels) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY,
 				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 	
 	/**
@@ -190,16 +206,23 @@ public class PlotDisplayFrame extends JFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(double dataX[], double[] dataY,  double[] dataX2, double[] dataY2,
+	public SignalPlotFrame(double dataX[], double[] dataY,  double[] dataX2, double[] dataY2,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
 				isLineVisible, imageTitle, xLabel, yLabel, dataLegendLabel,  data2LegendLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 	
 	/**
@@ -207,28 +230,23 @@ public class PlotDisplayFrame extends JFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public PlotDisplayFrame(double dataX[], double[][] dataY,  double[] dataX2, double[][] dataY2,
+	public SignalPlotFrame(double dataX[], double[][] dataY,  double[] dataX2, double[][] dataY2,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
-		this(frameTitle);
+		super(frameTitle);
 
 		DefaultXYLineChart chartPanel = new DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
 				isLineVisible, imageTitle, xLabel, yLabel, dataLegendLabels, data2LegendLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 
-	
-	/**
-	 * This method disposes the frame. It also resets some ToolTip parameters.
-	 */
-	private void closeAndDestroyFrame() {
-		ToolTipManager ttm = ToolTipManager.sharedInstance();
-		ttm.setInitialDelay(50); // ms
-		ttm.setReshowDelay(50);
-		ttm.setDismissDelay(50);
-		this.setVisible(false);
-		this.dispose();
-	}
 }

@@ -28,6 +28,8 @@
 
 package at.csa.csaj.sig.autocorr;
 
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -35,6 +37,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
@@ -69,7 +72,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.sig.open.SignalOpener;
 
 
@@ -584,6 +587,18 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 					display.close();
 			}
 		}
+		if (optDeleteExistingImgs) {
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().equals("Autocorrelation signal(s)")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
+		}
 	}
 
   	/** 
@@ -615,7 +630,11 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 				cols[c-numTableOutTxtCols] = c; //- because of first text columns	
 				seriesLabels[c-numTableOutTxtCols] = tableResult.getColumnHeader(c); //- because of first text columns					
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Autocorrelation signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 		
@@ -687,7 +706,11 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 				cols[c-numTableOutTxtCols] = c;  //- because of first text columns	
 				seriesLabels[c-numTableOutTxtCols] = tableResult.getColumnHeader(c);	//- because of first text columns				
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(tableResult, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableResult, cols, isLineVisible, "Autocorrelation signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 		//}
 			

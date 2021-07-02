@@ -90,7 +90,7 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import io.scif.DefaultImageMetadata;
@@ -136,8 +136,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 	private static long numSlices  = 0;
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
-	private static ArrayList<PlotDisplayFrame> genDimPlotList       = new ArrayList<PlotDisplayFrame>();
-	private static ArrayList<PlotDisplayFrame> fSpecPlotList        = new ArrayList<PlotDisplayFrame>();
+	private static ArrayList<SignalPlotFrame> genDimPlotList       = new ArrayList<SignalPlotFrame>();
+	private static ArrayList<SignalPlotFrame> fSpecPlotList        = new ArrayList<SignalPlotFrame>();
 	private static double[][][] resultValuesTable; //First column is q, then the image index, second column are the corresponding regression values
 	private static final String tableName = "Table - Generalized dimensions";
 	
@@ -1406,7 +1406,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 				axisNameX = "q";
 				axisNameY = "Dq";
 			
-				PlotDisplayFrame dimGenPlot = DisplaySinglePlotXY(qList, genDimList, isLineVisible, "Generalized dimensions", 
+				SignalPlotFrame dimGenPlot = DisplaySinglePlotXY(qList, genDimList, isLineVisible, "Generalized dimensions", 
 						preName + datasetName, axisNameX, axisNameY, "");
 				genDimPlotList.add(dimGenPlot);
 			}
@@ -1436,7 +1436,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 				for (int q = 0; q < numQ; q++) {
 					fSpec[q] = qList[q]*alphas[q] - ((qList[q]-1)*genDimList[q]);
 				}
-				PlotDisplayFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
+				SignalPlotFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
 						preName + datasetName, axisNameX, axisNameY, "");
 				fSpecPlotList.add(fSpecPlot);
 			}
@@ -1550,10 +1550,10 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Int
 	 * @param regMax
 	 * @return
 	 */
-	private PlotDisplayFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+	private SignalPlotFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
 		// jFreeChart
-		PlotDisplayFrame pl = new PlotDisplayFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		SignalPlotFrame pl = new SignalPlotFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

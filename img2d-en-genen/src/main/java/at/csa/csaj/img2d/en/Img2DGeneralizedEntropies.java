@@ -93,7 +93,7 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
@@ -147,7 +147,7 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends Interactiv
 	private static long height = 0;
 	private static long numDimensions = 0;
 	private static long numSlices  = 0;
-	private static ArrayList<PlotDisplayFrame> genRenyiPlotList = new ArrayList<PlotDisplayFrame>();
+	private static ArrayList<SignalPlotFrame> genRenyiPlotList = new ArrayList<SignalPlotFrame>();
 	
 	private static int   minQ;
 	private static int   maxQ;
@@ -1179,7 +1179,7 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends Interactiv
 			axisNameX = "q";
 			axisNameY = "Renyi";
 		
-			PlotDisplayFrame dimGenPlot = DisplaySinglePlotXY(qList, entList, isLineVisible, "Generalized Renyi entropies", 
+			SignalPlotFrame dimGenPlot = DisplaySinglePlotXY(qList, entList, isLineVisible, "Generalized Renyi entropies", 
 					preName + datasetName, axisNameX, axisNameY, "");
 			genRenyiPlotList.add(dimGenPlot);
 		}		
@@ -1742,10 +1742,10 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends Interactiv
 	 * @param regMax
 	 * @return
 	 */
-	private PlotDisplayFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+	private SignalPlotFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
 		// jFreeChart
-		PlotDisplayFrame pl = new PlotDisplayFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		SignalPlotFrame pl = new SignalPlotFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

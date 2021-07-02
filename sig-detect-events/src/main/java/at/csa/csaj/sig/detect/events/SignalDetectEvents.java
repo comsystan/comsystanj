@@ -28,6 +28,7 @@
 
 package at.csa.csaj.sig.detect.events;
 
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.signal.algorithms.Surrogate;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.plot.PlotDisplayFrame;
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.sig.detect.events.util.osea4java.OSEAFactory;
 import at.csa.csaj.sig.detect.events.util.osea4java.QRSDetector;
 import at.csa.csaj.sig.detect.events.util.osea4java.QRSDetector2;
@@ -137,7 +138,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	private static ArrayList<Double> eventDataY2    = new ArrayList<Double>(); //events and for displaying points in extra frame
 	
 	private static final int numTableOutPreCols = 1; //Number of columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
-	private static ArrayList<PlotDisplayFrame> displayList = new ArrayList<PlotDisplayFrame>();
+	private static ArrayList<SignalPlotFrame> displayList = new ArrayList<SignalPlotFrame>();
 	private static final String tableOutName = "Table - Detect events";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
@@ -1102,7 +1103,11 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 				domainNew[i] = detectedDomain.get(i).doubleValue(); 
 			}
 			//display of detected events only 
-			PlotDisplayFrame pdf = new PlotDisplayFrame(domainNew, tableResult, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domainNew, tableResult, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 			displayList.add(pdf);
 		}
@@ -1114,8 +1119,12 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 				eventX2[i] = eventDataX2.get(i).doubleValue();
 				eventY2[i] = eventDataY2.get(i).doubleValue(); 
 			}
-			PlotDisplayFrame pdf = new PlotDisplayFrame(domain1D, signal1D, eventX2, eventY2, isLineVisible, 
+			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, signal1D, eventX2, eventY2, isLineVisible, 
 												"Detected events", tableIn.getColumnHeader(s) + " + Events", "Samples [a.u.]", "Values [a.u.]", tableIn.getColumnHeader(s), "Events");
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 			displayList.add(pdf);
 		}
@@ -1207,7 +1216,11 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 				domainNew[i] = i+1; 
 			}
 			//display of detected events only 
-			PlotDisplayFrame pdf = new PlotDisplayFrame(domainNew, tableResult, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domainNew, tableResult, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
+			Point pos = pdf.getLocation();
+			pos.x = (int) (pos.getX() - 100);
+			pos.y = (int) (pos.getY() + 100);
+			pdf.setLocation(pos);
 			pdf.setVisible(true);
 			displayList.add(pdf);
 		}
