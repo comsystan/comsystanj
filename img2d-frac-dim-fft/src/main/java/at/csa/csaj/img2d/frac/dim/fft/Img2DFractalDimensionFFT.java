@@ -245,9 +245,9 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
     private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
  	@Parameter(label = "Windowing",
-			description = "Windowing type",
+			description = "Windowing type with increasing filter strength",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Rectangular", "Bartlett", "Hanning", "Hamming", "Blackman", "Gaussian"}, 
+			choices = {"Rectangular", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, //In the order of increasing filter strength
 			//persist  = false,  //restore previous value default = true
 			initializer = "initialWindowingType",
 			callback = "callbackWindowingType")
@@ -1056,25 +1056,28 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 //			//take rai as it comes
 //			//uiService.show("Image rai", rai);	
 //		}
-		
-		
+
+		//In the order of increasing filter strength
 		if (windowingType.equals("Rectangular")) {
 			raiWindowed = windowingRectangular(rai);
 		}
 		else if (windowingType.equals("Bartlett")) {
 			raiWindowed = windowingBartlett(rai);
 		}
-		else if (windowingType.equals("Hanning")) {
-			raiWindowed = windowingHanning(rai);
-		}
 		else if (windowingType.equals("Hamming")) {
 			raiWindowed = windowingHamming(rai);
+		}
+		else if (windowingType.equals("Hanning")) {
+			raiWindowed = windowingHanning(rai);
 		}
 		else if (windowingType.equals("Blackman")) {
 			raiWindowed = windowingBlackman(rai);
 		}
 		else if (windowingType.equals("Gaussian")) {
 			raiWindowed = windowingGaussian(rai);
+		}
+		else if (windowingType.equals("Parzen")) {
+			raiWindowed = windowingParzen(rai);
 		}
 			
 		if (powerSpecType.equals("Circular average")) { //{"Circular average", "Mean of line scans", "Integral of line scans"},
@@ -1123,7 +1126,9 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 			//JTransform needs rows and columns swapped!!!!!
 			DoubleFFT_2D FFT = new DoubleFFT_2D(rows, columns); //Here always the simple DFT width
 			//dFFT.realForward(imgArrD);   //The first two columns are not symmetric and seem to be not right
-			FFT.realForwardFull(imgA); //The right part is not symmetric, but power image constructed later is!
+			FFT.realForwardFull(imgA);   //The right part is not symmetric!!
+			//Power image constructed later is also not exactly symmetric!!!!!
+			
 			
 			//Optionally show FFT Real Imag image
 			//************************************************************************************
@@ -1563,7 +1568,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 	
 	
 	/**
-	 * This method doses Rectangular windowing
+	 * This method does Rectangular windowing
 	 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
 	 * @param  rai
 	 * @return windowed rai
@@ -1588,7 +1593,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 	}
 	
 	/**
-	 * This method doses a Bartlett windowing
+	 * This method does Bartlett windowing
 	 * See Burge Burge, Digital Image Processing, Springer
 	 * @param  rai
 	 * @return windowed rai
@@ -1623,57 +1628,21 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 			cursorD.fwd();
 			cursorD.localize(pos);
 			ra.setPosition(pos);
-			r_u = 2.0*pos[0]/width -1.0;
-			r_v = 2.0*pos[1]/height-1.0;
+			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+			r_v = 2.0*(pos[1]+0.5)/height-1.0;
 			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 1 - r_uv;
 			else weight = 0.0;	
-			//System.out.println("Bartlett windowing weight " + weight);
+			//if(pos[1] == 1) System.out.println("Bartlett windowing weight " + pos[0] +" "+pos[1]+"  "+ weight);
 			cursorD.get().setReal(ra.get().getRealDouble()*weight);
 		} 
 	    return raiWindowed; 
 	}
 
 	/**
-	 * This method doses a Hanning windowing
+	 * This method does Hamming windowing
 	 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
-	 * @param  rai
-	 * @return windowed rai
-	 */
-	private RandomAccessibleInterval<DoubleType> windowingHanning (RandomAccessibleInterval<?> rai) {
-		
-		int width  = (int) rai.dimension(0);
-		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
-		
-		double r_u;
-		double r_v;
-		double r_uv;
-		double weight = 0;
-		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
-		long[] pos = new long[raiWindowed.numDimensions()];
-		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
-			ra.setPosition(pos);
-			r_u = 2.0*pos[0]/width -1.0;
-			r_v = 2.0*pos[1]/height-1.0;
-			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
-			if ((r_uv >= 0) && (r_uv <=1)) {
-			}
-			else weight = 0.0;	
-			//weight = 0.5*Math.cos(Math.PI*r_uv+1); //Burge Burge  gives negative weights
-			weight = 0.5 - 0.5*Math.cos(Math.PI*(1.0-r_uv));
-			//System.out.println("Hanning windowing weight " + weight);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight);
-		} 
-	    return raiWindowed; 
-	}
-	/**
-	 * This method doses a Hamming windowing
-	 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * See Burge Burge, Digital Image Processing, Springer
 	 * @param  rai
 	 * @return windowed rai
 	 */
@@ -1695,20 +1664,60 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 			cursorD.fwd();
 			cursorD.localize(pos);
 			ra.setPosition(pos);
-			r_u = 2.0*pos[0]/width -1.0;
-			r_v = 2.0*pos[1]/height-1.0;
+			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+			r_v = 2.0*(pos[1]+0.5)/height-1.0;
 			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
-			if ((r_uv >= 0) && (r_uv <=1)) weight = 0.54 - 0.46*Math.cos(Math.PI*(1.0-r_uv));
+			if ((r_uv >= 0) && (r_uv <=1)) weight = 0.54 + 0.46*Math.cos(Math.PI*(r_uv)); //== 0.54 - 0.46*Math.cos(Math.PI*(1.0-r_uv));
 			else weight = 0.0;	
-			//System.out.println("Hamming windowing weight " + weight);
+			//if(pos[1] == 1) System.out.println("Hamming windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
 			cursorD.get().setReal(ra.get().getRealDouble()*weight);
 		} 
 	    return raiWindowed; 
 	}
 	
 	/**
-	 * This method doses a Blackman windowing
+	 * This method does Hanning windowing
 	 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * See Burge Burge, Digital Image Processing, Springer
+	 * @param  rai
+	 * @return windowed rai
+	 */
+	private RandomAccessibleInterval<DoubleType> windowingHanning (RandomAccessibleInterval<?> rai) {
+		
+		int width  = (int) rai.dimension(0);
+		int height = (int) rai.dimension(1);	
+		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		
+		double r_u;
+		double r_v;
+		double r_uv;
+		double weight = 0;
+		
+		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		long[] pos = new long[raiWindowed.numDimensions()];
+		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+		while (cursorD.hasNext()){
+			cursorD.fwd();
+			cursorD.localize(pos);
+			ra.setPosition(pos);
+			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+			r_v = 2.0*(pos[1]+0.5)/height-1.0;
+			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+			if ((r_uv >= 0) && (r_uv <=1)) {
+				//weight = 0.5*Math.cos(Math.PI*r_uv+1); //Burge Burge  gives negative weights!
+				weight = 0.5 + 0.5*Math.cos(Math.PI*(r_uv)); //== 0.5 - 0.5*Math.cos(Math.PI*(1-r_uv));
+			}
+			else weight = 0.0;	
+			//if(pos[1] == 1) System.out.println("Hanning windowing weight " + pos[0] +" "+pos[1]+"  " + weight);
+			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+		} 
+	    return raiWindowed; 
+	}
+	
+	/**
+	 * This method does Blackman windowing
+	 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * See Burge Burge, Digital Image Processing, Springer
 	 * @param  rai
 	 * @return windowed rai
 	 */
@@ -1729,20 +1738,22 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 			cursorD.fwd();
 			cursorD.localize(pos);
 			ra.setPosition(pos);
-			r_u = 2.0*pos[0]/width -1.0;
-			r_v = 2.0*pos[1]/height-1.0;
+			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+			r_v = 2.0*(pos[1]+0.5)/height-1.0;
 			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+			//if ((r_uv >= 0) && (r_uv <=1)) weight = 0.42 - 0.5*Math.cos(Math.PI*(1.0-r_uv)) + 0.08*Math.cos(2.0*Math.PI*(1.0-r_uv));
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 0.42 - 0.5*Math.cos(Math.PI*(1.0-r_uv)) + 0.08*Math.cos(2.0*Math.PI*(1.0-r_uv));
 			else weight = 0.0;	
-			//System.out.println("Blackman windowing weight " + weight);
+			//if(pos[1] == 1) System.out.println("Blackman windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
 			cursorD.get().setReal(ra.get().getRealDouble()*weight);
 		} 
 	    return raiWindowed; 
 	}
 	
 	/**
-	 * This method doses a Gaussian windowing
+	 * This method does Gaussian windowing
 	 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * See Burge Burge, Digital Image Processing, Springer
 	 * @param  rai
 	 * @return windowed rai
 	 */
@@ -1755,7 +1766,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 		double r_v;
 		double r_uv;
 		double weight = 0;
-		double sigma  = 0.5;
+		double sigma  = 0.3;
 		double sigma2 = sigma*sigma;
 		
 		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
@@ -1765,16 +1776,53 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends Interactive
 			cursorD.fwd();
 			cursorD.localize(pos);
 			ra.setPosition(pos);
-			r_u = 2.0*pos[0]/width -1.0;
-			r_v = 2.0*pos[1]/height-1.0;
+			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+			r_v = 2.0*(pos[1]+0.5)/height-1.0;
 			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
 			weight = Math.exp(-(r_uv*r_uv)/(2.0*sigma2));
-			//System.out.println("Gaussian windowing weight " + weight);
+			//if(pos[1] == 1) System.out.println("Gaussian windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
 			cursorD.get().setReal(ra.get().getRealDouble()*weight);
 		} 
 	    return raiWindowed; 
 	}
 
+	/**
+	 * This method does Parzen windowing
+	 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * See Burge Burge, Digital Image Processing, Springer
+	 * @param  rai
+	 * @return windowed rai
+	 */
+	private RandomAccessibleInterval<DoubleType> windowingParzen (RandomAccessibleInterval<?> rai) {
+	
+		int width  = (int) rai.dimension(0);
+		int height = (int) rai.dimension(1);	
+		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		
+		double r_u;
+		double r_v;
+		double r_uv;
+		double weight;
+		
+		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		long[] pos = new long[raiWindowed.numDimensions()];
+		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+		while (cursorD.hasNext()){
+			cursorD.fwd();
+			cursorD.localize(pos);
+			ra.setPosition(pos);
+			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+			r_v = 2.0*(pos[1]+0.5)/height-1.0;
+			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+			//if      ((r_uv >= 0) && (r_uv <0.5)) weight = 1.0 - 6.0*Math.pow(r_uv, 2) + 6.0*Math.pow(r_uv, 3); //Burge Burge gives double peaks, seems to be wrong
+			if      ((r_uv >= 0) && (r_uv <0.5)) weight = 1.0 - 6.0*Math.pow(r_uv, 2)*(1-r_uv);
+			else if ((r_uv >= 0.5) && (r_uv <1)) weight = 2.0*Math.pow(1-r_uv, 3);
+			else    weight = 0.0;	
+			//if(pos[1] == 1) System.out.println("Parzen windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
+			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+		} 
+	    return raiWindowed; 
+	}
 	
 	/**
 	 * This method calculates the power spectrum of a 1D signal.
