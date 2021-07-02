@@ -27,6 +27,11 @@
  */
 package at.csa.csaj.commons.plot;
 
+import java.awt.GraphicsConfiguration;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+
 import javax.swing.WindowConstants;
 
 /*
@@ -58,8 +63,13 @@ public class RegressionPlotFrame extends PlotDisplayFrame {
 		this.setContentPane(rp);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.pack();
-		
-		
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);	
 	}
 
 	public RegressionPlotFrame(double[] dataX, double[][] dataY,
@@ -73,6 +83,13 @@ public class RegressionPlotFrame extends PlotDisplayFrame {
 		this.setContentPane(rp);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.pack();
+		//Set position to the top right corner of the screen
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+	    Rectangle bounds = config.getBounds();
+	    Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(config);
+	    int x = bounds.x + bounds.width - insets.right - this.getWidth();
+	    int y = bounds.y + insets.top;
+	    this.setLocation(x, y);
 	}
-
+	
 }
