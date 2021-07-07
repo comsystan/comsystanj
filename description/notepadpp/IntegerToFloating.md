@@ -4,6 +4,7 @@
 - Go to Search/Replace or press Ctrl-H
 - Click Wrap around
 - Set Search Mode to Regular expression
+- Search and replace <b>two times:<\b>
   - <p>Search for: ,([0-9]+)(,|\r)</p>
   - <p>Replace with: ,\1.0\2</p>
 - Check the result
