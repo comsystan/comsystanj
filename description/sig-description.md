@@ -62,7 +62,7 @@
 
 ### FFT
 - Computes the Power- or Magnitude spectrum
-- Several windowing filters can be set
+- Several windowing functions can be set (default - Hanning)
 - Normalization can be set to Standard or Unitary
 - Output value scaling can be set to Log, Ln or Linear
 - Time domain axis can be set to unitary units or to Hz 
@@ -118,6 +118,7 @@
 ### Standard HRV measurements
 - Computes standard HRV measurements (e.g. for 24h ECG Holter recordings)
 - Time domain and Frquency domain methods
+- Several windowing functions for the frequency domain measurements (default - Hanning)
 - MeanHR, MeanNN, SDNN, SDANN, SDNNI, HRVTI, RMSSD, SDSD, NN50, PNN50, NN20, PNN20, ULF, VLF, LF, HF, LFnorm, HFnorm, LF/HF, TP
 - A time domain column is not needed, because it will be reconstructed by summing up subsequent beat to beat intervals
 - Signals should be opened with the CSAJ Signal Opener
