@@ -160,7 +160,8 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	private static double pnn50 ;		
 	private static double nn20  ;		
 	private static double pnn20 ;	
-	private static double vlf   ;//power spectral parameters
+	private static double ulf   ;//power spectral parameters
+	private static double vlf   ;
 	private static double lf    ;	
 	private static double hf    ;	
 	private static double lfn   ;	
@@ -242,6 +243,16 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			callback = "callbackTimeBase")
 	private String choiceRadioButt_TimeBase;
 	
+	@Parameter(label = "Windowing for PSD",
+			description = "Windowing type",
+			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			choices = {"Rectangular", "Cosine", "Lanczos", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
+			//According to Malik etal "Bartlett", "Hamming", "Hanning"
+			persist  = false,  //restore previous value default = true
+			initializer = "initialWindowingType",
+			callback = "callbackWindowingType")
+	private String choiceRadioButt_WindowingType;
+	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
@@ -279,8 +290,8 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	@Parameter(label = "(Surr/Box) Measurement type",
 			description = "Measurement for Surrogates, Subsequent boxes or Gliding box",
 			style = ChoiceWidget.LIST_BOX_STYLE,
-			//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", "NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"
-			choices = {"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", "NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"}, 
+			//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", "NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
+			choices = {"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", "NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"}, 
 			//persist  = false,  //restore previous value default = true
 			initializer = "initialMeasurementType",
 			callback = "callbackMeasurementType")
@@ -332,6 +343,10 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		choiceRadioButt_TimeBase = "ms"; //"ms", "sec"
 	} 
 	
+	protected void initialWindowingType() {
+		choiceRadioButt_WindowingType = "Hanning";
+	} 
+	
 	protected void initialSignalRange() {
 		choiceRadioButt_SignalRange = "Entire signal";
 	} 
@@ -351,7 +366,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	}
 	
 	protected void initialMeasurementType() {
-		choiceRadioButt_MeasurementType = "MeanHR [1/min]"; //"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", "NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"
+		choiceRadioButt_MeasurementType = "MeanHR [1/min]"; //"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", "NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
 	} 
 	
 	protected void initialRemoveZeroes() {
@@ -369,12 +384,16 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	
+	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
+	protected void callbackWindowingType() {
+		logService.info(this.getClass().getName() + " Windowing type set to " + choiceRadioButt_WindowingType);
+	}
+	
 	/** Executed whenever the {@link #choiceRadioButt_TimeBase} parameter changes. */
 	protected void callbackTimeBase() {
 		logService.info(this.getClass().getName() + " Time base set to " + choiceRadioButt_TimeBase);
 	}	
 
-	
 	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
 	protected void callbackSignalRange() {
 		logService.info(this.getClass().getName() + " Signal range set to " + choiceRadioButt_SignalRange);
@@ -604,14 +623,15 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		tableResult.add(new IntColumn("Box length"));
 		tableResult.add(new BoolColumn("Zeroes removed"));
 	
-		tableResult.add(new GenericColumn("Time base"));		
+		tableResult.add(new GenericColumn("Time base"));	
+		tableResult.add(new GenericColumn("Windowing"));
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
-				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"
+				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
 				tableResult.add(new DoubleColumn("Beats [#]"));
 				tableResult.add(new DoubleColumn("MeanHR [1/min]"));
 				tableResult.add(new DoubleColumn("MeanNN [ms]"));
@@ -625,13 +645,15 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 				tableResult.add(new DoubleColumn("PNN50 [%]"));
 				tableResult.add(new DoubleColumn("NN20 [#]"));
 				tableResult.add(new DoubleColumn("PNN20 [%]"));
-				tableResult.add(new DoubleColumn("VLF [%]"));
-				tableResult.add(new DoubleColumn("LF [%]"));
-				tableResult.add(new DoubleColumn("HF [%]"));
+				tableResult.add(new DoubleColumn("ULF [ms^2]"));
+				tableResult.add(new DoubleColumn("VLF [ms^2]"));
+				tableResult.add(new DoubleColumn("LF [ms^2]"));
+				tableResult.add(new DoubleColumn("HF [ms^2]"));
+				tableResult.add(new DoubleColumn("TP [ms^2]"));
 				tableResult.add(new DoubleColumn("LFnorm"));
 				tableResult.add(new DoubleColumn("HFnorm"));
 				tableResult.add(new DoubleColumn("LF/HF"));
-				tableResult.add(new DoubleColumn("TP [%]"));
+				
 
 			} else { //Surrogates	
 				if (choiceRadioButt_MeasurementType.equals("Beats [#]")) {
@@ -699,20 +721,30 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					tableResult.add(new DoubleColumn("PNN20_Surr"));  //Mean surrogate value	
 					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("PNN20 [%]_Surr#"+(s+1))); 
 				}
-				else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-					tableResult.add(new DoubleColumn("VLF [%]")); 
+				else if (choiceRadioButt_MeasurementType.equals("ULF [ms^2]")) {
+					tableResult.add(new DoubleColumn("ULF [ms^2]")); 
+					tableResult.add(new DoubleColumn("ULF_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("ULF_Surr#"+(s+1))); 
+				}
+				else if (choiceRadioButt_MeasurementType.equals("VLF [ms^2]")) {
+					tableResult.add(new DoubleColumn("VLF [ms^2]")); 
 					tableResult.add(new DoubleColumn("VLF_Surr"));  //Mean surrogate value	
 					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("VLF_Surr#"+(s+1))); 
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-					tableResult.add(new DoubleColumn("LF [%]")); 
+				else if (choiceRadioButt_MeasurementType.equals("LF [ms^2]")) {
+					tableResult.add(new DoubleColumn("LF [ms^2]")); 
 					tableResult.add(new DoubleColumn("LF_Surr"));  //Mean surrogate value	
 					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("LF_Surr#"+(s+1))); 
 				}
-				else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-					tableResult.add(new DoubleColumn("HF [%]")); 
+				else if (choiceRadioButt_MeasurementType.equals("HF [ms^2]")) {
+					tableResult.add(new DoubleColumn("HF [ms^2]")); 
 					tableResult.add(new DoubleColumn("HF_Surr"));  //Mean surrogate value	
 					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("HF [%]_Surr#"+(s+1))); 
+				}
+				else if (choiceRadioButt_MeasurementType.equals("TP [ms^2]")) {
+					tableResult.add(new DoubleColumn("TP [ms^2]")); 
+					tableResult.add(new DoubleColumn("TP_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("TP_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
 					tableResult.add(new DoubleColumn("LFnorm")); 
@@ -728,12 +760,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					tableResult.add(new DoubleColumn("LF/HF")); 
 					tableResult.add(new DoubleColumn("LF/HF_Surr"));  //Mean surrogate value	
 					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("LF/HF_Surr#"+(s+1))); 
-				}
-				else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-					tableResult.add(new DoubleColumn("TP [%]")); 
-					tableResult.add(new DoubleColumn("TP_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("TP_Surr#"+(s+1))); 
-				}
+				}		
 			}
 		} 
 		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
@@ -873,7 +900,8 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		tableResult.set(6, row, booleanRemoveZeroes); //Zeroes removed
 		
 		tableResult.set(7, row, choiceRadioButt_TimeBase);    //
-		tableColLast = 7;
+		tableResult.set(8, row, this.choiceRadioButt_WindowingType);
+		tableColLast = 8;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){
@@ -919,22 +947,23 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
-		String  signalRange  = choiceRadioButt_SignalRange;
+		String  signalRange   = choiceRadioButt_SignalRange;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		String  timeBase      = choiceRadioButt_TimeBase;
+		String  windowingType = choiceRadioButt_WindowingType;
 		
 		boolean removeZeores  = booleanRemoveZeroes;
 				
-		int numOfMeasurements = 20;
+		int numOfMeasurements = 21;
 		
 		resultValues = new double[numOfMeasurements]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 		
 		//******************************************************************************************************
-		domain1D  = new double[numDataPoints];
-		signal1D = new double[numDataPoints];
+		domain1D         = new double[numDataPoints];
+		signal1D         = new double[numDataPoints];
 		
 		signalColumn = dgt.get(col); 
 		for (int n = 0; n < numDataPoints; n++) {
@@ -981,48 +1010,47 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 				pnn50  = nn50/numbnn;		
 				nn20   = calcNN20(diffSignal ,timeBase);		
 				pnn20  = nn20/numbnn;	
-			
-				double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-				//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
-				vlf  = psdParameters[0];
-				lf   = psdParameters[1];
-				hf   = psdParameters[2];
-				lfn  = psdParameters[3];
-				hfn  = psdParameters[4];
-				lfhf = psdParameters[5];
-				tp   = psdParameters[6];
-					
-				resultValues[0] = numbnn;
-				resultValues[1] = 1.0/meannn*1000.0*60.0;
-				resultValues[2] = meannn;
-				resultValues[3] = sdnn;
-				resultValues[4] = sdann;	
-				resultValues[5] = sdnni;	
-				resultValues[6] = hrvti;
-				resultValues[7] = rmssd;	
-				resultValues[8] = sdsd;	
-				resultValues[9] = nn50;
+						
+				double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
+				
+				ulf  = psdParameters[0];
+				vlf  = psdParameters[1];
+				lf   = psdParameters[2];
+				hf   = psdParameters[3];
+				tp   = psdParameters[4];
+				lfn  = psdParameters[5];
+				hfn  = psdParameters[6];
+				lfhf = psdParameters[7];
+									
+				resultValues[0]  = numbnn;
+				resultValues[1]  = 1.0/meannn*1000.0*60.0;  //  1/min
+				resultValues[2]  = meannn; //ms
+				resultValues[3]  = sdnn;
+				resultValues[4]  = sdann;	
+				resultValues[5]  = sdnni;	
+				resultValues[6]  = hrvti;
+				resultValues[7]  = rmssd;	
+				resultValues[8]  = sdsd;	
+				resultValues[9]  = nn50;
 				resultValues[10] = pnn50;
 				resultValues[11] = nn20;
-				resultValues[12] = pnn20;	
-				resultValues[13] = vlf;	
-				resultValues[14] = lf;	
-				resultValues[15] = hf;	
-				resultValues[16] = lfn;	
-				resultValues[17] = hfn;	
-				resultValues[18] = lfhf;	
-				resultValues[19] = tp;	
+				resultValues[12] = pnn20;
+				resultValues[13] = ulf;	
+				resultValues[14] = vlf;	
+				resultValues[15] = lf;	
+				resultValues[16] = hf;	
+				resultValues[17] = tp;	
+				resultValues[18] = lfn;	
+				resultValues[19] = hfn;	
+				resultValues[20] = lfhf;	
 		
 			} else {
 				resultValues = new double[1+1+1*numSurrogates]; // Measurement,  Measurement_SurrMean, Measurement_Surr#1, Measurement_Surr#2......
 					
 				//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
-				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"
+				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
 				if      (choiceRadioButt_MeasurementType.equals("Beats [#]"))      measurementValue = (double)numDataPoints;
-				else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) {
-					meannn = calcMeanNN(signal1D, timeBase);
-					measurementValue = 1.0/meannn*1000.0*60.0;
-				}
+				else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) measurementValue = calcMeanHR(signal1D, timeBase);	
 				else if (choiceRadioButt_MeasurementType.equals("MeanNN [ms]"))    measurementValue = calcMeanNN(signal1D, timeBase);
 				else if (choiceRadioButt_MeasurementType.equals("SDNN [ms]"))      measurementValue = calcSDNN  (signal1D, timeBase);
 				else if (choiceRadioButt_MeasurementType.equals("SDANN [ms]"))     measurementValue = calcSDANN (signal1D, timeBase);	
@@ -1052,41 +1080,39 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					diffSignal = getAbsDiffSignal(signal1D);
 					measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 				}
-				else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
+				else if (choiceRadioButt_MeasurementType.equals("ULF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
 					measurementValue = psdParameters[0];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("VLF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
 					measurementValue = psdParameters[1];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("LF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
 					measurementValue = psdParameters[2];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("HF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
 					measurementValue = psdParameters[3];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("TP [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
 					measurementValue = psdParameters[4];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
 					measurementValue = psdParameters[5];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
 					measurementValue = psdParameters[6];
 				}
+				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
+					double[] psdParameters = calcPSDParameters(domain1D, signal1D, timeBase, windowingType);
+					measurementValue = psdParameters[7];
+				}
+				
 				resultValues[0] = measurementValue;
 				int lastMainResultsIndex = 0;
 				
@@ -1100,14 +1126,11 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					else if (surrType.equals("Gaussian"))     surrSignal1D = surrogate.calcSurrogateGaussian(signal1D);
 					else if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D);
 					else if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D);
-			
+											
 					//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
-					//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"
+					//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
 					if      (choiceRadioButt_MeasurementType.equals("Beats [#]"))      measurementValue = (double)numDataPoints;
-					else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) {
-						meannn = calcMeanNN(surrSignal1D, timeBase);
-						measurementValue = 1.0/meannn*1000.0*60.0;
-					}
+					else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) measurementValue = calcMeanHR(surrSignal1D, timeBase);	
 					else if (choiceRadioButt_MeasurementType.equals("MeanNN [ms]"))    measurementValue = calcMeanNN(surrSignal1D, timeBase);
 					else if (choiceRadioButt_MeasurementType.equals("SDNN [ms]"))      measurementValue = calcSDNN  (surrSignal1D, timeBase);
 					else if (choiceRadioButt_MeasurementType.equals("SDANN [ms]"))     measurementValue = calcSDANN (surrSignal1D, timeBase);	
@@ -1137,41 +1160,38 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 						diffSignal = getAbsDiffSignal(surrSignal1D);
 						measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 					}
-					else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
-						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
+					else if (choiceRadioButt_MeasurementType.equals("ULF [ms^2]")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
 						measurementValue = psdParameters[0];
 					}
-					else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
-						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+					else if (choiceRadioButt_MeasurementType.equals("VLF [ms^2]")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
 						measurementValue = psdParameters[1];
 					}
-					else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
-						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+					else if (choiceRadioButt_MeasurementType.equals("LF [ms^2]")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
 						measurementValue = psdParameters[2];
 					}
-					else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
-						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+					else if (choiceRadioButt_MeasurementType.equals("HF [ms^2]")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
 						measurementValue = psdParameters[3];
 					}
-					else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
-						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+					else if (choiceRadioButt_MeasurementType.equals("TP [ms^2]")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
 						measurementValue = psdParameters[4];
 					}
-					else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
-						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+					else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
 						measurementValue = psdParameters[5];
 					}
-					else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase);
-						//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+					else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
 						measurementValue = psdParameters[6];
-					}			
+					}
+					else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
+						double[] psdParameters = calcPSDParameters(domain1D, surrSignal1D, timeBase, windowingType);
+						measurementValue = psdParameters[7];
+					}				
 					resultValues[lastMainResultsIndex + 2 + s] = measurementValue;
 					sumEntropies += measurementValue;
 				}
@@ -1195,14 +1215,12 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					subSignal1D[ii-start] = signal1D[ii];
 					subdomain1D[ii-start] = domain1D[ii];
 				}
+		
 				//Compute specific values************************************************
 				//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
-				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"
+				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
 				if      (choiceRadioButt_MeasurementType.equals("Beats [#]"))      measurementValue = (double)numDataPoints;
-				else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) {
-					meannn = calcMeanNN(subSignal1D, timeBase);
-					measurementValue = 1.0/meannn*1000.0*60.0;
-				}
+				else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) measurementValue = calcMeanHR(subSignal1D, timeBase);	
 				else if (choiceRadioButt_MeasurementType.equals("MeanNN [ms]"))    measurementValue = calcMeanNN(subSignal1D, timeBase);
 				else if (choiceRadioButt_MeasurementType.equals("SDNN [ms]"))      measurementValue = calcSDNN  (subSignal1D, timeBase);
 				else if (choiceRadioButt_MeasurementType.equals("SDANN [ms]"))     measurementValue = calcSDANN (subSignal1D, timeBase);	
@@ -1232,41 +1250,38 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					diffSignal = getAbsDiffSignal(subSignal1D);
 					measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 				}
-				else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
+				else if (choiceRadioButt_MeasurementType.equals("ULF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[0];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("VLF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[1];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("LF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[2];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("HF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[3];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("TP [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[4];
-				}
-				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				}	
+				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[5];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[6];
-				}	
+				}
+				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
+					measurementValue = psdParameters[7];
+				}
 				
 				resultValues[i] = measurementValue;			
 				//***********************************************************************
@@ -1288,14 +1303,12 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					subSignal1D[ii-start] = signal1D[ii];
 					subdomain1D[ii-start]  = domain1D[ii];
 				}	
+				
 				//Compute specific values************************************************
 				//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
-				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "VLF [%]", "LF [%]", "HF [%]", "LFnorm", "HFnorm", "LF/HF", "TP [%]"
+				//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
 				if      (choiceRadioButt_MeasurementType.equals("Beats [#]"))      measurementValue = (double)numDataPoints;
-				else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) {
-					meannn = calcMeanNN(subSignal1D, timeBase);
-					measurementValue = 1.0/meannn*1000.0*60.0;
-				}
+				else if (choiceRadioButt_MeasurementType.equals("MeanHR [1/min]")) measurementValue = calcMeanHR(subSignal1D, timeBase);	
 				else if (choiceRadioButt_MeasurementType.equals("MeanNN [ms]"))    measurementValue = calcMeanNN(subSignal1D, timeBase);
 				else if (choiceRadioButt_MeasurementType.equals("SDNN [ms]"))      measurementValue = calcSDNN  (subSignal1D, timeBase);
 				else if (choiceRadioButt_MeasurementType.equals("SDANN [ms]"))     measurementValue = calcSDANN (subSignal1D, timeBase);	
@@ -1325,41 +1338,39 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 					diffSignal = getAbsDiffSignal(subSignal1D);
 					measurementValue = calcNN20 (diffSignal, timeBase)/numDataPoints; 
 				}
-				else if (choiceRadioButt_MeasurementType.equals("VLF [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);measurementValue = ;
+				else if (choiceRadioButt_MeasurementType.equals("ULF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[0];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LF [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("VLF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[1];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("HF [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("LF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[2];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("HF [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[3];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("TP [ms^2]")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[4];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("LFnorm")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[5];
 				}
-				else if (choiceRadioButt_MeasurementType.equals("TP [%]")) {
-					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase);
-					//double[] psdParameters = calcPSDParametersAccordingToKLAUS(signal, timeBase);
+				else if (choiceRadioButt_MeasurementType.equals("HFnorm")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
 					measurementValue = psdParameters[6];
 				}
+				else if (choiceRadioButt_MeasurementType.equals("LF/HF")) {
+					double[] psdParameters = calcPSDParameters(subdomain1D, subSignal1D, timeBase, windowingType);
+					measurementValue = psdParameters[7];
+				}
+				
 				resultValues[i] = measurementValue;		
 				//***********************************************************************
 			}
@@ -1437,6 +1448,18 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	}
 	
 	/**
+	 * This method calculates the mean heart rate
+	 * 
+	 * @param data1D
+	 * @return Double Mean intervals
+	 */
+	private double calcMeanHR(double[] data1D, String timeBase) {
+		double meanNN = calcMeanNN(subSignal1D, timeBase);
+		double meanHR = 1.0/meanNN*1000.0*60.0;
+		return meanHR;
+	}
+	
+	/**
 	 * This method calculates the mean of intervals
 	 * 
 	 * @param data1D
@@ -1448,8 +1471,8 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		for (double d : data1D) {
 			sum += d;
 		}
-		if (timeBase.equals("ms")) meanNN = sum / data1D.length; //ms
-		if (timeBase.equals("sec")) meanNN = sum / data1D.length * 1000.0; //s   meanNN dannin ms für Ausgabe
+		if (timeBase.equals("ms"))  meanNN = sum / data1D.length; //ms
+		if (timeBase.equals("sec")) meanNN = sum / data1D.length * 1000.0; //s   meanNN dann in ms für Ausgabe
 		
 		return meanNN;
 	}
@@ -1657,30 +1680,46 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		return nn20;
 	}
 	
+	
+	
+	// ---------------------------------------------------------------------------------------------
+	
 	/**
 	 * This method calculates the frequency components
-	 * VLF    very low frequency 0-0.04 Hz
+	 * ULF    ultra low frequency 0.00001-0.003 HZ      Akselrod et al. [6]. 0.00001 - 0.003 Hz Akselrod S.:Components of Heart Rate Variability,In:  Malik M., Camm A.J. (eds.):Heart RateVariability,Armonk, N.Y. Futura Pub. Co. Inc., pp 147-163, 1995
+	 * VLF    very low frequency 0.003-0.04 Hz
 	 * LF     low frequency 0.04-0.15 Hz
 	 * HF     high frequency 0.15-0.4 Hz
-	 * TP     total power 0-1.5 Hz
+	 * TP     total power 0.00001-0.4 Hz
 	 * LFn    LF norm = 100*LF/(TP-VLF)
 	 * HFn    HF norm = 100*HF/(TP-VLF)
 	 * LF/HF  ratio
 	 * 
 	 * @param XData1D, YData1D, timeBase
-	 * @return Double[7] (VLF, LF, HF, LFn, HFn, LF/HF, TP,)
+	 * @return Double[7] (VLF, LF, HF, TP, LFn, HFn, LF/HF)
 	 */
-	private double[] calcPSDParameters(double[] xData1D, double[] yData1D,  String timeBase) {
+	private double[] calcPSDParameters(double[] xData1D, double[] yData1D,  String timeBase, String windowingType) {
 		//xData1D are the absolute times tn of subsequent beats (the first beat is missing)
 		//xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
 		//yData1D are the corresponding beat to beat intervals in ms or seconds,  
 		
+		double ulf = 0.0;
 		double vlf = 0.0;
 		double lf  = 0.0;
 		double hf  = 0.0;
 		double tp  = 0.0;
-		double[] psdParameters = new double[7];
+		double[] psdParameters = new double[8];
 	 
+		if      (windowingType.equals("Rectangular")) yData1D = windowingRectangular(yData1D);
+		else if (windowingType.equals("Cosine"))      yData1D = windowingCosine(yData1D);
+		else if (windowingType.equals("Lanczos"))     yData1D = windowingLanczos(yData1D);
+		else if (windowingType.equals("Bartlett"))    yData1D = windowingBartlett(yData1D);
+		else if (windowingType.equals("Hamming"))     yData1D = windowingHamming(yData1D);
+		else if (windowingType.equals("Hanning"))     yData1D = windowingHanning(yData1D);
+		else if (windowingType.equals("Blackman"))    yData1D = windowingBlackman(yData1D);
+		else if (windowingType.equals("Gaussian"))    yData1D = windowingGaussian(yData1D);
+		else if (windowingType.equals("Parzen"))      yData1D = windowingParzen(yData1D);
+
 		//xData1D may be longer than yData1D!!!!!!
 		double[] xData = new double[yData1D.length];
 		double[] yData = new double[yData1D.length];
@@ -1691,17 +1730,13 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		
 		if (timeBase.equals("ms")) {//ms  convert to seconds because of FFT in Hz
 			for (int i = 0; i < yData1D.length; i++) {
-				//if (xData1D[0] == 0.0) xData[i] =  xData1D[i]/1000.0;
-				//if (xData1D[0] == 1.0) xData[i] = (xData1D[i]/1000.0) - 1.0;
-				xData[i] = (xData1D[i] - xData1D[0])/1000.0; 	//xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
+				xData[i] = (xData1D[i] - xData1D[0])/1000.0; 	//Subsequent boxes -> xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
 				yData[i] = yData1D[i]/1000.0;
 			}
 		}
 		if (timeBase.equals("sec")) {//s 
 			for (int i = 0; i < yData1D.length; i++) {
-				//if (xData1D[0] == 0.0) xData[i] = xData1D[i];
-				//if (xData1D[0] == 1.0) xData[i] = xData1D[i] - 1.0;
-				xData[i] = xData1D[i] - xData1D[0]; 	//xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
+				xData[i] = xData1D[i] - xData1D[0];  //Subsequent boxes -> xData1D should start with 0 to compute frequency components correctly, therefore - xData1D[i] - xData1D[0]
 				yData[i] = yData1D[i];
 			}
 		}
@@ -1713,11 +1748,12 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		PolynomialSplineFunction psf = interpolator.interpolate(xData, yData);
 		
 		//Virtual sample rate = 4Hz
+		double fS = 4.0; //Virtual sample frequency in Hz
 		double virtSampleTime = 0.25; //virtual sample time in sec (first virtual time point)
 		double timeOfLastBeat = xData[xData.length -1]; //time of last beat (interval) in seconds, roughly the recording time
-		int numbVirtTimePts = (int) Math.floor(timeOfLastBeat/0.25);
+		int numbVirtTimePts = (int) Math.floor(timeOfLastBeat/virtSampleTime);
 	
-		//System.out.println("PlotOpHRV: number of virtual data points for FFT: "+ numbVirtTimePts);
+		//System.out.println("SignalHRV: number of virtual data points for FFT: "+ numbVirtTimePts);
 		if (numbVirtTimePts < 10) {
 			logService.info(this.getClass().getName() + " Number of datapoints for FFT: "+numbVirtTimePts+ " is too low!");
 			
@@ -1728,17 +1764,18 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			psdParameters[4] = Double.NaN;
 			psdParameters[5] = Double.NaN;
 			psdParameters[6] = Double.NaN;
+			psdParameters[7] = Double.NaN;
 		
 			return psdParameters;
 		}
 		
 		//double[] xInterpolData = new double [numbVirtTimePts];
-		double[] yInterpolData = new double[numbVirtTimePts];
-		double[] xInterpolData = new double[numbVirtTimePts];
+		double[] yInterpolData = new double[numbVirtTimePts + 1]; //+DC
+		double[] xInterpolData = new double[numbVirtTimePts + 1];
 		
-		for (int t = 1; t <= numbVirtTimePts; t++) { //
-			yInterpolData[t-1] = psf.value(t*virtSampleTime);
-			xInterpolData[t-1] = t*virtSampleTime;
+		for (int t = 0; t <= numbVirtTimePts; t++) { //
+			yInterpolData[t] = psf.value(t*virtSampleTime);
+			xInterpolData[t] = t*virtSampleTime;
 			//System.out.println("t: " + t + "       time: " + (t*virtSampleTime) + "     yInterpolate[t]: " +  yInterpolData[t-1]);
 		}
 		
@@ -1764,8 +1801,8 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			 }
 		 }
 		   
-	    //FFT from 0 to 2Hz
-	    FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
+	    //FFT from 0 to 4Hz
+	    FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.UNITARY); //DftNormalization.STANDARD gives wrong results for ulf, vlf, lf, hf .....!!!!! 
 	    Complex[] complex = fft.transform(yInterpolDataExtended, TransformType.FORWARD);
 
 		double[] ps = new double[complex.length/2]; // +1 because DC value at the first place, the rest is symmetric. The second part is mirrored and redundant
@@ -1787,115 +1824,64 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 //		}
 		
 		//scroll through spectrum and sum up 
-		double fS = 4.0; //Virtual sample frequency in Hz
-		double fRange = ps.length; 
+		
+		double psRange = ps.length; //only half the spectrum
+		double deltaF = fS/(psRange*2.0); 
 		double freq; 
 		double sumPS = 0; //Area of Power spectrum
-		for (int f = 1; f < fRange ; f++) { //f=0 is the DC content
-			freq =  f*fS/(fRange*2);
-			if (freq <= 0.04){ //VLF
+		for (int f = 0; f < psRange ; f++) { //f=0 is the DC content
+			freq =  f * deltaF; //== f * (delta f)
+			//if ( f <= 500) System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
+			//if ((f>psRange -100) && ( f < psRange)) System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
+			//System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
+			if ((freq > 0.00001) && (freq <= 0.003)) { //ULF
+				//System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
+				ulf = ulf + ps[f];
+			}
+			else if ((freq > 0.003) && (freq <= 0.04)) { //VLF
+				//System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
 				vlf = vlf + ps[f];
 			}
-			else if ((freq > 0.04) && (freq <= 0.15)){ //LF
+			else if ((freq > 0.04) && (freq <= 0.15)) { //LF
+				//System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
 				lf = lf + ps[f];
 			}
-			else if ((freq > 0.15) && (freq <= 0.4)){ //HF
+			else if ((freq > 0.15) && (freq <= 0.4)) { //HF
+				//System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
 				hf = hf + ps[f];
 			}
-			if (freq <= 0.15){ //TP
+			if ((freq > 0.00001) && (freq <= 0.4)) { //TP
 				tp = tp + ps[f];
 			}	
 			sumPS = sumPS + ps[f];
 		}	
-		vlf = vlf/sumPS*100;
-		lf = lf/sumPS*100;
-		hf = hf/sumPS*100;
-		tp = tp/sumPS*100;	
-		System.out.println("Sum of percentages:" + (vlf+lf+hf));
+		//compute simple normalized values in %
+//		vlf = vlf/sumPS*100;
+//		lf = lf/sumPS*100;
+//		hf = hf/sumPS*100;
+//		tp = tp/sumPS*100;	
+//		System.out.println("Sum of percentages:" + (vlf+lf+hf));
 		
-		psdParameters[0] = vlf;
-		psdParameters[1] = lf;
-		psdParameters[2] = hf;
-		psdParameters[3] = 100.0*lf/(tp-vlf);
-		psdParameters[4] = 100.0*hf/(tp-vlf);
-		psdParameters[5] = lf/hf;
-		psdParameters[6] = tp;
+		//Absolute units are s^2, compute units in ms^2 -> *1000*1000
+		//Multiply with bin size (delta f) of spectrum -> fS/(fRange*2)   == 1/(n* delta t)  delta t... sampling period 
+		ulf = ulf*1000.0*1000.0*deltaF;
+		vlf = vlf*1000.0*1000.0*deltaF;
+		lf  =  lf*1000.0*1000.0*deltaF;
+		hf  =  hf*1000.0*1000.0*deltaF;
+		tp  =  tp*1000.0*1000.0*deltaF;	
+
+		psdParameters[0] = ulf;
+		psdParameters[1] = vlf;
+		psdParameters[2] = lf;
+		psdParameters[3] = hf;
+		psdParameters[4] = tp;
+		psdParameters[5] = 100.0*lf/(tp-vlf);
+		psdParameters[6] = 100.0*hf/(tp-vlf);
+		psdParameters[7] = lf/hf;
 	
 		return psdParameters;
 	}
-	
-	/**
-	 * This method calculates the frequency components
-	 * VLF    very low frequency 0-0.04 Hz
-	 * LF     low frequency 0.04-0.15 Hz
-	 * HF     high frequency 0.15-0.4 Hz
-	 * TP     total power 0-1.5 Hz
-	 * LFn    LF norm = 100*LF/(TP-VLF)
-	 * HFn    HF norm = 100*HF/(TP-VLF)
-	 * LF/HF  ratio
-	 * 
-	 * @param XData1D, YData1D, timeBase
-	 * @return Double[7] (VLF, LF, HF, LFn, HFn, LF/HF, TP,)
-	 */
-	private double[] calcPSDParametersAccordingToKLAUS(double[] yData1D,  String timeBase) {
-		//xData1D are the absolute times tn of subsequent beats (the first beat is missing)
-		//yData1D are the corresponding beat to beat intervals in ms or seconds,  
-		
-		double vlf = 0.0;
-		double lf  = 0.0;
-		double hf  = 0.0;
-		double tp  = 0.0;
-		double[] psdParameters = new double[7];
-		
-		
-		// set data
-		for (int i = 0; i < yData1D.length; i++) {
-			if (timeBase.equals("ms")) {//ms  convert to seconds because of FFT in Hz
-				yData1D[i] = yData1D[i]/1000.0;
-			}
-			if (timeBase.equals("sec")) {//s do nothing
-			}
-	
-		}
-	
-		double[] inverseFunction = new double[yData1D.length];
-	
-		for (int i = 0; i < yData1D.length; i++) {
-			inverseFunction[i] = 1.0/yData1D[i];
-		}
-		
-		
-		//scroll through spectrum and sum up 
-		for (int f = 0; f < inverseFunction.length; f++) {
-			if (inverseFunction[f] <= 0.04){ //VLF
-				vlf = vlf + 1;
-			}
-			if ((inverseFunction[f] > 0.04) && (inverseFunction[f] <= 0.15)){ //LF
-				lf = lf + 1;
-			}
-			if ((inverseFunction[f] > 0.15) && (inverseFunction[f] <= 0.4)){ //HF
-				hf = hf + 1;
-			}
-			if (inverseFunction[f] <= 0.15){ //TP
-				tp = tp + 1;
-			}	
-		}
-		vlf=vlf/inverseFunction.length*100;
-		lf=lf/inverseFunction.length*100;
-		hf=hf/inverseFunction.length*100;
-		tp=tp/inverseFunction.length*100;
-		
-		psdParameters[0] = vlf;
-		psdParameters[1] = lf;
-		psdParameters[2] = hf;
-		psdParameters[3] = 100.0*lf/(tp-vlf);
-		psdParameters[4] = 100.0*hf/(tp-vlf);
-		psdParameters[5] = lf/hf;
-		psdParameters[6] = tp;
-	
-		return psdParameters;
-	} //
-	
+
 	/**
 	 * This method calculates the mean of a data series
 	 * 
@@ -1952,6 +1938,175 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			}
 		}
 		return signal1D;
+	}
+	
+	/**
+	 * This method does Rectangular windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingRectangular (double[] signal) {
+		double weight = 1.0;
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * weight;
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Cosine windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingCosine (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = Math.sin(Math.PI*n/M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Cosine weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does  Lanczos windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingLanczos (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+		 double x = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 x = Math.PI*(2.0*n/M-1);
+	    	 if (x == 0) weight = 1.0;
+	    	 else weight =  Math.sin(x)/x;
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Lanczos weight  n " + n + "  "  + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Bartlett windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBartlett (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 1.0-(2.0*Math.abs((double)n-M/2.0)/M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Bartlett weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Hamming windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHamming (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Hamming weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Hanning windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHanning (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Hanning weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Blackman windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBlackman (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.42 - 0.5 * Math.cos(2.0 * Math.PI * n / M) + 0.008 * Math.cos(4.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Blackman weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Gaussian windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingGaussian (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+		 double sigma = 0.3;
+		 double exponent = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 exponent = ((double)n-M/2)/(sigma*M/2.0);
+	    	 exponent *= exponent;
+	    	 weight = Math.exp(-0.5*exponent);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Gaussian weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Parzen windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingParzen (double[] signal) {
+		double M = signal.length - 1;
+		double nn;
+		double weight = 0.0;
+	    for(int n = 0; n < signal.length; n++) {
+	    	nn = Math.abs((double)n-M/2);
+	    	if      ((nn >= 0.0) && (nn < M/4))  weight = 1.0 - 6.0*Math.pow(nn/(M/2), 2) * (1- nn/(M/2));
+	    	else if ((nn >= M/4) && (nn <= M/2)) weight = 2.0*Math.pow(1-nn/(M/2), 3);
+	    	signal[n] = signal[n] * weight;
+	      	//System.out.println("SignalFFT Parzen weight n " + n + "  "  + weight);
+	     }
+	     return signal; 
 	}
 	
 	// ---------------------------------------------------------------------------------------------

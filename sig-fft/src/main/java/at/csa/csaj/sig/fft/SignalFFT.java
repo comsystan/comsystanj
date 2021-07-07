@@ -871,36 +871,6 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		//numDataPoints may be smaller now
 		numDataPoints = signal1D.length;
 		
-		
-		
-		if (windowingType.equals("Rectangular")) {
-			signal1D = windowingRectangular(signal1D);
-		}
-		else if (windowingType.equals("Cosine")) {
-			signal1D = windowingCosine(signal1D);
-		}
-		else if (windowingType.equals("Lanczos")) {
-			signal1D = windowingLanczos(signal1D);
-		}
-		else if (windowingType.equals("Bartlett")) {
-			signal1D = windowingBartlett(signal1D);
-		}
-		else if (windowingType.equals("Hamming")) {
-			signal1D = windowingHamming(signal1D);
-		}
-		else if (windowingType.equals("Hanning")) {
-			signal1D = windowingHanning(signal1D);
-		}
-		else if (windowingType.equals("Blackman")) {
-			signal1D = windowingBlackman(signal1D);
-		}	
-		else if (windowingType.equals("Gaussian")) {
-			signal1D = windowingGaussian(signal1D);
-		}
-		else if (windowingType.equals("Parzen")) {
-			signal1D = windowingParzen(signal1D);
-		}
-		
 		signalOut = null;
 		
 //		double[] signalOut = new double[numDataPoints];
@@ -926,9 +896,36 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+		
+			if (windowingType.equals("Rectangular")) {
+				signal1D = windowingRectangular(signal1D);
+			}
+			else if (windowingType.equals("Cosine")) {
+				signal1D = windowingCosine(signal1D);
+			}
+			else if (windowingType.equals("Lanczos")) {
+				signal1D = windowingLanczos(signal1D);
+			}
+			else if (windowingType.equals("Bartlett")) {
+				signal1D = windowingBartlett(signal1D);
+			}
+			else if (windowingType.equals("Hamming")) {
+				signal1D = windowingHamming(signal1D);
+			}
+			else if (windowingType.equals("Hanning")) {
+				signal1D = windowingHanning(signal1D);
+			}
+			else if (windowingType.equals("Blackman")) {
+				signal1D = windowingBlackman(signal1D);
+			}	
+			else if (windowingType.equals("Gaussian")) {
+				signal1D = windowingGaussian(signal1D);
+			}
+			else if (windowingType.equals("Parzen")) {
+				signal1D = windowingParzen(signal1D);
+			}
 			
-			//Oppenheim & Schafer, DiscreteTimeSignalProcessing-ed3-2010 p.854
-			
+			//Oppenheim & Schafer, DiscreteTimeSignalProcessing-ed3-2010 p.854		
 			// data length must have a power of 2
 			int powerSize = 1;
 			while (numDataPoints > powerSize) {

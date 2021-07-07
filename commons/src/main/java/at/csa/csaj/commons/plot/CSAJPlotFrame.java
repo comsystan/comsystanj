@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: Commons for ComsystanJ ImageJ Plugins
- * File: PlotDisplayFrame.java
+ * File: CSAJPlotFrame.java
  * 
  * $Id$
  * $HeadURL$
