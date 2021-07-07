@@ -118,7 +118,7 @@
 ### Standard HRV measurements
 - Computes standard HRV measurements (e.g. for 24h ECG Holter recordings)
 - Time domain and Frquency domain methods
-- MeanHR, MeanNN, SDNN, SDANN, SDNNI, HRVTI, RMSSD, SDSD, NN50, PNN50, NN20, PNN20, VLF, LF, HF, LFnorm, HFnorm, LF/HF, TP
+- MeanHR, MeanNN, SDNN, SDANN, SDNNI, HRVTI, RMSSD, SDSD, NN50, PNN50, NN20, PNN20, ULF, VLF, LF, HF, LFnorm, HFnorm, LF/HF, TP
 - A time domain column is not needed, because it will be reconstructed by summing up subsequent beat to beat intervals
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
