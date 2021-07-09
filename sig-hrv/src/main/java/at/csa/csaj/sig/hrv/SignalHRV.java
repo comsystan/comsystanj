@@ -1831,7 +1831,7 @@ public class SignalHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		double sumPS = 0; //Area of Power spectrum
 		for (int f = 0; f < psRange ; f++) { //f=0 is the DC content
 			freq =  f * deltaF; //== f * (delta f)
-			//if ( f <= 500) System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
+			//if ( f <= 400) System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
 			//if ((f>psRange -100) && ( f < psRange)) System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
 			//System.out.println("SignalHRV f " + f + "  ps[f] " + ps[f] + "   freq " + freq);
 			if ((freq > 0.00001) && (freq <= 0.003)) { //ULF
