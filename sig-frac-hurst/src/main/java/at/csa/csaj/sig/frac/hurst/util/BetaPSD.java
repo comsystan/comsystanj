@@ -29,6 +29,10 @@ package at.csa.csaj.sig.frac.hurst.util;
 
 import java.util.Vector;
 
+import org.apache.commons.math3.complex.Complex;
+import org.apache.commons.math3.transform.DftNormalization;
+import org.apache.commons.math3.transform.FastFourierTransformer;
+import org.apache.commons.math3.transform.TransformType;
 import org.scijava.log.LogService;
 import at.csa.csaj.commons.regression.LinearRegression;
 
@@ -94,7 +98,8 @@ private LogService logService;
 	 */
 	public double[] computeRegression(double[] signal, int regMin, int regMax) {
 
-		double[] signalPower = this.calcDFTPower(signal);
+		//double[] signalPower = this.calcDFTPower(signal);
+		double[] signalPower = this.calcDFTPowerWithApache(signal); //far more faster 2sec instead of 5min!
 		//signalPower.remove(0);
 	
 		String plotName = "Plot";
@@ -133,7 +138,7 @@ private LogService logService;
 	private double[] calcDFTPower(double[] signal) {
 	
 		int length = signal.length;
-		double[]signalPower = new double[length/2];
+		double[]signalPower = new double[length/2]; //length/2 because spectrum is symmetric
 		double sumReal = 0;
 		double sumImag = 0;
 		
@@ -149,6 +154,66 @@ private LogService logService;
 			signalPower[k] = sumReal*sumReal+sumImag*sumImag;
 		}
 		return signalPower;
+	}
+	
+	/**
+	 * This method calculates the power spectrum of a 1D signal using Apache method
+	 * This is 12 times faster (without padding with zeroes)
+	 * @param sequence
+	 * @return the DFT power spectrum
+	 */
+	private double[] calcDFTPowerWithApache(double[] signal) {
+	
+		int length = signal.length;
+		double[]signalPower = new double[length/2]; //length/2 because spectrum is symmetric
+		
+		//FFT needs power of two
+		if (!isPowerOfTwo(signal.length)) {
+			signal = addZerosUntilPowerOfTwo(signal);
+		}	
+		FastFourierTransformer transformer = new FastFourierTransformer(DftNormalization.STANDARD);
+	    Complex[] complex = transformer.transform(signal, TransformType.FORWARD);
+	    for (int k =0; k < length/2; k++) {//length/2 because spectrum is symmetric
+	    	signalPower[k] = complex[k].getReal()*complex[k].getReal() + complex[k].getImaginary()*complex[k].getImaginary();  
+	    }
+		return signalPower;
+	}
+	
+	/**
+	 * This method computes if a number is a power of 2
+	 * 
+	 * @param number
+	 * @return
+	 */
+	public boolean isPowerOfTwo(int number) {
+	    if (number % 2 != 0) {
+	      return false;
+	    } else {
+	      for (int i = 0; i <= number; i++) {
+	        if (Math.pow(2, i) == number) return true;
+	      }
+	    }
+	    return false;
+	 }
+	
+	/**
+	 * This method increases the size of a signal to the next power of 2 
+	 * 
+	 * @param signal
+	 * @return
+	 */
+	public double[] addZerosUntilPowerOfTwo (double[] signal) {
+		int p = 1;
+		double[] newSignal;
+		int oldLength = signal.length;
+		while (Math.pow(2, p) < oldLength) {
+			p = p +1;
+	    }
+		newSignal = new double[(int) Math.pow(2, p)];
+		for (int i = 0; i < oldLength; i++) {
+			newSignal[i] = signal[i];
+		}
+		return newSignal;
 	}
 	
 	/**
