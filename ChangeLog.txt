@@ -24,6 +24,7 @@ Bugfix--------------------------------------------------------
 2D Image - Image Opener - Did not open grey image stack correctly
 2D Image - Box counting - Check maximal number of boxes
 2D Image - Pyramid dimension - Subsampling with averaging
+2D Image - Image Generator - JTransforms FFT instead of ImgLib2 FFT for fractal surfaces
 Signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 
 Miscellaneous-------------------------------------------------

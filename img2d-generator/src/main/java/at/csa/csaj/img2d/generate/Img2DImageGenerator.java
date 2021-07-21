@@ -36,15 +36,12 @@ import net.imagej.axis.AxisType;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
-import net.imglib2.view.Views;
 
 import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
@@ -63,6 +60,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
+import edu.emory.mathcs.jtransforms.fft.DoubleFFT_2D;
 import io.scif.services.DatasetIOService;
 
 import java.awt.Color;
@@ -120,16 +118,16 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
     @Parameter
     private OpService opService;
 
-	private Img<FloatType> img;
+	private Img<FloatType> imgFloat;
 	private Img<UnsignedByteType> resultImg;
 	private Img<FloatType> mpdImg; //Midpoint displacement 
 	private Img<FloatType> sosImg; //sum of sine
 	BufferedImage  ifsBuffImg; //IFS  Menger,....
 	WritableRaster ifsRaster;
     
-    //Widget elements------------------------------------------------------
-  //-----------------------------------------------------------------------------------------------------
-//    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE)
+	//Widget elements------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------------
+//  @Parameter(label = " ", visibility = ItemVisibility.MESSAGE)
 //	private final String labelPlugin = PLUGIN_LABEL;
 
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE)
@@ -327,11 +325,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 	// whenever the value of a specific linked parameter changes.
 	/** Executed whenever the {@link #spinInteger_Width} parameter changes. */
 	protected void changedWidth() {
-		logService.info(this.getClass().getName() + " Width changed to " + spinnerInteger_Width + " pixel.");
+		logService.info(this.getClass().getName() + " Width changed to " + spinnerInteger_Width + " pixel");
 	}
 	/** Executed whenever the {@link #spinInteger_Height} parameter changes. */
 	protected void changedHeight() {
-		logService.info(this.getClass().getName() + " Height changed to " + spinnerInteger_Height + " pixel.");
+		logService.info(this.getClass().getName() + " Height changed to " + spinnerInteger_Height + " pixel");
 	}
 	
 	/** Executed whenever the {@link #spinInteger_NumImages} parameter changes. */
@@ -346,14 +344,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 	
 	/** Executed whenever the {@link #choiceRadioButt_ImageType} parameter changes. */
 	protected void changedImageType() {
-		logService.info(this.getClass().getName() + " Image type changed to " + choiceRadioButt_ImageType + ".");
+		logService.info(this.getClass().getName() + " Image type changed to " + choiceRadioButt_ImageType);
 	}
-	
-	/** Executed whenever the {@link #spinInteger_Omega} parameter changes. */
-	protected void changedOmeag() {
-		logService.info(this.getClass().getName() + " Omeaga changed to " + spinnerInteger_R);
-	}
-	
+		
 	/** Executed whenever the {@link #spinInteger_R} parameter changes. */
 	protected void changedR() {
 		logService.info(this.getClass().getName() + " Constant/Channel R changed to " + spinnerInteger_R);
@@ -445,7 +438,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		}  			
 	}
     
- private void computeSineImage(String type, float frequency, int greyValueMax) {
+    private void computeSineImage(String type, float frequency, int greyValueMax) {
 	  
 	    long width  = datasetOut.dimension(0);   
 	    long height = datasetOut.dimension(1);
@@ -482,6 +475,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
         
     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1));
     	Cursor<UnsignedByteType> cursor = resultImg.cursor();
+    	
     	//final long[] pos = new long[dataset.numDimensions()];
 		while (cursor.hasNext()) {
 			cursor.fwd();
@@ -490,167 +484,232 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		}  			
 	}
     
-    
-    private <C extends ComplexType<C>> void computeFrac2DFFT(float fracDim, int greyValueMax) {
+    private void computeFrac2DFFT(float fracDim, int greyValueMax) {
     	   
-    	 
+    	int width  = (int)datasetOut.dimension(0);
+    	int height = (int)datasetOut.dimension(1);
+    	Cursor<FloatType> cursorF;
+    	long[] pos;
+   
 		//create empty image
-		Img<FloatType> img = new ArrayImgFactory<>(new FloatType()).create(datasetOut.dimension(0), datasetOut.dimension(1));
+		imgFloat = new ArrayImgFactory<>(new FloatType()).create(width, height);
 		
-//		//optionally set grey values
-//		RandomAccess<FloatType> imgRa = img.randomAccess();
-//		final long[] posImg = new long[img.numDimensions()];
-//		// Loop through all pixels.
-//		final Cursor<FloatType> cursorImg = img.localizingCursor();
-//		while (cursorImg.hasNext()) {
-//			cursorImg.fwd();
-//			cursorImg.localize(posImg);
-//			cursorImg.get().set(133f);
+		//optionally set grey values
+//		cursorF = imgFloat.localizingCursor();
+//		while (cursorF.hasNext()) {
+//			cursorF.fwd();
+//			cursorF.get().set(133f);
 //		}
-		
-		RandomAccessibleInterval<C> raifft = opService.filter().fft(img);
-		
-	
-//    	//Optionally Show FFT image
-//		Img<FloatType> fft = new ArrayImgFactory<>(new FloatType()).create(raifft.dimension(0), raifft.dimension(1));
-//		RandomAccess<FloatType> fftRa = fft.randomAccess();
-//		long[] pos = new long[fft.numDimensions()];
-//		float power1;
-//		// Loop through all pixels.
-//		Cursor<?> cursor = Views.iterable(raifft).localizingCursor();
-//		while (cursor.hasNext()) {
-//			cursor.fwd();
-//			cursor.localize(pos);
-//			//float power = (float) cursor.get().getRealFloat() * cursor.get().getRealFloat() + cursor.get().getImaginaryFloat() * cursor.get().getImaginaryFloat();
-//			power1 = ((ComplexType) cursor.get()).getPowerFloat();
-//			fftRa.setPosition(pos);
-//			fftRa.get().set(power1);
-//		}
+//		uiService.show("imgFloat", imgFloat);
+
+//		ops filter fft seems to be a Hadamard transform rather than a true FFT
+//		output size is automatically padded, so has rather strange dimensions.
+//		output is vertically symmetric 
+//		F= 0 is at (0.0) and (0,SizeY)
+//		imgFloat = this.createImgFloat(raiWindowed);
+//		RandomAccessibleInterval<C> raifft = opService.filter().fft(imgFloat);
 //		
+//		//This would also work with identical output 
+//		ImgFactory<ComplexFloatType> factory = new ArrayImgFactory<ComplexFloatType>(new ComplexFloatType());
+//		int numThreads = 6;
+//		final FFT FFT = new FFT();
+//		Img<ComplexFloatType> imgCmplx = FFT.realToComplex((RandomAccessibleInterval<R>) raiWindowed, factory, numThreads);
+
+		//Using JTransform package
+		//https://github.com/wendykierp/JTransforms
+		//https://wendykierp.github.io/JTransforms/apidocs/
+		//The sizes of both dimensions must be power of two.
+		int dftWidth = 2; 
+		int dftHeight = 2;
+		while (dftWidth < width) {
+			dftWidth = dftWidth * 2;
+		}
+		while (dftHeight < height) {
+			dftHeight = dftHeight * 2;
+		}
+				
+		//JTransform needs rows and columns swapped!!!!!
+		int rows    = dftHeight;
+		int columns = dftWidth;
+		
+		//JTransform needs rows and columns swapped!!!!!
+		double[][] imgA = new double[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
+		cursorF = imgFloat.localizingCursor();
+		pos = new long[2];
+		while (cursorF.hasNext()) {
+			cursorF.fwd();
+			cursorF.localize(pos); 
+			//JTransform needs rows and columns swapped!!!!!
+			imgA[(int)pos[1]][(int)(pos[0])] = cursorF.get().get();
+		}
+		
+		//JTransform needs rows and columns swapped!!!!!
+		DoubleFFT_2D FFT = new DoubleFFT_2D(rows, columns); //Here always the simple DFT width
+		//FFT.realForward(imgA);    //The first two columns are not symmetric and seem to be not right
+		FFT.realForwardFull(imgA);  //The right part is not symmetric!!
+		//Power image constructed later is also not exactly symmetric!!!!!
+		
+		
+		//Optionally show FFT Real Imag image
+		//************************************************************************************
+//		ArrayImg<FloatType, ?> imgFFT = new ArrayImgFactory<>(new FloatType()).create(2*dftWidth, dftHeight); //always single 2D
+//		cursorF = imgFFT.localizingCursor();
+//		pos = new long[2];
+//		while (cursorF.hasNext()){
+//			cursorF.fwd();
+//			cursorF.localize(pos);
+//			//JTransform needs rows and columns swapped!!!!!
+//			cursorF.get().set((float)imgA[(int)pos[1]][(int)pos[0]]);
+//		}		
 //		//Get min max
 //		float min = Float.MAX_VALUE;
 //		float max = -Float.MAX_VALUE;
-//		float val;
-//		Cursor<FloatType>cursorf = fft.cursor();
-//		while (cursorf.hasNext()) {
-//			cursorf.fwd();
-//			cursorf.localize(pos);
-//			val = cursorf.get().get();
-//			if (val > max) max = val;
-//			if (val < min) min = val;
-//		}
-//		
-//		//Rescael to 0...255
-//		cursorf = fft.cursor();
-//		while (cursorf.hasNext()) {
-//			cursorf.fwd();
-//			cursorf.localize(pos);
-//			cursorf.get().set(255f*(cursorf.get().get() - min)/(max - min));		
+//		float valF;
+//		cursorF = imgFFT.cursor();
+//		while (cursorF.hasNext()) {
+//			cursorF.fwd();
+//			valF = cursorF.get().get();
+//			if (valF > max) max = valF;
+//			if (valF < min) min = valF;
 //		}	
-//		uiService.show("rai", rai);	
-//		uiService.show("Power", fft);		
+//		//Rescale to 0...255
+//		cursorF = imgFFT.cursor();
+//		while (cursorF.hasNext()) {
+//			cursorF.fwd();
+//			cursorF.localize(pos);
+//			cursorF.get().set(255f*(cursorF.get().get() - min)/(max - min));		
+//		}	
+//		uiService.show("FFT", imgFFT);	
+		//************************************************************************************
+		
 		
 		// Declare an array to hold the current position of the cursor.
-		final long[] posFFT = new long[raifft.numDimensions()];
+		long[] posFFT = new long[2];
 		
-		// Define origin as 0,0. //frequency = 0;
-		final long[] origin = {0, 0};
-
-		// Define a 2nd 'origin' at bottom left of image.   //frequency = 0;
-		final long[] origin2 = {0, raifft.dimension(1)};
-
-			
-		// The 2nd 'origin' is at bottom left of the fft image.
-		// fft  consists of two images above each other with a single width but doubled height
-		//final long fftWidth     = fft.dimension(0);
-		final long fftHalfHeight= raifft.dimension(1)/2;
+		//Get power values
+		final long[] origin1  = {0, 0};         	 //left top
+		final long[] origin2  = {0, rows-1};    	 //left bottom
+		final long[] origin3  = {columns-1, 0}; 	 //right top
+		final long[] origin4  = {columns-1, rows-1}; //right bottom
 		
 		// generate random pixel values
 		Random generator = new Random();
-		double b = 8.0f - (2.0f * fracDim);		// FD = (B+6)/2 laut Closed contour fracatal dimension estimation... J.B. Florindo
-		double dist;
+		double b = 8.0f - (2.0f * fracDim);		// FD = (B+6)/2 laut Closed contour fractal dimension estimation... J.B. Florindo
+		double dist1;
 		double dist2;
+		double dist3;
+		double dist4;
 		double g;
 		double u;
 		double n;
 		double m;
-		
-
-		// Loop through all pixels.
-		final Cursor<C> cursorFFT = Views.iterable(raifft).localizingCursor();
-		while (cursorFFT.hasNext()) {
-			cursorFFT.fwd();
-			cursorFFT.localize(posFFT);
-			
-			if (posFFT[1] <= fftHalfHeight) {
-				// Calculate distance from 0,0 
-				dist = Util.distance(origin, posFFT);	
-				//double newMagnitude = Math.pow(dist+1, -b / 2);
-				//float imag = cursorFFT.get().getImaginaryFloat();
-				//float real = (float) Math.sqrt(newMagnitude*newMagnitude - (imag*imag));
-				//cursorFFT.get().setReal(real);
 				
+		//set FFT real and imaginary values
+		for (int k1 = 0; k1 < rows/2; k1++) {
+			for (int k2 = 0; k2 < columns/2; k2++) {
+				posFFT[1] = k1;
+				posFFT[0] = k2;
+				dist1  = Util.distance(origin1, posFFT); //Distance
 				g = generator.nextGaussian();
 				u = generator.nextFloat();
 				n = g * Math.cos(2 * Math.PI * u);
 				m = g * Math.sin(2 * Math.PI * u);
-				n = n * Math.pow(dist+1, -b / 2);
-				m = m * Math.pow(dist+1, -b / 2);
-				cursorFFT.get().setReal(n);
-				cursorFFT.get().setImaginary(m);			
-				
-				//let imaginary unchanged
-				//System.out.println("FracCreate2DSurface- posFFT[0]:"+ posFFT[0] + " posFFT[1]:" + posFFT[1] +" dist:"+ dist +" newMagnitude:" + newMagnitude + " real:" + real + " imag:" + imag);
+				n = n * Math.pow(dist1+1, -b / 2);
+				m = m * Math.pow(dist1+1, -b / 2);
+				imgA[k1][2*k2]   = n; //(2*x)  ...Real part
+				imgA[k1][2*k2+1] = m; //(2*x+1)...Imaginary part 
 			}
-			else if (posFFT[1] > fftHalfHeight) {
-				// Calculate distance from bottom left corner
-				dist2 = Util.distance(origin2, posFFT);
+		}
+		
+		for (int k1 = rows/2; k1 < rows; k1++) {
+			for (int k2 = 0; k2 < columns/2; k2++) {
+				posFFT[1] = k1;
+				posFFT[0] = k2;
+				dist2  = Util.distance(origin2, posFFT); //Distance
 				g = generator.nextGaussian();
 				u = generator.nextFloat();
 				n = g * Math.cos(2 * Math.PI * u);
 				m = g * Math.sin(2 * Math.PI * u);
 				n = n * Math.pow(dist2+1, -b / 2);
 				m = m * Math.pow(dist2+1, -b / 2);
-				cursorFFT.get().setReal(n);
-				cursorFFT.get().setImaginary(m);		
-			
-
-				//System.out.println("FracCreate2DSurface- posFFT[0]:"+ posFFT[0] + " posFFT[1]:" + posFFT[1] +" dist2:"+ dist2 +" newMagnitude:" + newMagnitude + " real:" + real + " imag:" + imag);
-				}
+				imgA[k1][2*k2]   = n; //(2*x)  ...Real part
+				imgA[k1][2*k2+1] = m; //(2*x+1)...Imaginary part 
+			}
+		}	
+		for (int k1 = 0; k1 < rows/2; k1++) {
+			for (int k2 = columns/2; k2 < columns; k2++) {
+				posFFT[1] = k1;
+				posFFT[0] = k2;
+				dist3  = Util.distance(origin3, posFFT); //Distance
+				g = generator.nextGaussian();
+				u = generator.nextFloat();
+				n = g * Math.cos(2 * Math.PI * u);
+				m = g * Math.sin(2 * Math.PI * u);
+				n = n * Math.pow(dist3+1, -b / 2);
+				m = m * Math.pow(dist3+1, -b / 2);
+				imgA[k1][2*k2]   = n; //(2*x)  ...Real part
+				imgA[k1][2*k2+1] = m; //(2*x+1)...Imaginary part 
+			}
+		}
+		for (int k1 = rows/2; k1 < rows; k1++) {
+			for (int k2 = columns/2; k2 < columns; k2++) {
+				posFFT[1] = k1;
+				posFFT[0] = k2;
+				dist4  = Util.distance(origin4, posFFT); //Distance
+				g = generator.nextGaussian();
+				u = generator.nextFloat();
+				n = g * Math.cos(2 * Math.PI * u);
+				m = g * Math.sin(2 * Math.PI * u);
+				n = n * Math.pow(dist4+1, -b / 2);
+				m = m * Math.pow(dist4+1, -b / 2);
+				imgA[k1][2*k2]   = n; //(2*x)  ...Real part
+				imgA[k1][2*k2+1] = m; //(2*x+1)...Imaginary part
+			}
 		}
 		
 		//uiService.show("img", img);
 		//uiService.show("fft", fft);
 		
-		//Inverse FFT and show image	
-		Img<FloatType> ifft = opService.create().img(img, new FloatType());
-		opService.filter().ifft(ifft, raifft);
-		//change from FloatType to UnsignedByteType
-		//find min and max values
-		Cursor<FloatType> cursor = ifft.cursor();
+		//Inverse FFT and show image
+		//imgA is now really complex, Real and Imaginary pairs
+		FFT.complexInverse(imgA, false);
+		
+		cursorF = imgFloat.localizingCursor();
+		pos = new long[2];
+		while (cursorF.hasNext()) {
+			cursorF.fwd();
+			cursorF.localize(pos); 
+			//JTransform needs rows and columns swapped!!!!!
+			cursorF.get().set((float) imgA[(int)pos[1]][(int)(2*pos[0])]);
+		}
+		
+		//uiService.show("imgFloat after Inverse FFT", imgFloat);	
+		
+		//Change from FloatType to UnsignedByteType
+		//Find min and max values
+		cursorF = imgFloat.cursor();
 		float min = Float.MAX_VALUE;
 		float max = -Float.MAX_VALUE;
 		float value;
-		while (cursor.hasNext()){
-			cursor.fwd();
-			value =  cursor.get().getRealFloat();
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			value =  cursorF.get().getRealFloat();
 			if (value > max) max = value;
 			if (value < min) min = value;
 		}
 		
-		
-		resultImg = opService.create().img(img, new UnsignedByteType());
+		resultImg = opService.create().img(imgFloat, new UnsignedByteType());
 		RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
-		cursor = ifft.cursor();
-    	final long[] pos = new long[resultImg.numDimensions()];
+		cursorF = imgFloat.cursor();
+    	pos = new long[resultImg.numDimensions()];
     	float rf = (greyValueMax/(max-min)); //rescale factor
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-			value= cursor.get().getRealFloat();
-			//value = rf * (value -min); //Rescale to 0  255
+		while (cursorF.hasNext()) {
+			cursorF.fwd();
+			cursorF.localize(pos);
+			value= cursorF.get().getRealFloat();
+			value = rf * (value - min); //Rescale to 0  255
 			ra.setPosition(pos);
-			ra.get().set((int)(rf * (value -min)));
+			ra.get().set((int)(Math.round(value)));	
 		}
 		//resultImg;
 	}
