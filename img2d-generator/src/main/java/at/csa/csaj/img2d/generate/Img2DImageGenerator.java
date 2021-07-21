@@ -534,20 +534,23 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		
 		//JTransform needs rows and columns swapped!!!!!
 		double[][] imgA = new double[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
-		cursorF = imgFloat.localizingCursor();
-		pos = new long[2];
-		while (cursorF.hasNext()) {
-			cursorF.fwd();
-			cursorF.localize(pos); 
-			//JTransform needs rows and columns swapped!!!!!
-			imgA[(int)pos[1]][(int)(pos[0])] = cursorF.get().get();
-		}
-		
-		//JTransform needs rows and columns swapped!!!!!
 		DoubleFFT_2D FFT = new DoubleFFT_2D(rows, columns); //Here always the simple DFT width
-		//FFT.realForward(imgA);    //The first two columns are not symmetric and seem to be not right
-		FFT.realForwardFull(imgA);  //The right part is not symmetric!!
-		//Power image constructed later is also not exactly symmetric!!!!!
+		
+		//Forward FFT of imgA
+		//is not really necessary because imgA will be overwritten after Forward FFT
+//		cursorF = imgFloat.localizingCursor();
+//		pos = new long[2];
+//		while (cursorF.hasNext()) {
+//			cursorF.fwd();
+//			cursorF.localize(pos); 
+//			//JTransform needs rows and columns swapped!!!!!
+//			imgA[(int)pos[1]][(int)(pos[0])] = cursorF.get().get();
+//		}
+//		
+//		//JTransform needs rows and columns swapped!!!!!
+//		////FFT.realForward(imgA);  //The first two columns are not symmetric and seem to be not right
+//		FFT.realForwardFull(imgA);  //The right part is not symmetric!!
+//		////Power image constructed later is also not exactly symmetric!!!!!
 		
 		
 		//Optionally show FFT Real Imag image
