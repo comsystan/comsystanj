@@ -1,5 +1,7 @@
 ## Image(2D) - Short description of plugins
 
+For binary images black pixels are the background. White pixels are the foreground or the object. 
+
 ### Image opener
 - Opens a single image or an image stack
 - Grey 8bit or Color RGB images are supported
@@ -143,7 +145,7 @@
 - Ref.: Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Succolarity
-- Succolarity is computed by flooding of a binary image  
+- Succolarity is computed by flooding the black pixels of a binary image  
 - For binary 8-bit images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes can be set
