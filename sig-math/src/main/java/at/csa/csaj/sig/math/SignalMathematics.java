@@ -583,7 +583,7 @@ public class SignalMathematics<T extends RealType<T>> extends InteractiveCommand
 			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 				frame = listFrames[i];
 				//System.out.println("frame name: " + frame.getTitle());
-				if (frame.getTitle().equals("Result signal(s)")) {
+				if (frame.getTitle().contains("Result signal(s)")) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 				}

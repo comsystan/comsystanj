@@ -656,7 +656,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableName)) display.close();
+				if (display.getName().contains(tableName)) display.close();
 			}			
 		}
 	}

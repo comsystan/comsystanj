@@ -653,7 +653,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 //			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 //				frame = listFrames[i];
 //				//System.out.println("frame name: " + frame.getTitle());
-//				if (frame.getTitle().equals("Name")) {
+//				if (frame.getTitle().contains("Name")) {
 //					frame.setVisible(false); //Successfully closes also in Fiji
 //					frame.dispose();
 //				}
@@ -692,7 +692,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableName)) display.close();
+				if (display.getName().contains(tableName)) display.close();
 			}			
 		}
 	}

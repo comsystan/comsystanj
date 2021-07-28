@@ -557,7 +557,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableName))
+				if (display.getName().contains(tableName))
 					display.close();
 					//This might free some memory
 					display = null;
