@@ -122,6 +122,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 	private Img<UnsignedByteType> resultImg;
 	private Img<FloatType> mpdImg; //Midpoint displacement 
 	private Img<FloatType> sosImg; //sum of sine
+	private Img<UnsignedByteType> hrmImg; //HRM
 	BufferedImage  ifsBuffImg; //IFS  Menger,....
 	WritableRaster ifsRaster;
     
@@ -173,10 +174,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 	private String choiceRadioButt_ColorModelType;
     
     @Parameter(label = "Image type",
-    		   description = "Type of output image",
+    		   description = "Type of output image, FFT..Fast Fourier transform, MPD..Midpoint displacement, HRM..Hirarchical random maps, IFS..Iterated function system",
     		   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		   choices = {"Random", "Gaussian", "Sine - radial", "Sine - horizontal", "Sine - vertical",  "Constant", 
-    				   "Fractal surface - FFT", "Fractal surface - MPD", "Fractal surface - Sum of sine", 
+    				   "Fractal surface - FFT", "Fractal surface - MPD", "Fractal surface - Sum of sine", "Fractal - HRM",
     				   "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
     				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon"},
                callback = "changedImageType")
@@ -252,6 +253,36 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 	  		   callback = "changedNumSumOfSineIterations")
     private int spinnerInteger_NumSumOfSineIterations;
     
+    @Parameter(label = "(HRM) Probability 1",
+    		   description = "Probability of first level",
+  	  		   style = NumberWidget.SPINNER_STYLE,
+  	  		   min = "0", 
+  	  		   max = "1",
+  	  		   initializer = "initialHRMProbability1",
+  	  		   stepSize = "0.01",
+  	  		   callback = "changedHRMProbability1")
+    private float spinnerFloat_HRMProbability1;
+    
+    @Parameter(label = "(HRM) Probability 2",
+ 		       description = "Probability of second level",
+	  		   style = NumberWidget.SPINNER_STYLE,
+	  		   min = "0", 
+	  		   max = "1",
+	  		   initializer = "initialHRMProbability2",
+	  		   stepSize = "0.01",
+	  		   callback = "changedHRMProbability2")
+    private float spinnerFloat_HRMProbability2;
+    
+    @Parameter(label = "(HRM) Probability 3",
+ 		       description = "Probability of third level",
+	  		   style = NumberWidget.SPINNER_STYLE,
+	  		   min = "0", 
+	  		   max = "1",
+	  		   initializer = "initialHRMProbability3",
+	  		   stepSize = "0.01",
+	  		   callback = "changedHRMProbability3")
+    private float spinnerFloat_HRMProbability3;
+    
     @Parameter(label = "(Koch) Number of polygons",
 	   	       description = "Starting number of polygons for Koch snowflake",
 	  		   style = NumberWidget.SPINNER_STYLE,
@@ -315,6 +346,21 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 	
 	protected void initialNumSumOfSineIterations() {
 		spinnerInteger_NumSumOfSineIterations = 10;
+	}
+	
+	protected void initialHRMProbability1() {
+	 	//round to two decimal after the comma
+	 	spinnerFloat_HRMProbability1 = 0.5f;
+	}
+	
+	protected void initialHRMProbability2() {
+	 	//round to two decimal after the comma
+	 	spinnerFloat_HRMProbability2 = 0.5f;
+	}
+	
+	protected void initialHRMProbability3() {
+	 	//round to two decimal after the comma
+	 	spinnerFloat_HRMProbability3 = 0.5f;
 	}
 	
 	protected void initialNumPolygons() {
@@ -389,6 +435,30 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 	/** Executed whenever the {@link #spinInteger_NumSumOfSineIterations} parameter changes. */
 	protected void changedNumSumOfSineIterations() {
 		logService.info(this.getClass().getName() + " Sum of sine iterations changed to " + spinnerInteger_NumSumOfSineIterations);
+	}
+	
+	protected void changedHRMProbability1() {
+		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_HRMProbability);
+	 	//round to ?? decimal after the comma
+	 	//spinnerFloat_HRMProbability = Math.round(spinnerFloat_HRMProbability * 1f)/1f;
+	 	spinnerFloat_HRMProbability1 = Precision.round(spinnerFloat_HRMProbability1, 2);
+	 	logService.info(this.getClass().getName() + " Probability 1 changed to " + spinnerFloat_HRMProbability1);
+	}
+	
+	protected void changedHRMProbability2() {
+		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_HRMProbability);
+	 	//round to ?? decimal after the comma
+	 	//spinnerFloat_HRMProbability = Math.round(spinnerFloat_HRMProbability * 1f)/1f;
+	 	spinnerFloat_HRMProbability2 = Precision.round(spinnerFloat_HRMProbability2, 2);
+	 	logService.info(this.getClass().getName() + " Probability 2 changed to " + spinnerFloat_HRMProbability2);
+	}
+	
+	protected void changedHRMProbability3() {
+		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_HRMProbability);
+	 	//round to ?? decimal after the comma
+	 	//spinnerFloat_HRMProbability = Math.round(spinnerFloat_HRMProbability * 1f)/1f;
+	 	spinnerFloat_HRMProbability3 = Precision.round(spinnerFloat_HRMProbability3, 2);
+	 	logService.info(this.getClass().getName() + " Probability 3 changed to " + spinnerFloat_HRMProbability3);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_NumPolygons} parameter changes. */
@@ -937,6 +1007,161 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 			sosRa.setPosition(pos);
 			cursor.get().set((int)Math.round(greyValueMax*(sosRa.get().get() - min)/(max -min)));
 		}  		
+    }
+    
+    
+    /**
+     * This method computes HRM hierarchical random maps to get images with distinct lacunarities
+     * Plotnick et al 1993 Lacunarity indices as measures of landscape texture
+     * 
+     * e.g. number of iterations (levels) = 3;
+     * Ideally, the given image size yields an integer initial matrix size, matrix size = size^1/3 = 3rd root(size)
+     * If not, the algorithm takes the next higher integer matrix size. Then the result image is too large and will be cropped to the right size. 
+     * 
+     * @param numIterations
+     * @param probabilities
+     * @param greValueMax
+     */
+    private void computeFracHRM(int numIterations, float[] probabilities, float greyValueMax) {
+    	
+		//numIterations = 3; // iterations
+    	
+    	long width  = datasetOut.dimension(0);
+    	long height = datasetOut.dimension(1);
+    	
+    	long zoomX = (long)(Math.ceil(Math.pow(width,  1.0/(double)numIterations))); //zoom is sometimes too large //this must be corrected in the end
+ 		long zoomY = (long)(Math.ceil(Math.pow(height, 1.0/(double)numIterations)));
+    	
+    	long startWidth  = zoomX;
+    	long startHeight = zoomY;
+    	
+    	logService.info(this.getClass().getName() + " Initial matrix size " + startWidth + "x" + startHeight);
+    	if (startWidth != startHeight) logService.info(this.getClass().getName() + " WARNING: Initial matrix is not symmetric! "); 
+    	
+		long newWidth;
+		long newHeight;
+		long[] size    = new long[2];
+		long[] newSize = new long[2];
+		
+		long[] pos;
+		
+		ArrayImgFactory arrayImgFactory;
+		int sample;
+		
+    	Random random = new Random();
+    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(startWidth, startHeight);
+    	Cursor<UnsignedByteType> cursor = resultImg.cursor();
+    	//final long[] pos = new long[dataset.numDimensions()];
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			//cursor.localize(pos);
+			if (random.nextDouble() < probabilities[0]) {
+				cursor.get().setReal((int)greyValueMax); //255
+			} else {
+				cursor.get().setReal(0); //0
+			}
+		}  
+		
+//		uiService.show("HRM 1", resultImg);	
+//		int dummy;
+		
+		for (int i = 1; i < numIterations; i++) {
+			
+			// copy image to hrmImg
+			size[0] = resultImg.dimension(0); 	
+			size[1] = resultImg.dimension(1); 		
+			arrayImgFactory = new ArrayImgFactory<>(new UnsignedByteType());
+			hrmImg = arrayImgFactory.create( size );
+			RandomAccess<UnsignedByteType> ra = hrmImg.randomAccess();	
+			// cursor to iterate over all pixels
+			cursor = resultImg.localizingCursor();	
+			pos = new long[2];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				ra.setPosition(pos);
+				ra.get().set(cursor.get());
+			}  
+		
+			newSize[0] = hrmImg.dimension(0)*zoomX; 	
+			newSize[1] = hrmImg.dimension(1)*zoomY; 			
+			
+			// create the output image
+			arrayImgFactory = new ArrayImgFactory<>(new UnsignedByteType());
+			resultImg = arrayImgFactory.create( newSize );
+			
+			ra = hrmImg.randomAccess();
+
+			// copy values to larger image
+			cursor = resultImg.localizingCursor();
+			pos = new long[2];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				pos[0] = (long)Math.floor((float)pos[0] / zoomX);
+				pos[1] = (long)Math.floor((float)pos[1] / zoomY);
+				ra.setPosition(pos);
+				cursor.get().set(ra.get());
+			}  
+		
+			cursor = resultImg.localizingCursor();
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				sample = cursor.get().getInteger();
+				
+				if (sample == greyValueMax){
+					if (random.nextDouble() < probabilities[i]){
+						cursor.get().setReal((int)greyValueMax); //255
+					}
+					else {
+						cursor.get().setReal(0); //0
+					}
+				}	
+			} 
+			
+//			uiService.show("HRM " + (i+1), resultImg);	
+//			int dummy2;
+			
+		}//for
+		
+		//sometimes it is necessary to crop to exact size
+		//copy image to hrmImg
+		size[0] = resultImg.dimension(0); 	
+		size[1] = resultImg.dimension(1); 		
+		if ((size[0] > width) || (size[1] > height) ){
+			
+			//copy to hrmImg
+			arrayImgFactory = new ArrayImgFactory<>(new UnsignedByteType());
+			hrmImg = arrayImgFactory.create( size );
+			RandomAccess<UnsignedByteType> ra = hrmImg.randomAccess();	
+			// cursor to iterate over all pixels
+			cursor = resultImg.localizingCursor();	
+			pos = new long[2];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				ra.setPosition(pos);
+				ra.get().set(cursor.get());
+			}  
+			
+			//crop to right size
+			size[0] = width; 	
+			size[1] = height; 		
+			arrayImgFactory = new ArrayImgFactory<>(new UnsignedByteType());
+			resultImg = arrayImgFactory.create( size );
+			ra = hrmImg.randomAccess();	
+			// cursor to iterate over all pixels
+			cursor = resultImg.localizingCursor();	
+			pos = new long[2];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				ra.setPosition(pos);
+				cursor.get().set(ra.get());
+			}  	
+		}	
+		hrmImg = null;
     }
     
     private void computeFracMenger(int numIterations, int greyValueMax) {
@@ -1686,6 +1911,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		float fracDim 			= spinnerFloat_FracDim;
 		float frequency  		= spinnerFloat_SineSumOfSineFrequency;
 		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
+		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
 		int numIterations		= spinnerInteger_NumSumOfSineIterations;
 		int numPolygons			= spinnerInteger_NumPolygons;
 	
@@ -1701,6 +1927,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 		else if (imageType.equals("Fractal surface - FFT"))			name = "Fractal surface(s) - FFT";
 		else if (imageType.equals("Fractal surface - MPD"))			name = "Fractal surface(s) - MPD";
 		else if (imageType.equals("Fractal surface - Sum of sine")) name = "Fractal surface(s) - Sum of sine";
+		else if (imageType.equals("Fractal - HRM"))					name = "Fractal - HRM";
 		else if (imageType.equals("Fractal IFS - Menger"))			name = "Fractal IFS - Menger";
 		else if (imageType.equals("Fractal IFS - Sierpinski-1"))	name = "Fractal IFS - Sierpinski-1";
 		else if (imageType.equals("Fractal IFS - Sierpinski-2"))	name = "Fractal IFS - Sierpinski-2";
@@ -1735,6 +1962,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 				else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyR);
 				else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyR);
 				else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
+				else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyR);
 				else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyR);
@@ -1790,6 +2018,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 					else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyR);
 					else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyR);
 					else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
+					else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyR);
 					else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyR);
@@ -1849,6 +2078,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 					else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyValue);
 					else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyValue);
 					else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
+					else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyValue);
 					else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyValue);
@@ -1913,6 +2143,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, P
 						else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyValue);
 						else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyValue);
 						else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
+						else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyValue);
 						else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyValue);
