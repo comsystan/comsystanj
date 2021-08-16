@@ -21,10 +21,12 @@ Signal - Sevcik dimension
 Bugfix--------------------------------------------------------
 2D Image - Kolmogorov complexcity - Did register as signal plugin
 2D Image - Higuchi1D - Roundig errors from rad to grad for lables, angles now in grad
-2D Image - Image Opener - Did not open grey image stack correctly
+2D Image - Image opener - Did not open grey image stack correctly
 2D Image - Box counting - Check maximal number of boxes
 2D Image - Pyramid dimension - Subsampling with averaging
-2D Image - Image Generator - JTransforms FFT instead of ImgLib2 FFT for fractal surfaces
+2D Image - Image generator - JTransforms FFT instead of ImgLib2 FFT for fractal surfaces
+2D Image - Image generator - Added Hirarchical random maps 
+Signal - Signal generator - Added Weierstraß-Mandelbrot signals
 Signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 
 Miscellaneous-------------------------------------------------

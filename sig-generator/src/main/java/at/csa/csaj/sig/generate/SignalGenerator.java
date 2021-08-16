@@ -111,8 +111,9 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
   	//private final String labelSpace = SPACE_LABEL;
     
     @Parameter(label = "Method",
+    		   description = "Type of signal, fGn..fractional Gaussian noise, fBm..fractional Brownian noise, W-M..Weierstraß-Mandelbrot signal",
  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
- 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm"},
+ 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm", "W-M"},
                callback = "changedMethod")
     private String choiceRadioButt_Method;
     
@@ -179,7 +180,14 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 		       callback = "changedHurst")
     private float spinnerFloat_Hurst;
    
-    
+    @Parameter(label = "(W-M) Fractal dimension [1,2]",
+		       style = NumberWidget.SPINNER_STYLE,
+		       min = "-2", //Values <1 would produce non-fractal <-> Euclidean shapes 
+		       max = "2",
+		       initializer = "initialFractalDim",
+		       stepSize = "0.1",
+		       callback = "changedFractalDim")
+    private float spinnerFloat_FractalDim;
     //---------------------------------------------------------------------
     
     //The following initialzer functions set initial values
@@ -213,6 +221,10 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
     
     protected void initialHurst() {
     	spinnerFloat_Hurst = 0.5f;
+    }
+    
+    protected void initialFractalDim() {
+    	spinnerFloat_FractalDim = 1.5f;
     }
     
 	// The following method is known as "callback" which gets executed
@@ -270,6 +282,12 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 	protected void changedHurst() {
 		logService.info(this.getClass().getName() + " Hurst coefficient changed to " + spinnerFloat_Hurst);
 	}
+	
+	/** Executed whenever the {@link #spinFloat_FractalDim} parameter changes. */
+	protected void changedFractalDim() {
+		logService.info(this.getClass().getName() + " Fractal dimension changed to " + spinnerFloat_FractalDim);
+	}
+	
 	//--------------------------------------------------------------------------------------------------------
     // You can control how previews work by overriding the "preview" method.
  	// The code written in this method will be automatically executed every time a widget value changes.
@@ -949,6 +967,81 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
  	  	}     
     }
     
+    /**
+     * Generates Weierstrass-Mandelbrot signals
+     */
+    private void computeWMSignals() { 
+    	
+	  	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
+	    double amplitude = 1.0;	
+	
+	    float fracDim = spinnerFloat_FractalDim;
+    	Random generator = new Random();
+    	int M = 50;
+    	double gamma = 1.5;
+    	double phi;
+    	double offsetX;
+    	double value;
+    	double x;
+    	
+ 	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
+
+ 	  		int percent = (int)Math.round((  ((float)c)/((float)spinnerInteger_NumSignals) * 100.f ));
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((c), (int)spinnerInteger_NumSignals, "Processing " + (c+1) + "/" + (int)spinnerInteger_NumSignals);
+			logService.info(this.getClass().getName() + " Processing " + (c+1) + "/" + spinnerInteger_NumSignals);
+ 
+			long startTime = System.currentTimeMillis();
+ 	  		defaultGenericTable.setColumnHeader(c, "Signal_" + (String.format("%03d",(c +1))));
+ 	  		
+ 	  		
+ 	  		//computation
+ 	  		//********HA: arbitrary starting point, otherwise all signals would be identical******
+ 	  		offsetX = generator.nextDouble()*(Integer.MAX_VALUE - spinnerInteger_NumDataPoints); 
+ 	  		//offsetX = 0;
+ 	  		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { //rows 	  		
+ 	  			//but also found in Falconer: 0 = t0<t1<....tm=1
+ 	  			//-> datapoint number/number of datapoints!!!!
+	 	  		x = (double)r/(double)spinnerInteger_NumDataPoints + offsetX; //this fulfills also x>0 Majumdar&Tien paper
+	 	  	
+	 	  		value = 0.0;
+	 	  		for (int n = 0; n < M; n++) {
+	 	  			
+	 	  			//Berry&Levis 1980, 10.1098/rspa.1980.0044
+	 	  			//Falconer, Fractal Geometry, 2013 ed3 p178 Falconer is without -1^n
+	 	  			//1>D<2, 0 = t0<t1<....tm=1
+	 	  			//gamma = 1.5 Majumdar&Tien 1990, Wear, DOI 10.1016/0043-1648(90)90154-3
+	 	  			//value = value + Math.pow(-1, n)*Math.sin(Math.pow(gamma,  n)*x)/Math.pow(gamma, (2.0-fracDim)*n); //Berry
+	 	  			value = value +                   Math.sin(Math.pow(gamma,  n)*x)/Math.pow(gamma, (2.0-fracDim)*n); //Falconer
+	 	  						
+	 	  			//Berry&Levis 1980, 10.1098/rspa.1980.0044
+	 	  			//1>D<2, 0<=t<=1, never negative
+	 	  			//also Zhang et al 2014, Fractals, DOI 10.1142/S0218348X15500061
+	 	  			//value = value + (1 - Math.cos(x*Math.pow(gamma, n)))/(Math.pow(gamma, (2.0-fracDim)*n));	
+	 	  			
+	 	  			//Majumdar&Tien 1990, Wear, DOI 10.1016/0043-1648(90)90154-3
+	 	  			//1>D<2   Gamma = 1.5  x>0  
+	 	  			//2*PI seems to be too much
+	 	  			//value = value + Math.cos(2.0*Math.PI*Math.pow(gamma, n)*x)/ Math.pow(gamma, n*(2.0-fracDim)); 
+	 	  			
+	 	  			//Wang etal, 2013, IEEE Access, DOI10.1109/ACCESS.2019.2926515
+	 	  			//phi = generator.nextDouble()/100;  //??? not specified in the paper  //*2*Math.PI would be far too large -> always too irregular
+	 	  			//value = value + Math.pow(gamma, (fracDim - 2.0)*n)*(Math.cos(phi) - Math.cos(x*Math.pow(gamma, n) + phi));
+	 	  			
+	 	  		}
+	 	  		defaultGenericTable.set(c, r, value);
+	 	  	}
+	 	  	
+	 	  	long duration = System.currentTimeMillis() - startTime;
+			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			sdf.applyPattern("HHH:mm:ss:SSS");
+			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+ 	  	}     
+    }
+    
 	/**
 	 * this method generates an auto covariance function with defined length and Hurst coefficient
 	 * 
@@ -1218,8 +1311,8 @@ public class SignalGenerator<T extends RealType<T>> implements Command {
 		else if (choiceRadioButt_Method.equals("Spence"))   computeSpenceSignals();
 		else if (choiceRadioButt_Method.equals("fGn"))      computefGnSignals();
 		else if (choiceRadioButt_Method.equals("fBm"))      computefBmSignals();
+		else if (choiceRadioButt_Method.equals("W-M"))      computeWMSignals();
 	
-		
 		int percent = (100);
 		dlgProgress.updatePercent(String.valueOf(percent+"%"));
 		dlgProgress.updateBar(percent);
