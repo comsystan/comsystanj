@@ -16,10 +16,11 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Image size can be set
 - Maximal grey values can be set
 - Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
-- Freqeuncy can be set for Sine
+- Frequency can be set for Sine
 - Fractal surface - Fourier (FFT) or Midpoint displacment (MPD) or Sum of sine method
 - Theoretical fractal dimension in the range of [2,3] can be set
 - For Sum of sine the frequency, amplitude and number of iterations can be set
+- Hirarchical random maps, probabilities can be set
 - Fractal Iterated function system (IFS) - Menger, Sierpinski-1, Sierpinski-2, Koch snowflake, Fern, Heighway dragon
 - For the IFS the number of iterations can be set
 - The polygon number for the Koch snowflake can be set
