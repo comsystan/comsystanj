@@ -46,6 +46,7 @@
 		<module>sig-frac-dim-Higuchi1d</module>
 		<module>sig-frac-dim-katz</module>
 		<module>sig-frac-dim-petrosian</module>
+		<module>sig-frac-dim-rse</module>
 		<module>sig-frac-dim-sevcik</module>
 		<module>sig-frac-hurst</module>
 		<module>sig-generator</module>

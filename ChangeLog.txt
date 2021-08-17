@@ -1,11 +1,16 @@
 ComsystanJ change log
 
 29.2.1.3
+New-----------------------------------------------------------
+Signal - RSE dimension
 
+Bugfix--------------------------------------------------------
+
+
+Miscellaneous-------------------------------------------------
 
 
 29.2.1.2
-
 New-----------------------------------------------------------
 2D Image - Correlation dimension
 2D Image - Directional correlation dimension
