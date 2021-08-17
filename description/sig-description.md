@@ -234,6 +234,21 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Sevcik, 1988, Complexity International, [arxiv.org/abs/1003.5266](http://arxiv.org/abs/1003.5266)
 
+### RSE dimension
+- Computes Roughness scaling extraction dimensions
+- 50 randomly chosen sub-sequences for each sub-sequence length
+- Scaling factor = 1 
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Wang et al., 2019, IEEE Access, [DOI 10.1109/ACCESS.2019.2926515](https://doi.org/10.1109/ACCESS.2019.2926515)
+
+
 ### Sample entropy
 - Computes Sample or Approximate entropy
 - Approximate entropy is not recommended for different signal lengths
