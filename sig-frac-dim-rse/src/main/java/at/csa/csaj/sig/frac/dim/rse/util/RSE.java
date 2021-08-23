@@ -28,10 +28,16 @@
 package at.csa.csaj.sig.frac.dim.rse.util;
 
 
+import java.awt.Point;
 import java.util.Random;
 
+import org.apache.commons.math3.fitting.PolynomialCurveFitter;
+import org.apache.commons.math3.fitting.WeightedObservedPoints;
 import org.scijava.log.LogService;
+import org.scijava.table.DefaultGenericTable;
+import org.scijava.table.GenericColumn;
 
+import at.csa.csaj.commons.plot.SignalPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 
 /**
@@ -111,12 +117,13 @@ public class RSE {
 	 * @param lMax  number of newly calculated time series, lMax must be smaller than
 	 *              the total number of time points lMax should not be greater than
 	 *              N/3 (N number of data points)!
+	 * @param flattening (detrending) order,  0..no flattening, 1.. first grade polynomial, 2.. second grade poly......... up to ???????????????? 
 	 * @return double[] Rq[l] RMSs
 	 */
-	public double[] calcRqs(double[] sequence, int lMax) {
+	public double[] calcRqs(double[] sequence, int lMax, int order) {
 		
 		int M = 50; //number of randomly chosen sub-sequences with same length according to Wang paper
-		double sig = 0.85; //scaling factor was not used -> sig = 1;
+		double sig = 0.85; //scaling factor is not used -> sig = 1;
 		
 		
 		int rm; //random starting index
@@ -124,37 +131,97 @@ public class RSE {
 		double[] Rqm; //several Rq's with different starting point m;
 		double[] Rq = new double[lMax];
 		double[] subSequence;
+		double[] flattenedSubSequence;
 		double meanSubSequence;
 		double meanRq;
 		int N = sequence.length;
+		
+		PolynomialCurveFitter pcf;
+		WeightedObservedPoints wop;
+		double[] coeff;
+		double trend;
 		
 		if (lMax > N) {
 			lMax = N / 3;
 			//logService.info(this.getClass().getName() + ": RMS parameter lMax too large, automatically set to data length/3");
 			System.out.println(this.getClass().getName() + ": RMS parameter lMax too large, automatically set to data length/3");
 		}
-
+	
 		for (int length = 2; length <= lMax; length++) { //several sub-sequence lengths, length = 1 gives back always 0 and must not be computed
 			Rqm= new double[M];
 			for (int m = 0; m < M; m++) { //m.. starting point
 		
 				rm = (int)Math.round(random.nextDouble() * (N - length)); //starting index
-				subSequence = new double[length];
+				subSequence          = new double[length];
+				flattenedSubSequence = new double[length];
+			
 				for (int i  = 0; i < length; i++) {
 					subSequence[i] = sequence[rm+i];
 				}
+						
+				//flattening (detrending)
+				if (order == 0) {
+					flattenedSubSequence = subSequence; //no flattening
+				} else if (order >=1) {
+						pcf = PolynomialCurveFitter.create(order);
+						wop = new WeightedObservedPoints();
+						for(int i = 0; i < subSequence.length; i++) {
+							wop.add(i, subSequence[i]);
+						}
+						coeff = pcf.fit(wop.toList());
+						for (int h = 0; h < subSequence.length; h++) {
+							trend = 0.0;
+							for(int i = order; i >= 0; i--) {
+									trend += coeff[i] * Math.pow(h, i);
+							}
+							flattenedSubSequence[h] = subSequence[h] - trend;
+						}
+							
+//						//show plot of flattened subSequences
+//						if (length == lMax) {
+//							DefaultGenericTable tableForPlot;
+//							
+//							tableForPlot = new DefaultGenericTable();
+//							tableForPlot.add(new GenericColumn("Signal"));
+//							tableForPlot.add(new GenericColumn("Fitted signal"));
+//							tableForPlot.appendRows(subSequence.length);
+//							for (int r = 0; r < subSequence.length; r++ ) {
+//								tableForPlot.set(0, r, subSequence[r]);
+//								tableForPlot.set(1, r, flattenedSubSequence[r]); 
+//							}
+//							
+//							int[] cols = new int[tableForPlot.getColumnCount()]; 
+//							boolean isLineVisible = true;
+//							String signalTitle = "Signals(s)";
+//							String xLabel = "#";
+//							String yLabel = "Value";
+//							String[] seriesLabels = new String[tableForPlot.getColumnCount()]; 			
+//							for (int c = 0; c < tableForPlot.getColumnCount(); c++) { 	
+//								cols[c] = c; 	
+//								seriesLabels[c] = tableForPlot.getColumnHeader(c); 					
+//							}
+//							SignalPlotFrame pdf = new SignalPlotFrame(tableForPlot, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+//							//plotDisplayFrameList.add(pdf);
+//							Point pos = pdf.getLocation();
+//							pos.x = (int) (pos.getX() - 100);
+//							pos.y = (int) (pos.getY() + 100);
+//							pdf.setLocation(pos);		
+//							pdf.setVisible(true);		
+//						} //show flattened subSignals				
 				
+				} //order >=1
+					
 				//Mean of subsequence
 				meanSubSequence = 0.0;
 				for (int s = 0; s < length; s++) {
-					meanSubSequence += subSequence[s];
+					meanSubSequence += flattenedSubSequence[s];
 				}
 				meanSubSequence = meanSubSequence/length;
 				
 				//Rq of subsequence
 				Rqm[m] = 0.0;
 				for (int s = 0; s < length; s++) {
-					Rqm[m] += (subSequence[s]-meanSubSequence)*(subSequence[s]-meanSubSequence);
+					Rqm[m] += (flattenedSubSequence[s]-meanSubSequence)*(flattenedSubSequence[s]-meanSubSequence);
 				}
 				Rqm[m] = Math.sqrt(Rqm[m]/length);
 			} // for m

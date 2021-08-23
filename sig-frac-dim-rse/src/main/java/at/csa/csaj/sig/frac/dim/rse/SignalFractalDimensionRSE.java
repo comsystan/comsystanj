@@ -88,6 +88,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	private static final String PLUGIN_LABEL            = "<html><b>RSE dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
+	private static final String FLATTENINGORDER_LABEL   = "<html><b>Flattening (detrending) polynomial order</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background Option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
@@ -190,6 +191,15 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelFlatteningOrder = FLATTENINGORDER_LABEL;
+
+	@Parameter(label = "Order", description = "Order of polynomial flattening function (0.. without flattening)", style = NumberWidget.SPINNER_STYLE, min = "0", max = "9999999999999999999", stepSize = "1",
+			   persist = false, //restore previous value default = true
+			   initializer = "initialFlatteningOrder", callback = "callbackFlatteningOrder")
+	private int spinnerInteger_FlatteningOrder = 0;
+	
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
@@ -280,6 +290,9 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		//numbLMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
 		spinnerInteger_RegMax = 8;
 	}
+	protected void initialFlatteningOrder() {
+		spinnerInteger_FlatteningOrder = 0;
+	}
 	protected void initialSignalRange() {
 		choiceRadioButt_SignalRange = "Entire signal";
 	} 
@@ -346,6 +359,11 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		}
 
 		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_RegMax);
+	}
+	
+	/** Executed whenever the {@link #spinInteger_FlatteningOrder} parameter changes. */
+	protected void callbackFlatteningOrder() {
+		logService.info(this.getClass().getName() + " Flattening order set  to " + spinnerInteger_FlatteningOrder);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
@@ -577,6 +595,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		tableResult.add(new IntColumn("L Max"));
 		tableResult.add(new IntColumn("Reg Min"));
 		tableResult.add(new IntColumn("Reg Max"));
+		tableResult.add(new IntColumn("Flattening order"));
 	
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){
@@ -751,12 +770,13 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		} else {
 			tableResult.set(5, row, null);
 		}	
-		tableResult.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableResult.set(6,  row, booleanRemoveZeroes); //Zeroes removed
 		
-		tableResult.set(7, row, spinnerInteger_LMax); // LMax
-		tableResult.set(8, row, spinnerInteger_RegMin); //RegMin
-		tableResult.set(9, row, spinnerInteger_RegMax); //RegMax	
-		tableColLast = 9;
+		tableResult.set(7,  row, spinnerInteger_LMax); // LMax
+		tableResult.set(8,  row, spinnerInteger_RegMin); //RegMin
+		tableResult.set(9,  row, spinnerInteger_RegMax); //RegMax	
+		tableResult.set(10, row, spinnerInteger_FlatteningOrder); //FlatteningOrder 	
+		tableColLast = 10;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){
@@ -805,13 +825,14 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
 
-		String signalRange     = choiceRadioButt_SignalRange;
+		String signalRange    = choiceRadioButt_SignalRange;
 		String surrType       = choiceRadioButt_SurrogateType;
 		int boxLength         = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
 		int numLMax           = spinnerInteger_LMax;
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;
+		int flatteningOrder   = spinnerInteger_FlatteningOrder;
 		boolean removeZeores  = booleanRemoveZeroes;
 	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
@@ -855,7 +876,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 			logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
 			if (signal1D.length > (numLMax * 2)) { // only data series which are large enough
 				rse = new RSE();
-				Rq = rse.calcRqs(signal1D, numLMax);
+				Rq = rse.calcRqs(signal1D, numLMax, flatteningOrder);
 				regressionValues = rse.calcDimension(Rq, regMin, regMax);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
@@ -883,7 +904,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 						if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D);
 				
 						rse = new RSE();
-						Rq = rse.calcRqs(surrSignal1D, numLMax);
+						Rq = rse.calcRqs(surrSignal1D, numLMax, flatteningOrder);
 						regressionValues = rse.calcDimension(Rq, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						resultValues[lastMainResultsIndex + 4 + s]                    = 2.0-regressionValues[1];
@@ -916,7 +937,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 				//Compute specific values************************************************
 				if (subSignal1D.length > (numLMax * 2)) { // only data series which are large enough
 					rse = new RSE();
-					Rq = rse.calcRqs(subSignal1D, numLMax);
+					Rq = rse.calcRqs(subSignal1D, numLMax, flatteningOrder);
 					regressionValues = rse.calcDimension(Rq, regMin, regMax);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
@@ -948,7 +969,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 				//Compute specific values************************************************
 				if (subSignal1D.length > (numLMax * 2)) { // only data series which are large enough
 					rse = new RSE();
-					Rq = rse.calcRqs(subSignal1D, numLMax);
+					Rq = rse.calcRqs(subSignal1D, numLMax, flatteningOrder);
 					regressionValues = rse.calcDimension(Rq, regMin, regMax);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
