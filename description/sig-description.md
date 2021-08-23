@@ -238,6 +238,8 @@
 - Computes Roughness scaling extraction dimensions
 - 50 randomly chosen sub-sequences for each sub-sequence length
 - Scaling factor = 1 
+- Order of flattening polynomial can be set (1st order is recommended)
+- With increasing order, regression minimum should also be increased
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
