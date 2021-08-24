@@ -231,8 +231,8 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
      private int spinnerInteger_RegMax = 3;
     
      //-----------------------------------------------------------------------------------------------------
-     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-     private final String labelInterpolation = INTERPOLATION_LABEL;
+//     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+//     private final String labelInterpolation = INTERPOLATION_LABEL;
      
 //     @Parameter(label = "Interpolation",
 //    		    description = "Type of interpolation for subscaled images",
@@ -1205,8 +1205,8 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 			cursorF.fwd();
 			cursorF.localize(pos);
 			//Get average
-			mean = 0f;
-			
+			mean  = 0f;
+			count = 0;
 			for (int i = 0; i < averagingSize; i++) {
 				for (int j = 0; j < averagingSize; j++) {
 					ra.setPosition(pos[0]*averagingSize + i, 0);
