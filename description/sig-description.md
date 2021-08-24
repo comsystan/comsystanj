@@ -234,11 +234,14 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Sevcik, 1988, Complexity International, [arxiv.org/abs/1003.5266](http://arxiv.org/abs/1003.5266)
 
-### RSE dimension
+### RSE dimension (Roughness dimension)
 - Computes Roughness scaling extraction dimensions
 - 50 randomly chosen sub-sequences for each sub-sequence length
 - Scaling factor = 1 
-- Order of flattening polynomial can be set (1st order is recommended)
+- Flattening (detrending) of sub-sequences with polynomials
+- Order of polynomials can be set
+- 1st order is recommended (smallest error)
+- 0th order is without flattening
 - With increasing order, regression minimum should also be increased
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
