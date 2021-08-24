@@ -236,8 +236,8 @@
 
 ### RSE dimension (Roughness dimension)
 - Computes Roughness scaling extraction dimensions
-- 50 randomly chosen sub-sequences for each sub-sequence length
-- Scaling factor = 1 
+- M number of randomly chosen sub-sequences for each length (M=50 recommended)
+- Scaling factor = 1 (fixed) 
 - Flattening (detrending) of sub-sequences with polynomials
 - Order of polynomials can be set
 - 1st order is recommended (smallest error)
