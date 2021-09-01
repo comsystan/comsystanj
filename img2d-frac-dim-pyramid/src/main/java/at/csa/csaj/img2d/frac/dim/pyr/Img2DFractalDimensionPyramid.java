@@ -38,7 +38,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -48,12 +47,12 @@ import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
-import net.imagej.display.ImageDisplay;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccess;
@@ -70,6 +69,7 @@ import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -98,6 +98,7 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
+import at.csa.csaj.commons.fit.PolynomialFit2D;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import io.scif.DefaultImageMetadata;
@@ -129,10 +130,14 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 	
 	private static Img<FloatType> imgFloat; 
 	private static Img<FloatType> imgSubSampled;
+	private static double[][] imgArr;
+	private static double[][] imgArrPolySurface;
 	private static Cursor<FloatType> cursorF = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
-	private static boolean isBinary = true;
+	
+	private static boolean isBinary = false; //To switch between binary and grey value algorithm in developer modus.
+	
 	private static long width  = 0;
 	private static long height = 0;
 	private static long numDimensions = 0;
@@ -689,7 +694,6 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 	private void processSingleInputImage(int s) throws InterruptedException{
 		long startTime = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];
-		isBinary = true;
 		
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -718,8 +722,8 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 			dim = -regressionValues[1];
 			resultValuesTable[s][1] = dim;
 		} else {
-			dim = 0.0;
-			resultValuesTable[s][1] = 0.0;
+			dim = -regressionValues[1];
+			resultValuesTable[s][1] = dim;
 		}
 		
 		//Set/Reset focus to DatasetIn display
@@ -750,7 +754,6 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 		
 		long startTimeAll = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];
-		isBinary = true;
 		
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -799,8 +802,8 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 					dim = -regressionValues[1];
 					resultValuesTable[s][1] = dim;
 				} else {
-					dim =0.0;
-					resultValuesTable[s][1] = 0.0;
+					dim = -regressionValues[1];
+					resultValuesTable[s][1] = dim;
 				}
 				
 				long duration = System.currentTimeMillis() - startTime;
@@ -998,8 +1001,8 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 			double[] lnEps      = new double[numPyramidImages];
 			for (int n = 0; n < numPyramidImages; n++) {
 				for (int b = 0; b < numBands; b++) {
-					if (totals[n][b] <= 1) {
-						lnTotals[n][b] = 0f; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist
+					if (totals[n][b] <= 0) {
+						lnTotals[n][b] = Double.NaN; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist
 					} else if (Double.isNaN(totals[n][b])) {
 						lnTotals[n][b] = Double.NaN;
 					} else {
@@ -1021,51 +1024,237 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 				double[] lnDataY = new double[numPyramidImages];
 					
 				for (int n = 0; n < numPyramidImages; n++) {
-					if (!isBinary && imageType == "RGB"){
-						lnDataY[n] = totals[n][b];
-					} else {
 					lnDataY[n] = lnTotals[n][b];
-					}
 					lnDataX[n] = lnEps[n];
 				}
 				// System.out.println("FractalDimensionPyramid: dataY: "+ dataY);
 				// System.out.println("FractalDimensionPyramid: dataX: "+ dataX);
 			
 				if (optShowPlot) {
-					if (isBinary) {
-						String preName = "";
-						if (numSlices > 1) {
-							preName = "Slice-"+String.format("%03d", plane) +"-";
-						}
-						RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Pyramid Dimension", 
-								preName + datasetName, "ln(2^n)", "ln(Count)", "",
-								regMin, regMax);
-						doubleLogPlotList.add(doubleLogPlot);
+					String preName = "";
+					if (numSlices > 1) {
+						preName = "Slice-"+String.format("%03d", plane) +"-";
 					}
-					if (!isBinary) {
-				
-					}
+					RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Pyramid Dimension", 
+							preName + datasetName, "ln(2^n)", "ln(Count)", "",
+							regMin, regMax);
+					doubleLogPlotList.add(doubleLogPlot);
 				}
 				
 				// Compute regression
 				LinearRegression lr = new LinearRegression();
-
-//				double[] dataXArray = new double[dataX.size()];
-//				double[] dataYArray = new double[dataY.size()];
-//				for (int i = 0; i < dataX.size(); i++) {
-//					dataXArray[i] = dataX.get(i).doubleValue();
-//				}
-//				for (int i = 0; i < dataY.size(); i++) {
-//					dataYArray[i] = dataY.get(i).doubleValue();
-//				}
-
 				regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
 				//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			}
 			
 		} else { //grey value image
+			int downSamplingFactor;
+			for (int n = 0; n < numPyramidImages; n++) { //Downscaling incl. no downscaling
+			    // "base-pyramid", i.e. layers of pyramid from base layer
+				downSamplingFactor = (int)Math.pow(2,n); //of downsampling
+				downSamplingFactor =  eps[n]; //of downsampling
+				imgFloat = createImgFloat(rai);
+			    imgSubSampled = subSamplingByAveraging(imgFloat, downSamplingFactor);
+			    //imgSubSampled = subSamplingByNearestNeighbour(imgFloat, downSamplingFactor);
+			    
+			    //eps[n] = (int)imgSubSampled.dimension(0); 
+			    //uiService.show("Subsampled image", imgSubSampled);
+				//logService.info(this.getClass().getName() + " width:"+ (imgSubSampled.dimension(0)) + " height:" + (imgSubSampled.dimension(1)));
+					
+				//Img<FloatType> img = (Img<FloatType>) opService.run(net.imagej.ops.create.img.CreateImgFromRAI.class, rai);
+				//opService.run(net.imagej.ops.copy.CopyRAI.class, img, rai);
+				
+				//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
+				//pushes a 3D array to the display and
+				//yields mouse moving errors because the third dimension is not available	
+				if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+downSamplingFactor+" downscaled image", imgSubSampled);
+				
+				//Apply detrending (flattening) with polynomials of order = 1
+				//image has flipped xy indices!!!!!
+				imgArr = new double[(int)imgSubSampled.dimension(1)][(int)imgSubSampled.dimension(0)];
+				// Write to image
+				cursorF = imgSubSampled.localizingCursor();
+				int[] pos = new int[2]; 
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					imgArr[pos[1]][pos[0]] = cursorF.get().get();
+				}	
+			    //Remove mean value to keep the math from blowing up
+		        double meanImage = 0.0;
+		        for (int y = 0; y < imgArr.length; y++) {
+		        	for (int x = 0; x < imgArr[0].length; x++) {
+			        	meanImage += imgArr[y][x];
+			        }	
+		        }
+		        meanImage = meanImage/(imgArr.length*imgArr[0].length);
+		        for (int y = 0; y < imgArr.length; y++) {
+		        	for (int x = 0; x < imgArr[0].length; x++) {
+			        	imgArr[y][x] -= meanImage;
+			        }	
+		        }
+		     
+		        int polyOrderX = 1;
+		        int polyOrderY = 1;
+				PolynomialFit2D pf2D = new PolynomialFit2D();
+				double[][] polyParams = pf2D.calculateParameters(imgArr, polyOrderX, polyOrderY);
+				
+				double dTemp;
+				double yTemp;
+		        // Create an image of the fitted surface
+		        // Example:                
+		        //    dtemp =  (polyParams[3][3]*y*y*y + polyParams[2][3]*y*y + polyParams[1][3]*y + polyParams[0][3])*x*x*x;
+		        //    dtemp += (polyParams[3][2]*y*y*y + polyParams[2][2]*y*y + polyParams[1][2]*y + polyParams[0][2])*x*x;
+		        //    dtemp += (polyParams[3][1]*y*y*y + polyParams[2][1]*y*y + polyParams[1][1]*y + polyParams[0][1])*x;
+		        //    dtemp += (polyParams[3][0]*y*y*y + polyParams[2][0]*y*y + polyParams[1][0]*y + polyParams[0][0]);
+		        imgArrPolySurface = new double[imgArr.length][imgArr[0].length];
+		        for (int y = 0; y < imgArr.length; y++) {
+		        	for (int x = 0; x < imgArr[0].length; x++) {
+		        		 dTemp = 0;
+		                 // Determine the value of the fit at pixel iy,ix
+		                 for(int powx = polyOrderX; powx >= 0; powx--) {
+		                     yTemp = 0;
+		                     for(int powy = polyOrderY; powy >= 0; powy--) {
+		                         yTemp += polyParams[powy][powx] * Math.pow((double)y,(double)powy);
+		                     }
+		                     dTemp += yTemp * Math.pow((double)x,(double)powx);
+		                 }
+		                 // Add back the mean of the image
+		                 imgArrPolySurface[y][x] = dTemp + meanImage;
+			        }	
+		        }
+		        //Subtract polySurface and write back to imgSubSampled
+		        //Note that values of imgSubSampled will then be distributed around 0 and will contain negative values 
+		    	cursorF = imgSubSampled.localizingCursor();
+				pos = new int[2];
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);			
+					cursorF.get().set(cursorF.get().get() - (float)imgArrPolySurface[pos[1]][pos[0]]);
+				}	
+				
+				//if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+downSamplingFactor+" detrended image", imgSubSampled);
+				//uiService.show("Detrended image", imgSubSampled);
 			
-		}
+				// compute totals for double log plot
+//				cursorF = imgSubSampled.localizingCursor();
+//				double value;
+//				double min = Double.MAX_VALUE;
+//				double max = -Double.MAX_VALUE;
+//				double mean = 0.0;
+//				int num = 0;
+//				while (cursorF.hasNext()) {
+//					cursorF.fwd();					
+//					value = cursorF.get().get();
+//					mean = mean + value; 
+//			
+//					if (value > max) max = value;
+//					if (value < min) min = value;
+//					
+//					num = num +1;	
+//				}	
+//				mean = mean /num;
+//						
+//				cursorF = imgSubSampled.localizingCursor();
+//				double meanRq = 0.0;
+//				int     numRq = 0;
+//				while (cursorF.hasNext()) {
+//					cursorF.fwd();
+//					meanRq = meanRq + (cursorF.get().get()-mean)*(cursorF.get().get()-mean); //Mean is already very low and near 0 
+//					numRq = numRq +1;	
+//				}	
+//				meanRq = meanRq /numRq;
+				
+				//first derivative, because it is a spatial parameter
+				double derivative = 0.0;
+				float value1 = 0;
+				float value2 = 0;
+				int subWidth  = (int)imgSubSampled.dimension(0);
+				int subHeight = (int)imgSubSampled.dimension(1);
+				
+				RandomAccess<FloatType> ra = imgSubSampled.randomAccess();
+				for (int x = 0; x < (subWidth - 1); x++) {
+					for (int y = 0; y < subHeight ; y++) {
+						ra.setPosition(new int[]{x,y});
+						value1 = ra.get().get();
+						ra.setPosition(new int[]{x+1,y});
+						value2 = ra.get().get();
+					}	
+					derivative += Math.sqrt(Math.abs(value2-value1));
+				}
+				
+				for (int x = 0; x < subWidth; x++) {
+					for (int y = 0; y < (subHeight - 1); y++) {
+						ra.setPosition(new int [] {x,y});
+						value1 = ra.get().get();
+						ra.setPosition(new int [] {x,y+1});
+						value2 = ra.get().get();
+					}	
+					derivative +=  Math.sqrt(Math.abs(value2-value1));
+				}
+				
+				derivative /= Math.pow(subWidth*subHeight, 2);
+						
+				for (int b = 0; b < numBands; b++) {
+					//totals[n][b] = Math.sqrt(meanRq); //?????????????????not sure about that??????????????????????
+					//totals[n][b] = meanRq;
+					//totals[n][b] = (max-min);///mean; ///mean;
+					totals[n][b] = Math.sqrt(derivative);
+				}
+				
+			}
+			//Computing log values for plot 
+			//Change sequence of entries to start with smallest image
+			double[][] lnTotals = new double[numPyramidImages][numBands];
+			double[] lnEps      = new double[numPyramidImages];
+			for (int n = 0; n < numPyramidImages; n++) {
+				for (int b = 0; b < numBands; b++) {
+					if (totals[n][b] <= 0) {
+						lnTotals[n][b] = Double.NaN; //Math.log(Float.MIN_VALUE); // damit logarithmus nicht undefiniert ist
+					} else if (Double.isNaN(totals[n][b])) {
+						lnTotals[n][b] = Double.NaN;
+					} else {
+						lnTotals[n][b] = Math.log(totals[n][b]);
+					}
+					lnEps[n] = Math.log(eps[n]);
+					//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
+					//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
+					//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
+				}
+			}
+			
+			//Create double log plot
+			boolean isLineVisible = false; //?
+			for (int b = 0; b < numBands; b++) { // mehrere Bands
+				// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			
+				double[] lnDataX = new double[numPyramidImages];
+				double[] lnDataY = new double[numPyramidImages];
+					
+				for (int n = 0; n < numPyramidImages; n++) {
+					lnDataY[n] = lnTotals[n][b];	
+					lnDataX[n] = lnEps[n];
+				}
+				// System.out.println("FractalDimensionPyramid: dataY: "+ dataY);
+				// System.out.println("FractalDimensionPyramid: dataX: "+ dataX);
+			
+				if (optShowPlot) {
+					String preName = "";
+					if (numSlices > 1) {
+						preName = "Slice-"+String.format("%03d", plane) +"-";
+					}
+					RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Pyramid Dimension", 
+							preName + datasetName, "ln(2^n)", "ln(Count)", "",
+							regMin, regMax);
+					doubleLogPlotList.add(doubleLogPlot);
+				}
+				
+				// Compute regression
+				LinearRegression lr = new LinearRegression();
+				regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
+				//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+			}
+		}	
 		return regressionParams;
 		//Output
 		//uiService.show(tableName, table);
@@ -1217,6 +1406,48 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Interac
 			}
 			mean = mean/(float)count;
 			cursorF.get().set(mean);
+		}
+		return imgSubSampled;
+	}
+	
+	/**
+	 * This method creates a smaller image by averaging pixel values 
+	 * @param imgFloat
+	 * @param downSamplingFactor
+	 * @return
+	 */	
+	private Img<FloatType> subSamplingByNearestNeighbour(Img<FloatType> imgFloat, int downSamplingFactor) {
+		
+		int averagingSize = downSamplingFactor;
+		
+		int numDimensions = imgFloat.numDimensions();
+		// compute the number of pixels of the output and the size of the real interval
+		long[] newSize = new long[numDimensions];
+	
+		for ( int d = 0; d < numDimensions; ++d ){
+			newSize[d] = (int)Math.floor(imgFloat.dimension(d) / downSamplingFactor);
+		}		
+		// create the output image
+		ArrayImgFactory arrayImgFactory = new ArrayImgFactory<>(new FloatType());
+		imgSubSampled = arrayImgFactory.create( newSize );
+
+		// cursor to iterate over all pixels
+		cursorF = imgSubSampled.localizingCursor();
+
+		// create a RandomAccess on the source
+		RandomAccess<FloatType> ra = imgFloat.randomAccess();
+		long[] pos = new long[numDimensions];
+		float value= 0f;
+	
+		// for all pixels of the output image
+		while (cursorF.hasNext()) {
+			cursorF.fwd();
+			cursorF.localize(pos);
+			//Get average
+			ra.setPosition(pos[0]*averagingSize, 0);
+			ra.setPosition(pos[1]*averagingSize, 1);
+			value = ra.get().getRealFloat();
+			cursorF.get().set(value);
 		}
 		return imgSubSampled;
 	}
