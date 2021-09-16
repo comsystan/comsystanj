@@ -47,7 +47,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -101,7 +101,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * ******************************************************  
  * 
  */
-@Plugin(type = InteractiveCommand.class, 
+@Plugin(type = ContextCommand.class, 
 	headless = true,
 	label = "Generalized entropies",
 	menu = {
@@ -109,8 +109,8 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "Generalized entropies ", weight = 32)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
-public class SignalGeneralisedEntropies<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class SignalGeneralisedEntropies<T extends RealType<T>> implements Command {	//modal GUI
+//public class SignalGeneralisedEntropies<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL            = "<html><b>Generalised entropies</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -222,8 +222,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	private DefaultGenericTable tableIn;
 	
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable tableResult;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 
 	// Widget elements------------------------------------------------------
@@ -393,8 +393,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
-	private Button buttonProcessAllColumns;
+//	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+//	private Button buttonProcessAllColumns;
 
 
 	// ---------------------------------------------------------------------
@@ -621,114 +621,143 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	
 	/**
 	 * Executed whenever the {@link #buttonProcessSingleColumn} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Generalised entropies, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	logService.info(this.getClass().getName() + " Processing single signal");
-        	    	deleteExistingDisplays();
-            		getAndValidateActiveDataset();
-            		generateTableHeader();
-            		//int activeColumnIndex = getActiveColumnIndex();
-            		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-            		dlgProgress.addMessage("Processing finished!");		
-            		//collectActiveResultAndShowTable(activeColumnIndex);
-            		showTable();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleColumn();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
-
+	
+	/** Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.*/
+	protected void callbackProcessActiveColumn() {
+	
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
-	 * is the main processing method usually implemented in the run() method for
+	 * Executed whenever the {@link #buttonProcessAllColumns} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessAllColumns() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		//exec =  defaultThreadService.getExecutorService();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Generalised entropies, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available columns");
-	            	deleteExistingDisplays();
-	        		getAndValidateActiveDataset();
-	        		generateTableHeader();
-	        		processAllInputColumns();
-	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
-	        		//collectAllResultsAndShowTable();
-	        		showTable();
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });	
-		
-	}
-	
-	// You can control how previews work by overriding the "preview" method.
-	// The code written in this method will be automatically executed every
-	// time a widget value changes.
-	public void preview() {
-		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanProcessImmediately) callbackProcessSingleColumn();
-		// statusService.showStatus(message);
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllColumns();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 
-	// This is often necessary, for example, if your "preview" method manipulates
-	// data;
-	// the "cancel" method will then need to revert any changes done by the previews
-	// back to the original state.
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleColumn();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " Widget canceled");
-	}
-	// ---------------------------------------------------------------------------
-
-	/** The run method executes the command. */
-	@Override
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
 	public void run() {
-		// Nothing, because non blocking dialog has no automatic OK button and would
-		// call this method twice during start up
-
-		// ij.log().info( "Run" );
 		logService.info(this.getClass().getName() + " Run");
-
-		if (ij.ui().isHeadless()) {
-			// execute();
-			this.callbackProcessAllColumns();
-		}
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllColumns();
+	}
+	
+	/**
+	* This method starts the workflow for a single column of the active display
+	*/
+	protected void startWorkflowForSingleColumn() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+	
+    	logService.info(this.getClass().getName() + " Processing single signal");
+    	deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		generateTableHeader();
+		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
+		dlgProgress.addMessage("Processing finished!");		
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
+	/**
+	* This method starts the workflow for all columns of the active display
+	*/
+	protected void startWorkflowForAllColumns() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available columns");
+    	deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		generateTableHeader();
+		processAllInputColumns();
+		dlgProgress.addMessage("Processing finished! Preparing result table...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
+	
 	public void getAndValidateActiveDataset() {
 
 		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
@@ -784,17 +813,17 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		tableResult = new DefaultGenericTable();
-		tableResult.add(new GenericColumn("File name"));
-		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Signal range"));
-		tableResult.add(new GenericColumn("Surrogate type"));
-		tableResult.add(new IntColumn("Surrogates #"));
-		tableResult.add(new IntColumn("Box length"));
-		tableResult.add(new BoolColumn("Zeroes removed"));
+		tableOut = new DefaultGenericTable();
+		tableOut.add(new GenericColumn("File name"));
+		tableOut.add(new GenericColumn("Column name"));	
+		tableOut.add(new GenericColumn("Signal range"));
+		tableOut.add(new GenericColumn("Surrogate type"));
+		tableOut.add(new IntColumn("Surrogates #"));
+		tableOut.add(new IntColumn("Box length"));
+		tableOut.add(new BoolColumn("Zeroes removed"));
 	
-		tableResult.add(new GenericColumn("Probability type"));		
-		tableResult.add(new IntColumn("Lag"));
+		tableOut.add(new GenericColumn("Probability type"));		
+		tableOut.add(new IntColumn("Lag"));
 		
 		minQ       = spinnerInteger_MinQ;
 		maxQ       = spinnerInteger_MaxQ;
@@ -828,85 +857,85 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
-				tableResult.add(new DoubleColumn("SE"));
-				tableResult.add(new DoubleColumn("H1"));
-				tableResult.add(new DoubleColumn("H2"));
-				tableResult.add(new DoubleColumn("H3"));
-				for (int q = 0; q < numQ; q++) tableResult.add(new DoubleColumn("Renyi_q"   + (minQ + q))); 
-				for (int q = 0; q < numQ; q++) tableResult.add(new DoubleColumn("Tsallis_q" + (minQ + q))); 
-				for (int q = 0; q < numQ; q++) tableResult.add(new DoubleColumn("SNorm_q"   + (minQ + q))); 
-				for (int q = 0; q < numQ; q++) tableResult.add(new DoubleColumn("SEscort_q" + (minQ + q))); 
-				for (int e = 0; e < numEta;   e++)  tableResult.add(new DoubleColumn("SEta_e"    + String.format ("%.1f", minEta   + e*stepEta)));
-				for (int k = 0; k < numKappa; k++)  tableResult.add(new DoubleColumn("SKappa_k"  + String.format ("%.1f", minKappa + k*stepKappa))); 
-				for (int b = 0; b < numB;     b++)  tableResult.add(new DoubleColumn("SB_b"      + String.format ("%.1f", minB     + b*stepB))); 
-				for (int be= 0; be< numBeta;  be++) tableResult.add(new DoubleColumn("SBeta_be"  + String.format ("%.1f", minBeta  +be*stepBeta))); 
-				for (int g = 0; g < numGamma; g++)  tableResult.add(new DoubleColumn("SGamma_g"  + String.format ("%.1f", minGamma + g*stepGamma))); 
+				tableOut.add(new DoubleColumn("SE"));
+				tableOut.add(new DoubleColumn("H1"));
+				tableOut.add(new DoubleColumn("H2"));
+				tableOut.add(new DoubleColumn("H3"));
+				for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("Renyi_q"   + (minQ + q))); 
+				for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("Tsallis_q" + (minQ + q))); 
+				for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("SNorm_q"   + (minQ + q))); 
+				for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("SEscort_q" + (minQ + q))); 
+				for (int e = 0; e < numEta;   e++)  tableOut.add(new DoubleColumn("SEta_e"    + String.format ("%.1f", minEta   + e*stepEta)));
+				for (int k = 0; k < numKappa; k++)  tableOut.add(new DoubleColumn("SKappa_k"  + String.format ("%.1f", minKappa + k*stepKappa))); 
+				for (int b = 0; b < numB;     b++)  tableOut.add(new DoubleColumn("SB_b"      + String.format ("%.1f", minB     + b*stepB))); 
+				for (int be= 0; be< numBeta;  be++) tableOut.add(new DoubleColumn("SBeta_be"  + String.format ("%.1f", minBeta  +be*stepBeta))); 
+				for (int g = 0; g < numGamma; g++)  tableOut.add(new DoubleColumn("SGamma_g"  + String.format ("%.1f", minGamma + g*stepGamma))); 
 	
 			} else { //Surrogates	
 				if (choiceRadioButt_EntropyType.equals("SE")) {
-					tableResult.add(new DoubleColumn("SE"));
-					tableResult.add(new DoubleColumn("SE_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SE_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SE"));
+					tableOut.add(new DoubleColumn("SE_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SE_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("H1")) {
-					tableResult.add(new DoubleColumn("H1"));
-					tableResult.add(new DoubleColumn("H1_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("H1_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("H1"));
+					tableOut.add(new DoubleColumn("H1_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("H1_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("H2")) {
-					tableResult.add(new DoubleColumn("H2"));
-					tableResult.add(new DoubleColumn("H2_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("H2_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("H2"));
+					tableOut.add(new DoubleColumn("H2_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("H2_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("H3")) {
-					tableResult.add(new DoubleColumn("H3"));
-					tableResult.add(new DoubleColumn("H3_Surr"));  //Mean surrogate value	 
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("H3_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("H3"));
+					tableOut.add(new DoubleColumn("H3_Surr"));  //Mean surrogate value	 
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("H3_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("Renyi")) {
-					tableResult.add(new DoubleColumn("Renyi_q"   + minQ)); 
-					tableResult.add(new DoubleColumn("Renyi_q"+minQ+"_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("Renyi_q"+minQ+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("Renyi_q"   + minQ)); 
+					tableOut.add(new DoubleColumn("Renyi_q"+minQ+"_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Renyi_q"+minQ+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("Tsallis")) {
-					tableResult.add(new DoubleColumn("Tsallis_q" + minQ)); 
-					tableResult.add(new DoubleColumn("Tsallis_q"+minQ+"_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("Tsallis_q"+minQ+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("Tsallis_q" + minQ)); 
+					tableOut.add(new DoubleColumn("Tsallis_q"+minQ+"_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Tsallis_q"+minQ+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("SNorm")) {
-					tableResult.add(new DoubleColumn("SNorm_q"   + minQ));
-					tableResult.add(new DoubleColumn("SNorm_q"+minQ+"_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SNorm_q"+minQ+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SNorm_q"   + minQ));
+					tableOut.add(new DoubleColumn("SNorm_q"+minQ+"_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SNorm_q"+minQ+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("SEscort")) {
-					tableResult.add(new DoubleColumn("SEscort_q" + minQ)); 
-					tableResult.add(new DoubleColumn("SEscort_q"+minQ+"_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SEscort_q"+minQ+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SEscort_q" + minQ)); 
+					tableOut.add(new DoubleColumn("SEscort_q"+minQ+"_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SEscort_q"+minQ+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("SEta")) {
-					tableResult.add(new DoubleColumn("SEta_e"    + String.format ("%.1f", minEta)));
-					tableResult.add(new DoubleColumn("SEta_e"+minEta+"_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SEta_e"+minEta+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SEta_e"    + String.format ("%.1f", minEta)));
+					tableOut.add(new DoubleColumn("SEta_e"+minEta+"_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SEta_e"+minEta+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("SKappa")) {
-					tableResult.add(new DoubleColumn("SKappa_k"  + String.format ("%.1f", minKappa))); 
-					tableResult.add(new DoubleColumn("SKappa_k"+minKappa+"_Surr"));  //Mean surrogate value	 
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SKappa_k"+minKappa+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SKappa_k"  + String.format ("%.1f", minKappa))); 
+					tableOut.add(new DoubleColumn("SKappa_k"+minKappa+"_Surr"));  //Mean surrogate value	 
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SKappa_k"+minKappa+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("SB")) {
-					tableResult.add(new DoubleColumn("SB_b"      + String.format ("%.1f", minB))); 
-					tableResult.add(new DoubleColumn("SB_b"+minB+"_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SB_b"+minB+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SB_b"      + String.format ("%.1f", minB))); 
+					tableOut.add(new DoubleColumn("SB_b"+minB+"_Surr"));  //Mean surrogate value	
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SB_b"+minB+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("SBeta")) {
-					tableResult.add(new DoubleColumn("SBeta_be"  + String.format ("%.1f", minBeta))); 
-					tableResult.add(new DoubleColumn("SBeta_be"+minBeta+"_Surr"));  //Mean surrogate value	 
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SBeta_be"+minBeta+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SBeta_be"  + String.format ("%.1f", minBeta))); 
+					tableOut.add(new DoubleColumn("SBeta_be"+minBeta+"_Surr"));  //Mean surrogate value	 
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SBeta_be"+minBeta+"_Surr#"+(s+1))); 
 				}
 				else if (choiceRadioButt_EntropyType.equals("SGamma")) {
-					tableResult.add(new DoubleColumn("SGamma_g"  + String.format ("%.1f", minGamma))); 
-					tableResult.add(new DoubleColumn("SGamma_g"+minGamma+"_Surr"));  //Mean surrogate value	 
-					for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SGamma_g"+minGamma+"_Surr#"+(s+1))); 
+					tableOut.add(new DoubleColumn("SGamma_g"  + String.format ("%.1f", minGamma))); 
+					tableOut.add(new DoubleColumn("SGamma_g"+minGamma+"_Surr"));  //Mean surrogate value	 
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SGamma_g"+minGamma+"_Surr#"+(s+1))); 
 				}
 			}
 		} 
@@ -927,7 +956,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			else if (choiceRadioButt_EntropyType.equals("SGamma"))  {entropyHeader = "SGamma_g"+minGamma;}
 				
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableResult.add(new DoubleColumn(entropyHeader+"-#" + n));	
+				tableOut.add(new DoubleColumn(entropyHeader+"-#" + n));	
 			}	
 		}
 		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
@@ -947,7 +976,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			else if (choiceRadioButt_EntropyType.equals("SGamma"))  {entropyHeader = "SGamma_g"+minGamma;}
 		
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableResult.add(new DoubleColumn(entropyHeader+"-#" + n));	
+				tableOut.add(new DoubleColumn(entropyHeader+"-#" + n));	
 			}
 		
 		}	
@@ -981,7 +1010,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	/** This method takes the column at position c and computes results. 
 	 * 
 	 */
-	private void processSingleInputColumn (int c) throws InterruptedException {
+	private void processSingleInputColumn (int c) {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -1000,13 +1029,13 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 
 	/** This method loops over all input columns and computes results. 
 	 * @param dlgProgress */
-	private void processAllInputColumns() throws InterruptedException{
+	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... numb er of signal column
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -1027,7 +1056,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s	
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -1055,26 +1084,26 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		
 		// 0 Entropy
 		// fill table with values
-		tableResult.appendRow();
-		tableResult.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
+		tableOut.appendRow();
+		tableOut.set(0, row, tableInName);//File Name
+		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
 	
-		tableResult.set(2, row, choiceRadioButt_SignalRange); //Signal Method
-		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
+		tableOut.set(2, row, choiceRadioButt_SignalRange); //Signal Method
+		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SignalRange.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
-			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
+			tableOut.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
-			tableResult.set(4, row, null); //# Surrogates
+			tableOut.set(4, row, null); //# Surrogates
 		}
 		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
-			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
+			tableOut.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
-			tableResult.set(5, row, null);
+			tableOut.set(5, row, null);
 		}	
-		tableResult.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6, row, booleanRemoveZeroes); //Zeroes removed
 		
-		tableResult.set(7, row, choiceRadioButt_ProbabilityType);    // Lag
-		tableResult.set(8, row, spinnerInteger_Lag);    // Lag
+		tableOut.set(7, row, choiceRadioButt_ProbabilityType);    // Lag
+		tableOut.set(8, row, spinnerInteger_Lag);    // Lag
 		tableColLast = 8;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
@@ -1083,7 +1112,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
@@ -1095,14 +1124,14 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 1 * numSubsequentBoxes); //1 or 2  for 1 or 2 parameters
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
 		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 1 * numGlidingBoxes); //1 or 2 for 1 or 2 parameters 
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}	
 	}
@@ -1112,7 +1141,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableResult);
+		uiService.show(tableOutName, tableOut);
 	}
 	
 	/**
@@ -1356,7 +1385,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		return resultValues;
 		// SampEn or AppEn
 		// Output
-		// uiService.show(tableName, table);
+		// uiService.show(tableOutName, table);
 	}
 	
 	//------------------------------------------------------------------------------------------------------

@@ -43,7 +43,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -74,7 +74,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin computing <the RSE dimension</a>
  * of a  signal.
  */
-@Plugin(type = InteractiveCommand.class, 
+@Plugin(type = ContextCommand.class, 
 	headless = true,
 	label = "RSE dimension",
 	menu = {
@@ -82,13 +82,13 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "RSE dimension", weight = 21)})
-public class SignalFractalDimensionRSE<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class SignalFractalDimensionRSE<T extends RealType<T>> implements Command {	//modal GUI
+//public class SignalFractalDimensionRSE<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL            = "<html><b>RSE dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
-	private static final String FLATTENINGORDER_LABEL   = "<html><b>Flattening (detrending) polynomial order</b></html>";
+	private static final String RSEOPTIONS_LABEL        = "<html><b>RSE options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background Option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
@@ -154,8 +154,8 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	private DefaultGenericTable tableIn;
 	
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable tableResult;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 
 	// Widget elements------------------------------------------------------
@@ -174,7 +174,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "Maximal Length", description = "Maximal length of sub-sequences", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Maximal length", description = "Maximal length of sub-sequences", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialLMax", callback = "callbackLMax")
 	private int spinnerInteger_LMax;
@@ -182,21 +182,26 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	@Parameter(label = "Regression Min", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "2", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
-	private int spinnerInteger_RegMin = 1;
+	private int spinnerInteger_RegMin = 3;
 
 	@Parameter(label = "Regression Max", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
-	private int spinnerInteger_RegMax = 3;
+	private int spinnerInteger_RegMax = 8;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelFlatteningOrder = FLATTENINGORDER_LABEL;
+	private final String labelRSEOptions = RSEOPTIONS_LABEL;
 
-	@Parameter(label = "Order", description = "Order of polynomial flattening function (0.. without flattening)", style = NumberWidget.SPINNER_STYLE, min = "0", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "M", description = "Number of randomly chosen sub-sequences for each length (M=50 recommended)", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
+			   persist = false, //restore previous value default = true
+			   initializer = "initialNumM", callback = "callbackNumM")
+	private int spinnerInteger_NumM = 50;
+	
+	@Parameter(label = "Polynomial Order", description = "Order of polynomial flattening (1.. recommended, 0.. without flattening)", style = NumberWidget.SPINNER_STYLE, min = "0", max = "9999999999999999999", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialFlatteningOrder", callback = "callbackFlatteningOrder")
-	private int spinnerInteger_FlatteningOrder = 0;
+	private int spinnerInteger_FlatteningOrder = 1;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -272,8 +277,8 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
-	private Button buttonProcessAllColumns;
+//	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+//	private Button buttonProcessAllColumns;
 
 
 	// ---------------------------------------------------------------------
@@ -284,14 +289,17 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		spinnerInteger_LMax = 8;
 	}
 	protected void initialRegMin() {
-		spinnerInteger_RegMin = 2;
+		spinnerInteger_RegMin = 3;
 	}
 	protected void initialRegMax() {
 		//numbLMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
 		spinnerInteger_RegMax = 8;
 	}
+	protected void initialNumM() {
+		spinnerInteger_NumM = 50;
+	}
 	protected void initialFlatteningOrder() {
-		spinnerInteger_FlatteningOrder = 0;
+		spinnerInteger_FlatteningOrder = 1;
 	}
 	protected void initialSignalRange() {
 		choiceRadioButt_SignalRange = "Entire signal";
@@ -315,6 +323,9 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	}
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
+	}
+	protected void initialNumColumn() {
+		spinnerInteger_NumColumn = 1;
 	}
 
 	// The following method is known as "callback" which gets executed
@@ -358,12 +369,17 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 			spinnerInteger_RegMax = spinnerInteger_LMax;
 		}
 
-		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_RegMax);
+		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
+	}
+	
+	/** Executed whenever the {@link #spinInteger_NumM} parameter changes. */
+	protected void callbackNumM() {
+		logService.info(this.getClass().getName() + " M set to " + spinnerInteger_NumM);
 	}
 	
 	/** Executed whenever the {@link #spinInteger_FlatteningOrder} parameter changes. */
 	protected void callbackFlatteningOrder() {
-		logService.info(this.getClass().getName() + " Flattening order set  to " + spinnerInteger_FlatteningOrder);
+		logService.info(this.getClass().getName() + " Flattening order set to " + spinnerInteger_FlatteningOrder);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
@@ -418,116 +434,144 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSingleColumn} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing RSE dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing RSE dimensions, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	logService.info(this.getClass().getName() + " Processing single signal");
-        	    	deleteExistingDisplays();
-        	    	getAndValidateActiveDataset();
-            		generateTableHeader();
-            		int activeColumnIndex = getActiveColumnIndex();
-            		//processActiveInputColumn(activeColumnIndex, dlgProgress);
-              		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-            		dlgProgress.addMessage("Processing finished! Preparing result table...");		
-            		//collectActiveResultAndShowTable(activeColumnIndex);
-            		showTable();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleColumn();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
-
+	
+	/** Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.*/
+	protected void callbackProcessActiveColumn() {
+	
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
-	 * is the main processing method usually implemented in the run() method for
+	 * Executed whenever the {@link #buttonProcessAllColumns} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessAllColumns() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		//exec =  defaultThreadService.getExecutorService();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing RSE dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing RSE dimensions, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available columns");
-	            	deleteExistingDisplays();
-	        		getAndValidateActiveDataset();
-	        		generateTableHeader();
-	        		processAllInputColumns();
-	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
-	        		//collectAllResultsAndShowTable();
-	        		showTable();
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });	
-		
-	}
-	
-	// You can control how previews work by overriding the "preview" method.
-	// The code written in this method will be automatically executed every
-	// time a widget value changes.
-	public void preview() {
-		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanProcessImmediately) callbackProcessSingleColumn();
-		// statusService.showStatus(message);
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllColumns();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 
-	// This is often necessary, for example, if your "preview" method manipulates
-	// data;
-	// the "cancel" method will then need to revert any changes done by the previews
-	// back to the original state.
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleColumn();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " Widget canceled");
-	}
-	// ---------------------------------------------------------------------------
-
-	/** The run method executes the command. */
-	@Override
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
 	public void run() {
-		// Nothing, because non blocking dialog has no automatic OK button and would
-		// call this method twice during start up
-
-		// ij.log().info( "Run" );
 		logService.info(this.getClass().getName() + " Run");
-
-		if (ij.ui().isHeadless()) {
-			// execute();
-			this.callbackProcessAllColumns();
-		}
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllColumns();
+	}
+	
+	/**
+	* This method starts the workflow for a single column of the active display
+	*/
+	protected void startWorkflowForSingleColumn() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing RSE dimensions, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+		
+    	logService.info(this.getClass().getName() + " Processing single signal");
+    	deleteExistingDisplays();
+    	getAndValidateActiveDataset();
+		generateTableHeader();
+  		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
+		dlgProgress.addMessage("Processing finished! Preparing result table...");		
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
+	/**
+	* This method starts the workflow for all columns of the active display
+	*/
+	protected void startWorkflowForAllColumns() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing RSE dimensions, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available columns");
+    	deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		generateTableHeader();
+		processAllInputColumns();
+		dlgProgress.addMessage("Processing finished! Preparing result table...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();   
+	}
+	
 	public void getAndValidateActiveDataset() {
 
 		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
@@ -583,51 +627,52 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		tableResult = new DefaultGenericTable();
-		tableResult.add(new GenericColumn("File name"));
-		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Signal range"));
-		tableResult.add(new GenericColumn("Surrogate type"));
-		tableResult.add(new IntColumn("# Surrogates"));
-		tableResult.add(new IntColumn("Box length"));
-		tableResult.add(new BoolColumn("Zeroes removed"));
+		tableOut = new DefaultGenericTable();
+		tableOut.add(new GenericColumn("File name"));
+		tableOut.add(new GenericColumn("Column name"));	
+		tableOut.add(new GenericColumn("Signal range"));
+		tableOut.add(new GenericColumn("Surrogate type"));
+		tableOut.add(new IntColumn("# Surrogates"));
+		tableOut.add(new IntColumn("Box length"));
+		tableOut.add(new BoolColumn("Zeroes removed"));
 		
-		tableResult.add(new IntColumn("L Max"));
-		tableResult.add(new IntColumn("Reg Min"));
-		tableResult.add(new IntColumn("Reg Max"));
-		tableResult.add(new IntColumn("Flattening order"));
+		tableOut.add(new IntColumn("L Max"));
+		tableOut.add(new IntColumn("Reg Min"));
+		tableOut.add(new IntColumn("Reg Max"));
+		tableOut.add(new IntColumn("M"));
+		tableOut.add(new IntColumn("Flattening order"));
 	
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){
-			tableResult.add(new DoubleColumn("Drse"));	
-			tableResult.add(new DoubleColumn("R2"));
-			tableResult.add(new DoubleColumn("StdErr"));
+			tableOut.add(new DoubleColumn("Drse"));	
+			tableOut.add(new DoubleColumn("R2"));
+			tableOut.add(new DoubleColumn("StdErr"));
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
-				tableResult.add(new DoubleColumn("Drse_Surr")); //Mean surrogate value	
-				tableResult.add(new DoubleColumn("R2_Surr")); //Mean surrogate value
-				tableResult.add(new DoubleColumn("StdErr_Surr")); //Mean surrogate value
-				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("Drse_Surr-#"+(s+1))); 
-				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
-				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("StdErr_Surr-#"+(s+1))); 
+				tableOut.add(new DoubleColumn("Drse_Surr")); //Mean surrogate value	
+				tableOut.add(new DoubleColumn("R2_Surr")); //Mean surrogate value
+				tableOut.add(new DoubleColumn("StdErr_Surr")); //Mean surrogate value
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Drse_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("StdErr_Surr-#"+(s+1))); 
 			}	
 		} 
 		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableResult.add(new DoubleColumn("Drse-#" + n));	
+				tableOut.add(new DoubleColumn("Drse-#" + n));	
 			}
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableResult.add(new DoubleColumn("R2-#" + n));	
+				tableOut.add(new DoubleColumn("R2-#" + n));	
 			}
 		}
 		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableResult.add(new DoubleColumn("Drse-#" + n));	
+				tableOut.add(new DoubleColumn("Drse-#" + n));	
 			}
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableResult.add(new DoubleColumn("R2-#" + n));	
+				tableOut.add(new DoubleColumn("R2-#" + n));	
 			}
 		}	
 	}
@@ -681,7 +726,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	 * This method takes the single column c and computes results. 
 	 * @Param int c
 	 * */
-	private void processSingleInputColumn (int c) throws InterruptedException {
+	private void processSingleInputColumn (int c) {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -700,13 +745,13 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 
 	/** This method loops over all input columns and computes results. 
 	 * @param dlgProgress */
-	private void processAllInputColumns() throws InterruptedException{
+	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... numb er of signal column
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -727,7 +772,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s	
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -755,28 +800,29 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		
 		// 0 Drse, 1 R2, 2 StdErr
 		// fill table with values
-		tableResult.appendRow();
-		tableResult.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
-		tableResult.set(2, row, choiceRadioButt_SignalRange); //Signal Method
-		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
+		tableOut.appendRow();
+		tableOut.set(0, row, tableInName);//File Name
+		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
+		tableOut.set(2, row, choiceRadioButt_SignalRange); //Signal Method
+		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SignalRange.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
-			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
+			tableOut.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
-			tableResult.set(4, row, null); //# Surrogates
+			tableOut.set(4, row, null); //# Surrogates
 		}
 		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
-			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
+			tableOut.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
-			tableResult.set(5, row, null);
+			tableOut.set(5, row, null);
 		}	
-		tableResult.set(6,  row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6,  row, booleanRemoveZeroes); //Zeroes removed
 		
-		tableResult.set(7,  row, spinnerInteger_LMax); // LMax
-		tableResult.set(8,  row, spinnerInteger_RegMin); //RegMin
-		tableResult.set(9,  row, spinnerInteger_RegMax); //RegMax	
-		tableResult.set(10, row, spinnerInteger_FlatteningOrder); //FlatteningOrder 	
-		tableColLast = 10;
+		tableOut.set(7,  row, spinnerInteger_LMax); // LMax
+		tableOut.set(8,  row, spinnerInteger_RegMin); //RegMin
+		tableOut.set(9,  row, spinnerInteger_RegMax); //RegMax	
+		tableOut.set(10, row, spinnerInteger_NumM); //M number of randomly chosen sub-sequences for each length 	
+		tableOut.set(11, row, spinnerInteger_FlatteningOrder); //FlatteningOrder 	
+		tableColLast = 11;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){
@@ -784,7 +830,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
@@ -797,7 +843,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); // 2 parameters
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
 		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
@@ -805,7 +851,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); // 2 parameters 
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}	
 	}
@@ -815,7 +861,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableResult);
+		uiService.show(tableOutName, tableOut);
 	}
 	
 	/**
@@ -832,6 +878,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		int numLMax           = spinnerInteger_LMax;
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;
+		int numM			  = spinnerInteger_NumM;
 		int flatteningOrder   = spinnerInteger_FlatteningOrder;
 		boolean removeZeores  = booleanRemoveZeroes;
 	
@@ -876,7 +923,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 			logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
 			if (signal1D.length > (numLMax * 2)) { // only data series which are large enough
 				rse = new RSE();
-				Rq = rse.calcRqs(signal1D, numLMax, flatteningOrder);
+				Rq = rse.calcRqs(signal1D, numLMax, numM, flatteningOrder);
 				regressionValues = rse.calcDimension(Rq, regMin, regMax);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
@@ -904,7 +951,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 						if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D);
 				
 						rse = new RSE();
-						Rq = rse.calcRqs(surrSignal1D, numLMax, flatteningOrder);
+						Rq = rse.calcRqs(surrSignal1D, numLMax, numM, flatteningOrder);
 						regressionValues = rse.calcDimension(Rq, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						resultValues[lastMainResultsIndex + 4 + s]                    = 2.0-regressionValues[1];
@@ -937,7 +984,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 				//Compute specific values************************************************
 				if (subSignal1D.length > (numLMax * 2)) { // only data series which are large enough
 					rse = new RSE();
-					Rq = rse.calcRqs(subSignal1D, numLMax, flatteningOrder);
+					Rq = rse.calcRqs(subSignal1D, numLMax, numM, flatteningOrder);
 					regressionValues = rse.calcDimension(Rq, regMin, regMax);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
@@ -969,7 +1016,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 				//Compute specific values************************************************
 				if (subSignal1D.length > (numLMax * 2)) { // only data series which are large enough
 					rse = new RSE();
-					Rq = rse.calcRqs(subSignal1D, numLMax, flatteningOrder);
+					Rq = rse.calcRqs(subSignal1D, numLMax, numM, flatteningOrder);
 					regressionValues = rse.calcDimension(Rq, regMin, regMax);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
@@ -988,7 +1035,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends Interactiv
 		return resultValues;
 		// Dim, R2, StdErr
 		// Output
-		// uiService.show(tableName, table);
+		// uiService.show(tableOutName, table);
 	}
 
 	// This method shows the double log plot

@@ -5,10 +5,10 @@ New-----------------------------------------------------------
 Signal - RSE dimension
 
 Bugfix--------------------------------------------------------
-
+2D Image - Pyramid dimension - Subsampling of images
 
 Miscellaneous-------------------------------------------------
-
+Changed UI type from InteractiveCommand to ContextCommand for all plugins 
 
 29.2.1.2
 New-----------------------------------------------------------

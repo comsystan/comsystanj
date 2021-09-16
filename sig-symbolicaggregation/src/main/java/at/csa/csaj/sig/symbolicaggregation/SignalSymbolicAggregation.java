@@ -52,7 +52,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -78,7 +78,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin generating a <Symbolic aggregation</a>
  * of a signal.
  */
-@Plugin(type = InteractiveCommand.class, 
+@Plugin(type = ContextCommand.class, 
 	headless = true,
 	label = "Symbolic aggregation",
 	menu = {
@@ -86,8 +86,8 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "Symbolic aggregation", weight = 42)})
-public class SignalSymbolicAggregation<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class SignalSymbolicAggregation<T extends RealType<T>> implements Command {	//modal GUI
+//public class SignalSymbolicAggregation<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL                      = "<html><b>Symbolic aggregation</b></html>";
 	private static final String SPACE_LABEL                       = "";
@@ -117,7 +117,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	private static String signalString = null; //Symbolic representation of signal
 	private static String[][] LUMatrix;
 	
-	private static final String imageOutName = "Symbolic aggregation";
+	private static final String datasetOutName = "Symbolic aggregation";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -160,9 +160,8 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 
 	//@Parameter(type = ItemIO.INPUT)
 	private DefaultGenericTable tableIn;
-	
-	
-	@Parameter(label = "Symbolic aggregation", type = ItemIO.OUTPUT)
+		
+	@Parameter(label = datasetOutName, type = ItemIO.OUTPUT)
 	private Dataset datasetOut;
 	
 	private Img<UnsignedByteType> singleImg;
@@ -294,8 +293,6 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
-	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------
 	// The following initialzer functions set initial values
@@ -348,7 +345,11 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
-}
+	}
+	
+	protected void initialNumColumn() {
+		spinnerInteger_NumColumn = 1;
+	}
 
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
@@ -443,111 +444,140 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSingleColumn} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Generating symbolic aggregation, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	logService.info(this.getClass().getName() + " Processing single signal");
-            		deleteExistingDisplays();
-        	    	getAndValidateActiveDataset();
-            		//int activeColumnIndex = getActiveColumnIndex();
-            		//processActiveInputColumn(activeColumnIndex);
-              		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-            		dlgProgress.addMessage("Processing finished! Preparing visualization...");		
-            		//collectActiveResultAndShowTable(activeColumnIndex);
-            		showImage();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleColumn();
+	    	   	uiService.show(datasetOutName, datasetOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
-
+	
+	/** Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.*/
+	protected void callbackProcessActiveColumn() {
+	
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
-	 * is the main processing method usually implemented in the run() method for
+	 * Executed whenever the {@link #buttonProcessAllColumns} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessAllColumns() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		//exec =  defaultThreadService.getExecutorService();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Generating symbolic aggregation, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available columns");
-            		deleteExistingDisplays();
-	        		getAndValidateActiveDataset();
-	        		processAllInputColumns();
-	        		dlgProgress.addMessage("Processing finished! Preparing visualization...");
-	        		showImage();
-	        		
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });		
-	}
-	
-	// You can control how previews work by overriding the "preview" method.
-	// The code written in this method will be automatically executed every
-	// time a widget value changes.
-	public void preview() {
-		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanProcessImmediately) callbackProcessSingleColumn();
-		// statusService.showStatus(message);
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllColumns();
+	    	   	uiService.show(datasetOutName, datasetOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 
-	// This is often necessary, for example, if your "preview" method manipulates
-	// data;
-	// the "cancel" method will then need to revert any changes done by the previews
-	// back to the original state.
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleColumn();
+		    	   	uiService.show(datasetOutName, datasetOut);   //Show dataset because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " Widget canceled");
-	}
-	// ---------------------------------------------------------------------------
-
-	/** The run method executes the command. */
-	@Override
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
 	public void run() {
-		// Nothing, because non blocking dialog has no automatic OK button and would
-		// call this method twice during start up
-
-		// ij.log().info( "Run" );
 		logService.info(this.getClass().getName() + " Run");
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllColumns();
+	}
+	
+	/**
+	* This method starts the workflow for a single column of the active display
+	*/
+	protected void startWorkflowForSingleColumn() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+		
+    	logService.info(this.getClass().getName() + " Processing single signal");
+		deleteExistingDisplays();
+    	getAndValidateActiveDataset();
+  		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
+		dlgProgress.addMessage("Processing finished! Preparing visualization...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
 
-		if (ij.ui().isHeadless()) {
-			// execute();
-			this.callbackProcessAllColumns();
-		}
+	/**
+	* This method starts the workflow for all columns of the active display
+	*/
+	protected void startWorkflowForAllColumns() {
+		
+		dlgProgress = new WaitingDialogWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available columns");
+		deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		processAllInputColumns();
+		dlgProgress.addMessage("Processing finished! Preparing visualization...");		
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
 	public void getAndValidateActiveDataset() {
@@ -622,7 +652,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(imageOutName))
+				if (display.getName().equals(datasetOutName))
 					display.close();
 			}
 		}
@@ -632,7 +662,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	 * This method takes the single column s and computes results. 
 	 * @Param int s
 	 * */
-	private void processSingleInputColumn (int s) throws InterruptedException {
+	private void processSingleInputColumn (int s) {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -649,7 +679,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 			datasetOut.axis(2).setType(Axes.CHANNEL);
 			datasetOut.setCompositeChannelCount(3);
 		}
-		datasetOut.setName(imageOutName);
+		datasetOut.setName(datasetOutName);
 		logService.info(this.getClass().getName() + " Processing finished.");
 
 		long duration = System.currentTimeMillis() - startTime;
@@ -664,7 +694,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	 * This method loops over all input columns and computes results. 
 	 * 
 	 * */
-	private void processAllInputColumns() throws InterruptedException{
+	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		
@@ -678,7 +708,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 		
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... numb er of signal column
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -693,7 +723,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 				
 				//create stack datasetOut with info from first image
 				if (s == 0) {
-					String name = imageOutName;
+					String name = datasetOutName;
 					int bitsPerPixel;
 					AxisType[] axes;
 					long[] dims;
@@ -763,7 +793,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -782,7 +812,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	 */
 	private void showImage() {
 		// Show table
-		uiService.show(imageOutName, datasetOut);
+		uiService.show(datasetOutName, datasetOut);
 	}
 	
 	/**

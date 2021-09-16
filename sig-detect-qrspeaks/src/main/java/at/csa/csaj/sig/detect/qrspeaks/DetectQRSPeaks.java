@@ -32,7 +32,8 @@ import net.imagej.ImageJ;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
+
 import org.scijava.command.Previewable;
 import org.scijava.log.LogService;
 import org.scijava.menu.MenuConstants;
@@ -63,7 +64,7 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = InteractiveCommand.class,
+@Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "QRS peaks detection (from file)",
 	menu = {
@@ -71,7 +72,7 @@ import javax.swing.UIManager;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "QRS peaks detection (from file)", weight = 12)})
-public class DetectQRSPeaks  implements Command, Previewable {
+public class DetectQRSPeaks  extends ContextCommand implements Previewable { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";
 	private static final String SPACE_LABEL = "";
@@ -238,7 +239,7 @@ public class DetectQRSPeaks  implements Command, Previewable {
 		//QRSPeaksDetector task = new QRSPeaksDetector(logService, statusService, files, offSet, sampleRate, oseaMethod, outputOption, saveFile); 
 		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Detecting QRS peaks and RR intervals, please wait...<br>Open console window for further info.</html>");
 		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Detecting QRS peaks and RR intervals, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown );
+																					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown );
 		//dlgProgress.updatePercent("");
 		//dlgProgress.setBarIndeterminate(true);
 		dlgProgress.setVisible(true);

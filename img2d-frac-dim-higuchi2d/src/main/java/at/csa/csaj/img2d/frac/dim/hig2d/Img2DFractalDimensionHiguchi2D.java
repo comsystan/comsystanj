@@ -57,8 +57,7 @@ import net.imglib2.view.Views;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -104,10 +103,10 @@ import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
 /**
- * A {@link Command} plugin computing <the 2D Higuchi dimension</a>
+ * A {@link ContextCommand} plugin computing <the 2D Higuchi dimension</a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class,
+@Plugin(type = ContextCommand.class,
 headless = true,
 label = "Higuchi dimension 2D",
 menu = {
@@ -115,8 +114,8 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "Image (2D)"),
 @Menu(label = "Higuchi dimension 2D", weight = 10)})
-public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> implements Command {	//modal GUI
+//public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL            = "Computes fractal dimension with with Higuchi 2D algorithms";
 	private static final String SPACE_LABEL             = "";
@@ -138,7 +137,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 	private static int  numbKMax = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; // first column is the image index, second column are the corresponding regression values
-	private static final String tableName = "Table - Higuchi2D dimension";
+	private static final String tableOutName = "Table - Higuchi2D dimension";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -180,8 +179,8 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 	@Parameter
 	private DatasetService datasetService;
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable table;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 
 	// Widget elements------------------------------------------------------
@@ -284,9 +283,9 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 //		    callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
 
-	@Parameter(label = "Process all available images",
-				callback = "callbackProcessAllImages")
-	private Button buttonProcessAllImages;
+//	@Parameter(label = "Process all available images",
+//			callback = "callbackProcessAllImages")
+//	private Button buttonProcessAllImages;
 	
 	// ---------------------------------------------------------------------
 	// The following initialzer functions set initial values
@@ -390,154 +389,150 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
 	}
 	
-
-	/** Executed whenever the {@link #buttonProcessSingelImage} button is pressed. */
+	/**
+	 * Executed whenever the {@link #buttonProcessSingleImage} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
 	protected void callbackProcessSingleImage() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Higuchi2D dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	deleteExistingDisplays();
-            		int validation = getAndValidateActiveDataset();
-            		if (validation == 1){
-            			int sliceIndex = spinnerInteger_NumImageSlice - 1;
-            	        logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-	            		processSingleInputImage(sliceIndex);
-	            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-	            		generateTableHeader();
-	            		collectActiveResultAndShowTable(sliceIndex);
-            		}
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleImage();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
+	}
+	
+	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed.*/
+	protected void callbackProcessActiveImage() {
+	
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessActiveImage} button is pressed.
-	 */
-	protected void callbackProcessActiveImage() {
-		//prepare  executer service
-		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Higuchi2D dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	deleteExistingDisplays();
-            		int validation = getAndValidateActiveDataset();
-            		if (validation == 1){
-	            		int activeSliceIndex = getActiveImageIndex();
-	            		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
-	            		processSingleInputImage(activeSliceIndex);
-	            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-	            		generateTableHeader();
-	            		collectActiveResultAndShowTable(activeSliceIndex);
-            		}
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
-	}
-
-	/**
-	 * Executed whenever the {@link #buttonProcessAllImages} button is pressed. This
-	 * is the main processing method usually implemented in the run() method for
+	 * Executed whenever the {@link #buttonProcessAllImages} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessAllImages() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		//exec =  defaultThreadService.getExecutorService();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Higuchi2D dimensions, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available images");
-	            	deleteExistingDisplays();
-	        		int validation = getAndValidateActiveDataset();
-	        		if (validation == 1){
-		        		processAllInputImages();
-		        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		        		generateTableHeader();
-		        		collectAllResultsAndShowTable();
-	        		}
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });	
-		
-	}
-	
-	// You can control how previews work by overriding the "preview" method.
-	// The code written in this method will be automatically executed every
-	// time a widget value changes.
-	public void preview() {
-		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanProcessImmediately) callbackProcessSingleImage();
-		// statusService.showStatus(message);
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllImages();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 
-	// This is often necessary, for example, if your "preview" method manipulates
-	// data;
-	// the "cancel" method will then need to revert any changes done by the previews
-	// back to the original state.
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleImage();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " Widget canceled");
-	}
-	// ---------------------------------------------------------------------------
-
-	/** The run method executes the command. */
-	@Override
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
 	public void run() {
-		// Nothing, because non blocking dialog has no automatic OK button and would
-		// call this method twice during start up
-
-		// ij.log().info( "Run" );
 		logService.info(this.getClass().getName() + " Run");
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllImages();
+	}
 
-		if (ij.ui().isHeadless()) {
-			// execute();
-			this.callbackProcessAllImages();
+	/**
+	* This method starts the workflow for a single image of the active display
+	*/
+	protected void startWorkflowForSingleImage() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+	
+    	deleteExistingDisplays();
+		int validation = getAndValidateActiveDataset();
+		if (validation == 1){
+			int sliceIndex = spinnerInteger_NumImageSlice - 1;
+	        logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+    		processSingleInputImage(sliceIndex);
+    		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+    		generateTableHeader();
+    		writeSingleResultToTable(sliceIndex);
 		}
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
+
+	/**
+	* This method starts the workflow for all images of the active display
+	*/
+	protected void startWorkflowForAllImages() {
+		
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available images");
+    	deleteExistingDisplays();
+		int validation = getAndValidateActiveDataset();
+		if (validation == 1){
+    		processAllInputImages();
+    		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+    		generateTableHeader();
+    		writeAllResultsToTable();
+		}
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
 	public int getAndValidateActiveDataset() {
@@ -746,7 +741,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableName)) display.close();
+				if (display.getName().contains(tableOutName)) display.close();
 			}			
 		}
 	}
@@ -754,7 +749,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 	/** This method takes the active image and computes results. 
 	 *
 	 **/
-	private void processSingleInputImage (int s) throws InterruptedException {
+	private void processSingleInputImage (int s) {
 		
 		long startTime = System.currentTimeMillis();
 
@@ -860,7 +855,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 	/** This method loops over all input images and computes results. 
 	 *
 	 **/
-	private void processAllInputImages() throws InterruptedException{
+	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		
@@ -873,7 +868,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 
 		// loop over all slices of stack
 		for (int s = 0; s < numSlices; s++) { // p...planes of an image stack
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numSlices) * 100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -965,7 +960,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s	
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -1005,26 +1000,25 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 		DoubleColumn columnR2            = new DoubleColumn("R2");
 		DoubleColumn columnStdErr        = new DoubleColumn("StdErr");
 
-		table = new DefaultGenericTable();
-		table.add(columnFileName);
-		table.add(columnSliceName);
-		table.add(columnKMax);
-		table.add(columnRegMin);
-		table.add(columnRegMax);
-		table.add(columnMethod);
-		table.add(columnSkipZeroes);
-		table.add(columnDh);
-		table.add(columnR2);
-		table.add(columnStdErr);
+		tableOut = new DefaultGenericTable();
+		tableOut.add(columnFileName);
+		tableOut.add(columnSliceName);
+		tableOut.add(columnKMax);
+		tableOut.add(columnRegMin);
+		tableOut.add(columnRegMax);
+		tableOut.add(columnMethod);
+		tableOut.add(columnSkipZeroes);
+		tableOut.add(columnDh);
+		tableOut.add(columnR2);
+		tableOut.add(columnStdErr);
 
 	}
 
-	/**
-	 * collects current result and shows table
-	 * 
-	 * @param int slice number of active image.
-	 */
-	private void collectActiveResultAndShowTable(int sliceNumber) {
+	/** 
+	*  writes current result to table
+	*  @param int slice number of active image.
+	*/
+	private void writeSingleResultToTable(int sliceNumber) { 
 
 		int regMin = spinnerInteger_RegMin;
 		int regMax = spinnerInteger_RegMax;
@@ -1033,24 +1027,23 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 		int s = sliceNumber;
 		// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		// fill table with values
-		table.appendRow();
-		table.set("File name",  table.getRowCount() - 1, datasetName);	
-		if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-		table.set("k",           table.getRowCount() - 1, numKMax);
-		table.set("RegMin",      table.getRowCount() - 1, regMin);
-		table.set("RegMax",      table.getRowCount() - 1, regMax);
-		table.set("Method",      table.getRowCount() - 1, choiceRadioButt_Method);
-		table.set("Skip zeroes", table.getRowCount() - 1, booleanSkipZeroes);
-		table.set("Dh",          table.getRowCount() - 1, resultValuesTable[s][1]);
-		table.set("R2",          table.getRowCount() - 1, resultValuesTable[s][4]);
-		table.set("StdErr",      table.getRowCount() - 1, resultValuesTable[s][3]);
-	
-		// Show table
-		uiService.show(tableName, table);
+		tableOut.appendRow();
+		tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
+		if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		tableOut.set("k",           tableOut.getRowCount() - 1, numKMax);
+		tableOut.set("RegMin",      tableOut.getRowCount() - 1, regMin);
+		tableOut.set("RegMax",      tableOut.getRowCount() - 1, regMax);
+		tableOut.set("Method",      tableOut.getRowCount() - 1, choiceRadioButt_Method);
+		tableOut.set("Skip zeroes", tableOut.getRowCount() - 1, booleanSkipZeroes);
+		tableOut.set("Dh",          tableOut.getRowCount() - 1, resultValuesTable[s][1]);
+		tableOut.set("R2",          tableOut.getRowCount() - 1, resultValuesTable[s][4]);
+		tableOut.set("StdErr",      tableOut.getRowCount() - 1, resultValuesTable[s][3]);
 	}
 
-	/** collects all results and shows table */
-	private void collectAllResultsAndShowTable() {
+	/** 
+	*  Writes all results to table
+	*/
+	private void writeAllResultsToTable() {
 
 		int regMin = spinnerInteger_RegMin;
 		int regMax = spinnerInteger_RegMax;
@@ -1060,20 +1053,18 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Inter
 		for (int s = 0; s < numSlices; s++) { // slices of an image stack
 			// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			// fill table with values
-			table.appendRow();
-			table.set("File name",  table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("k",           table.getRowCount() - 1, numKMax);
-			table.set("RegMin",      table.getRowCount() - 1, regMin);
-			table.set("RegMax",      table.getRowCount() - 1, regMax);
-			table.set("Method",      table.getRowCount() - 1, choiceRadioButt_Method);
-			table.set("Skip zeroes", table.getRowCount() - 1, booleanSkipZeroes);
-			table.set("Dh",          table.getRowCount() - 1, resultValuesTable[s][1]);
-			table.set("R2",          table.getRowCount() - 1, resultValuesTable[s][4]);
-			table.set("StdErr",      table.getRowCount() - 1, resultValuesTable[s][3]);	
-		}
-		uiService.show(tableName, table);
-		
+			tableOut.appendRow();
+			tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("k",           tableOut.getRowCount() - 1, numKMax);
+			tableOut.set("RegMin",      tableOut.getRowCount() - 1, regMin);
+			tableOut.set("RegMax",      tableOut.getRowCount() - 1, regMax);
+			tableOut.set("Method",      tableOut.getRowCount() - 1, choiceRadioButt_Method);
+			tableOut.set("Skip zeroes", tableOut.getRowCount() - 1, booleanSkipZeroes);
+			tableOut.set("Dh",          tableOut.getRowCount() - 1, resultValuesTable[s][1]);
+			tableOut.set("R2",          tableOut.getRowCount() - 1, resultValuesTable[s][4]);
+			tableOut.set("StdErr",      tableOut.getRowCount() - 1, resultValuesTable[s][3]);	
+		}		
 	}
 
 	/**

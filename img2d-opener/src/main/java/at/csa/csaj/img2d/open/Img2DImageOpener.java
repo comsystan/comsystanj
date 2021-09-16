@@ -45,6 +45,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.ItemIO;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
+import org.scijava.command.ContextCommand;
 import org.scijava.io.IOService;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -83,12 +84,12 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = Command.class, label = "Image opener", menu = {
+@Plugin(type = ContextCommand.class, label = "Image opener", menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
         @Menu(label = "Image opener", weight = 1)})
-public class Img2DImageOpener<T extends RealType<T>> implements Command {
+public class Img2DImageOpener<T extends RealType<T>> extends ContextCommand { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens single or multiple images</b></html>";
 	private static final String SPACE_LABEL  = "";

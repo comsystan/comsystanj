@@ -48,6 +48,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DisplayService;
 import org.scijava.log.LogService;
@@ -84,12 +85,12 @@ import javax.swing.UIManager;
  * </p>
  * @param <C>
  */
-@Plugin(type = Command.class, label = "Image generator", menu = {
+@Plugin(type = ContextCommand.class, label = "Image generator", menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
         @Menu(label = "Image generator", weight = 2)})
-public class Img2DImageGenerator<T extends RealType<T>, C> implements Command, Previewable {
+public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextCommand implements Previewable { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "<html><b>Generates 2D images</b></html>";
 	private static final String SPACE_LABEL = "";

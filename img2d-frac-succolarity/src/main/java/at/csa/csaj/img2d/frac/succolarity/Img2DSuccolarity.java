@@ -66,7 +66,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -104,7 +104,7 @@ import io.scif.MetaTable;
  * de Melo, R. H. C., und A. Conci. „How Succolarity Could Be Used as Another Fractal Measure in Image Analysis“. Telecommunication Systems 52, Nr. 3 (1. März 2013): 1643–55. https://doi.org/10.1007/s11235-011-9657-3.
  * 
  */
-@Plugin(type = InteractiveCommand.class,
+@Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "Succolarity",
 	menu = {
@@ -112,8 +112,8 @@ import io.scif.MetaTable;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
 	@Menu(label = "Succolarity", weight = 21)})
-public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class Img2DSuccolarity<T extends RealType<T>> implements Command {	//modal GUI
+//public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
+public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL            = "<html><b>Computes Succolarity</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -141,7 +141,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
-	private static final String tableName = "Table - Succolarities";
+	private static final String tableOutName = "Table - Succolarities";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -182,8 +182,8 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 	@Parameter (type = ItemIO.INPUT)
 	private Dataset datasetIn;
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable table;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 	
    //Widget elements------------------------------------------------------
@@ -296,9 +296,9 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 //		    callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
      
-     @Parameter(label   = "Process all available images",
- 		        callback = "callbackProcessAllImages")
-	 private Button buttonProcessAllImages;
+//  @Parameter(label   = "Process all available images",
+// 		    callback = "callbackProcessAllImages")
+//	private Button buttonProcessAllImages;
 
 
     //---------------------------------------------------------------------
@@ -402,140 +402,146 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
 	}
 	
-
-	/** Executed whenever the {@link #buttonProcessSingelImage} button is pressed. */
+	/**
+	 * Executed whenever the {@link #buttonProcessSingleImage} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
 	protected void callbackProcessSingleImage() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Succolarity, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
-				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-
-       	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-            		deleteExistingDisplays();
-            		getAndValidateActiveDataset();
-            		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-            		 logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-            		processSingleInputImage(sliceIndex);
-            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-            		generateTableHeader();
-            		collectActiveResultAndShowTable(sliceIndex);
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleImage();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 	
-	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
+	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed.*/
 	protected void callbackProcessActiveImage() {
-		//prepare  executer service
-		exec = Executors.newSingleThreadExecutor();
-				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Succolarity, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
-				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-
-       	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-            		deleteExistingDisplays();
-            		getAndValidateActiveDataset();
-            		int activeSliceIndex = getActiveImageIndex();
-            		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
-            		processSingleInputImage(activeSliceIndex);
-            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-            		generateTableHeader();
-            		collectActiveResultAndShowTable(activeSliceIndex);
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	
 	}
 	
-	/** Executed whenever the {@link #buttonProcessAllImages} button is pressed. 
-	 *  This is the main processing method usually implemented in the run() method for */
+	/**
+	 * Executed whenever the {@link #buttonProcessAllImages} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
 	protected void callbackProcessAllImages() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing Succolarity, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-		
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available images");
-	        		deleteExistingDisplays();
-	        		getAndValidateActiveDataset();
-	        		processAllInputImages();
-	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-	        		generateTableHeader();
-	        		collectAllResultsAndShowTable();
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });		
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllImages();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
+	}
+
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleImage();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
+	public void cancel() {
+		logService.info(this.getClass().getName() + " Widget canceled");
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
+	public void run() {
+		logService.info(this.getClass().getName() + " Run");
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllImages();
 	}
 	
-    // You can control how previews work by overriding the "preview" method.
- 	// The code written in this method will be automatically executed every
- 	// time a widget value changes.
- 	public void preview() {
- 		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanProcessImmediately) callbackProcessSingleImage();
- 		//statusService.showStatus(message);
- 	}
- 	
-    // This is often necessary, for example, if your  "preview" method manipulates data;
- 	// the "cancel" method will then need to revert any changes done by the previews back to the original state.
- 	public void cancel() {
- 		logService.info(this.getClass().getName() + " Widget canceled");
- 	}
-    //---------------------------------------------------------------------------
+	/**
+	* This method starts the workflow for a single image of the active display
+	*/
+	protected void startWorkflowForSingleImage() {
 	
- 	
- 	/** The run method executes the command. */
-	@Override
-	public void run() {
-		//Nothing, because non blocking dialog has no automatic OK button and would call this method twice during start up
-	
-		//ij.log().info( "Run" );
-		logService.info(this.getClass().getName() + " Run");
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
 
-		if(ij.ui().isHeadless()){
-			//execute();
-			this.callbackProcessAllImages();
-		}
+		deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+		 logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		processSingleInputImage(sliceIndex);
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeSingleResultToTable(sliceIndex);
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
+	
+	/**
+	* This method starts the workflow for all images of the active display
+	*/
+	protected void startWorkflowForAllImages() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+	
+    	logService.info(this.getClass().getName() + " Processing all available images");
+		deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		processAllInputImages();
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeAllResultsToTable();
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 	
 	public void getAndValidateActiveDataset() {
@@ -675,7 +681,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableName)) display.close();
+				if (display.getName().contains(tableOutName)) display.close();
 			}			
 		}
 	}
@@ -694,7 +700,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 	/** This method takes the active image and computes results. 
 	 *
 	 */
-	private void processSingleInputImage(int s) throws InterruptedException{
+	private void processSingleInputImage(int s) {
 		long startTime = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][numBoxes];
 		
@@ -743,7 +749,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 	/** This method loops over all input images and computes results. 
 	 *
 	 **/
-	private void processAllInputImages() throws InterruptedException{
+	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][numBoxes];
@@ -755,7 +761,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 		
 		//loop over all slices of stack
 		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numSlices)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -793,7 +799,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -830,24 +836,25 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 		GenericColumn columnScanType   = new GenericColumn("Scanning type");
 		GenericColumn columnFloodType  = new GenericColumn("Flooding type");
 	
-	    table = new DefaultGenericTable();
-		table.add(columnFileName);
-		table.add(columnSliceName);
-		table.add(columnMaxNumBoxes);
-		table.add(columnRegMin);
-		table.add(columnRegMax);
-		table.add(columnScanType);
-		table.add(columnFloodType);
+	    tableOut = new DefaultGenericTable();
+		tableOut.add(columnFileName);
+		tableOut.add(columnSliceName);
+		tableOut.add(columnMaxNumBoxes);
+		tableOut.add(columnRegMin);
+		tableOut.add(columnRegMax);
+		tableOut.add(columnScanType);
+		tableOut.add(columnFloodType);
 		String preString = "Succ";
 		for (int i = 0; i < numBoxes; i++) {
-			table.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
+			tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
 		}
 	}
 	
-	/** collects current result and shows table
-	 *  @param int slice number of active image.
-	 */
-	private void collectActiveResultAndShowTable(int sliceNumber) {
+	/** 
+	*  writes current result to table
+	*  @param int slice number of active image.
+	*/
+	private void writeSingleResultToTable(int sliceNumber) { 
 	
 		//int numBoxes   = spinnerInteger_NumBoxes;
 		int regMin     		= spinnerInteger_RegMin;
@@ -860,31 +867,30 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 		int tableColLast  = 0;
 		
 	    int s = sliceNumber;	
-			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
-			//fill table with values
-			table.appendRow();
-			table.set("File name",     table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null)   table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",       table.getRowCount()-1, numBoxes);	
-			table.set("RegMin",        table.getRowCount()-1, regMin);	
-			table.set("RegMax",        table.getRowCount()-1, regMax);
-			table.set("Scanning type", table.getRowCount()-1, scanningType);
-			table.set("Flooding type", table.getRowCount()-1, floodingType);
-			tableColLast = 6;
-			
-			int numParameters = resultValuesTable[s].length;
-			tableColStart = tableColLast + 1;
-			tableColEnd = tableColStart + numParameters;
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				table.set(c, table.getRowCount()-1, resultValuesTable[s][c-tableColStart]);
-			}	
-
-		//Show table
-		uiService.show(tableName, table);
+		//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
+		//fill table with values
+		tableOut.appendRow();
+		tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
+		if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
+		tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
+		tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+		tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
+		tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
+		tableColLast = 6;
+		
+		int numParameters = resultValuesTable[s].length;
+		tableColStart = tableColLast + 1;
+		tableColEnd = tableColStart + numParameters;
+		for (int c = tableColStart; c < tableColEnd; c++ ) {
+			tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart]);
+		}	
 	}
 	
-	/** collects all results and shows table */
-	private void collectAllResultsAndShowTable() {
+	/** 
+	*  Writes all results to table
+	*/
+	private void writeAllResultsToTable() {
 	
 		//int numBoxes       = spinnerInteger_NumBoxes;
 		int regMin          = spinnerInteger_RegMin;
@@ -901,25 +907,23 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
-			table.appendRow();
-			table.set("File name",     table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null)   table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
-			table.set("# Boxes",       table.getRowCount()-1, numBoxes);	
-			table.set("RegMin",        table.getRowCount()-1, regMin);	
-			table.set("RegMax",        table.getRowCount()-1, regMax);
-			table.set("Scanning type", table.getRowCount()-1, scanningType);
-			table.set("Flooding type", table.getRowCount()-1, floodingType);
+			tableOut.appendRow();
+			tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
+			tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
+			tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+			tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
+			tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
 			tableColLast = 6;
 			
 			int numParameters = resultValuesTable[s].length;
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				table.set(c, table.getRowCount()-1, resultValuesTable[s][c-tableColStart]);
+				tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart]);
 			}	
 		}
-		//Show table
-		uiService.show(tableName, table);
 	}
 							
 	/** 
@@ -1031,7 +1035,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends InteractiveCommand 
 	
 		return succolarities;
 		//Output
-		//uiService.show(tableName, table);
+		//uiService.show(tableOutName, table);
 		//result = ops.create().img(image, new FloatType());
 		//table
 	}

@@ -51,7 +51,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -86,7 +86,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin for <detecting events</a>
  * in a signal.
  */
-@Plugin(type = InteractiveCommand.class,
+@Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "Event detection",
 	menu = {
@@ -94,8 +94,8 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "Event detection", weight = 11)})
-public class SignalDetectEvents<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class SignalDetectEvents<T extends RealType<T>> implements Command {	//modal GUI
+//public class SignalDetectEvents<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL                = "<html><b>Event detection</b></html>";
 	private static final String SPACE_LABEL                 = "";
@@ -180,8 +180,8 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	private DefaultGenericTable tableIn;
 	
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable tableResult;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 
 	// Widget elements------------------------------------------------------
@@ -384,8 +384,8 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
-	private Button buttonProcessAllColumns;
+//	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+//	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------
 	// The following initialzer functions set initial values
@@ -482,6 +482,10 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
+	}
+	
+	protected void initialNumColumn() {
+		spinnerInteger_NumColumn = 1;
 	}
 
 	// The following method is known as "callback" which gets executed
@@ -741,115 +745,143 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSingleColumn} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Searching for events, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Searching for events, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	logService.info(this.getClass().getName() + " Processing single signal");
-        	    	deleteExistingDisplays();
-            		getAndValidateActiveDataset();
-            		generateTableHeader();
-            		//int activeColumnIndex = getActiveColumnIndex();
-            		//processActiveInputColumn(activeColumnIndex);
-              		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-            		dlgProgress.addMessage("Processing finished! Preparing result table...");		
-            		//collectActiveResultAndShowTable(activeColumnIndex);
-            		showTable();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleColumn();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
-
+	
+	/** Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.*/
+	protected void callbackProcessActiveColumn() {
+	
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
-	 * is the main processing method usually implemented in the run() method for
+	 * Executed whenever the {@link #buttonProcessAllColumns} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessAllColumns() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		//exec =  defaultThreadService.getExecutorService();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Searching for events, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Searching for events, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available columns");
-	            	deleteExistingDisplays();
-	            	getAndValidateActiveDataset();
-	        		generateTableHeader();
-	        		processAllInputColumns();
-	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
-	        		//collectAllResultsAndShowTable();
-	        		showTable();
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });		
-	}
-	
-	// You can control how previews work by overriding the "preview" method.
-	// The code written in this method will be automatically executed every
-	// time a widget value changes.
-	public void preview() {
-		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanProcessImmediately) callbackProcessSingleColumn();
-		// statusService.showStatus(message);
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllColumns();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 
-	// This is often necessary, for example, if your "preview" method manipulates
-	// data;
-	// the "cancel" method will then need to revert any changes done by the previews
-	// back to the original state.
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleColumn();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " Widget canceled");
-	}
-	// ---------------------------------------------------------------------------
-
-	/** The run method executes the command. */
-	@Override
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
 	public void run() {
-		// Nothing, because non blocking dialog has no automatic OK button and would
-		// call this method twice during start up
-
-		// ij.log().info( "Run" );
 		logService.info(this.getClass().getName() + " Run");
-
-		if (ij.ui().isHeadless()) {
-			// execute();
-			this.callbackProcessAllColumns();
-		}
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllColumns();
+	}
+	
+	/**
+	* This method starts the workflow for a single column of the active display
+	*/
+	protected void startWorkflowForSingleColumn() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Searching for events, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+		
+    	logService.info(this.getClass().getName() + " Processing single signal");
+    	deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		generateTableHeader();
+  		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
+		dlgProgress.addMessage("Processing finished! Preparing result table...");		
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
+	/**
+	* This method starts the workflow for all columns of the active display
+	*/
+	protected void startWorkflowForAllColumns() {
+			dlgProgress = new WaitingDialogWithProgressBar("Searching for events, please wait... Open console window for further info.",
+								logService, false, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+		
+    	logService.info(this.getClass().getName() + " Processing all available columns");
+    	deleteExistingDisplays();
+    	getAndValidateActiveDataset();
+		generateTableHeader();
+		processAllInputColumns();
+		dlgProgress.addMessage("Processing finished! Preparing result table...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
+	
 	public void getAndValidateActiveDataset() {
 
 		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
@@ -913,74 +945,74 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		tableResult = new DefaultGenericTable();
-		tableResult.add(new GenericColumn("Options"));
+		tableOut = new DefaultGenericTable();
+		tableOut.add(new GenericColumn("Options"));
 
 		//First add all columns
 		String preString = "Events";
 		for (int c = 0; c < numColumns; c++) {
-			tableResult.add(new DoubleColumn(preString+"-" + tableIn.getColumnHeader(c)));
+			tableOut.add(new DoubleColumn(preString+"-" + tableIn.getColumnHeader(c)));
 		}
 		
 		//Then append rows (do not add columns after that)
 		//row number of output rows is not available, because it is dependent on the search result
 		//may be set in writeToTable method 
-		//tableResult.appendRows((int) numRows);
+		//tableOut.appendRows((int) numRows);
 		
 		//set Options data
-		tableResult.appendRow();
-		tableResult.set(0, tableResult.getRowCount()-1, "Event type: "     + this.choiceRadioButt_EventType);
+		tableOut.appendRow();
+		tableOut.set(0, tableOut.getRowCount()-1, "Event type: "     + this.choiceRadioButt_EventType);
 		
 		//"Peaks", "Valleys", "Slope", "QRS peaks (Chen&Chen)", "QRS peaks (Osea)"},	
 		if (this.choiceRadioButt_EventType.equals("Peaks")) {
 			if (this.choiceRadioButt_ThresholdType.equals("(Peaks, Valleys, Slope) Threshold")) {
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Threshold type: Threshold");
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Threshold: "  + this.spinnerFloat_Threshold);
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: Threshold");
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Threshold: "  + this.spinnerFloat_Threshold);
 			}	
 		}	
 		else if (this.choiceRadioButt_EventType.equals("Valleys")) {		
 			if (this.choiceRadioButt_ThresholdType.equals("(Peaks, Valleys, Slope) Threshold")) {
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Threshold type: Threshold");
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Threshold: "  + this.spinnerFloat_Threshold);
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: Threshold");
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Threshold: "  + this.spinnerFloat_Threshold);
 			}
 		}
 		else if (this.choiceRadioButt_EventType.equals("Slope")) {// Thresholding or MAC)
 			if (this.choiceRadioButt_ThresholdType.equals("(Peaks, Valleys, Slope) Threshold")) {
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Threshold type: Threshold");
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Threshold: "  + this.spinnerFloat_Threshold);
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: Threshold");
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Threshold: "  + this.spinnerFloat_Threshold);
 			}
 			else if (this.choiceRadioButt_ThresholdType.equals("(Slope) MAC")) {
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Threshold type: MAC");
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Tau: "            + this.spinnerInteger_Tau);
-				tableResult.appendRow();
-				tableResult.set(0, tableResult.getRowCount()-1, "Offset: "         + this.spinnerFloat_Offset);
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: MAC");
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Tau: "            + this.spinnerInteger_Tau);
+				tableOut.appendRow();
+				tableOut.set(0, tableOut.getRowCount()-1, "Offset: "         + this.spinnerFloat_Offset);
 			}	
-			tableResult.appendRow();
-			tableResult.set(0, tableResult.getRowCount()-1, "Slope type: "     + this.choiceRadioButt_SlopeType);
+			tableOut.appendRow();
+			tableOut.set(0, tableOut.getRowCount()-1, "Slope type: "     + this.choiceRadioButt_SlopeType);
 		}	
 		else if (this.choiceRadioButt_EventType.equals("QRS peaks (Chen&Chen)")) {		
-			tableResult.appendRow();
-			tableResult.set(0, tableResult.getRowCount()-1, "Chen m: "         + this.spinnerInteger_ChenM);
-			tableResult.appendRow();
-			tableResult.set(0, tableResult.getRowCount()-1, "Sum interval: "   + this.spinnerInteger_SumInterval);
-			tableResult.appendRow();
-			tableResult.set(0, tableResult.getRowCount()-1, "Peak frame: "     + this.spinnerInteger_PeakFrame);
+			tableOut.appendRow();
+			tableOut.set(0, tableOut.getRowCount()-1, "Chen m: "         + this.spinnerInteger_ChenM);
+			tableOut.appendRow();
+			tableOut.set(0, tableOut.getRowCount()-1, "Sum interval: "   + this.spinnerInteger_SumInterval);
+			tableOut.appendRow();
+			tableOut.set(0, tableOut.getRowCount()-1, "Peak frame: "     + this.spinnerInteger_PeakFrame);
 		}
 		else if (this.choiceRadioButt_EventType.equals("QRS peaks (Osea)")) {		
-			tableResult.appendRow();
-			tableResult.set(0, tableResult.getRowCount()-1, "Chen m: "         + this.spinnerInteger_ChenM);
-			tableResult.appendRow();
-			tableResult.set(0, tableResult.getRowCount()-1, "Sum interval: "   + this.spinnerInteger_SumInterval);
-			tableResult.appendRow();
-			tableResult.set(0, tableResult.getRowCount()-1, "Peak frame: "     + this.spinnerInteger_PeakFrame);		
+			tableOut.appendRow();
+			tableOut.set(0, tableOut.getRowCount()-1, "Chen m: "         + this.spinnerInteger_ChenM);
+			tableOut.appendRow();
+			tableOut.set(0, tableOut.getRowCount()-1, "Sum interval: "   + this.spinnerInteger_SumInterval);
+			tableOut.appendRow();
+			tableOut.set(0, tableOut.getRowCount()-1, "Peak frame: "     + this.spinnerInteger_PeakFrame);		
 		}
 			
 		String outputType = "";
@@ -998,20 +1030,20 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) delta Heights")) {
 			outputType = "Output: delta Heights";
 		} 	
-		tableResult.appendRow();
-		tableResult.set(0, tableResult.getRowCount()-1, outputType);
+		tableOut.appendRow();
+		tableOut.set(0, tableOut.getRowCount()-1, outputType);
 		
-		tableResult.appendRow();
-		tableResult.set(0, tableResult.getRowCount()-1, "Surr type: "      + this.choiceRadioButt_SurrogateType);
+		tableOut.appendRow();
+		tableOut.set(0, tableOut.getRowCount()-1, "Surr type: "      + this.choiceRadioButt_SurrogateType);
 		
-		tableResult.appendRow();
-		tableResult.set(0, tableResult.getRowCount()-1, "First column is the domain: " + this.booleanFirstColIsDomain);
+		tableOut.appendRow();
+		tableOut.set(0, tableOut.getRowCount()-1, "First column is the domain: " + this.booleanFirstColIsDomain);
 		
-		tableResult.appendRow();
-		tableResult.set(0, tableResult.getRowCount()-1, "Subtract Mean: " + this.booleanSubtractMean);
+		tableOut.appendRow();
+		tableOut.set(0, tableOut.getRowCount()-1, "Subtract Mean: " + this.booleanSubtractMean);
 		
-		tableResult.appendRow();
-		tableResult.set(0, tableResult.getRowCount()-1, "Scaling factor: " + this.spinnerFloat_SignalScalingFactor);
+		tableOut.appendRow();
+		tableOut.set(0, tableOut.getRowCount()-1, "Scaling factor: " + this.spinnerFloat_SignalScalingFactor);
 	}
 	
 	
@@ -1058,7 +1090,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	 * This method takes the single column s and computes results. 
 	 * @Param int s
 	 * */
-	private void processSingleInputColumn (int s) throws InterruptedException {
+	private void processSingleInputColumn (int s) {
 		
 		long startTime = System.currentTimeMillis();
 	
@@ -1074,7 +1106,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 		if (booleanDisplayAsSignal) {
-			int[] cols = new int[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
+			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = false;
 			String signalTitle = "Events - ";			
 			// {"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals", "(Peaks, Valleys) Heights", "(Peaks, Valleys) Energies", "(Peaks, Valleys) delta Heights"}, 
@@ -1093,17 +1125,17 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 			} 
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
-			for (int c = numTableOutPreCols; c < tableResult.getColumnCount(); c++) { //because of first text columns	
+			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
+			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
 				cols[c-numTableOutPreCols] = c; //- because of first text columns	
-				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c); //- because of first two text columns					
+				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
 			}
 			domainNew = new double[detectedDomain.size()];
 			for (int i = 0; i<domainNew.length; i++) {
 				domainNew[i] = detectedDomain.get(i).doubleValue(); 
 			}
 			//display of detected events only 
-			SignalPlotFrame pdf = new SignalPlotFrame(domainNew, tableResult, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domainNew, tableOut, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -1142,10 +1174,10 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	 * @param c
 	 */
 	private void leaveOverOnlyOneSignalColumn(int c) {
-		String header = tableResult.getColumnHeader(c);
-		int numCols = tableResult.getColumnCount();
+		String header = tableOut.getColumnHeader(c);
+		int numCols = tableOut.getColumnCount();
 		for (int i = numCols-1; i >= numTableOutPreCols; i--) {    //leave also first text column(s)
-			if (!tableResult.getColumnHeader(i).equals(header))  tableResult.removeColumn(i);	
+			if (!tableOut.getColumnHeader(i).equals(header))  tableOut.removeColumn(i);	
 		}	
 	}
 
@@ -1153,12 +1185,12 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	 * This method loops over all input columns and computes results. 
 	 * 
 	 * */
-	private void processAllInputColumns() throws InterruptedException{
+	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of signal column
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -1179,7 +1211,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s	
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -1187,7 +1219,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 		if (booleanDisplayAsSignal) {
-			int[] cols = new int[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
+			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "Events - ";			
 			// {"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values",  "(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals", "(Peaks, Valleys) Heights", "(Peaks, Valleys) Energies", "(Peaks, Valleys) delta Heights"}, 
@@ -1206,17 +1238,17 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 			} 
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns		
-			for (int c = numTableOutPreCols; c < tableResult.getColumnCount(); c++) { //because of first text columns	
+			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns		
+			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
 				cols[c-numTableOutPreCols] = c;  //- because of first two text columns	
-				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c);	//-because of first text columns				
+				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//-because of first text columns				
 			}
-			domainNew = new double[tableResult.getRowCount()];
+			domainNew = new double[tableOut.getRowCount()];
 			for (int i = 0; i<domainNew.length; i++) {
 				domainNew[i] = i+1; 
 			}
 			//display of detected events only 
-			SignalPlotFrame pdf = new SignalPlotFrame(domainNew, tableResult, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domainNew, tableOut, cols, isLineVisible, "Events", signalTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -1247,31 +1279,31 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		logService.info(this.getClass().getName() + " Writing to the table...");
 			
 		if (resultValues != null) {
-			int currentNumRows = tableResult.getRowCount();
+			int currentNumRows = tableOut.getRowCount();
 			if (currentNumRows < resultValues.size()) {
-				tableResult.appendRows(resultValues.size() - currentNumRows); //append
-				for (int r = currentNumRows; r < tableResult.getRowCount(); r++ ) {		
-					for (int c = numTableOutPreCols; c < tableResult.getColumnCount(); c++ ) {	
-						tableResult.set(c, r, Double.NaN); //// pre fill with NaNs
+				tableOut.appendRows(resultValues.size() - currentNumRows); //append
+				for (int r = currentNumRows; r < tableOut.getRowCount(); r++ ) {		
+					for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++ ) {	
+						tableOut.set(c, r, Double.NaN); //// pre fill with NaNs
 					}
 				}	
 			}		
 			for (int r = 0; r < resultValues.size(); r++ ) {		
-				//tableResult.set(2, r, domain1D[r]); // time domain column	
-				tableResult.set(numTableOutPreCols + signalNumber, r, resultValues.get(r).doubleValue()); //+ because of first text columns	
+				//tableOut.set(2, r, domain1D[r]); // time domain column	
+				tableOut.set(numTableOutPreCols + signalNumber, r, resultValues.get(r).doubleValue()); //+ because of first text columns	
 			}		
 			//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
-			if (tableResult.getRowCount() > resultValues.size()) {
-				for (int r = resultValues.size(); r < tableResult.getRowCount(); r++ ) {
-					//tableResult.set(2, r, domain1D[r]); // time domain column	
-					tableResult.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+			if (tableOut.getRowCount() > resultValues.size()) {
+				for (int r = resultValues.size(); r < tableOut.getRowCount(); r++ ) {
+					//tableOut.set(2, r, domain1D[r]); // time domain column	
+					tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
 				}
 			}
 		} else {//resultValues == null
 			//overwrite with NaNs
-			for (int r = 0; r < tableResult.getRowCount(); r++ ) {
-				//tableResult.set(2, r, domain1D[r]); // time domain column	
-				tableResult.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+			for (int r = 0; r < tableOut.getRowCount(); r++ ) {
+				//tableOut.set(2, r, domain1D[r]); // time domain column	
+				tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
 			}
 		}
 	}
@@ -1281,7 +1313,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableResult);
+		uiService.show(tableOutName, tableOut);
 	}
 	
 	/**
@@ -1627,7 +1659,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends InteractiveComman
 		//return detectedEvents;
 		// 
 		// Output
-		// uiService.show(tableName, table);
+		// uiService.show(tableOutName, table);
 	}
 
 	

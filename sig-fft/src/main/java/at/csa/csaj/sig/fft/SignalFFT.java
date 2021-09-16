@@ -51,7 +51,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -80,7 +80,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin computing <FFT</a>
  * of a signal.
  */
-@Plugin(type = InteractiveCommand.class,
+@Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "FFT",
 	menu = {
@@ -88,8 +88,8 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "FFT", weight = 8)})
-public class SignalFFT<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class SignalFFT<T extends RealType<T>> implements Command {	//modal GUI
+//public class SignalFFT<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class SignalFFT<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL                = "<html><b>Fast Fourier TRansformation</b></html>";
 	private static final String SPACE_LABEL                 = "";
@@ -158,8 +158,8 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	private DefaultGenericTable tableIn;
 	
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable tableResult;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 
 	// Widget elements------------------------------------------------------
@@ -297,8 +297,8 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
-	private Button buttonProcessAllColumns;
+//	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+//	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------
 	// The following initialzer functions set initial values
@@ -353,6 +353,10 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
     	booleanOverwriteDisplays = true;
 	}
 
+	protected void initialNumColumn() {
+		spinnerInteger_NumColumn = 1;
+	}
+	
 	// The following method is known as "callback" which gets executed
 	// whenever the value of a specific linked parameter changes.
 	
@@ -437,115 +441,144 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSingleColumn} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing FFT, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing FFT, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	logService.info(this.getClass().getName() + " Processing single signal");
-              		deleteExistingDisplays();
-        	    	getAndValidateActiveDataset();
-            		generateTableHeader();
-            		//int activeColumnIndex = getActiveColumnIndex();
-            		//processActiveInputColumn(activeColumnIndex);
-              		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-            		dlgProgress.addMessage("Processing finished! Preparing result table...");		
-            		//collectActiveResultAndShowTable(activeColumnIndex);
-            		showTable();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleColumn();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
-
+	
+	/** Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.*/
+	protected void callbackProcessActiveColumn() {
+	
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
-	 * is the main processing method usually implemented in the run() method for
+	 * Executed whenever the {@link #buttonProcessAllColumns} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessAllColumns() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		//exec =  defaultThreadService.getExecutorService();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing FFT, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing FFT, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available columns");
-	          		deleteExistingDisplays();
-	        		getAndValidateActiveDataset();
-	        		generateTableHeader();
-	        		processAllInputColumns();
-	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
-	        		//collectAllResultsAndShowTable();
-	        		showTable();
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });		
-	}
-	
-	// You can control how previews work by overriding the "preview" method.
-	// The code written in this method will be automatically executed every
-	// time a widget value changes.
-	public void preview() {
-		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanProcessImmediately) callbackProcessSingleColumn();
-		// statusService.showStatus(message);
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllColumns();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 
-	// This is often necessary, for example, if your "preview" method manipulates
-	// data;
-	// the "cancel" method will then need to revert any changes done by the previews
-	// back to the original state.
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleColumn();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " Widget canceled");
-	}
-	// ---------------------------------------------------------------------------
-
-	/** The run method executes the command. */
-	@Override
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
 	public void run() {
-		// Nothing, because non blocking dialog has no automatic OK button and would
-		// call this method twice during start up
-
-		// ij.log().info( "Run" );
 		logService.info(this.getClass().getName() + " Run");
-
-		if (ij.ui().isHeadless()) {
-			// execute();
-			this.callbackProcessAllColumns();
-		}
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllColumns();
+	}
+	
+	/**
+	* This method starts the workflow for a single column of the active display
+	*/
+	protected void startWorkflowForSingleColumn() {
+		
+		dlgProgress = new WaitingDialogWithProgressBar("Computing FFT, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+	
+    	logService.info(this.getClass().getName() + " Processing single signal");
+  		deleteExistingDisplays();
+    	getAndValidateActiveDataset();
+		generateTableHeader();
+  		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
+		dlgProgress.addMessage("Processing finished! Preparing result table...");		
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
+	/**
+	* This method starts the workflow for all columns of the active display
+	*/
+	protected void startWorkflowForAllColumns() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing FFT, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available columns");
+  		deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		generateTableHeader();
+		processAllInputColumns();
+		dlgProgress.addMessage("Processing finished! Preparing result table...");;
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();	
+	}
+	
 	public void getAndValidateActiveDataset() {
 
 		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
@@ -561,7 +594,6 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		
 //		sliceLabels = new String[(int) numColumns];
 		
-	   
 		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
 		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
 		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
@@ -602,11 +634,11 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		tableResult = new DefaultGenericTable();
-		tableResult.add(new GenericColumn("Surrogate type"));
-		tableResult.add(new GenericColumn("Normalization"));	
+		tableOut = new DefaultGenericTable();
+		tableOut.add(new GenericColumn("Surrogate type"));
+		tableOut.add(new GenericColumn("Normalization"));	
 		
-		tableResult.add(new GenericColumn("Windowing"));
+		tableOut.add(new GenericColumn("Windowing"));
 		String output = "";
 		if      (this.choiceRadioButt_OutputType.equals("Power"))     output = "Power";
 		else if (this.choiceRadioButt_OutputType.equals("Magnitude")) output = "Magnitude";
@@ -617,19 +649,19 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		else if (this.choiceRadioButt_ScalingType.equals("Linear")) pre = output;
 			
 			
-		if (this.choiceRadioButt_TimeDomainType.equals("Unitary")) tableResult.add(new DoubleColumn("Time domain (#)"));
-		if (this.choiceRadioButt_TimeDomainType.equals("Hz"))      tableResult.add(new DoubleColumn("Time domain (Hz)"));
+		if (this.choiceRadioButt_TimeDomainType.equals("Unitary")) tableOut.add(new DoubleColumn("Time domain (#)"));
+		if (this.choiceRadioButt_TimeDomainType.equals("Hz"))      tableOut.add(new DoubleColumn("Time domain (Hz)"));
 		for (int c = 0; c < numColumns; c++) {
-			tableResult.add(new DoubleColumn(pre+"-" + tableIn.getColumnHeader(c)));
+			tableOut.add(new DoubleColumn(pre+"-" + tableIn.getColumnHeader(c)));
 		}	
-		//tableResult.appendRows((int) numRows);
+		//tableOut.appendRows((int) numRows);
 		
 		//FFT must be done wit hpower of 2
 		int powerSize = 1;
 		while (numRows > powerSize) {
 			powerSize = powerSize * 2;
 		}
-		tableResult.appendRows((int) powerSize/2); 	//FFT result for magnitude or power is only 1/2, the second half is mirrored and redundant
+		tableOut.appendRows((int) powerSize/2); 	//FFT result for magnitude or power is only 1/2, the second half is mirrored and redundant
 	}
 	
 	
@@ -674,7 +706,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	 * This method takes the single column s and computes results. 
 	 * @Param int s
 	 * */
-	private void processSingleInputColumn (int s) throws InterruptedException {
+	private void processSingleInputColumn (int s) {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -689,7 +721,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
+			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "FFT - " + this.choiceRadioButt_OutputType;
 			String xLabel = "#";
@@ -699,12 +731,12 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 			if (choiceRadioButt_ScalingType.equals("Log")) yLabel = "Log("+choiceRadioButt_OutputType+")";
 			else if (choiceRadioButt_ScalingType.equals("Ln")) yLabel = "Ln("+choiceRadioButt_OutputType+")";
 			else if (choiceRadioButt_ScalingType.equals("Linear")) yLabel = choiceRadioButt_OutputType;
-			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
-			for (int c = numTableOutPreCols; c < tableResult.getColumnCount(); c++) { //because of first text columns	
+			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
+			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
 				cols[c-numTableOutPreCols] = c; //- because of first text columns	
-				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c); //- because of first two text columns					
+				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
 			}
-			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableResult, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableOut, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -725,10 +757,10 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	 * @param c
 	 */
 	private void leaveOverOnlyOneSignalColumn(int c) {
-		String header = tableResult.getColumnHeader(c);
-		int numCols = tableResult.getColumnCount();
+		String header = tableOut.getColumnHeader(c);
+		int numCols = tableOut.getColumnCount();
 		for (int i = numCols-1; i >= numTableOutPreCols; i--) {    //leave also first text column
-			if (!tableResult.getColumnHeader(i).equals(header))  tableResult.removeColumn(i);	
+			if (!tableOut.getColumnHeader(i).equals(header))  tableOut.removeColumn(i);	
 		}	
 	}
 
@@ -736,13 +768,13 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	 * This method loops over all input columns and computes results. 
 	 * 
 	 * */
-	private void processAllInputColumns() throws InterruptedException{
+	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... numb er of signal column
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -763,14 +795,14 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s	
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
+			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "FFT - " + this.choiceRadioButt_OutputType;
 			String xLabel = "#";
@@ -780,12 +812,12 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 			if (choiceRadioButt_ScalingType.equals("Log")) yLabel = "Log("+choiceRadioButt_OutputType+")";
 			else if (choiceRadioButt_ScalingType.equals("Ln")) yLabel = "Ln("+choiceRadioButt_OutputType+")";
 			else if (choiceRadioButt_ScalingType.equals("Linear")) yLabel = choiceRadioButt_OutputType;
-			String[] seriesLabels = new String[tableResult.getColumnCount()-numTableOutPreCols]; //- because of first text columns		
-			for (int c = numTableOutPreCols; c < tableResult.getColumnCount(); c++) { //because of first text columns	
+			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns		
+			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
 				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
-				seriesLabels[c-numTableOutPreCols] = tableResult.getColumnHeader(c);	//-because of first text columns				
+				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//-because of first text columns				
 			}
-			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableResult, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableOut, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -810,21 +842,21 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
 		for (int r = 0; r < resultValues.length; r++ ) {
-			tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
-			tableResult.set(1, r, this.choiceRadioButt_NormalizationType);
-			tableResult.set(2, r, this.choiceRadioButt_WindowingType);
-			tableResult.set(3, r, domain1D[r]); // time domain column	
-			tableResult.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
+			tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+			tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
+			tableOut.set(2, r, this.choiceRadioButt_WindowingType);
+			tableOut.set(3, r, domain1D[r]); // time domain column	
+			tableOut.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
 		}
 		
 		//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
-		if (tableResult.getRowCount() > resultValues.length) {
-			for (int r = resultValues.length; r < tableResult.getRowCount(); r++ ) {
-				tableResult.set(0, r, this.choiceRadioButt_SurrogateType);
-				tableResult.set(1, r, this.choiceRadioButt_NormalizationType);
-				tableResult.set(2, r, this.choiceRadioButt_WindowingType);
-				tableResult.set(3, r, domain1D[r]); // time domain column	
-				tableResult.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+		if (tableOut.getRowCount() > resultValues.length) {
+			for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
+				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+				tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
+				tableOut.set(2, r, this.choiceRadioButt_WindowingType);
+				tableOut.set(3, r, domain1D[r]); // time domain column	
+				tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
 			}
 		}
 	}
@@ -834,7 +866,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableResult);
+		uiService.show(tableOutName, tableOut);
 	}
 	
 	/**
@@ -1013,7 +1045,7 @@ public class SignalFFT<T extends RealType<T>> extends InteractiveCommand impleme
 		return signalOut;
 		// 
 		// Output
-		// uiService.show(tableName, table);
+		// uiService.show(tableOutName, table);
 	}
 
 	

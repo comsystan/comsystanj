@@ -43,7 +43,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -73,7 +73,7 @@ import at.csa.csaj.sig.open.SignalOpener;
  * A {@link Command} plugin computing <Statistics</a>
  * of a signal.
  */
-@Plugin(type = InteractiveCommand.class,
+@Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "Statistics",
 	menu = {
@@ -81,8 +81,8 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "Statistics", weight = 10)})
-public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { // non blocking  GUI
-//public class SignalStatistics<T extends RealType<T>> implements Command {	//modal GUI
+//public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class SignalStatistics<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL            = "<html><b>Signal statistics<b/></html>";
 	private static final String SPACE_LABEL             = "";
@@ -111,7 +111,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private static long numGlidingBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 
-	private static final String tableName = "Table - Signal statistics";
+	private static final String tableOutName = "Table - Signal statistics";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -150,8 +150,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	//@Parameter(type = ItemIO.INPUT)
 	//private DefaultGenericTable tableIn;
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable tableResult;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 
 	// Widget elements------------------------------------------------------
@@ -234,8 +234,8 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
-	private Button buttonProcessAllColumns;
+//	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+//	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------
     //The following initialzer functions set initial values
@@ -256,7 +256,10 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	}	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
-}
+	}
+	protected void initialNumColumn() {
+		spinnerInteger_NumColumn = 1;
+	}
 	
 	//-------------------------------------------------------------------------
 	// The following method is known as "callback" which gets executed
@@ -313,114 +316,142 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	}
 	
 	/**
-	 * Executed whenever the {@link #buttonProcessSinglecolumn} button is pressed.
+	 * Executed whenever the {@link #buttonProcessSingleColumn} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessSingleColumn() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing signal statistics, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
-																					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-        	    	logService.info(this.getClass().getName() + " Processing single signal");
-        	    	deleteExistingDisplays();
-        	    	getAndValidateActiveDataset();
-            		generateTableHeader(); 		
-            		int activeColumnIndex = getActiveColumnIndex();
-            		//processActiveInputColumn(activeColumnIndex, dlgProgress);
-              		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-            		dlgProgress.addMessage("Processing finished! Preparing result table...");          		
-            		//collectActiveResultAndShowTable(activeColumnIndex);
-            		showTable();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleColumn();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
-
+	
+	/** Executed whenever the {@link #buttonProcessActiveColumn} button is pressed.*/
+	protected void callbackProcessActiveColumn() {
+	
+	}
+	
 	/**
-	 * Executed whenever the {@link #buttonProcessAllSignals} button is pressed. This
-	 * is the main processing method usually implemented in the run() method for
+	 * Executed whenever the {@link #buttonProcessAllColumns} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
 	protected void callbackProcessAllColumns() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-		//exec =  defaultThreadService.getExecutorService();
-		
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing signal statistics, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputSignals(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available columns");
-	            	deleteExistingDisplays();
-	        		getAndValidateActiveDataset();
-	        		generateTableHeader();
-	        		processAllInputColumns();
-	        		dlgProgress.addMessage("Processing finished! Preparing result table...");
-	        		//collectAllResultsAndShowTable();
-	        		showTable();
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });	
-		
-	}
-	
-	// You can control how previews work by overriding the "preview" method.
-	// The code written in this method will be automatically executed every
-	// time a widget value changes.
-	public void preview() {
-		logService.info(this.getClass().getName() + " Preview initiated");
-		if (booleanProcessImmediately) callbackProcessSingleColumn();
-		// statusService.showStatus(message);
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllColumns();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 
-	// This is often necessary, for example, if your "preview" method manipulates
-	// data;
-	// the "cancel" method will then need to revert any changes done by the previews
-	// back to the original state.
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleColumn();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
+	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " Widget canceled");
-	}
-	// ---------------------------------------------------------------------------
-
-	/** The run method executes the command. */
-	@Override
+	}	 
+			 
+/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
 	public void run() {
-		// Nothing, because non blocking dialog has no automatic OK button and would
-		// call this method twice during start up
-
-		// ij.log().info( "Run" );
 		logService.info(this.getClass().getName() + " Run");
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllColumns();
+	}
+	
+	/**
+	* This method starts the workflow for a single column of the active display
+	*/
+	protected void startWorkflowForSingleColumn() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+	
+    	logService.info(this.getClass().getName() + " Processing single signal");
+    	deleteExistingDisplays();
+    	getAndValidateActiveDataset();
+		generateTableHeader();
+  		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
+		dlgProgress.addMessage("Processing finished! Preparing result table...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
 
-		if (ij.ui().isHeadless()) {
-			// execute();
-			this.callbackProcessAllColumns();
-		}
+	/**
+	* This method starts the workflow for all columns of the active display
+	*/
+	protected void startWorkflowForAllColumns() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing signal statistics, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputSignals(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available columns");
+    	deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		generateTableHeader();
+		processAllInputColumns();
+		dlgProgress.addMessage("Processing finished! Preparing result table...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
 	public void getAndValidateActiveDataset() {
@@ -478,62 +509,62 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 	
-		tableResult = new DefaultGenericTable();
-		tableResult.add(new GenericColumn("File name"));
-		tableResult.add(new GenericColumn("Column name"));	
-		tableResult.add(new GenericColumn("Signal range"));
-		tableResult.add(new GenericColumn("Surrogate type"));
-		tableResult.add(new IntColumn("# Surrogates"));
-		tableResult.add(new IntColumn("Box length"));
-		tableResult.add(new BoolColumn("Zeroes removed"));
+		tableOut = new DefaultGenericTable();
+		tableOut.add(new GenericColumn("File name"));
+		tableOut.add(new GenericColumn("Column name"));	
+		tableOut.add(new GenericColumn("Signal range"));
+		tableOut.add(new GenericColumn("Surrogate type"));
+		tableOut.add(new IntColumn("# Surrogates"));
+		tableOut.add(new IntColumn("Box length"));
+		tableOut.add(new BoolColumn("Zeroes removed"));
 	
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){
-			tableResult.add(new DoubleColumn("# Data points"));	
-			tableResult.add(new DoubleColumn("Min"));	
-			tableResult.add(new DoubleColumn("Max"));
-			tableResult.add(new DoubleColumn("Median"));
-			tableResult.add(new DoubleColumn("RMS"));
-			tableResult.add(new DoubleColumn("Mean"));
-			tableResult.add(new DoubleColumn("SD"));
-			tableResult.add(new DoubleColumn("Kurtosis"));
-			tableResult.add(new DoubleColumn("Skewness"));
-			tableResult.add(new DoubleColumn("Sum"));
-			tableResult.add(new DoubleColumn("Sum of squares"));
+			tableOut.add(new DoubleColumn("# Data points"));	
+			tableOut.add(new DoubleColumn("Min"));	
+			tableOut.add(new DoubleColumn("Max"));
+			tableOut.add(new DoubleColumn("Median"));
+			tableOut.add(new DoubleColumn("RMS"));
+			tableOut.add(new DoubleColumn("Mean"));
+			tableOut.add(new DoubleColumn("SD"));
+			tableOut.add(new DoubleColumn("Kurtosis"));
+			tableOut.add(new DoubleColumn("Skewness"));
+			tableOut.add(new DoubleColumn("Sum"));
+			tableOut.add(new DoubleColumn("Sum of squares"));
 			
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
-				tableResult.add(new DoubleColumn("Median_Surr")); //Mean surrogate value	
-				tableResult.add(new DoubleColumn("Mean_Surr")); //Mean surrogate value
-				tableResult.add(new DoubleColumn("SD_Surr")); //Mean surrogate value
-				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("Median_Surr-#"+(s+1))); 
-				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("Mean_Surr-#"+(s+1))); 
-				for (int s = 0; s < numSurrogates; s++) tableResult.add(new DoubleColumn("SD_Surr-#"+(s+1))); 
+				tableOut.add(new DoubleColumn("Median_Surr")); //Mean surrogate value	
+				tableOut.add(new DoubleColumn("Mean_Surr")); //Mean surrogate value
+				tableOut.add(new DoubleColumn("SD_Surr")); //Mean surrogate value
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Median_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Mean_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SD_Surr-#"+(s+1))); 
 			}			
 			
 		} 
 		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableResult.add(new DoubleColumn("Median_" + n));	
+				tableOut.add(new DoubleColumn("Median_" + n));	
 			}
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableResult.add(new DoubleColumn("Mean_" + n));	
+				tableOut.add(new DoubleColumn("Mean_" + n));	
 			}
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableResult.add(new DoubleColumn("SD_" + n));	
+				tableOut.add(new DoubleColumn("SD_" + n));	
 			}
 		}
 		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableResult.add(new DoubleColumn("Median_" + n));	
+				tableOut.add(new DoubleColumn("Median_" + n));	
 			}
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableResult.add(new DoubleColumn("Mean_" + n));	
+				tableOut.add(new DoubleColumn("Mean_" + n));	
 			}
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableResult.add(new DoubleColumn("SD_" + n));	
+				tableOut.add(new DoubleColumn("SD_" + n));	
 			}
 		}
 	}
@@ -557,7 +588,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 					//This might free some memory
 					display = null;
@@ -569,7 +600,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	 * This method takes the single column and computes results. 
 	 * @Param int c
 	 * */
-	private void processSingleInputColumn (int c) throws InterruptedException {
+	private void processSingleInputColumn (int c) {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -588,13 +619,13 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 
 	/** This method loops over all input columns and computes results. 
 	 * @param dlgProgress */
-	private void processAllInputColumns() throws InterruptedException{
+	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of signal columns
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -615,7 +646,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s	
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -643,22 +674,22 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		
 		// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
 		// fill table with values
-		tableResult.appendRow();
-		tableResult.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableResult.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
-		tableResult.set(2, row, choiceRadioButt_SignalRange); //Signal Method
-		tableResult.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
+		tableOut.appendRow();
+		tableOut.set(0, row, tableInName);//File Name
+		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(signalNumber)); //Column Name
+		tableOut.set(2, row, choiceRadioButt_SignalRange); //Signal Method
+		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SignalRange.equals("Entire signal") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
-			tableResult.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
+			tableOut.set(4, row, spinnerInteger_NumSurrogates); //# Surrogates
 		} else {
-			tableResult.set(4, row, null); //# Surrogates
+			tableOut.set(4, row, null); //# Surrogates
 		}
 		if (!choiceRadioButt_SignalRange.equals("Entire signal")){
-			tableResult.set(5, row, spinnerInteger_BoxLength); //Box Length
+			tableOut.set(5, row, spinnerInteger_BoxLength); //Box Length
 		} else {
-			tableResult.set(5, row, null);
+			tableOut.set(5, row, null);
 		}	
-		tableResult.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6, row, booleanRemoveZeroes); //Zeroes removed
 		tableColLast = 6;
 		
 		
@@ -668,7 +699,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
@@ -681,7 +712,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 3 * numSubsequentBoxes); //3 parameters
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}
 		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
@@ -689,7 +720,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 			tableColStart = tableColLast +1;
 			tableColEnd = (int) (tableColStart + 3 * numGlidingBoxes); //3 parameters 
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableResult.set(c, row, resultValues[c-tableColStart]);
+				tableOut.set(c, row, resultValues[c-tableColStart]);
 			}	
 		}	
 	}
@@ -699,9 +730,9 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableName, tableResult);
+		uiService.show(tableOutName, tableOut);
 		//This might free some memory
-		tableResult = null;
+		tableOut = null;
 	}
 	
 
@@ -872,7 +903,7 @@ public class SignalStatistics<T extends RealType<T>> extends InteractiveCommand 
 		return resultValues;
 		// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
 		// Output
-		// uiService.show(tableName, table);
+		// uiService.show(tableOutName, table);
 	}
 
 

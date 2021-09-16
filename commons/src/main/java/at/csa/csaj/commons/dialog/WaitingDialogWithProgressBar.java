@@ -118,7 +118,7 @@ public class WaitingDialogWithProgressBar extends JDialog {
 		panel.add(lblPercent);
 		panel.add(pbar);
 		
-		if (isCancelable) {
+		if ((isCancelable) && (exec != null)) {
 			btnCancel = new JButton("Cancel");
 			this.btnCancel.addActionListener(new ActionListener() {
 				@Override
@@ -126,7 +126,7 @@ public class WaitingDialogWithProgressBar extends JDialog {
 					int dialog = JOptionPane.YES_NO_OPTION;
 					int dialogResult = JOptionPane.showConfirmDialog (null, "Cancel active process?","Warning", dialog);
 					if(dialogResult == JOptionPane.YES_OPTION){
-						if (exec != null) {
+						//if (exec != null) {
 							logService.info(this.getClass().getName() + " Processing has been canceled by the user! Please wait for the completion of the current task...");
 							lblMessage.setText("Processing has been canceled by the user!  Please wait for the completion of the current task...");
 							pack();
@@ -139,7 +139,7 @@ public class WaitingDialogWithProgressBar extends JDialog {
 //							} catch (InterruptedException ie) {
 //							    exec.shutdownNow();
 //							}
-						}	
+						//}	
 					}
 				}
 			});

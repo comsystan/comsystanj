@@ -50,6 +50,9 @@ import at.csa.csaj.commons.regression.LinearRegression;
  * Li et al. state that RSE dimension is smaller than 1 for non-fractal signals (constructed with -2 < D_W-M  < 1 ), see Figure 2
  * BUT this implementation according to Wang gives only Drse values slightly under 1!
  * 
+ * Detrended fluctuation analysis is similar. DFA takes the deviations (differences) from the trend
+ * RSE eliminates the trend (or does not)  and takes the differences to the mean 
+ * 
  * <p>
  * <b>Changes</b>
  * <ul>
@@ -117,12 +120,13 @@ public class RSE {
 	 * @param lMax  number of newly calculated time series, lMax must be smaller than
 	 *              the total number of time points lMax should not be greater than
 	 *              N/3 (N number of data points)!
+	 * @param M  number of randomly chosen sub-sequences for each length
 	 * @param flattening (detrending) order,  0..no flattening, 1.. first grade polynomial, 2.. second grade poly......... up to ???????????????? 
 	 * @return double[] Rq[l] RMSs
 	 */
-	public double[] calcRqs(double[] sequence, int lMax, int order) {
+	public double[] calcRqs(double[] sequence, int lMax, int numM, int order) {
 		
-		int M = 50; //number of randomly chosen sub-sequences with same length according to Wang paper
+		int M = numM; //M=50 recommended,  number of randomly chosen sub-sequences with same length according to Wang paper
 		double sig = 0.85; //scaling factor is not used -> sig = 1;
 		
 		

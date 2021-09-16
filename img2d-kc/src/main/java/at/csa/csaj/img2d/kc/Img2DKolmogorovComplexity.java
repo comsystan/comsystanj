@@ -75,7 +75,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -98,6 +98,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
+
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
@@ -107,11 +108,11 @@ import io.scif.config.SCIFIOConfig;
 
 
 /**
- * A {@link Command} plugin computing
+ * A {@link ContextCommand} plugin computing
  * <the Kolmogorov complexity and Logical depth </a>
  * of an image.
  */
-@Plugin(type = InteractiveCommand.class,
+@Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "KC and LD",
 	menu = {
@@ -119,8 +120,8 @@ import io.scif.config.SCIFIOConfig;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
 	@Menu(label = "Kolmogorov complexity and LD", weight = 34)})
-public class Img2DKolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand implements Command, Previewable { //non blocking GUI
-//public class Img2DKolmogorovComplexity<T extends RealType<T>> implements Command {	//modal GUI
+//public class Img2DKolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
+public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL            = "<html><b>Computes Kolmogorov complexity KC and Logical depth LD</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -140,11 +141,11 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 	private static double durationReference  = Double.NaN;
 	private static double megabytesReference = Double.NaN;
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding result values
-    private static final String tableName = "Table - KC and LD";
-	
-	private WaitingDialogWithProgressBar dlgProgress;
-	private ExecutorService exec;
-	
+    private static final String tableOutName = "Table - KC and LD";
+		
+    private WaitingDialogWithProgressBar dlgProgress;
+    private ExecutorService exec;
+    
 	@Parameter
 	private ImageJ ij;
 	
@@ -180,8 +181,8 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 	@Parameter
 	private IOService ioService;
 	
-	@Parameter(type = ItemIO.OUTPUT)
-	private DefaultGenericTable table;
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	private DefaultGenericTable tableOut;
 
 	
    //Widget elements------------------------------------------------------
@@ -260,10 +261,9 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 //		    callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
      
-    @Parameter(label   = "Process all available images",
- 		        callback = "callbackProcessAllImages")
-	private Button buttonProcessAllImages;
-
+//  @Parameter(label   = "Process all available images",
+// 		        callback = "callbackProcessAllImages")
+//	private Button buttonProcessAllImages;
 
     //---------------------------------------------------------------------
  
@@ -315,145 +315,151 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
 	}
 	
-
-	/** Executed whenever the {@link #buttonProcessSingelImage} button is pressed. */
+	/**
+	 * Executed whenever the {@link #buttonProcessSingleImage} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
 	protected void callbackProcessSingleImage() {
-    	//prepare  executer service
-		exec = Executors.newSingleThreadExecutor();
-				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
-				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-
-       	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-            		deleteExistingDisplays();
-            		getAndValidateActiveDataset();
-            		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-            	    logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-            		processSingleInputImage(sliceIndex);
-            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-            		generateTableHeader();
-            		collectActiveResultAndShowTable(sliceIndex);
-            		deleteTempDirectory();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
-	}
-	
-	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed. */
-	protected void callbackProcessActiveImage() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
-				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-
-       	exec.execute(new Runnable() {
-            public void run() {
-        	    try {
-            		deleteExistingDisplays();
-            		getAndValidateActiveDataset();
-            		int activeSliceIndex = getActiveImageIndex();
-            		logService.info(this.getClass().getName() + " Processing active image " + (activeSliceIndex + 1));
-            		processSingleInputImage(activeSliceIndex);
-            		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-            		generateTableHeader();
-            		collectActiveResultAndShowTable(activeSliceIndex);
-            		deleteTempDirectory();
-            		dlgProgress.setVisible(false);
-            		dlgProgress.dispose();
-            		Toolkit.getDefaultToolkit().beep();
-                } catch(InterruptedException e){
-                	 exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }		
-            }
-        });
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflowForSingleImage();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 	
-	/** Executed whenever the {@link #buttonProcessAllImages} button is pressed. 
-	 *  This is the main processing method usually implemented in the run() method for */
+	/** Executed whenever the {@link #buttonProcessActiveImage} button is pressed.*/
+	protected void callbackProcessActiveImage() {
+	
+	}
+	
+	/**
+	 * Executed whenever the {@link #buttonProcessAllImages} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
 	protected void callbackProcessAllImages() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
-				
-		//dlgProgress = new WaitingDialogWithProgressBar("<html>Computing KC and LD, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new WaitingDialogWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
-																					logService, true, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-		
-		exec.execute(new Runnable() {
-            public void run() {	
-            	try {
-	            	logService.info(this.getClass().getName() + " Processing all available images");
-	        		deleteExistingDisplays();
-	        		getAndValidateActiveDataset();
-	        		processAllInputImages();
-	        		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-	        		generateTableHeader();
-	        		collectAllResultsAndShowTable();
-	        		deleteTempDirectory();
-	        		dlgProgress.setVisible(false);
-	        		dlgProgress.dispose();
-	        		Toolkit.getDefaultToolkit().beep();
-            	} catch(InterruptedException e){
-                    //Thread.currentThread().interrupt();
-            		exec.shutdown();
-                } finally {
-                	exec.shutdown();
-                }      	
-            }
-        });			
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	        	startWorkflowForAllImages();
+	    	   	uiService.show(tableOutName, tableOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
-		
-    // You can control how previews work by overriding the "preview" method.
- 	// The code written in this method will be automatically executed every
- 	// time a widget value changes.
- 	public void preview() {
- 		logService.info(this.getClass().getName() + " Preview initiated");
- 		if (booleanProcessImmediately) callbackProcessSingleImage();
- 		//statusService.showStatus(message);
- 	}
- 	
-    // This is often necessary, for example, if your  "preview" method manipulates data;
- 	// the "cancel" method will then need to revert any changes done by the previews back to the original state.
- 	public void cancel() {
- 		logService.info(this.getClass().getName() + " Widget canceled");
- 	}
-    //---------------------------------------------------------------------------
-	
- 	
- 	/** The run method executes the command. */
-	@Override
-	public void run() {
-		//Nothing, because non blocking dialog has no automatic OK button and would call this method twice during start up
-	
-		//ij.log().info( "Run" );
-		logService.info(this.getClass().getName() + " Run");
 
-		if(ij.ui().isHeadless()){
-			//execute();
-			this.callbackProcessAllImages();
-		}
+	/**
+	 * Executed automatically every time a widget value changes.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	@Override //Interface Previewable
+	public void preview() { 
+	 	logService.info(this.getClass().getName() + " Preview initiated");
+	 	if (booleanProcessImmediately) {
+			exec = Executors.newSingleThreadExecutor();
+		   	exec.execute(new Runnable() {
+		        public void run() {
+		    	    startWorkflowForSingleImage();
+		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		        }
+		    });
+		   	exec.shutdown(); //No new tasks
+	 	}	
 	}
+
+	/**
+	 * This is necessary if the "preview" method manipulates data
+	 * the "cancel" method will then need to revert any changes back to the original state.
+	 */
+	@Override //Interface Previewable
+	public void cancel() {
+		logService.info(this.getClass().getName() + " Widget canceled");
+	}	 
+			 
+	/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
+	public void run() {
+		logService.info(this.getClass().getName() + " Run");
+		//if(ij.ui().isHeadless()){
+		//}	
+	    startWorkflowForAllImages();
+	}
+		
+	/**
+	 * This method starts the workflow for a single image of the active display
+	 */
+	protected void startWorkflowForSingleImage() {
+			
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Kolmogorov complexity, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
 	
+		deleteExistingDisplays();
+		getAndValidateActiveDataset();
+		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));	
+		dlgProgress.setVisible(true);		
+		processSingleInputImage(sliceIndex);
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");		
+		generateTableHeader();
+		writeSingleResultToTable(sliceIndex);
+		deleteTempDirectory();
+	    dlgProgress.setVisible(false);
+	    dlgProgress.dispose();	
+		Toolkit.getDefaultToolkit().beep();     
+	}
+
+	/**
+	 * This method starts the workflow for all images of the active display
+	 */
+	protected void startWorkflowForAllImages() {
+		
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Kolmogorov complexities, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+	
+		logService.info(this.getClass().getName() + " Processing all available images");
+	    deleteExistingDisplays();
+	    getAndValidateActiveDataset(); 
+		processAllInputImages();
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");			
+	    generateTableHeader();
+	    writeAllResultsToTable();
+	    deleteTempDirectory();	
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();	
+	    Toolkit.getDefaultToolkit().beep();      
+	}
+
 	public void getAndValidateActiveDataset() {
 	
 		datasetIn = imageDisplayService.getActiveDataset();
@@ -581,7 +587,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableName)) display.close();
+				if (display.getName().contains(tableOutName)) display.close();
 			}			
 		}
 	}
@@ -590,7 +596,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 	/** This method takes the active image and computes results. 
 	 *
 	 **/
-	private void processSingleInputImage(int s) throws InterruptedException{
+	private void processSingleInputImage(int s) {
 		long startTime = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];
 		
@@ -639,7 +645,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 	/** This method loops over all input images and computes results. 
 	 *
 	 **/
-	private void processAllInputImages() throws InterruptedException{
+	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
 		resultValuesTable = new double[(int) numSlices][10];
@@ -651,7 +657,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 		
 		//loop over all slices of stack
 		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
-			if (!exec.isShutdown()){
+			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numSlices)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
 				dlgProgress.updateBar(percent);
@@ -690,7 +696,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 				SimpleDateFormat sdf = new SimpleDateFormat();
 				sdf.applyPattern("HHH:mm:ss:SSS");
 				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			}
+			//}
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
@@ -729,22 +735,23 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 		GenericColumn columnKCDivImgSz     = new GenericColumn("KC/Imagesize");
 		GenericColumn columnLD             = new GenericColumn("LD [ns]");
 		
-	    table = new DefaultGenericTable();
-		table.add(columnFileName);
-		table.add(columnSliceName);
-		table.add(columnComprType);
-		table.add(columnImgSz);
-		table.add(columnKC);
-		table.add(columnImgSzMinusKC);
-		table.add(columnKCDivImgSz);
-		table.add(columnNumbIterations);
-		table.add(columnLD);
+	    tableOut = new DefaultGenericTable();
+		tableOut.add(columnFileName);
+		tableOut.add(columnSliceName);
+		tableOut.add(columnComprType);
+		tableOut.add(columnImgSz);
+		tableOut.add(columnKC);
+		tableOut.add(columnImgSzMinusKC);
+		tableOut.add(columnKCDivImgSz);
+		tableOut.add(columnNumbIterations);
+		tableOut.add(columnLD);
 	}
 	
-	/** collects current result and shows table
-	 *  @param int slice number of active image.
-	 */
-	private void collectActiveResultAndShowTable(int sliceNumber) {
+	/** 
+	*  Writes current result to table
+	*  @param int slice number of active image.
+	*/
+	private void writeSingleResultToTable(int sliceNumber) {
 
 		String compressionType = choiceRadioButt_Compression;
 		int numIterations   = spinnerInteger_NumIterations;
@@ -752,28 +759,27 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
-			table.appendRow();
-			table.set("File name",  table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
+			tableOut.appendRow();
+			tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 //			if (compressionType.equals("LZW (lossless)")) table.set("Compression", table.getRowCount()-1, "LZW (lossless)");
 //			if (compressionType.equals("PNG (lossless)")) table.set("Compression", table.getRowCount()-1, "PNG (lossless)");
 //			if (compressionType.equals("J2K (lossless)")) table.set("Compression", table.getRowCount()-1, "J2K (lossless)");	
 //			if (compressionType.equals("JPG (lossy)")) table.set("Compression", table.getRowCount()-1, "JPG (lossy)");	
 //			if (compressionType.equals("ZIP (lossless)")) table.set("Compression", table.getRowCount()-1, "ZIP (lossless)");
-			table.set("Compression",           table.getRowCount()-1, choiceRadioButt_Compression);
-			table.set("Image size [MB]",       table.getRowCount()-1, resultValuesTable[s][0]);
-			table.set("KC [MB]",               table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("Image size - KC [MB]",  table.getRowCount()-1, resultValuesTable[s][2]);
-			table.set("KC/Imagesize",          table.getRowCount()-1, resultValuesTable[s][3]);	
-			table.set("Itereations [#]",       table.getRowCount()-1, numIterations);	
-			table.set("LD [ns]",               table.getRowCount()-1, resultValuesTable[s][4]);	
-		
-		//Show table
-		uiService.show(tableName, table);
+			tableOut.set("Compression",           tableOut.getRowCount()-1, choiceRadioButt_Compression);
+			tableOut.set("Image size [MB]",       tableOut.getRowCount()-1, resultValuesTable[s][0]);
+			tableOut.set("KC [MB]",               tableOut.getRowCount()-1, resultValuesTable[s][1]);
+			tableOut.set("Image size - KC [MB]",  tableOut.getRowCount()-1, resultValuesTable[s][2]);
+			tableOut.set("KC/Imagesize",          tableOut.getRowCount()-1, resultValuesTable[s][3]);	
+			tableOut.set("Itereations [#]",       tableOut.getRowCount()-1, numIterations);	
+			tableOut.set("LD [ns]",               tableOut.getRowCount()-1, resultValuesTable[s][4]);	
 	}
 	
-	/** collects all results and shows table */
-	private void collectAllResultsAndShowTable() {
+	/** 
+	*  Writes all results to table
+	*/
+	private void writeAllResultsToTable() {
 	
 		String compressionType = choiceRadioButt_Compression;
 		int numIterations   = spinnerInteger_NumIterations;
@@ -781,24 +787,22 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends Interactiv
 		//loop over all slices
 		for (int s = 0; s < numSlices; s++){ //slices of an image stack	
 			//fill table with values
-			table.appendRow();
-			table.set("File name",  table.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) table.set("Slice name", table.getRowCount() - 1, sliceLabels[s]);
+			tableOut.appendRow();
+			tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 //			if (compressionType.equals("LZW (lossless)")) table.set("Compression", table.getRowCount()-1, "LZW (lossless)");
 //			if (compressionType.equals("PNG (lossless)")) table.set("Compression", table.getRowCount()-1, "PNG (lossless)");	
 //			if (compressionType.equals("J2K (lossless)")) table.set("Compression", table.getRowCount()-1, "J2K (lossless)");	
 //			if (compressionType.equals("JPG (lossy)")) table.set("Compression", table.getRowCount()-1, "JPG (lossy)");	
 //			if (compressionType.equals("ZIP (lossless)")) table.set("Compression", table.getRowCount()-1, "ZIP (lossless)");
-			table.set("Compression",           table.getRowCount()-1, choiceRadioButt_Compression);
-			table.set("Image size [MB]",       table.getRowCount()-1, resultValuesTable[s][0]);
-			table.set("KC [MB]",               table.getRowCount()-1, resultValuesTable[s][1]);
-			table.set("Image size - KC [MB]",  table.getRowCount()-1, resultValuesTable[s][2]);
-			table.set("KC/Imagesize",          table.getRowCount()-1, resultValuesTable[s][3]);		
-			table.set("Itereations [#]",       table.getRowCount()-1, numIterations);	
-			table.set("LD [ns]",               table.getRowCount()-1, resultValuesTable[s][4]);	
+			tableOut.set("Compression",           tableOut.getRowCount()-1, choiceRadioButt_Compression);
+			tableOut.set("Image size [MB]",       tableOut.getRowCount()-1, resultValuesTable[s][0]);
+			tableOut.set("KC [MB]",               tableOut.getRowCount()-1, resultValuesTable[s][1]);
+			tableOut.set("Image size - KC [MB]",  tableOut.getRowCount()-1, resultValuesTable[s][2]);
+			tableOut.set("KC/Imagesize",          tableOut.getRowCount()-1, resultValuesTable[s][3]);		
+			tableOut.set("Itereations [#]",       tableOut.getRowCount()-1, numIterations);	
+			tableOut.set("LD [ns]",               tableOut.getRowCount()-1, resultValuesTable[s][4]);	
 		}
-		//Show table
-		uiService.show(tableName, table);
 	}
 							
 	/** 

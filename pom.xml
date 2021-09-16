@@ -58,7 +58,7 @@
 		<module>sig-resampling</module>
 		<module>sig-statistics</module>
 		<module>sig-surrogate</module>
-		<module>sig-symbolicaggregation</module>
+		<module>sig-symbolicaggregation</module>-->
 	</modules>
 
 </project>
