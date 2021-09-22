@@ -1045,6 +1045,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 			}
 			
 		} else { //grey value image
+			//STILL NO READY YET****************************************************************************************
 			int downSamplingFactor;
 			for (int n = 0; n < numPyramidImages; n++) { //Downscaling incl. no downscaling
 			    // "base-pyramid", i.e. layers of pyramid from base layer
@@ -1067,68 +1068,68 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 				if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+downSamplingFactor+" downscaled image", imgSubSampled);
 				
 				//Apply detrending (flattening) with polynomials of order = 1
-				//image has flipped xy indices!!!!!
-				imgArr = new double[(int)imgSubSampled.dimension(1)][(int)imgSubSampled.dimension(0)];
-				// Write to image
-				cursorF = imgSubSampled.localizingCursor();
-				int[] pos = new int[2]; 
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					imgArr[pos[1]][pos[0]] = cursorF.get().get();
-				}	
-			    //Remove mean value to keep the math from blowing up
-		        double meanImage = 0.0;
-		        for (int y = 0; y < imgArr.length; y++) {
-		        	for (int x = 0; x < imgArr[0].length; x++) {
-			        	meanImage += imgArr[y][x];
-			        }	
-		        }
-		        meanImage = meanImage/(imgArr.length*imgArr[0].length);
-		        for (int y = 0; y < imgArr.length; y++) {
-		        	for (int x = 0; x < imgArr[0].length; x++) {
-			        	imgArr[y][x] -= meanImage;
-			        }	
-		        }
-		     
-		        int polyOrderX = 1;
-		        int polyOrderY = 1;
-				PolynomialFit2D pf2D = new PolynomialFit2D();
-				double[][] polyParams = pf2D.calculateParameters(imgArr, polyOrderX, polyOrderY);
-				
-				double dTemp;
-				double yTemp;
-		        // Create an image of the fitted surface
-		        // Example:                
-		        //    dtemp =  (polyParams[3][3]*y*y*y + polyParams[2][3]*y*y + polyParams[1][3]*y + polyParams[0][3])*x*x*x;
-		        //    dtemp += (polyParams[3][2]*y*y*y + polyParams[2][2]*y*y + polyParams[1][2]*y + polyParams[0][2])*x*x;
-		        //    dtemp += (polyParams[3][1]*y*y*y + polyParams[2][1]*y*y + polyParams[1][1]*y + polyParams[0][1])*x;
-		        //    dtemp += (polyParams[3][0]*y*y*y + polyParams[2][0]*y*y + polyParams[1][0]*y + polyParams[0][0]);
-		        imgArrPolySurface = new double[imgArr.length][imgArr[0].length];
-		        for (int y = 0; y < imgArr.length; y++) {
-		        	for (int x = 0; x < imgArr[0].length; x++) {
-		        		 dTemp = 0;
-		                 // Determine the value of the fit at pixel iy,ix
-		                 for(int powx = polyOrderX; powx >= 0; powx--) {
-		                     yTemp = 0;
-		                     for(int powy = polyOrderY; powy >= 0; powy--) {
-		                         yTemp += polyParams[powy][powx] * Math.pow((double)y,(double)powy);
-		                     }
-		                     dTemp += yTemp * Math.pow((double)x,(double)powx);
-		                 }
-		                 // Add back the mean of the image
-		                 imgArrPolySurface[y][x] = dTemp + meanImage;
-			        }	
-		        }
-		        //Subtract polySurface and write back to imgSubSampled
-		        //Note that values of imgSubSampled will then be distributed around 0 and will contain negative values 
-		    	cursorF = imgSubSampled.localizingCursor();
-				pos = new int[2];
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);			
-					cursorF.get().set(cursorF.get().get() - (float)imgArrPolySurface[pos[1]][pos[0]]);
-				}	
+//				//image has flipped xy indices!!!!!
+//				imgArr = new double[(int)imgSubSampled.dimension(1)][(int)imgSubSampled.dimension(0)];
+//				// Write to image
+//				cursorF = imgSubSampled.localizingCursor();
+//				int[] pos = new int[2]; 
+//				while (cursorF.hasNext()) {
+//					cursorF.fwd();
+//					cursorF.localize(pos);
+//					imgArr[pos[1]][pos[0]] = cursorF.get().get();
+//				}	
+//			    //Remove mean value to keep the math from blowing up
+//		        double meanImage = 0.0;
+//		        for (int y = 0; y < imgArr.length; y++) {
+//		        	for (int x = 0; x < imgArr[0].length; x++) {
+//			        	meanImage += imgArr[y][x];
+//			        }	
+//		        }
+//		        meanImage = meanImage/(imgArr.length*imgArr[0].length);
+//		        for (int y = 0; y < imgArr.length; y++) {
+//		        	for (int x = 0; x < imgArr[0].length; x++) {
+//			        	imgArr[y][x] -= meanImage;
+//			        }	
+//		        }
+//		     
+//		        int polyOrderX = 1;
+//		        int polyOrderY = 1;
+//				PolynomialFit2D pf2D = new PolynomialFit2D();
+//				double[][] polyParams = pf2D.calculateParameters(imgArr, polyOrderX, polyOrderY);
+//				
+//				double dTemp;
+//				double yTemp;
+//		        // Create an image of the fitted surface
+//		        // Example:                
+//		        //    dtemp =  (polyParams[3][3]*y*y*y + polyParams[2][3]*y*y + polyParams[1][3]*y + polyParams[0][3])*x*x*x;
+//		        //    dtemp += (polyParams[3][2]*y*y*y + polyParams[2][2]*y*y + polyParams[1][2]*y + polyParams[0][2])*x*x;
+//		        //    dtemp += (polyParams[3][1]*y*y*y + polyParams[2][1]*y*y + polyParams[1][1]*y + polyParams[0][1])*x;
+//		        //    dtemp += (polyParams[3][0]*y*y*y + polyParams[2][0]*y*y + polyParams[1][0]*y + polyParams[0][0]);
+//		        imgArrPolySurface = new double[imgArr.length][imgArr[0].length];
+//		        for (int y = 0; y < imgArr.length; y++) {
+//		        	for (int x = 0; x < imgArr[0].length; x++) {
+//		        		 dTemp = 0;
+//		                 // Determine the value of the fit at pixel iy,ix
+//		                 for(int powx = polyOrderX; powx >= 0; powx--) {
+//		                     yTemp = 0;
+//		                     for(int powy = polyOrderY; powy >= 0; powy--) {
+//		                         yTemp += polyParams[powy][powx] * Math.pow((double)y,(double)powy);
+//		                     }
+//		                     dTemp += yTemp * Math.pow((double)x,(double)powx);
+//		                 }
+//		                 // Add back the mean of the image
+//		                 imgArrPolySurface[y][x] = dTemp + meanImage;
+//			        }	
+//		        }
+//		        //Subtract polySurface and write back to imgSubSampled
+//		        //Note that values of imgSubSampled will then be distributed around 0 and will contain negative values 
+//		    	cursorF = imgSubSampled.localizingCursor();
+//				pos = new int[2];
+//				while (cursorF.hasNext()) {
+//					cursorF.fwd();
+//					cursorF.localize(pos);			
+//					cursorF.get().set(cursorF.get().get() - (float)imgArrPolySurface[pos[1]][pos[0]]);
+//				}	
 				
 				//if ((optShowDownscaledImages) && (n > 0)) uiService.show("1/"+downSamplingFactor+" detrended image", imgSubSampled);
 				//uiService.show("Detrended image", imgSubSampled);
