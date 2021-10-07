@@ -561,7 +561,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 		
 		tableOut = new DefaultGenericTable();
 		for (int c = 0; c < numColumns; c++) {
-			tableOut.add(new GenericColumn("Cut-" + tableIn.getColumnHeader(c)));
+			tableOut.add(new GenericColumn("Cutout-" + tableIn.getColumnHeader(c)));
 		}	
 		tableOut.appendRows((int) numNewRows);
 	}
@@ -624,7 +624,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			int[] cols = new int[tableOut.getColumnCount()]; 
 			boolean isLineVisible = true;
-			String signalTitle = "Cut";
+			String signalTitle = "Cutout";
 			String xLabel = "#";
 			String yLabel = "Value";
 			String[] seriesLabels = new String[tableOut.getColumnCount()]; 			
@@ -632,7 +632,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 				cols[c] = c; 	
 				seriesLabels[c] = tableOut.getColumnHeader(c); 					
 			}
-			SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Cut signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Sub-signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			plotDisplayFrameList.add(pdf);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
@@ -701,7 +701,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			int[] cols = new int[tableOut.getColumnCount()]; 
 			boolean isLineVisible = true;
-			String signalTitle = "Cut";
+			String signalTitle = "Cutout";
 			String xLabel = "#";
 			String yLabel = "Value";
 			String[] seriesLabels = new String[tableOut.getColumnCount()]; 
@@ -709,7 +709,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 				cols[c] = c;  
 				seriesLabels[c] = tableOut.getColumnHeader(c);				
 			}
-			SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Cut signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+			SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Sub-signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			plotDisplayFrameList.add(pdf);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
