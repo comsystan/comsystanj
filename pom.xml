@@ -34,7 +34,7 @@
 		<module>img2d-opener</module>
 		<module>sig-allomscale</module>
 		<module>sig-autocorr</module>
-		<module>sig-cut</module>
+		<module>sig-cutout</module>
 		<module>sig-detect-events</module>
 		<module>sig-detect-qrspeaks</module>
 		<module>sig-dfa</module>
