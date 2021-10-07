@@ -107,6 +107,7 @@ import io.scif.MetaTable;
 @Plugin(type = ContextCommand.class,
 		headless = true,
 		label = "Higuchi dimension 1D",
+		initializer = "initialPluginLaunch",
 		menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
@@ -296,10 +297,14 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 
 
 	// ---------------------------------------------------------------------
-	// The following initialzer functions set initial values
-
+		
+	protected void initialPluginLaunch() {
+		//datasetIn = imageDisplayService.getActiveDataset();
+		checkItemIOIn();
+	}
+	
 	protected void initialKMax() {
-		numbKMax = (int) Math.floor((Math.min(datasetIn.max(0) + 1, datasetIn.max(1) + 1)) / 3.0);
+		numbKMax = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
 		spinnerInteger_KMax = numbKMax;
 	}
 
@@ -308,7 +313,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	}
 
 	protected void initialRegMax() {
-		spinnerInteger_RegMax = (int) Math.floor((Math.min(datasetIn.max(0) + 1, datasetIn.max(1) + 1)) / 3.0);
+		spinnerInteger_RegMax = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
 	}
 
 	protected void initialMethod() {
@@ -334,8 +339,8 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	protected void initialNumImageSlice() {
     	spinnerInteger_NumImageSlice = 1;
 	}
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 
 	/** Executed whenever the {@link #spinInteger_KMax} parameter changes. */
 	protected void callbackKMax() {
@@ -396,7 +401,6 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	
 	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
-		getAndValidateActiveDataset();
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");
 			spinnerInteger_NumImageSlice = (int)numSlices;
@@ -478,7 +482,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		logService.info(this.getClass().getName() + " Widget canceled");
 	}	 
 			 
-/** 
+	/** 
 	 * The run method executes the command via a SciJava thread
 	 * by pressing the OK button in the UI or
 	 * by CommandService.run(Command.class, false, parameters) in a script  
@@ -501,58 +505,14 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	    startWorkflowForAllImages();
 	}
 
-	/**
-	* This method starts the workflow for a single image of the active display
-	*/
-	protected void startWorkflowForSingleImage() {
+	public void checkItemIOIn() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
-						logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-		deleteExistingDisplays();
-		getAndValidateActiveDataset();
-		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-		processSingleInputImage(sliceIndex);
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		generateTableHeader();
-		writeSingleResultToTable(sliceIndex);
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();         
-	}
+		//datasetIn = imageDisplayService.getActiveDataset();
 	
-	/**
-	* This method starts the workflow for all images of the active display
-	*/
-	protected void startWorkflowForAllImages() {
-			dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
-								logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-    	logService.info(this.getClass().getName() + " Processing all available images");
-		deleteExistingDisplays();
-		getAndValidateActiveDataset();
-		processAllInputImages();
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		generateTableHeader();
-		writeAllResultsToTable();
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
-	}
-	
-	public void getAndValidateActiveDataset() {
-
-		datasetIn = imageDisplayService.getActiveDataset();
-
 		if ((datasetIn.firstElement() instanceof UnsignedByteType) || (datasetIn.firstElement() instanceof FloatType)) {
 			// That is OK, proceed
 		} else {
-
+	
 			final MessageType messageType = MessageType.QUESTION_MESSAGE;
 			final OptionType optionType = OptionType.OK_CANCEL_OPTION;
 			final String title = "Validation result";
@@ -560,15 +520,15 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 			// Prompt for confirmation.
 			// final UIService uiService = getContext().getService(UIService.class);
 			Result result = uiService.showDialog(message, title, messageType, optionType);
-
+	
 			// Cancel the command execution if the user does not agree.
 			// if (result != Result.YES_OPTION) System.exit(-1);
 			// if (result != Result.YES_OPTION) return;
 			return;
 		}
 		// get some info
-		width = datasetIn.max(0) + 1;
-		height = datasetIn.max(1) + 1;
+		width = datasetIn.dimension(0);
+		height = datasetIn.dimension(1);
 		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
 		numDimensions = datasetIn.numDimensions();
 		if (numDimensions == 2) {
@@ -597,12 +557,54 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 			//npe.printStackTrace();
 			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
 		}
-                
+	            
 		logService.info(this.getClass().getName() + " Name: " + datasetName); 
 		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
 	}
 
+	/**
+	* This method starts the workflow for a single image of the active display
+	*/
+	protected void startWorkflowForSingleImage() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+						logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+		
+		deleteExistingDisplays();
+		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		processSingleInputImage(sliceIndex);
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeSingleResultToTable(sliceIndex);
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();         
+	}
+	
+	/**
+	* This method starts the workflow for all images of the active display
+	*/
+	protected void startWorkflowForAllImages() {
+			dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+								logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available images");
+		deleteExistingDisplays();
+		processAllInputImages();
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeAllResultsToTable();
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
+	
 	/**
 	 * This methods gets the index of the active image in a stack
 	 * @return int index

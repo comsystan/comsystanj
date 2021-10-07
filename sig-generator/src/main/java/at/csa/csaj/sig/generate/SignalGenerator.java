@@ -190,7 +190,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     private float spinnerFloat_FractalDim;
     //---------------------------------------------------------------------
     
-    //The following initialzer functions set initial values
+    //The following initializer functions set initial values	
     protected void initialMethod() {
     	choiceRadioButt_Method = "Constant";
     }
@@ -227,8 +227,8 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	spinnerFloat_FractalDim = 1.5f;
     }
     
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 	/** Executed whenever the {@link #spinInteger_Width} parameter changes. */
 	
 	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
@@ -1271,9 +1271,6 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
   
 	/**
 	 * This runs a signal(s) generator routine
-	 * 
-     * @param args whatever, it's ignored
-     * @throws Exception
      */
     @Override
     public void run() {

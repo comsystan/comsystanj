@@ -104,6 +104,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 @Plugin(type = ContextCommand.class, 
 	headless = true,
 	label = "Generalized entropies",
+	initializer = "initialPluginLaunch",
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
@@ -305,7 +306,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 			   initializer = "initialMaxBeta", callback = "callbackMaxBeta")
 	private float spinnerFloat_MaxBeta;
 	
-	@Parameter(label = "(SGamma) Min gamma", description = "minimal Gamma for SGamma entropies", style = NumberWidget.SPINNER_STYLE, min = "0f", max = "100000f", stepSize = "1",
+	@Parameter(label = "(SGamma) Min gamma", description = "minimal Gamma for SGamma entropies", style = NumberWidget.SPINNER_STYLE, min = "0f", max = "100000f", stepSize = "0.1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialMinGamma", callback = "callbackMinGamma")
 	private float spinnerFloat_MinGamma;
@@ -398,7 +399,11 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 
 
 	// ---------------------------------------------------------------------
-	// The following initialzer functions set initial values
+		
+	protected void initialPluginLaunch() {
+		//tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+		checkItemIOIn();
+	}
 	
 	protected void initialProbabilityType() {
 		choiceRadioButt_ProbabilityType = "Signal values"; //"Signal values", "Pairwise differences", "Sum of differences", "SD"
@@ -410,49 +415,73 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	
 	protected void initialMinQ() {
 		spinnerInteger_MinQ = -5;
+		minQ = spinnerInteger_MinQ;
+		numQ = (maxQ - minQ)/stepQ + 1;
 	}
 	
 	protected void initialMaxQ() {
 		spinnerInteger_MaxQ = 5;
+		maxQ = spinnerInteger_MaxQ;
+		numQ = (maxQ - minQ)/stepQ + 1;
 	}
 	
 	protected void initialMinEta() {
 		spinnerFloat_MinEta = 0.1f;
+		minEta = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
 	}
 	
 	protected void initialMaxEta() {
 		spinnerFloat_MaxEta = 1f;
+		maxEta = Precision.round(spinnerFloat_MaxEta, 1);
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
 	}
 	protected void initialMinKappa() {
 		spinnerFloat_MinKappa = 0.1f;
+		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
 	}
 	
 	protected void initialMaxKappa() {
 		spinnerFloat_MaxKappa = 0.9f;
+		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
 	}
 	
 	protected void initialMinB() {
 		spinnerFloat_MinB = 1.0f;
+		minB = Precision.round(spinnerFloat_MinB, 1);
+		numB = (int)((maxB - minB)/stepB + 1);
 	}
 	
 	protected void initialMaxB() {
 		spinnerFloat_MaxB = 10.0f;
+		maxB = Precision.round(spinnerFloat_MaxB, 1);
+		numB = (int)((maxB - minB)/stepB + 1);
 	}
 	
 	protected void initialMinBeta() {
 		spinnerFloat_MinBeta = 0.5f;
+		minBeta = Precision.round(spinnerFloat_MinBeta, 1);
+		numBeta = (int)((maxBeta - minBeta) /stepBeta + 1);
 	}
 	
 	protected void initialMaxBeta() {
 		spinnerFloat_MaxBeta = 1.5f;
+		maxBeta = Precision.round(spinnerFloat_MaxBeta, 1);
+		numBeta = (int)((maxBeta - minBeta) /stepBeta + 1);
 	}
 	
 	protected void initialMinGamma() {
 		spinnerFloat_MinGamma = 0.1f;
+		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 	}
 	
 	protected void initialMaxGamma() {
 		spinnerFloat_MaxGamma = 1.0f;
+		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 	}
 	
 	protected void initialSignalRange() {
@@ -471,6 +500,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	protected void initialBoxLength() {
 		numBoxLength = 100;
 		spinnerInteger_BoxLength =  (int) numBoxLength;
+		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 	}
 	
 	protected void initialEntropyType() {
@@ -489,8 +520,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		spinnerInteger_NumColumn = 1;
 	}
 
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 	
 	/** Executed whenever the {@link #choiceRadioButt_ProbabilityType} parameter changes. */
 	protected void callbackProbabilityType() {
@@ -505,61 +536,85 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	
 	/** Executed whenever the {@link #spinInteger_MinQ} parameter changes. */
 	protected void callbackMinQ() {
+		minQ = spinnerInteger_MinQ;
+		numQ = (maxQ - minQ)/stepQ + 1;
 		logService.info(this.getClass().getName() + " Minimal Q set to " + spinnerInteger_MinQ);
 	}
 
 	/** Executed whenever the {@link #spinInteger_MaxQ} parameter changes. */
 	protected void callbackMaxQ() {
+		maxQ = spinnerInteger_MaxQ;
+		numQ = (maxQ - minQ)/stepQ + 1;
 		logService.info(this.getClass().getName() + " Maximal Q set to " + spinnerInteger_MaxQ);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinEta} parameter changes. */
 	protected void callbackMinEta() {
+		minEta = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
 		logService.info(this.getClass().getName() + " Minimal Eta set to " + spinnerFloat_MinEta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxEta} parameter changes. */
 	protected void callbackMaxEta() {
+		maxEta = Precision.round(spinnerFloat_MaxEta, 1);
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
 		logService.info(this.getClass().getName() + " Maximal Eta set to " + spinnerFloat_MaxEta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinKappa} parameter changes. */
 	protected void callbackMinKappa() {
+		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
 		logService.info(this.getClass().getName() + " Minimal Kappa set to " + spinnerFloat_MinKappa);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxKappa} parameter changes. */
 	protected void callbackMaxKapa() {
+		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
 		logService.info(this.getClass().getName() + " Maximal Kappa set to " + spinnerFloat_MaxKappa);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinB} parameter changes. */
 	protected void callbackMinB() {
+		minB = Precision.round(spinnerFloat_MinB, 1);
+		numB = (int)((maxB - minB)/stepB + 1);
 		logService.info(this.getClass().getName() + " Minimal B set to " + spinnerFloat_MinB);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxB} parameter changes. */
 	protected void callbackMaxB() {
+		maxB = Precision.round(spinnerFloat_MaxB, 1);
+		numB = (int)((maxB - minB)/stepB + 1);
 		logService.info(this.getClass().getName() + " Maximal B set to " + spinnerFloat_MaxB);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinBeta} parameter changes. */
 	protected void callbackMinBeta() {
+		minBeta = Precision.round(spinnerFloat_MinBeta, 1);
+		numBeta = (int)((maxBeta - minBeta) /stepBeta + 1);
 		logService.info(this.getClass().getName() + " Minimal Beta set to " + spinnerFloat_MinBeta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxBeta} parameter changes. */
 	protected void callbackMaxBeta() {
+		maxBeta = Precision.round(spinnerFloat_MaxBeta, 1);
+		numBeta = (int)((maxBeta - minBeta) /stepBeta + 1);
 		logService.info(this.getClass().getName() + " Maximal Beta set to " + spinnerFloat_MaxBeta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinGamma} parameter changes. */
 	protected void callbackMinGamma() {
+		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 		logService.info(this.getClass().getName() + " Minimal Gamma set to " + spinnerFloat_MinGamma);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxGamma} parameter changes. */
 	protected void callbackMaxGamma() {
+		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 		logService.info(this.getClass().getName() + " Maximal Gamma set to " + spinnerFloat_MaxGamma);
 	}
 
@@ -591,6 +646,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
 	protected void callbackBoxLength() {
 		numBoxLength = spinnerInteger_BoxLength;
+		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 	}
 
@@ -611,7 +668,6 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	
 	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
-		getAndValidateActiveDataset();
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");
 			spinnerInteger_NumColumn = tableIn.getColumnCount();
@@ -693,7 +749,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		logService.info(this.getClass().getName() + " Widget canceled");
 	}	 
 			 
-/** 
+	/** 
 	 * The run method executes the command via a SciJava thread
 	 * by pressing the OK button in the UI or
 	 * by CommandService.run(Command.class, false, parameters) in a script  
@@ -716,6 +772,30 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	    startWorkflowForAllColumns();
 	}
 	
+	public void checkItemIOIn() {
+
+		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
+		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+	
+		// get some info
+		tableInName = defaultTableDisplay.getName();
+		numColumns  = tableIn.getColumnCount();
+		numRows     = tableIn.getRowCount();
+		
+		sliceLabels = new String[(int) numColumns];
+		
+		stepQ     = 1;
+		stepEta   = 0.1f;
+		stepKappa = 0.1f;
+		stepB     = 1.0f;
+		stepBeta  = 0.1f;
+		stepGamma = 0.1f;
+	      
+		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
+		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
+		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
+	}
+
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
@@ -729,7 +809,6 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	
     	logService.info(this.getClass().getName() + " Processing single signal");
     	deleteExistingDisplays();
-		getAndValidateActiveDataset();
 		generateTableHeader();
 		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
 		dlgProgress.addMessage("Processing finished!");		
@@ -749,7 +828,6 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 
     	logService.info(this.getClass().getName() + " Processing all available columns");
     	deleteExistingDisplays();
-		getAndValidateActiveDataset();
 		generateTableHeader();
 		processAllInputColumns();
 		dlgProgress.addMessage("Processing finished! Preparing result table...");
@@ -758,26 +836,6 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		Toolkit.getDefaultToolkit().beep();
 	}
 	
-	public void getAndValidateActiveDataset() {
-
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-		
-		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
-		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
-		
-		sliceLabels = new String[(int) numColumns];
-          
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
-	}
-
 	/**
 	 * This methods gets the index of the active column in the table
 	 * @return int index
@@ -824,33 +882,6 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	
 		tableOut.add(new GenericColumn("Probability type"));		
 		tableOut.add(new IntColumn("Lag"));
-		
-		minQ       = spinnerInteger_MinQ;
-		maxQ       = spinnerInteger_MaxQ;
-		minEta     = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
-		maxEta     = Precision.round(spinnerFloat_MaxEta, 1);
-		minKappa   = Precision.round(spinnerFloat_MinKappa, 1);
-		maxKappa   = Precision.round(spinnerFloat_MaxKappa, 1);
-		minB       = Precision.round(spinnerFloat_MinB, 1);
-		maxB       = Precision.round(spinnerFloat_MaxB, 1);
-		minBeta    = Precision.round(spinnerFloat_MinBeta, 1);
-		maxBeta    = Precision.round(spinnerFloat_MaxBeta, 1);
-		minGamma   = Precision.round(spinnerFloat_MinGamma, 1);
-		maxGamma   = Precision.round(spinnerFloat_MaxGamma, 1);
-		
-		stepQ     = 1;
-		stepEta   = 0.1f;
-		stepKappa = 0.1f;
-		stepB     = 1.0f;
-		stepBeta  = 0.1f;
-		stepGamma = 0.1f;
-	
-		numQ     =        (maxQ     - minQ)    /stepQ     + 1;
-		numEta   = (int) ((maxEta   - minEta)  /stepEta   + 1);
-		numKappa = (int) ((maxKappa - minKappa)/stepKappa + 1);
-		numB     = (int) ((maxB     - minB)    /stepB     + 1);
-		numBeta  = (int) ((maxBeta  - minBeta) /stepBeta  + 1);
-		numGamma = (int) ((maxGamma - minGamma)/stepGamma + 1);
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SignalRange.equals("Entire signal")){

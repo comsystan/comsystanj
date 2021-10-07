@@ -76,6 +76,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 @Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "Statistics",
+	initializer = "initialPluginLaunch",
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
@@ -238,8 +239,11 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 //	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------
-    //The following initialzer functions set initial values
-     
+    //The following initializer functions set initial values	
+	protected void initialPluginLaunch() {
+		//tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+		checkItemIOIn();
+	}
     protected void initialSignalRange() {
     	choiceRadioButt_SignalRange = "Entire signal";
     }   
@@ -250,6 +254,8 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 	protected void initialBoxLength() {
 		numBoxLength = 100;
 		spinnerInteger_BoxLength =  (int) numBoxLength;
+		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 	}	
 	protected void initialRemoveZeroes() {
 		booleanRemoveZeroes = false;
@@ -262,8 +268,8 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 	}
 	
 	//-------------------------------------------------------------------------
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 
 	/** Executed whenever the {@link #choiceRadioButt_SignalRange} parameter changes. */
 	protected void callbackSignalRange() {
@@ -292,6 +298,8 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
 	protected void callbackBoxLength() {
 		numBoxLength = spinnerInteger_BoxLength;
+		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 	}
 
@@ -307,7 +315,6 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 	
 	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
-		getAndValidateActiveDataset();
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");
 			spinnerInteger_NumColumn = tableIn.getColumnCount();
@@ -389,7 +396,7 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 		logService.info(this.getClass().getName() + " Widget canceled");
 	}	 
 			 
-/** 
+	/** 
 	 * The run method executes the command via a SciJava thread
 	 * by pressing the OK button in the UI or
 	 * by CommandService.run(Command.class, false, parameters) in a script  
@@ -412,6 +419,23 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 	    startWorkflowForAllColumns();
 	}
 	
+	public void checkItemIOIn() {
+
+		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
+		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+	
+		// get some info
+		tableInName = defaultTableDisplay.getName();
+		numColumns  = tableIn.getColumnCount();
+		numRows     = tableIn.getRowCount();
+		
+		sliceLabels = new String[(int) numColumns];
+	           
+		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
+		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
+		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
+	}
+	
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
@@ -425,7 +449,6 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 	
     	logService.info(this.getClass().getName() + " Processing single signal");
     	deleteExistingDisplays();
-    	getAndValidateActiveDataset();
 		generateTableHeader();
   		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
 		dlgProgress.addMessage("Processing finished! Preparing result table...");
@@ -445,33 +468,12 @@ public class SignalStatistics<T extends RealType<T>> extends ContextCommand impl
 
     	logService.info(this.getClass().getName() + " Processing all available columns");
     	deleteExistingDisplays();
-		getAndValidateActiveDataset();
 		generateTableHeader();
 		processAllInputColumns();
 		dlgProgress.addMessage("Processing finished! Preparing result table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
-	}
-
-	public void getAndValidateActiveDataset() {
-
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-	
-		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
-		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
-	
-		sliceLabels = new String[(int) numColumns];
-	           
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**

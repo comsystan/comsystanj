@@ -150,7 +150,7 @@ public class DetectQRSPeaks  extends ContextCommand implements Previewable { //m
     
     //---------------------------------------------------------------------
     
-    //The following initialzer functions set initial values
+    //The following initializer functions set initial values	
     protected void initialOffset() {
     	spinnerInteger_Offset = 0;
     }
@@ -163,8 +163,8 @@ public class DetectQRSPeaks  extends ContextCommand implements Previewable { //m
     protected void initialOutputOption() {
     	choiceRadioButt_OutputOption = "RRIntervals";
     }
-    // The following method is known as "callback" which gets executed
- 	// whenever the value of a specific linked parameter changes.
+    // ------------------------------------------------------------------------------
+ 	
  	/** Executed whenever the {@link #spinInteger_Dim} parameter changes. */
  	protected void callbackOffset() {
  		logService.info(this.getClass().getName() + " Offset changed to " + spinnerInteger_Offset);

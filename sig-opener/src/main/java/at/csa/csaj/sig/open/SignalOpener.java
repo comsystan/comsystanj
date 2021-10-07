@@ -103,7 +103,7 @@ public class SignalOpener<T extends RealType<T>> extends ContextCommand { //moda
 	//No widget
 	
 	/**
-	 * This runs a signal(s) openening routine
+	 * This runs a signal(s) opening routine
 	 * __________________________________________________________________________________
 	 * WARNING:
 	 * Data values must be floating numbers
@@ -113,8 +113,6 @@ public class SignalOpener<T extends RealType<T>> extends ContextCommand { //moda
 	 * NaNs will be ignored by Signal Processing Plugins.
 	 * __________________________________________________________________________________
 	 *  
-     * @param args whatever, it's ignored
-     * @throws Exception
      */
     @Override
     public void run() {
@@ -197,15 +195,16 @@ public class SignalOpener<T extends RealType<T>> extends ContextCommand { //moda
 				String xLabel = "#";
 				String yLabel = defaultGenericTable.getColumnHeader(0);
 				String seriesLabel = null;
-				
-				//show table
-				uiService.show(files[0].getName(), defaultGenericTable);	  
-				 
+					 
 				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 				if (selectedOption == JOptionPane.YES_OPTION) {
 					pdf = new SignalPlotFrame(defaultGenericTable, 0, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel);
 					pdf.setVisible(true);
-				}		
+				}
+				
+				//Show table after plot to set it as the active display
+				//This is mandatory for launching a signal processing plugin 
+				uiService.show(files[0].getName(), defaultGenericTable);	  
 			}
 			
 			if (numColumns > 1) {
@@ -219,15 +218,16 @@ public class SignalOpener<T extends RealType<T>> extends ContextCommand { //moda
 					cols[c] = c;
 					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
 				}
-				
-				//show table
-				uiService.show(files[0].getName(), defaultGenericTable);	 
-				 
+							 
 				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the signals?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 				if (selectedOption == JOptionPane.YES_OPTION) {
 					pdf = new SignalPlotFrame(defaultGenericTable, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 					pdf.setVisible(true);
-				}				
+				}		
+				
+				//Show table after plot to set it as the active display
+				//This is mandatory for launching a signal processing plugin 
+				uiService.show(files[0].getName(), defaultGenericTable);	
 			}				
 		}
 		

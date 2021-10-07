@@ -102,7 +102,9 @@ import io.scif.MetaTable;
  */
 @Plugin(type = ContextCommand.class, 
         headless = true,
-        label = "Generalized dimensions", menu = {
+        label = "Generalized dimensions",
+        initializer = "initialPluginLaunch",
+        menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
@@ -347,7 +349,11 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 
     //---------------------------------------------------------------------
  
-    //The following initialzer functions set initial values
+    //The following initializer functions set initial values
+	protected void initialPluginLaunch() {
+		//datasetIn = imageDisplayService.getActiveDataset();
+		checkItemIOIn();
+	}
     protected void initialNumBoxes() {
       	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
       	spinnerInteger_NumBoxes = numBoxes;
@@ -393,8 +399,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
     	spinnerInteger_NumImageSlice = 1;
 	}
 
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
 	protected void callbackNumBoxes() {
 		
@@ -479,7 +485,6 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 	
 	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
-		getAndValidateActiveDataset();
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");
 			spinnerInteger_NumImageSlice = (int)numSlices;
@@ -561,7 +566,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 		logService.info(this.getClass().getName() + " Widget canceled");
 	}	 
 			 
-/** 
+	/** 
 	 * The run method executes the command via a SciJava thread
 	 * by pressing the OK button in the UI or
 	 * by CommandService.run(Command.class, false, parameters) in a script  
@@ -583,54 +588,9 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 		//}	
 	    startWorkflowForAllImages();
 	}
-	/**
-	* This method starts the workflow for a single image of the active display
-	*/
-	protected void startWorkflowForSingleImage() {
-		
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized dimensions, please wait... Open console window for further info.",
-				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-
-		deleteExistingDisplays();
-		getAndValidateActiveDataset();
-		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-		processSingleInputImage(sliceIndex);
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		generateTableHeader();
-		writeSingleResultToTable(sliceIndex);
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
-	}
+	public void checkItemIOIn() {
 	
-	/**
-	* This method starts the workflow for all images of the active display
-	*/
-	protected void startWorkflowForAllImages() {
-	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized dimensions, please wait... Open console window for further info.",
-						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-	
-    	logService.info(this.getClass().getName() + " Processing all available images");
-		deleteExistingDisplays();
-		getAndValidateActiveDataset();
-		processAllInputImages();
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		generateTableHeader();
-		writeAllResultsToTable();
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
-	}
-	
-	public void getAndValidateActiveDataset() {
-
-		datasetIn = imageDisplayService.getActiveDataset();
+		//datasetIn = imageDisplayService.getActiveDataset();
 	
 		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
 	         (datasetIn.firstElement() instanceof FloatType) ){
@@ -685,6 +645,49 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 		logService.info(this.getClass().getName() + " Name: " + datasetName); 
 		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
+	}
+	
+	/**
+	* This method starts the workflow for a single image of the active display
+	*/
+	protected void startWorkflowForSingleImage() {
+		
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized dimensions, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+
+		deleteExistingDisplays();
+		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		processSingleInputImage(sliceIndex);
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeSingleResultToTable(sliceIndex);
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
+	
+	/**
+	* This method starts the workflow for all images of the active display
+	*/
+	protected void startWorkflowForAllImages() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized dimensions, please wait... Open console window for further info.",
+						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+	
+    	logService.info(this.getClass().getName() + " Processing all available images");
+		deleteExistingDisplays();
+		processAllInputImages();
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeAllResultsToTable();
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 	
 	/**

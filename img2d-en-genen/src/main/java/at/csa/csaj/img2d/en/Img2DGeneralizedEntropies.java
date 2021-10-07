@@ -122,7 +122,9 @@ import io.scif.MetaTable;
  */
 @Plugin(type = ContextCommand.class, 
         headless = true,
-        label = "Generalized entropies", menu = {
+        label = "Generalized entropies",
+        initializer = "initialPluginLaunch",
+        menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
@@ -371,8 +373,11 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 //	private Button buttonProcessAllImages;
     
     //---------------------------------------------------------------------
-    //The following initialzer functions set initial values
- 
+    //The following initializer functions set initial values	
+	protected void initialPluginLaunch() {
+		//datasetIn = imageDisplayService.getActiveDataset();
+		checkItemIOIn();
+	}
     protected void initialProbabilityType() {
  		choiceRadioButt_ProbabilityType = "Grey values"; //"Grey values", "Pairwise differences", "Sum of differences", "SD"
  	} 
@@ -383,49 +388,73 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
  	
  	protected void initialMinQ() {
  		spinnerInteger_MinQ = -5;
+ 		minQ = spinnerInteger_MinQ;
+ 		numQ = (maxQ - minQ)/stepQ + 1;
  	}
  	
  	protected void initialMaxQ() {
  		spinnerInteger_MaxQ = 5;
+ 		maxQ = spinnerInteger_MaxQ;
+ 		numQ = (maxQ - minQ)/stepQ + 1;
  	}
  	
  	protected void initialMinEta() {
  		spinnerFloat_MinEta = 0.1f;
+ 		minEta = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
  	}
  	
  	protected void initialMaxEta() {
  		spinnerFloat_MaxEta = 1f;
+ 		maxEta = Precision.round(spinnerFloat_MaxEta, 1);
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
  	}
  	protected void initialMinKappa() {
  		spinnerFloat_MinKappa = 0.1f;
+ 		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
+ 		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
  	}
  	
  	protected void initialMaxKappa() {
  		spinnerFloat_MaxKappa = 0.9f;
+ 		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
+ 		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
  	}
  	
  	protected void initialMinB() {
  		spinnerFloat_MinB = 1.0f;
+ 		minB = Precision.round(spinnerFloat_MinB, 1);
+ 		numB = (int)((maxB - minB)/stepB + 1);
  	}
  	
  	protected void initialMaxB() {
  		spinnerFloat_MaxB = 10.0f;
+ 		maxB = Precision.round(spinnerFloat_MaxB, 1);
+ 		numB = (int)((maxB - minB)/stepB + 1);
  	}
  	
  	protected void initialMinBeta() {
  		spinnerFloat_MinBeta = 0.5f;
+ 		minBeta = Precision.round(spinnerFloat_MinBeta, 1);
+ 		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
  	}
  	
  	protected void initialMaxBeta() {
  		spinnerFloat_MaxBeta = 1.5f;
+ 		maxBeta = Precision.round(spinnerFloat_MaxBeta, 1);
+ 		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
  	}
  	
  	protected void initialMinGamma() {
  		spinnerFloat_MinGamma = 0.1f;
+ 		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
+ 		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
  	}
  	
  	protected void initialMaxGamma() {
  		spinnerFloat_MaxGamma = 1.0f;
+ 		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
+ 		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
  	}
    
     protected void initialShowRenyiPlot() {
@@ -440,8 +469,8 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
     	spinnerInteger_NumImageSlice = 1;
 	}
 
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 
 	/** Executed whenever the {@link #choiceRadioButt_ProbabilityType} parameter changes. */
 	protected void callbackProbabilityType() {
@@ -456,61 +485,85 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 	
 	/** Executed whenever the {@link #spinInteger_MinQ} parameter changes. */
 	protected void callbackMinQ() {
+		minQ = spinnerInteger_MinQ;
+		numQ = (maxQ - minQ)/stepQ + 1;
 		logService.info(this.getClass().getName() + " Minimal Q set to " + spinnerInteger_MinQ);
 	}
 
 	/** Executed whenever the {@link #spinInteger_MaxQ} parameter changes. */
 	protected void callbackMaxQ() {
+		maxQ = spinnerInteger_MaxQ;
+		numQ = (maxQ - minQ)/stepQ + 1;
 		logService.info(this.getClass().getName() + " Maximal Q set to " + spinnerInteger_MaxQ);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinEta} parameter changes. */
 	protected void callbackMinEta() {
+		minEta = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
 		logService.info(this.getClass().getName() + " Minimal Eta set to " + spinnerFloat_MinEta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxEta} parameter changes. */
 	protected void callbackMaxEta() {
+		maxEta = Precision.round(spinnerFloat_MaxEta, 1);
+		numEta = (int)((maxEta - minEta)/stepEta + 1);
 		logService.info(this.getClass().getName() + " Maximal Eta set to " + spinnerFloat_MaxEta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinKappa} parameter changes. */
 	protected void callbackMinKappa() {
+		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
 		logService.info(this.getClass().getName() + " Minimal Kappa set to " + spinnerFloat_MinKappa);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxKappa} parameter changes. */
 	protected void callbackMaxKapa() {
+		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
 		logService.info(this.getClass().getName() + " Maximal Kappa set to " + spinnerFloat_MaxKappa);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinB} parameter changes. */
 	protected void callbackMinB() {
+		minB = Precision.round(spinnerFloat_MinB, 1);
+		numB = (int)((maxB - minB)/stepB + 1);
 		logService.info(this.getClass().getName() + " Minimal B set to " + spinnerFloat_MinB);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxB} parameter changes. */
 	protected void callbackMaxB() {
+		maxB = Precision.round(spinnerFloat_MaxB, 1);
+		numB = (int)((maxB - minB)/stepB + 1);
 		logService.info(this.getClass().getName() + " Maximal B set to " + spinnerFloat_MaxB);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinBeta} parameter changes. */
 	protected void callbackMinBeta() {
+		minBeta = Precision.round(spinnerFloat_MinBeta, 1);
+		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
 		logService.info(this.getClass().getName() + " Minimal Beta set to " + spinnerFloat_MinBeta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxBeta} parameter changes. */
 	protected void callbackMaxBeta() {
+		maxBeta = Precision.round(spinnerFloat_MaxBeta, 1);
+		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
 		logService.info(this.getClass().getName() + " Maximal Beta set to " + spinnerFloat_MaxBeta);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MinGamma} parameter changes. */
 	protected void callbackMinGamma() {
+		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 		logService.info(this.getClass().getName() + " Minimal Gamma set to " + spinnerFloat_MinGamma);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_MaxGamma} parameter changes. */
 	protected void callbackMaxGamma() {
+		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 		logService.info(this.getClass().getName() + " Maximal Gamma set to " + spinnerFloat_MaxGamma);
 	}
 		
@@ -521,7 +574,6 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 	
 	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
-		getAndValidateActiveDataset();
 		if ( spinnerInteger_NumImageSlice  > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");
 			spinnerInteger_NumImageSlice = (int) numSlices;
@@ -626,54 +678,9 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 	    startWorkflowForAllImages();
 	}
 
-	/*
-	* This method starts the workflow for a single image of the active display
-	*/
-	protected void startWorkflowForSingleImage() {
-			
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized entropies, please wait... Open console window for further info.",
-				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
+	public void checkItemIOIn() {
 	
-		deleteExistingDisplays();
-		getAndValidateActiveDataset();
-		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-		processSingleInputImage(sliceIndex);
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");	
-		generateTableHeader();
-		writeSingleResultToTable(sliceIndex);
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();  	   
-	}
-	
-	/*
-	* This method starts the workflow for all images of the active display
-	*/
-	protected void startWorkflowForAllImages() {
-			
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized entropies, please wait... Open console window for further info.",
-						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);	
-	
-    	logService.info(this.getClass().getName() + " Processing all available images");	
-		deleteExistingDisplays();
-		getAndValidateActiveDataset();	
-		processAllInputImages();	
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");	
-		generateTableHeader();
-		writeAllResultsToTable();	
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();			
-   	    Toolkit.getDefaultToolkit().beep();	    
-	}
-	
-	public void getAndValidateActiveDataset() {
-
-		datasetIn = imageDisplayService.getActiveDataset();
+		//datasetIn = imageDisplayService.getActiveDataset();
 	
 		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
 	         (datasetIn.firstElement() instanceof FloatType) ){
@@ -728,34 +735,56 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Name: " + datasetName); 
 		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		
-		minQ       = spinnerInteger_MinQ;
-		maxQ       = spinnerInteger_MaxQ;
-		minEta     = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
-		maxEta     = Precision.round(spinnerFloat_MaxEta, 1);
-		minKappa   = Precision.round(spinnerFloat_MinKappa, 1);
-		maxKappa   = Precision.round(spinnerFloat_MaxKappa, 1);
-		minB       = Precision.round(spinnerFloat_MinB, 1);
-		maxB       = Precision.round(spinnerFloat_MaxB, 1);
-		minBeta    = Precision.round(spinnerFloat_MinBeta, 1);
-		maxBeta    = Precision.round(spinnerFloat_MaxBeta, 1);
-		minGamma   = Precision.round(spinnerFloat_MinGamma, 1);
-		maxGamma   = Precision.round(spinnerFloat_MaxGamma, 1);
-		
+			
 		stepQ     = 1;
 		stepEta   = 0.1f;
 		stepKappa = 0.1f;
 		stepB     = 1.0f;
 		stepBeta  = 0.1f;
 		stepGamma = 0.1f;
+	}
 	
-		numQ     =        (maxQ     - minQ)    /stepQ     + 1;
-		numEta   = (int) ((maxEta   - minEta)  /stepEta   + 1);
-		numKappa = (int) ((maxKappa - minKappa)/stepKappa + 1);
-		numB     = (int) ((maxB     - minB)    /stepB     + 1);
-		numBeta  = (int) ((maxBeta  - minBeta) /stepBeta  + 1);
-		numGamma = (int) ((maxGamma - minGamma)/stepGamma + 1);
-		
+	/*
+	* This method starts the workflow for a single image of the active display
+	*/
+	protected void startWorkflowForSingleImage() {
+			
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized entropies, please wait... Open console window for further info.",
+				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+	
+		deleteExistingDisplays();
+		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		processSingleInputImage(sliceIndex);
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");	
+		generateTableHeader();
+		writeSingleResultToTable(sliceIndex);
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();  	   
+	}
+	
+	/*
+	* This method starts the workflow for all images of the active display
+	*/
+	protected void startWorkflowForAllImages() {
+			
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Generalized entropies, please wait... Open console window for further info.",
+						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);	
+	
+    	logService.info(this.getClass().getName() + " Processing all available images");	
+		deleteExistingDisplays();
+		processAllInputImages();	
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");	
+		generateTableHeader();
+		writeAllResultsToTable();	
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();			
+   	    Toolkit.getDefaultToolkit().beep();	    
 	}
 	
 	/**

@@ -297,7 +297,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     //---------------------------------------------------------------------
     
     
-    //The following initialzer functions set initial values
+    //The following initializer functions set initial values	
     protected void initialWidth() {
     	spinnerInteger_Width = 512;
     }
@@ -368,8 +368,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		spinnerInteger_NumPolygons = 3;
 	}
     
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 	/** Executed whenever the {@link #spinInteger_Width} parameter changes. */
 	protected void changedWidth() {
 		logService.info(this.getClass().getName() + " Width changed to " + spinnerInteger_Width + " pixel");

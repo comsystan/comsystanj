@@ -74,13 +74,14 @@ import at.csa.csaj.sig.open.SignalOpener;
 @Plugin(type = ContextCommand.class,
 	headless = true,
 	label = "Cut out",
+	initializer = "initialPluginLaunch",
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "Cut out", weight = 3)})
+//public class SignalCut<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalCut<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
-//public class SignalCut<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL                = "<html><b>Cut out</b></html>";
 	private static final String SPACE_LABEL                 = "";
@@ -253,14 +254,20 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 //	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------
-	// The following initialzer functions set initial values
+		
+	protected void initialPluginLaunch() {
+		//tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+		checkItemIOIn();
+	}
 	
 	protected void initialRangeStart() {
 		spinnerInteger_RangeStart = 1;
+		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
 	} 
 	
 	protected void initialRangeEnd() {
 		spinnerInteger_RangeEnd = 2;
+		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
 	} 
 	
 //	protected void initialSignalRange() {
@@ -279,6 +286,8 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 //	protected void initialBoxLength() {
 //		numBoxLength = 100;
 //		spinnerInteger_BoxLength =  (int) numBoxLength;
+//		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 //	}
 	
 //	protected void initialRemoveZeroes() {
@@ -293,19 +302,21 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 		spinnerInteger_NumColumn = 1;
 	}
 
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 	
 	
 	/** Executed whenever the {@link #spinnerInteger_RangeStart} parameter changes. */
 	protected void callbackRangeStart() {
 		if (spinnerInteger_RangeStart > spinnerInteger_RangeEnd) spinnerInteger_RangeStart = spinnerInteger_RangeEnd; 
+		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
 		logService.info(this.getClass().getName() + " Start index set to " + spinnerInteger_RangeStart);
 	}
 	
 		/** Executed whenever the {@link #spinnerInteger_RangeEnd} parameter changes. */
 	protected void callbackRangeEnd() {
 		if (spinnerInteger_RangeEnd < spinnerInteger_RangeStart) spinnerInteger_RangeEnd = spinnerInteger_RangeStart; 
+		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
 		logService.info(this.getClass().getName() + " End index set to " + spinnerInteger_RangeEnd);
 	}
 	
@@ -336,6 +347,8 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 //	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
 //	protected void callbackBoxLength() {
 //		numBoxLength = spinnerInteger_BoxLength;
+//		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 //		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 //	}
 
@@ -351,7 +364,6 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 	
 	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
-		getAndValidateActiveDataset();
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");
 			spinnerInteger_NumColumn = tableIn.getColumnCount();
@@ -433,7 +445,7 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 		logService.info(this.getClass().getName() + " Widget canceled");
 	}	 
 			 
-/** 
+	/** 
 	 * The run method executes the command via a SciJava thread
 	 * by pressing the OK button in the UI or
 	 * by CommandService.run(Command.class, false, parameters) in a script  
@@ -456,6 +468,23 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 	    startWorkflowForAllColumns();
 	}
 	
+	public void checkItemIOIn() {
+
+		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
+		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+	
+		// get some info
+		tableInName = defaultTableDisplay.getName();
+		numColumns  = tableIn.getColumnCount();
+		numRows     = tableIn.getRowCount();
+		
+//		sliceLabels = new String[(int) numColumns];
+	   
+		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
+		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
+		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
+	}
+
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
@@ -468,7 +497,6 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 		
     	logService.info(this.getClass().getName() + " Processing single signal");
     	deleteExistingDisplays();
-    	getAndValidateActiveDataset();
 		generateTableHeader();
   		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
 		dlgProgress.addMessage("Processing finished! Preparing result table...");		
@@ -488,36 +516,12 @@ public class SignalCut<T extends RealType<T>> extends ContextCommand implements 
 
     	logService.info(this.getClass().getName() + " Processing all available columns");
     	deleteExistingDisplays();
-    	getAndValidateActiveDataset();
 		generateTableHeader();
 		processAllInputColumns();
 		dlgProgress.addMessage("Processing finished! Preparing result table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
-	}
-
-	public void getAndValidateActiveDataset() {
-
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-		
-		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
-		
-//		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
-//		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
-		
-//		sliceLabels = new String[(int) numColumns];
-		
-	   
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**

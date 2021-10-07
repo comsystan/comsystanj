@@ -109,6 +109,7 @@ import io.scif.MetaTable;
 @Plugin(type = ContextCommand.class,
 headless = true,
 label = "Higuchi dimension 2D",
+initializer = "initialPluginLaunch",
 menu = {
 @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 @Menu(label = "ComsystanJ"),
@@ -288,8 +289,12 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 //	private Button buttonProcessAllImages;
 	
 	// ---------------------------------------------------------------------
-	// The following initialzer functions set initial values
-
+		
+	protected void initialPluginLaunch() {
+		//datasetIn = imageDisplayService.getActiveDataset();
+		checkItemIOIn();
+	}
+	
 	protected void initialKMax() {
 		numbKMax = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
 		spinnerInteger_KMax = numbKMax;
@@ -305,6 +310,32 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 
 	protected void initialMethod() {
 		choiceRadioButt_Method = "K-fold differences";
+		//Check if Image type and selected Method fits together 	
+		if (isGrey) {// grey image
+			if	( (choiceRadioButt_Method.equals("RGB Diff - K-fold differences"))
+				||(choiceRadioButt_Method.equals("RGB Diff - Multiplicated differences"))
+				||(choiceRadioButt_Method.equals("RGB Diff - Squared differences"))
+				||(choiceRadioButt_Method.equals("RGB K-fold differences"))
+				||(choiceRadioButt_Method.equals("RGB Multiplicated differences"))
+				||(choiceRadioButt_Method.equals("RGB Squared differences"))
+				||(choiceRadioButt_Method.equals("RGB - color weighted (alpha)"))
+				||(choiceRadioButt_Method.equals("RGB - ROI color weighted (alpha)")) )
+			{
+				Result result = uiService.showDialog("An RGB algorithm cannot be applied to gray images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
+			}
+		}	
+		if (isRGB) {// RGB image
+			//******************************************************************************************************
+			if  ( (choiceRadioButt_Method.equals("K-fold differences"))
+				||(choiceRadioButt_Method.equals("Multiplicated differences"))
+				||(choiceRadioButt_Method.equals("Multiplicated differences2"))
+				||(choiceRadioButt_Method.equals("Squared differences"))
+				||(choiceRadioButt_Method.equals("Direct differences"))
+				||(choiceRadioButt_Method.equals("Triangle areas")) )
+			{
+				Result result = uiService.showDialog("A grey value algorithm cannot be applied to RGB images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
+			}
+		}
 	}
 
 	protected void initialShowDoubleLogPlots() {
@@ -319,8 +350,8 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
     	spinnerInteger_NumImageSlice = 1;
 	}
 	
-	// The following method is known as "callback" which gets executed
-	// whenever the value of a specific linked parameter changes.
+	// ------------------------------------------------------------------------------
+	
 
 	/** Executed whenever the {@link #spinInteger_KMax} parameter changes. */
 	protected void callbackKMax() {
@@ -365,6 +396,32 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 
 	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
 	protected void callbackMethod() {
+		//Check if Image type and selected Method fits together 	
+		if (isGrey) {// grey image
+			if	( (choiceRadioButt_Method.equals("RGB Diff - K-fold differences"))
+				||(choiceRadioButt_Method.equals("RGB Diff - Multiplicated differences"))
+				||(choiceRadioButt_Method.equals("RGB Diff - Squared differences"))
+				||(choiceRadioButt_Method.equals("RGB K-fold differences"))
+				||(choiceRadioButt_Method.equals("RGB Multiplicated differences"))
+				||(choiceRadioButt_Method.equals("RGB Squared differences"))
+				||(choiceRadioButt_Method.equals("RGB - color weighted (alpha)"))
+				||(choiceRadioButt_Method.equals("RGB - ROI color weighted (alpha)")) )
+			{
+				Result result = uiService.showDialog("An RGB algorithm cannot be applied to gray images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
+			}
+		}	
+		if (isRGB) {// RGB image
+			//******************************************************************************************************
+			if  ( (choiceRadioButt_Method.equals("K-fold differences"))
+				||(choiceRadioButt_Method.equals("Multiplicated differences"))
+				||(choiceRadioButt_Method.equals("Multiplicated differences2"))
+				||(choiceRadioButt_Method.equals("Squared differences"))
+				||(choiceRadioButt_Method.equals("Direct differences"))
+				||(choiceRadioButt_Method.equals("Triangle areas")) )
+			{
+				Result result = uiService.showDialog("A grey value algorithm cannot be applied to RGB images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
+			}
+		}
 		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_Method);
 	}
 	
@@ -381,7 +438,6 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 	
 	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
-		getAndValidateActiveDataset();
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");
 			spinnerInteger_NumImageSlice = (int)numSlices;
@@ -463,7 +519,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		logService.info(this.getClass().getName() + " Widget canceled");
 	}	 
 			 
-/** 
+	/** 
 	 * The run method executes the command via a SciJava thread
 	 * by pressing the OK button in the UI or
 	 * by CommandService.run(Command.class, false, parameters) in a script  
@@ -486,58 +542,9 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 	    startWorkflowForAllImages();
 	}
 
-	/**
-	* This method starts the workflow for a single image of the active display
-	*/
-	protected void startWorkflowForSingleImage() {
-	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
-							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-	
-    	deleteExistingDisplays();
-		int validation = getAndValidateActiveDataset();
-		if (validation == 1){
-			int sliceIndex = spinnerInteger_NumImageSlice - 1;
-	        logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-    		processSingleInputImage(sliceIndex);
-    		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-    		generateTableHeader();
-    		writeSingleResultToTable(sliceIndex);
-		}
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
-	}
+	public void checkItemIOIn() {
 
-	/**
-	* This method starts the workflow for all images of the active display
-	*/
-	protected void startWorkflowForAllImages() {
-		
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
-							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-
-    	logService.info(this.getClass().getName() + " Processing all available images");
-    	deleteExistingDisplays();
-		int validation = getAndValidateActiveDataset();
-		if (validation == 1){
-    		processAllInputImages();
-    		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-    		generateTableHeader();
-    		writeAllResultsToTable();
-		}
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
-	}
-
-	public int getAndValidateActiveDataset() {
-
-		datasetIn = imageDisplayService.getActiveDataset();
+		//datasetIn = imageDisplayService.getActiveDataset();
 
 		if ((datasetIn.firstElement() instanceof UnsignedByteType) || (datasetIn.firstElement() instanceof FloatType)) {
 			// That is OK, proceed
@@ -553,7 +560,6 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 			// Cancel the command execution if the user does not agree.
 			// if (result != Result.YES_OPTION) System.exit(-1);
 			// if (result != Result.YES_OPTION) return;
-			return -1;  //1 OK
 		}
 		// get some info
 		width = datasetIn.dimension(0);
@@ -600,43 +606,55 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 			//npe.printStackTrace();
 			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
 		}
-         
-		//Check if Image type and selected Method fits together 	
-		if (isGrey) {// grey image
-			if	( (choiceRadioButt_Method.equals("RGB Diff - K-fold differences"))
-				||(choiceRadioButt_Method.equals("RGB Diff - Multiplicated differences"))
-				||(choiceRadioButt_Method.equals("RGB Diff - Squared differences"))
-				||(choiceRadioButt_Method.equals("RGB K-fold differences"))
-				||(choiceRadioButt_Method.equals("RGB Multiplicated differences"))
-				||(choiceRadioButt_Method.equals("RGB Squared differences"))
-				||(choiceRadioButt_Method.equals("RGB - color weighted (alpha)"))
-				||(choiceRadioButt_Method.equals("RGB - ROI color weighted (alpha)")) )
-			{
-				Result result = uiService.showDialog("An RGB algorithm cannot be applied to gray images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
-				
-				return -1;
-			}
-		}	
-		if (isRGB) {// RGB image
-			//******************************************************************************************************
-			if  ( (choiceRadioButt_Method.equals("K-fold differences"))
-				||(choiceRadioButt_Method.equals("Multiplicated differences"))
-				||(choiceRadioButt_Method.equals("Multiplicated differences2"))
-				||(choiceRadioButt_Method.equals("Squared differences"))
-				||(choiceRadioButt_Method.equals("Direct differences"))
-				||(choiceRadioButt_Method.equals("Triangle areas")) )
-			{
-				Result result = uiService.showDialog("A grey value algorithm cannot be applied to RGB images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
-				return - 1;
-			}
-		}
-		
+  	
 		logService.info(this.getClass().getName() + " Name: " + datasetName); 
 		if (isGrey) logService.info(this.getClass().getName() + " Image type = Grey"); 
 		if (isRGB)  logService.info(this.getClass().getName() + " Image type = RGB"); 
 		logService.info(this.getClass().getName() + " Image size = " + width+"x"+height); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		return 1;
+	}
+
+	/**
+	* This method starts the workflow for a single image of the active display
+	*/
+	protected void startWorkflowForSingleImage() {
+	
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+	
+    	deleteExistingDisplays();
+		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+        logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		processSingleInputImage(sliceIndex);
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeSingleResultToTable(sliceIndex);
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
+
+	/**
+	* This method starts the workflow for all images of the active display
+	*/
+	protected void startWorkflowForAllImages() {
+		
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi2D dimensions, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+
+    	logService.info(this.getClass().getName() + " Processing all available images");
+    	deleteExistingDisplays();
+		processAllInputImages();
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		generateTableHeader();
+		writeAllResultsToTable();
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
 	/**
