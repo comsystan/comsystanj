@@ -133,7 +133,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Lacunarity is computed of a binary image  
 - For binary or grey 8-bit images
 - The number of boxes with distinct sizes can be set
-- Linear regression parameters can be set 
+- Shows a double logarithmic plot of lacunarities
 - Raster/Sliding box scanning or Tug of war method
 - Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
 - Grey value algortihm for Raster/Sliding box
@@ -150,7 +150,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - For binary 8-bit images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes can be set
-- Linear regression parameters can be set 
+- Shows a double logarithmic plot of succolarities 
 - Raster box or Sliding box scanning
 - Binary [0, >0] algorithm
 - Flooding of image can be set to Top2down, Down2top, Left2right, Right2left or the mean of all four directions
