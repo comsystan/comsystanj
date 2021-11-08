@@ -210,27 +210,27 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
     
-    @Parameter(label = "Regression Min",
-    		   description = "Minimum x value of linear regression",
- 		       style = NumberWidget.SPINNER_STYLE,
- 		       min = "1",
- 		       max = "32768",
- 		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
- 		       initializer = "initialRegMin",
- 		       callback = "callbackRegMin")
-    private int spinnerInteger_RegMin = 1;
- 
-    @Parameter(label = "Regression Max",
-    		   description = "Maximum x value of linear regression",
-    		   style = NumberWidget.SPINNER_STYLE,
-		       min = "3",
-		       max = "32768",
-		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
-		       initializer = "initialRegMax",
-		       callback = "callbackRegMax")
-    private int spinnerInteger_RegMax = 3;
+//    @Parameter(label = "Regression Min",
+//    		   description = "Minimum x value of linear regression",
+// 		       style = NumberWidget.SPINNER_STYLE,
+// 		       min = "1",
+// 		       max = "32768",
+// 		       stepSize = "1",
+// 		       //persist  = false,   //restore previous value default = true
+// 		       initializer = "initialRegMin",
+// 		       callback = "callbackRegMin")
+//    private int spinnerInteger_RegMin = 1;
+// 
+//    @Parameter(label = "Regression Max",
+//    		   description = "Maximum x value of linear regression",
+//    		   style = NumberWidget.SPINNER_STYLE,
+//		       min = "3",
+//		       max = "32768",
+//		       stepSize = "1",
+//		       persist  = false,   //restore previous value default = true
+//		       initializer = "initialRegMax",
+//		       callback = "callbackRegMax")
+//    private int spinnerInteger_RegMax = 3;
     
     //-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -313,13 +313,13 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
       	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
       	spinnerInteger_NumBoxes = numBoxes;
     }
-    protected void initialRegMin() {
-    	spinnerInteger_RegMin = 1;
-    }
-    protected void initialRegMax() {
-    	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
-    	spinnerInteger_RegMax =  numBoxes;
-    }
+//    protected void initialRegMin() {
+//    	spinnerInteger_RegMin = 1;
+//    }
+//    protected void initialRegMax() {
+//    	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+//    	spinnerInteger_RegMax =  numBoxes;
+//    }
     
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
@@ -350,35 +350,35 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 		if (spinnerInteger_NumBoxes > numMaxBoxes) {
 			spinnerInteger_NumBoxes = numMaxBoxes;
 		};
-		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
-			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
-		}
-		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
-			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
-		}
+//		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
+//			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
+//		}
+//		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
+//			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
+//		}
 		numBoxes = spinnerInteger_NumBoxes;
 		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
-    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
-	protected void callbackRegMin() {
-		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
-			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
-		}
-		if(spinnerInteger_RegMin < 1) {
-			spinnerInteger_RegMin = 1;
-		}
-		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
-	}
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
-	protected void callbackRegMax() {
-		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
-			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
-		}		
-		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
-			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
-		}	
-		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
-	}
+//    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+//	protected void callbackRegMin() {
+//		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
+//			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
+//		}
+//		if(spinnerInteger_RegMin < 1) {
+//			spinnerInteger_RegMin = 1;
+//		}
+//		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
+//	}
+//	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+//	protected void callbackRegMax() {
+//		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
+//			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
+//		}		
+//		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
+//			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
+//		}	
+//		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
+//	}
 
 	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
 	protected void callbackScanningType() {
@@ -833,8 +833,8 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 		GenericColumn columnFileName   = new GenericColumn("File name");
 		GenericColumn columnSliceName  = new GenericColumn("Slice name");
 		IntColumn columnMaxNumBoxes    = new IntColumn("# Boxes");
-		IntColumn columnRegMin         = new IntColumn("RegMin");
-		IntColumn columnRegMax         = new IntColumn("RegMax");
+		//IntColumn columnRegMin         = new IntColumn("RegMin");
+		//IntColumn columnRegMax         = new IntColumn("RegMax");
 		GenericColumn columnScanType   = new GenericColumn("Scanning type");
 		GenericColumn columnFloodType  = new GenericColumn("Flooding type");
 	
@@ -842,8 +842,8 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 		tableOut.add(columnFileName);
 		tableOut.add(columnSliceName);
 		tableOut.add(columnMaxNumBoxes);
-		tableOut.add(columnRegMin);
-		tableOut.add(columnRegMax);
+		//tableOut.add(columnRegMin);
+		//tableOut.add(columnRegMax);
 		tableOut.add(columnScanType);
 		tableOut.add(columnFloodType);
 		String preString = "Succ";
@@ -858,9 +858,9 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 	*/
 	private void writeSingleResultToTable(int sliceNumber) { 
 	
-		//int numBoxes   = spinnerInteger_NumBoxes;
-		int regMin     		= spinnerInteger_RegMin;
-		int regMax     		= spinnerInteger_RegMax;
+		//int numBoxes   	= spinnerInteger_NumBoxes;
+		//int regMin    	= spinnerInteger_RegMin;
+		//int regMax     	= spinnerInteger_RegMax;
 		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
 		
@@ -875,11 +875,11 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 		tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
 		if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 		tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
-		tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
-		tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+		//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
+		//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
 		tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-		tableColLast = 6;
+		tableColLast = 4;
 		
 		int numParameters = resultValuesTable[s].length;
 		tableColStart = tableColLast + 1;
@@ -894,9 +894,9 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 	*/
 	private void writeAllResultsToTable() {
 	
-		//int numBoxes       = spinnerInteger_NumBoxes;
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
+		//int numBoxes      = spinnerInteger_NumBoxes;
+		//int regMin        = spinnerInteger_RegMin;
+		//int regMax        = spinnerInteger_RegMax;
 		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
 		
@@ -913,11 +913,11 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 			tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 			tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
-			tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
-			tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+			//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
+			//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
 			tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 			tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-			tableColLast = 6;
+			tableColLast = 4;
 			
 			int numParameters = resultValuesTable[s].length;
 			tableColStart = tableColLast + 1;
@@ -933,9 +933,9 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 	
-		//int numBoxes        = spinnerInteger_NumBoxes;
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
+		//int numBoxes      = spinnerInteger_NumBoxes;
+		//int regMin        = spinnerInteger_RegMin;
+		//int regMax        = spinnerInteger_RegMax;
 		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
 		
@@ -1026,7 +1026,7 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 			}
 			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Succolarity", 
 					preName + datasetName, "ln(Box width)", "ln(100.Succolarity)", "",
-					regMin, regMax);
+					1, numBoxes);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
 		

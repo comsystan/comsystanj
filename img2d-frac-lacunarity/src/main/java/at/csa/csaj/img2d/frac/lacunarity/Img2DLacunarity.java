@@ -212,27 +212,27 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
     
-    @Parameter(label = "Regression Min",
-    		   description = "Minimum x value of linear regression",
- 		       style = NumberWidget.SPINNER_STYLE,
- 		       min = "1",
- 		       max = "32768",
- 		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
- 		       initializer = "initialRegMin",
- 		       callback = "callbackRegMin")
-    private int spinnerInteger_RegMin = 1;
- 
-    @Parameter(label = "Regression Max",
-    		   description = "Maximum x value of linear regression",
-    		   style = NumberWidget.SPINNER_STYLE,
-		       min = "3",
-		       max = "32768",
-		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
-		       initializer = "initialRegMax",
-		       callback = "callbackRegMax")
-     private int spinnerInteger_RegMax = 3;
+//    @Parameter(label = "Regression Min",
+//    		   description = "Minimum x value of linear regression",
+// 		       style = NumberWidget.SPINNER_STYLE,
+// 		       min = "1",
+// 		       max = "32768",
+// 		       stepSize = "1",
+// 		       //persist  = false,   //restore previous value default = true
+// 		       initializer = "initialRegMin",
+// 		       callback = "callbackRegMin")
+//    private int spinnerInteger_RegMin = 1;
+// 
+//    @Parameter(label = "Regression Max",
+//    		   description = "Maximum x value of linear regression",
+//    		   style = NumberWidget.SPINNER_STYLE,
+//		       min = "3",
+//		       max = "32768",
+//		       stepSize = "1",
+//		       persist  = false,   //restore previous value default = true
+//		       initializer = "initialRegMax",
+//		       callback = "callbackRegMax")
+//     private int spinnerInteger_RegMax = 3;
     
   //-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -342,13 +342,13 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
       	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
       	spinnerInteger_NumBoxes = numBoxes;
     }
-    protected void initialRegMin() {
-    	spinnerInteger_RegMin = 1;
-    }
-    protected void initialRegMax() {
-    	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
-    	spinnerInteger_RegMax =  numBoxes;
-    }
+//    protected void initialRegMin() {
+//    	spinnerInteger_RegMin = 1;
+//    }
+//    protected void initialRegMax() {
+//    	numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+//    	spinnerInteger_RegMax =  numBoxes;
+//    }
     
     protected void initialMethodType() {
     	choiceRadioButt_MethodType = "Raster box";
@@ -391,35 +391,35 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 		if (spinnerInteger_NumBoxes > numMaxBoxes) {
 			spinnerInteger_NumBoxes = numMaxBoxes;
 		};
-		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
-			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
-		}
-		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
-			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
-		}	
+//		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
+//			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
+//		}
+//		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
+//			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
+//		}	
 		numBoxes = spinnerInteger_NumBoxes;
 		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
-    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
-	protected void callbackRegMin() {
-		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
-			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
-		}
-		if(spinnerInteger_RegMin < 1) {
-			spinnerInteger_RegMin = 1;
-		}
-		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
-	}
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
-	protected void callbackRegMax() {
-		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
-			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
-		}		
-		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
-			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
-		}	
-		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
-	}
+//    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+//	protected void callbackRegMin() {
+//		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
+//			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
+//		}
+//		if(spinnerInteger_RegMin < 1) {
+//			spinnerInteger_RegMin = 1;
+//		}
+//		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
+//	}
+//	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+//	protected void callbackRegMax() {
+//		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
+//			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
+//		}		
+//		if (spinnerInteger_RegMax > spinnerInteger_NumBoxes) {
+//			spinnerInteger_RegMax = spinnerInteger_NumBoxes;
+//		}	
+//		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
+//	}
 
 	/** Executed whenever the {@link #choiceRadioButt_MethodType} parameter changes. */
 	protected void callbackMethodType() {
@@ -913,8 +913,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
-		IntColumn columnRegMin             = new IntColumn("RegMin");
-		IntColumn columnRegMax             = new IntColumn("RegMax");
+		//IntColumn columnRegMin             = new IntColumn("RegMin");
+		//IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnMethodType     = new GenericColumn("Method type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		DoubleColumn columnL_RP            = new DoubleColumn("<L>-R&P"); //weighted mean L
@@ -924,8 +924,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 		tableOut.add(columnFileName);
 		tableOut.add(columnSliceName);
 		tableOut.add(columnMaxNumBoxes);
-		tableOut.add(columnRegMin);
-		tableOut.add(columnRegMax);
+		//tableOut.add(columnRegMin);
+		//tableOut.add(columnRegMax);
 		tableOut.add(columnMethodType);
 		tableOut.add(columnColorModelType);
 		tableOut.add(columnL_RP);
@@ -948,8 +948,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 	private void writeSingleResultToTable(int sliceNumber) { 
 	
 		//int numBoxes   = spinnerInteger_NumBoxes;
-		int regMin     	      = spinnerInteger_RegMin;
-		int regMax     	      = spinnerInteger_RegMax;
+		//int regMin     	      = spinnerInteger_RegMin;
+		//int regMax     	      = spinnerInteger_RegMax;
 		String methodType     = choiceRadioButt_MethodType;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		int accuracy 	      = spinnerInteger_NumAcurracy;
@@ -967,8 +967,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 		tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
 		if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 		tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
-		tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
-		tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+		//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
+		//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
 		if (choiceRadioButt_MethodType.equals("Tug of war")) {
 			tableOut.set("Method type",   tableOut.getRowCount()-1, "Tug of war Acc" + accuracy + " Conf" + confidence);
 		}
@@ -981,7 +981,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 		tableOut.set("Color model",       tableOut.getRowCount()-1, colorModelType);
 		tableOut.set("<L>-R&P",   		   tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
 		tableOut.set("<L>-S&V",   		   tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
-		tableColLast = 8;
+		tableColLast = 6;
 		
 		int numParameters = resultValuesTable[s].length - 2; 
 		tableColStart = tableColLast + 1;
@@ -997,8 +997,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 	private void writeAllResultsToTable() {
 	
 		//int numBoxes       = spinnerInteger_NumBoxes;
-		int regMin            = spinnerInteger_RegMin;
-		int regMax            = spinnerInteger_RegMax;
+		//int regMin            = spinnerInteger_RegMin;
+		//int regMax            = spinnerInteger_RegMax;
 		String methodType     = choiceRadioButt_MethodType;
 		int accuracy 	      = spinnerInteger_NumAcurracy;
 		int confidence        = spinnerInteger_NumConfidence;
@@ -1016,8 +1016,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 			tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 			tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
-			tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
-			tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+			//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
+			//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
 			if (choiceRadioButt_MethodType.equals("Tug of war")) {
 				tableOut.set("Method type",   tableOut.getRowCount()-1, "Tug of war Acc"+accuracy + " Conf"+confidence);
 			} else {
@@ -1026,7 +1026,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 			tableOut.set("Color model",       tableOut.getRowCount()-1, colorModelType);	
 			tableOut.set("<L>-R&P",   		   tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
 			tableOut.set("<L>-S&V",   	       tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
-			tableColLast = 8;
+			tableColLast = 6;
 			
 			int numParameters = resultValuesTable[s].length - 2; 
 			tableColStart = tableColLast + 1;
@@ -1043,8 +1043,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 	
 		//int numBoxes        = spinnerInteger_NumBoxes;
-		int regMin            = spinnerInteger_RegMin;
-		int regMax            = spinnerInteger_RegMax;
+		//int regMin          = spinnerInteger_RegMin;
+		//int regMax          = spinnerInteger_RegMax;
 		String method         = choiceRadioButt_MethodType;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		String colorModelType = choiceRadioButt_ColorModelType;	 //"Binary"  "Grey"
@@ -1457,7 +1457,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 			}
 			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Lacunarity", 
 					preName + datasetName, "ln(Box size)", "ln(L)", "",
-					regMin, regMax);
+					1, numBoxes);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
 		
@@ -1749,6 +1749,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 		pl.setVisible(true);
 		return pl;	
 	}
+	
+	
 	
 	/**
 	 * 
