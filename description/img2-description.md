@@ -90,7 +90,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 - Ref: Ahammer et al., Physica D, 2003, [DOI 10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
 
-### Higuhi dimension 1D
+### Higuchi dimension 1D
 - Fractal dimension is computed for 1D grey value profiles extracted from an image
 - For 8-bit grey value images
 - Several extraction methods can be chosen
