@@ -33,6 +33,8 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 
 ### Note for using ComsystanJ jar file plugins with Fiji
 
+**If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
+  
 It is recommended to use ComsystanJ jar files and a Fiji distribution with the same pom-scijava version number.
 
 ComsystanJ releases have a 4-digit version number in the jar file names as defined in the corresponding pom.xml files. The first three digits reflect the pom-scijava version. The last digit is the ComsystanJ version number.
