@@ -31,7 +31,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 ###### Time series
 - Ahammer et al., Front.Physiol., 2018, [https://doi.org/10.3389/fphys.2018.00546](https://doi.org/10.3389/fphys.2018.00546)
 
-### Note for using ComsystanJ jar file plugins with Fiji
+### Notes for using ComsystanJ with Fiji
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
   
