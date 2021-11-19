@@ -960,6 +960,9 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
+		if (dgt == null) {
+			logService.info(this.getClass().getName() + " WARNING: dgt==null, no signal for processing!");
+		}
 
 		String signalRange   = choiceRadioButt_SignalRange;
 		String surrType       = choiceRadioButt_SurrogateType;

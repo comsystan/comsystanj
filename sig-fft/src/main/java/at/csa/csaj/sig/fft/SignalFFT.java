@@ -878,6 +878,10 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
+		if (dgt == null) {
+			logService.info(this.getClass().getName() + " WARNING: dgt==null, no signal for processing!");
+		}
+		
 		String  signalRange   = choiceRadioButt_SignalRange;
 		String  surrType       = choiceRadioButt_SurrogateType;
 		//int     boxLength     = spinnerInteger_BoxLength;

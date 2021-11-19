@@ -779,6 +779,10 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 	*/
 	private double[] process(DefaultGenericTable dgt, int col) { //  c column number
 	
+		if (dgt == null) {
+			logService.info(this.getClass().getName() + " WARNING: dgt==null, no signal for processing!");
+		}
+		
 		String rsType       = this.choiceRadioButt_ResamplingType;
 		int    rsFactor     = this.spinnerInteger_NumFactor;
 		String interpolType = this.choiceRadioButt_InterpolationType;
