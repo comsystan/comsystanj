@@ -915,6 +915,9 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Con
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
+		if (rai == null) {
+			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
+		}
 		
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;

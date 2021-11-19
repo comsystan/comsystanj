@@ -1105,6 +1105,10 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 	 * */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
+		if (rai == null) {
+			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
+		}
+		
 		String  probType      = choiceRadioButt_ProbabilityType;
 		//int     numLag        = spinnerInteger_Lag;
 		boolean optShowRenyiPlot = booleanShowRenyiPlot;

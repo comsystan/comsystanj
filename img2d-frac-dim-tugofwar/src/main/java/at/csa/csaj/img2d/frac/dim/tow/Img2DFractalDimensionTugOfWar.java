@@ -942,6 +942,10 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	 */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
+		if (rai == null) {
+			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
+		}
+		
 		int numBoxes      = spinnerInteger_NumBoxes;
 		int regMin        = spinnerInteger_RegMin;
 		int regMax        = spinnerInteger_RegMax;

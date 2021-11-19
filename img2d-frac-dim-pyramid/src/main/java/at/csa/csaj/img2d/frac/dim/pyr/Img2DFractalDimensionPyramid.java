@@ -925,6 +925,10 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 	 */
 	private double[] process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 		
+		if (rai == null) {
+			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
+		}
+		
 		//Change to float because of interpolation
 		imgFloat = createImgFloat(rai);
 		
