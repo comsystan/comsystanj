@@ -229,7 +229,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinInteger_Width} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_Width} parameter changes. */
 	
 	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
 	protected void changedMethod() {
@@ -258,12 +258,12 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 		logService.info(this.getClass().getName() + " Number of data points changed to " + spinnerInteger_NumDataPoints);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_Constant} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_Constant} parameter changes. */
 	protected void changedConstant() {
 		logService.info(this.getClass().getName() + " Constant changed to " + spinnerInteger_Constant);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumPeriods} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumPeriods} parameter changes. */
 	protected void changedNumPeriods() {
 		logService.info(this.getClass().getName() + " Number of periods changed to " + spinnerInteger_NumPeriods);
 	}

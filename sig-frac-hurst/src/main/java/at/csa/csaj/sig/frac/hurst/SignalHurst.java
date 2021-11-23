@@ -416,7 +416,7 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 	
 
 	
-	/** Executed whenever the {@link #spinInteger_PSDType} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_PSDType} parameter changes. */
 	protected void callbackPSDType() {
 		logService.info(this.getClass().getName() + " PSD type set to " + choiceRadioButt_PSDType);
 		if (numRows > 0){
@@ -438,7 +438,7 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 		}
 	}
 	
-	/** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
@@ -449,7 +449,7 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
 	}
 
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMax} parameter changes. */
 	protected void callbackRegMax() {
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
@@ -457,7 +457,7 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_RegMax);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_SWVType} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_SWVType} parameter changes. */
 	protected void callbackSWVType() {
 		logService.info(this.getClass().getName() + " SWV type set to " + choiceRadioButt_SWVType);
 	}
@@ -480,13 +480,13 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 	protected void callbackNumSurrogates() {
 		numSurrogates = spinnerInteger_NumSurrogates;
 		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 	protected void callbackBoxLength() {
 		numBoxLength = spinnerInteger_BoxLength;
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -509,7 +509,7 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

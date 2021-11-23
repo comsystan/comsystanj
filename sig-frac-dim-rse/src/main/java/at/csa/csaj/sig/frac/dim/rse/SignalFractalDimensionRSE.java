@@ -337,7 +337,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 	// ------------------------------------------------------------------------------
 	
 	
-	/** Executed whenever the {@link #spinInteger_LMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_LMax} parameter changes. */
 	protected void callbackLMax() {
 
 		if (spinnerInteger_LMax < 3) {
@@ -355,7 +355,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " LMax set to " + spinnerInteger_LMax);
 	}
 
-	/** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
@@ -366,7 +366,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
 	}
 
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMax} parameter changes. */
 	protected void callbackRegMax() {
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
@@ -378,12 +378,12 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumM} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumM} parameter changes. */
 	protected void callbackNumM() {
 		logService.info(this.getClass().getName() + " M set to " + spinnerInteger_NumM);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_FlatteningOrder} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_FlatteningOrder} parameter changes. */
 	protected void callbackFlatteningOrder() {
 		logService.info(this.getClass().getName() + " Flattening order set to " + spinnerInteger_FlatteningOrder);
 	}
@@ -406,13 +406,13 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 	protected void callbackNumSurrogates() {
 		numSurrogates = spinnerInteger_NumSurrogates;
 		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 	protected void callbackBoxLength() {
 		numBoxLength = spinnerInteger_BoxLength;
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -431,7 +431,7 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 	}
 
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

@@ -349,7 +349,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
     
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
 	protected void callbackNumDilations() {
 		
 		if  (spinnerInteger_NumDilations < 3) {
@@ -363,7 +363,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
 		}
 		logService.info(this.getClass().getName() + " Number of dilations set to " + spinnerInteger_NumDilations);
 	}
-    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+    /** Executed whenever the {@link #spinnerInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
@@ -373,7 +373,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
 		}
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
 	}
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMax} parameter changes. */
 	protected void callbackRegMax() {
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
@@ -402,7 +402,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");

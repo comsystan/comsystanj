@@ -361,12 +361,12 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 	// ------------------------------------------------------------------------------
 	
 	
-		/** Executed whenever the {@link #spinInteger_AggLength} parameter changes. */
+		/** Executed whenever the {@link #spinnerInteger_AggLength} parameter changes. */
 	protected void callbackAggLength() {
 		logService.info(this.getClass().getName() + " Aggregation length set to " + spinnerInteger_AggLength);
 	}
 
-		/** Executed whenever the {@link #spinInteger_AlphabetSize} parameter changes. */
+		/** Executed whenever the {@link #spinnerInteger_AlphabetSize} parameter changes. */
 	protected void callbackAlphabetSize() {
 		logService.info(this.getClass().getName() + " Alphabet size set to " + spinnerInteger_AlphabetSize);
 		labelImageSize = String.valueOf(((int) (Math.sqrt(spinnerInteger_AlphabetSize))) * (int) Math.pow(2, spinnerInteger_SubWordLength-1) * spinnerInteger_Mag);
@@ -374,12 +374,12 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Image size will be " + labelImageSize);
 	}
 
-		/** Executed whenever the {@link #spinInteger_WordLength} parameter changes. */
+		/** Executed whenever the {@link #spinnerInteger_WordLength} parameter changes. */
 	protected void callbackWordLength() {
 		logService.info(this.getClass().getName() + " Word length set to " + spinnerInteger_WordLength);
 	}
 
-		/** Executed whenever the {@link #spinInteger_SubWordLength} parameter changes. */
+		/** Executed whenever the {@link #spinnerInteger_SubWordLength} parameter changes. */
 	protected void callbackSubWordLength() {
 		logService.info(this.getClass().getName() + " Sub-word length set to " + spinnerInteger_SubWordLength);
 		labelImageSize = String.valueOf(((int) (Math.sqrt(spinnerInteger_AlphabetSize))) * (int) Math.pow(2, spinnerInteger_SubWordLength-1) * spinnerInteger_Mag);
@@ -387,7 +387,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Image size will be " + labelImageSize);
 	}
 
-		/** Executed whenever the {@link #spinInteger_Mag} parameter changes. */
+		/** Executed whenever the {@link #spinnerInteger_Mag} parameter changes. */
 	protected void callbackMag() {
 		logService.info(this.getClass().getName() + " Magnification set to " + spinnerInteger_Mag);
 		labelImageSize = String.valueOf(((int) (Math.sqrt(spinnerInteger_AlphabetSize))) * (int) Math.pow(2, spinnerInteger_SubWordLength-1) * spinnerInteger_Mag);
@@ -418,13 +418,13 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
 	
-//	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+//	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 //	protected void callbackNumSurrogates() {
 //		numSurrogates = spinnerInteger_NumSurrogates;
 //		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 //	}
 //	
-//	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+//	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 //	protected void callbackBoxLength() {
 //		numBoxLength = spinnerInteger_BoxLength;
 //		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -442,7 +442,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

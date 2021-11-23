@@ -334,17 +334,17 @@ public class SignalSampleEntropy<T extends RealType<T>> extends ContextCommand i
 		logService.info(this.getClass().getName() + " Entropy type set to " + choiceRadioButt_EntropyType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_ParamM} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_ParamM} parameter changes. */
 	protected void callbackParamM() {
 		logService.info(this.getClass().getName() + " Window size set to " + spinnerInteger_ParamM);
 	}
 
-	/** Executed whenever the {@link #spinInteger_ParamR} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_ParamR} parameter changes. */
 	protected void callbackParamR() {
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerFloat_ParamR);
 	}
 
-	/** Executed whenever the {@link #spinInteger_ParamD} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_ParamD} parameter changes. */
 	protected void callbackParamD() {
 		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_ParamD);
 	}
@@ -367,13 +367,13 @@ public class SignalSampleEntropy<T extends RealType<T>> extends ContextCommand i
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 	protected void callbackNumSurrogates() {
 		numSurrogates = spinnerInteger_NumSurrogates;
 		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 	protected void callbackBoxLength() {
 		numBoxLength = spinnerInteger_BoxLength;
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -391,7 +391,7 @@ public class SignalSampleEntropy<T extends RealType<T>> extends ContextCommand i
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

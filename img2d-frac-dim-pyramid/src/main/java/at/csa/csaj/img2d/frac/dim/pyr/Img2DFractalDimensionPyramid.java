@@ -331,7 +331,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
   
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinInteger_NumImages} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImages} parameter changes. */
 	protected void callbackNumImages() {	
 		if  (spinnerInteger_PyramidImages < 3) {
 			spinnerInteger_PyramidImages = 3;
@@ -347,7 +347,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 		}
 		logService.info(this.getClass().getName() + " Number of pyramid images set to " + spinnerInteger_PyramidImages);
 	}
-    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+    /** Executed whenever the {@link #spinnerInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
@@ -357,7 +357,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 		}
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
 	}
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMax} parameter changes. */
 	protected void callbackRegMax() {
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
@@ -378,7 +378,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");

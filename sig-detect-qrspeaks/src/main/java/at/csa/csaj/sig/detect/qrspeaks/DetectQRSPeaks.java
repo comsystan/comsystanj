@@ -165,7 +165,7 @@ public class DetectQRSPeaks  extends ContextCommand implements Previewable { //m
     }
     // ------------------------------------------------------------------------------
  	
- 	/** Executed whenever the {@link #spinInteger_Dim} parameter changes. */
+ 	/** Executed whenever the {@link #spinnerInteger_Dim} parameter changes. */
  	protected void callbackOffset() {
  		logService.info(this.getClass().getName() + " Offset changed to " + spinnerInteger_Offset);
  	}

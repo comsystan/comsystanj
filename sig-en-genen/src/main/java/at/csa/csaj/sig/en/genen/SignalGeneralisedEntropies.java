@@ -529,19 +529,19 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	}
 	
 
-	/** Executed whenever the {@link #spinInteger_Lag} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_Lag} parameter changes. */
 	protected void callbackLag() {
 		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_MinQ} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_MinQ} parameter changes. */
 	protected void callbackMinQ() {
 		minQ = spinnerInteger_MinQ;
 		numQ = (maxQ - minQ)/stepQ + 1;
 		logService.info(this.getClass().getName() + " Minimal Q set to " + spinnerInteger_MinQ);
 	}
 
-	/** Executed whenever the {@link #spinInteger_MaxQ} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_MaxQ} parameter changes. */
 	protected void callbackMaxQ() {
 		maxQ = spinnerInteger_MaxQ;
 		numQ = (maxQ - minQ)/stepQ + 1;
@@ -637,13 +637,13 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 	protected void callbackNumSurrogates() {
 		numSurrogates = spinnerInteger_NumSurrogates;
 		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 	protected void callbackBoxLength() {
 		numBoxLength = spinnerInteger_BoxLength;
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -666,7 +666,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

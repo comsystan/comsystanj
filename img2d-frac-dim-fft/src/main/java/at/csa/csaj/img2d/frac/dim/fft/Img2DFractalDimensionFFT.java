@@ -353,7 +353,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
     
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinInteger_MaxK} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_MaxK} parameter changes. */
 	protected void callbackMaxK() {
 		
 		if  (spinnerInteger_MaxK < 3) {
@@ -373,7 +373,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		numOfK = spinnerInteger_MaxK;
 		logService.info(this.getClass().getName() + " Maximal k set to " + spinnerInteger_MaxK);
 	}
-    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+    /** Executed whenever the {@link #spinnerInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
@@ -383,7 +383,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		}
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
 	}
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMax} parameter changes. */
 	protected void callbackRegMax() {
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
@@ -424,7 +424,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");

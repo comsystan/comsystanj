@@ -322,7 +322,7 @@ public class SignalFilter<T extends RealType<T>> extends ContextCommand implemen
 		logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_FilterType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_Range} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_Range} parameter changes. */
 	protected void callbackRange() {
 		 if ( spinnerInteger_Range % 2 == 0 ) {
 			 spinnerInteger_Range = spinnerInteger_Range + 1;  //even numbers are not allowed
@@ -349,13 +349,13 @@ public class SignalFilter<T extends RealType<T>> extends ContextCommand implemen
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
 	
-//	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+//	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 //	protected void callbackNumSurrogates() {
 //		numSurrogates = spinnerInteger_NumSurrogates;
 //		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 //	}
 //	
-//	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+//	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 //	protected void callbackBoxLength() {
 //		numBoxLength = spinnerInteger_BoxLength;
 //		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -373,7 +373,7 @@ public class SignalFilter<T extends RealType<T>> extends ContextCommand implemen
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

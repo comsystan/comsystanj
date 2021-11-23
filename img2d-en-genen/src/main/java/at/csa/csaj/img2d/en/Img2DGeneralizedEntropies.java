@@ -478,19 +478,19 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 	}
 	
 
-//	/** Executed whenever the {@link #spinInteger_Lag} parameter changes. */
+//	/** Executed whenever the {@link #spinnerInteger_Lag} parameter changes. */
 //	protected void callbackLag() {
 //		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
 //	}
 	
-	/** Executed whenever the {@link #spinInteger_MinQ} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_MinQ} parameter changes. */
 	protected void callbackMinQ() {
 		minQ = spinnerInteger_MinQ;
 		numQ = (maxQ - minQ)/stepQ + 1;
 		logService.info(this.getClass().getName() + " Minimal Q set to " + spinnerInteger_MinQ);
 	}
 
-	/** Executed whenever the {@link #spinInteger_MaxQ} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_MaxQ} parameter changes. */
 	protected void callbackMaxQ() {
 		maxQ = spinnerInteger_MaxQ;
 		numQ = (maxQ - minQ)/stepQ + 1;
@@ -572,7 +572,7 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
 		if ( spinnerInteger_NumImageSlice  > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");

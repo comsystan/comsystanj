@@ -326,7 +326,7 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 		logService.info(this.getClass().getName() + " Resampling type set to " + choiceRadioButt_ResamplingType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumFactor} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumFactor} parameter changes. */
 	protected void callbackNumFactor() {
 		logService.info(this.getClass().getName() + " Resampling factor set to " + spinnerInteger_NumFactor);
 	}
@@ -354,13 +354,13 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 //		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 //	}
 //	
-//	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+//	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 //	protected void callbackNumSurrogates() {
 //		numSurrogates = spinnerInteger_NumSurrogates;
 //		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 //	}
 //	
-//	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+//	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 //	protected void callbackBoxLength() {
 //		numBoxLength = spinnerInteger_BoxLength;
 //		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -378,7 +378,7 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

@@ -370,16 +370,16 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinInteger_Width} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_Width} parameter changes. */
 	protected void changedWidth() {
 		logService.info(this.getClass().getName() + " Width changed to " + spinnerInteger_Width + " pixel");
 	}
-	/** Executed whenever the {@link #spinInteger_Height} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_Height} parameter changes. */
 	protected void changedHeight() {
 		logService.info(this.getClass().getName() + " Height changed to " + spinnerInteger_Height + " pixel");
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumImages} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImages} parameter changes. */
 	protected void changedNumImages() {
 		logService.info(this.getClass().getName() + " Number of images changed to " + spinnerInteger_NumImages);
 	}
@@ -394,17 +394,17 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		logService.info(this.getClass().getName() + " Image type changed to " + choiceRadioButt_ImageType);
 	}
 		
-	/** Executed whenever the {@link #spinInteger_R} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_R} parameter changes. */
 	protected void changedR() {
 		logService.info(this.getClass().getName() + " Constant/Channel R changed to " + spinnerInteger_R);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_G} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_G} parameter changes. */
 	protected void changedG() {
 		logService.info(this.getClass().getName() + " Chanel G changed to " + spinnerInteger_G);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_B} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_B} parameter changes. */
 	protected void changedB() {
 		logService.info(this.getClass().getName() + " Channel B changed to " + spinnerInteger_B);
 	}
@@ -433,7 +433,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 	logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_SumOfSineAmplitude);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumSumOfSineIterations} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumSumOfSineIterations} parameter changes. */
 	protected void changedNumSumOfSineIterations() {
 		logService.info(this.getClass().getName() + " Sum of sine iterations changed to " + spinnerInteger_NumSumOfSineIterations);
 	}
@@ -462,7 +462,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 	logService.info(this.getClass().getName() + " Probability 3 changed to " + spinnerFloat_HRMProbability3);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumPolygons} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumPolygons} parameter changes. */
 	protected void changedNumPolygons() {
 		logService.info(this.getClass().getName() + " Number of polygons changed to " + spinnerInteger_NumPolygons);
 	}

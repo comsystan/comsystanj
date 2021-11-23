@@ -314,7 +314,7 @@ public class SignalDFA<T extends RealType<T>> extends ContextCommand implements 
 	// ------------------------------------------------------------------------------
 	
 	
-	/** Executed whenever the {@link #spinInteger_WinSizeMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_WinSizeMax} parameter changes. */
 	protected void callbackWinSizeMax() {
 
 		if (spinnerInteger_WinSizeMax < 3) {
@@ -332,7 +332,7 @@ public class SignalDFA<T extends RealType<T>> extends ContextCommand implements 
 		logService.info(this.getClass().getName() + " Window size set to " + spinnerInteger_WinSizeMax);
 	}
 
-	/** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
@@ -343,7 +343,7 @@ public class SignalDFA<T extends RealType<T>> extends ContextCommand implements 
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
 	}
 
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMax} parameter changes. */
 	protected void callbackRegMax() {
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
@@ -373,13 +373,13 @@ public class SignalDFA<T extends RealType<T>> extends ContextCommand implements 
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumSurrogates} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 	protected void callbackNumSurrogates() {
 		numSurrogates = spinnerInteger_NumSurrogates;
 		logService.info(this.getClass().getName() + " Number of surrogates set to " + spinnerInteger_NumSurrogates);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_BoxLength} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_BoxLength} parameter changes. */
 	protected void callbackBoxLength() {
 		numBoxLength = spinnerInteger_BoxLength;
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
@@ -397,7 +397,7 @@ public class SignalDFA<T extends RealType<T>> extends ContextCommand implements 
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumColumn} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumColumn} parameter changes. */
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");

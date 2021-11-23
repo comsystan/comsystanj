@@ -301,7 +301,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
 	protected void callbackCompression() {
 		logService.info(this.getClass().getName() + " Compression method set to " + choiceRadioButt_Compression);
 	}
-	/** Executed whenever the {@link #spinInteger_NumIterations} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumIterations} parameter changes. */
 	protected void callbackNumIterations() {
 		logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
 	}
@@ -310,7 +310,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");

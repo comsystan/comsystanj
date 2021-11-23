@@ -340,7 +340,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
   
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinInteger_NumBoxes} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
 	protected void callbackNumBoxes() {
 		
 		if  (spinnerInteger_NumBoxes < 3) {
@@ -360,7 +360,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
 		numBoxes = spinnerInteger_NumBoxes;
 		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
-    /** Executed whenever the {@link #spinInteger_RegMin} parameter changes. */
+    /** Executed whenever the {@link #spinnerInteger_RegMin} parameter changes. */
 	protected void callbackRegMin() {
 		if (spinnerInteger_RegMin >= spinnerInteger_RegMax - 2) {
 			spinnerInteger_RegMin = spinnerInteger_RegMax - 2;
@@ -370,7 +370,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
 		}
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_RegMin);
 	}
-	/** Executed whenever the {@link #spinInteger_RegMax} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_RegMax} parameter changes. */
 	protected void callbackRegMax() {
 		if (spinnerInteger_RegMax <= spinnerInteger_RegMin + 2) {
 			spinnerInteger_RegMax = spinnerInteger_RegMin + 2;
@@ -393,7 +393,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
 		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_PixelPercentage} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
 	protected void callbackPixelPercentage() {
 		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
 	}
@@ -403,7 +403,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinInteger_NumImageSlice} parameter changes. */
+	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
 	protected void callbackNumImageSlice() {
 		if (spinnerInteger_NumImageSlice > numSlices){
 			logService.info(this.getClass().getName() + " No more images available");
