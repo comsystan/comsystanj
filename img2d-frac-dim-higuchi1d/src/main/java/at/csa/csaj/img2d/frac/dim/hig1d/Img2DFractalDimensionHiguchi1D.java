@@ -1186,7 +1186,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					if (optShowPlot) {
-						String preName = "Row-";
+						String preName = "Row" + String.format("%03d", height/2) + "-";
 						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 					}
 					
@@ -1213,7 +1213,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					if (optShowPlot) {
-						String preName = "Col-";
+						String preName = "Col"+ String.format("%03d", width/2) + "-";
 						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 					}
 					
@@ -1258,7 +1258,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 						
 						if (optShowPlot) {
 							if((h == 0) || (h == height/2) ||(h ==height-1)) { //show first middle and last plot
-								String preName = "Row-";
+								String preName = "Row"+ String.format("%03d", h) + "-";
 								showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 							}
 						} //if					
@@ -1293,7 +1293,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 						
 						if (optShowPlot) {
 							if((w == 0) || (w == width/2) ||(w ==width-1)) { //show first middle and last plot
-								String preName = "Col-";
+								String preName = "Col"+ String.format("%03d", w) + "-";
 								showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 							}
 						} // IF
@@ -1735,9 +1735,9 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 			}
 			// String preName = "";
 			if (preName == null) {
-				preName = "Slice-" + String.format("%03d", plane) + "-";
+				preName = "Slice" + String.format("%03d", plane) + "-";
 			} else {
-				preName = preName + String.format("%03d", plane) + "-";
+				preName = preName + "Slice" + String.format("%03d", plane) + "-";
 			}
 			
 			boolean isLineVisible = false; // ?

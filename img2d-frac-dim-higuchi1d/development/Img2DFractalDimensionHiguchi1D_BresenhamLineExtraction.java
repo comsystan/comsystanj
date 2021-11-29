@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.img2d.frac.dim.hig1d;
+package at.csa.csaj.img2d.frac.dim.hig1d.BresenhamVersion;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
