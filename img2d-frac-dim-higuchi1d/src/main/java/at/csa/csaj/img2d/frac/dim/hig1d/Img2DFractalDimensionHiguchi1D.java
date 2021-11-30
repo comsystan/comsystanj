@@ -135,11 +135,12 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	private static Plot plotProfile;
 	private static String datasetName;
 	private static String[] sliceLabels;
-	private static boolean isGrey = true;
-	private static long width = 0;
-	private static long height = 0;
+	private static long width     = 0;
+	private static long height    = 0;
 	private static long numDimensions = 0;
 	private static long numSlices = 0;
+	private static long compositeChannelCount =0;
+	private static String imageType = "";
 	private static int numbKMax = 0;
 	private static double[] anglesGrad;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
@@ -531,10 +532,19 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		height = datasetIn.dimension(1);
 		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
 		numDimensions = datasetIn.numDimensions();
-		if (numDimensions == 2) {
-			numSlices = 1; // single image
-		} else if (numDimensions == 3) { // Image stack
-			numSlices =datasetIn.dimension(2);
+		compositeChannelCount = datasetIn.getCompositeChannelCount();
+		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
+			numSlices = 1;
+			imageType = "Grey";
+		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
+			numSlices = datasetIn.dimension(2); //x,y,z
+			imageType = "Grey";
+		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
+			numSlices = 1;
+			imageType = "RGB";
+		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
+			numSlices = datasetIn.dimension(3); //x,y,composite,z
+			imageType = "RGB";
 		}
 		
 		// get name of dataset
@@ -560,6 +570,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	            
 		logService.info(this.getClass().getName() + " Name: " + datasetName); 
 		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
+		logService.info(this.getClass().getName() + " Image type: " + imageType); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
 	}
 
@@ -721,8 +732,6 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 			resultValuesTable = new double[(int) numSlices][13];
 		}
 		
-		isGrey = true;
-
 		// convert to float values
 		// Img<T> image = (Img<T>) dataset.getImgPlus();
 		// mg<FloatType> imgFloat; // =
@@ -831,8 +840,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		}	else {
 			resultValuesTable = new double[(int) numSlices][13];
 		}
-		isGrey = true;
-
+	
 		// convert to float values
 		// Img<T> image = (Img<T>) dataset.getImgPlus();
 		// Img<FloatType> imgFloat; // =
@@ -1131,7 +1139,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		long width = rai.dimension(0);
 		long height = rai.dimension(1);
 
-		String imageType = "Grey"; // "Grey" "RGB"....
+		//imageType = "Grey"; // "Grey" "RGB"....
 
 		double[] resultValues;
 		if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]")) {
@@ -1149,7 +1157,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		// definition of eps
 		for (int kk = 0; kk < numKMax; kk++) {
 			for (int b = 0; b < numBands; b++) {
-				if (isGrey) {
+				if (imageType.equals("Grey")) {
 					eps[kk][b] = kk + 1;
 				} else {
 					eps[kk][b] = kk + 1; // *width*height (not necessary);
@@ -1158,7 +1166,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 			}
 		}
 	
-		if (isGrey) {// binary image
+		if (imageType.equals("Grey")) {// binary image
 			//******************************************************************************************************
 			if (choiceRadioButt_Method.equals("Single centered row/column")) {
 
@@ -1712,7 +1720,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 
 	// This method shows the double log plot
 	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int plane, int regMin, int regMax) {
-		if (isGrey) {
+		if (imageType.equals("Grey")) {
 			if (lnDataX == null) {
 				logService.info(this.getClass().getName() + " lnDataX == null, cannot display the plot!");
 				return;
@@ -1745,7 +1753,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 					"Double Log Plot - Higuchi Dimension", preName + datasetName, "ln(k)", "ln(L)", "", regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
-		if (!isGrey) {
+		if (!imageType.equals("Grey")) {
 
 		}
 	}

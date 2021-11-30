@@ -137,7 +137,9 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
 	private static long width  = 0;
 	private static long height = 0;
 	private static long numDimensions = 0;
-	private static long numSlices  = 0;
+	private static long numSlices = 0;
+	private static long compositeChannelCount =0;
+	private static String imageType = "";
 	private static File kolmogorovComplexityDir;
 	private static double durationReference  = Double.NaN;
 	private static double megabytesReference = Double.NaN;
@@ -444,10 +446,19 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
 		//numSlices = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
 		
 		numDimensions = datasetIn.numDimensions();
-		if (numDimensions == 2) {
-			numSlices = 1; // single image
-		} else if (numDimensions == 3) { // Image stack
-			numSlices =datasetIn.dimension(2);
+		compositeChannelCount = datasetIn.getCompositeChannelCount();
+		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
+			numSlices = 1;
+			imageType = "Grey";
+		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
+			numSlices = datasetIn.dimension(2); //x,y,z
+			imageType = "Grey";
+		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
+			numSlices = 1;
+			imageType = "RGB";
+		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
+			numSlices = datasetIn.dimension(3); //x,y,composite,z
+			imageType = "RGB";
 		}
 		
 		// get name of dataset
@@ -471,9 +482,10 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
 			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
 		}
 		
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
+		logService.info(this.getClass().getName() + " Name: "              + datasetName); 
+		logService.info(this.getClass().getName() + " Image size: "        + width+"x"+height); 
+		logService.info(this.getClass().getName() + " Image type: "        + imageType); 
+		logService.info(this.getClass().getName() + " Number of images = " + numSlices); 
 	}
 
 	/**

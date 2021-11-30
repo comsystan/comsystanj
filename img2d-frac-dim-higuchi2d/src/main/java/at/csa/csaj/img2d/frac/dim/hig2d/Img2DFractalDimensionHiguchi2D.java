@@ -128,13 +128,12 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 	//private static Img<FloatType> imgFloat;
 	private static String datasetName;
 	private static String[] sliceLabels;
-	private static boolean isGrey = true;
-	private static boolean isRGB = false;
 	private static long width = 0;
 	private static long height = 0;
-	private static int compChCount = 0; //1  Grey,   3 RGB
 	private static long numDimensions = 0;
 	private static long numSlices = 0;
+	private static long compositeChannelCount =0;
+	private static String imageType = "";
 	private static int  numbKMax = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; // first column is the image index, second column are the corresponding regression values
@@ -311,7 +310,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 	protected void initialMethod() {
 		choiceRadioButt_Method = "K-fold differences";
 		//Check if Image type and selected Method fits together 	
-		if (isGrey) {// grey image
+		if (imageType.equals("Grey")) {// grey image
 			if	( (choiceRadioButt_Method.equals("RGB Diff - K-fold differences"))
 				||(choiceRadioButt_Method.equals("RGB Diff - Multiplicated differences"))
 				||(choiceRadioButt_Method.equals("RGB Diff - Squared differences"))
@@ -324,7 +323,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 				Result result = uiService.showDialog("An RGB algorithm cannot be applied to gray images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
 			}
 		}	
-		if (isRGB) {// RGB image
+		if (imageType.equals("RGB")) {// RGB image
 			//******************************************************************************************************
 			if  ( (choiceRadioButt_Method.equals("K-fold differences"))
 				||(choiceRadioButt_Method.equals("Multiplicated differences"))
@@ -397,7 +396,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
 	protected void callbackMethod() {
 		//Check if Image type and selected Method fits together 	
-		if (isGrey) {// grey image
+		if (imageType.equals("Grey")) {// grey image
 			if	( (choiceRadioButt_Method.equals("RGB Diff - K-fold differences"))
 				||(choiceRadioButt_Method.equals("RGB Diff - Multiplicated differences"))
 				||(choiceRadioButt_Method.equals("RGB Diff - Squared differences"))
@@ -410,7 +409,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 				Result result = uiService.showDialog("An RGB algorithm cannot be applied to gray images!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
 			}
 		}	
-		if (isRGB) {// RGB image
+		if (imageType.equals("RGB")) {// RGB image
 			//******************************************************************************************************
 			if  ( (choiceRadioButt_Method.equals("K-fold differences"))
 				||(choiceRadioButt_Method.equals("Multiplicated differences"))
@@ -566,24 +565,21 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		height = datasetIn.dimension(1);
 		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
 		numDimensions = datasetIn.numDimensions();
-		compChCount = datasetIn.getImgPlus().getCompositeChannelCount(); //1  Grey,   3 RGB
-		
-		if ((numDimensions == 2) && (compChCount == 1)) { // single grey image
-			numSlices = 1; 
-			isGrey = true;
-			isRGB = false;
-		} else if ((numDimensions == 3) && (compChCount == 1)) { // Grey Image stack
-			numSlices =datasetIn.dimension(2);
-			isGrey = true;
-			isRGB = false;
-		} else if ((numDimensions == 3) && (compChCount == 3)) { // Single RGB Image
+	
+		//compositeChannelCount = datasetIn.getImgPlus().getCompositeChannelCount(); //1  Grey,   3 RGB
+		compositeChannelCount = datasetIn.getCompositeChannelCount();
+		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
 			numSlices = 1;
-			isGrey = false;
-			isRGB = true;
-		} else if ((numDimensions == 4) && (compChCount == 3)) { // RGB Image stack 
-			numSlices =datasetIn.dimension(3); //0 width, 1 height, 2 RGB channels, 3 stack
-			isGrey = false;
-			isRGB = true;
+			imageType = "Grey";
+		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
+			numSlices = datasetIn.dimension(2); //x,y,z
+			imageType = "Grey";
+		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
+			numSlices = 1;
+			imageType = "RGB";
+		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
+			numSlices = datasetIn.dimension(3); //x,y,composite,z
+			imageType = "RGB";
 		}
 
 		// get the name of dataset
@@ -608,9 +604,8 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		}
   	
 		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		if (isGrey) logService.info(this.getClass().getName() + " Image type = Grey"); 
-		if (isRGB)  logService.info(this.getClass().getName() + " Image type = RGB"); 
 		logService.info(this.getClass().getName() + " Image size = " + width+"x"+height); 
+		logService.info(this.getClass().getName() + " Image type: " + imageType); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
 	}
 
@@ -677,10 +672,10 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 			//int activeSliceNumber2 = (int) defaultImageDisplayService.getActiveImageDisplay().getActiveView().getPlanePosition().getIndex();
 			
 			//Check if Grey or RGB
-			if (isGrey) {
+			if (imageType.equals("Grey")) {
 				//do nothing, it is OK
 			};
-			if (isRGB) {
+			if (imageType.equals("RGB")) {
 				//At first Index runs through RGB channels and then through stack index
 				//0... R of first RGB image, 1.. G of first RGB image, 2..B of first RGB image, 3... R of second RGB image, 4...G, 5...B,.......
 				activeSliceIndex = (int) Math.floor((float)activeSliceIndex/3.f);
@@ -809,16 +804,16 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		
 		//get rai
 		RandomAccessibleInterval<?> rai = null;	
-		if( (s==0) && (numSlices == 1) && (isGrey)) { // for a single grey 2D image;
+		if( (s==0) && (numSlices == 1) && (imageType.equals("Grey"))) { // for a single grey 2D image;
 			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
 
-		} else if ( (numSlices > 1) && (isGrey)){ // for a stack of grey 2D images
+		} else if ( (numSlices > 1) && (imageType.equals("Grey"))){ // for a stack of grey 2D images
 			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
 		
-		} else	if( (s==0) && (numSlices == 1) && (isRGB)) { // for a single RGB 2D image;
+		} else	if( (s==0) && (numSlices == 1) && (imageType.equals("RGB"))) { // for a single RGB 2D image;
 			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
 
-		} else if ( (numSlices > 1) && (isRGB)){ // for a stack of RGB 2D images 
+		} else if ( (numSlices > 1) && (imageType.equals("RGB"))){ // for a stack of RGB 2D images 
 			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 3, s);  //width x height x 3 RGBChannels
 		}
 
@@ -933,16 +928,16 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 				
 				//get rai
 				RandomAccessibleInterval<?> rai = null;	
-				if( (s==0) && (numSlices == 1) && (isGrey)) { // for a single grey 2D image;
+				if( (s==0) && (numSlices == 1) && (imageType.equals("Grey"))) { // for a single grey 2D image;
 					rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
 
-				} else if ( (numSlices > 1) && (isGrey)){ // for a stack of grey 2D images
+				} else if ( (numSlices > 1) && (imageType.equals("Grey"))){ // for a stack of grey 2D images
 					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
 				
-				} else	if( (s==0) && (numSlices == 1) && (isRGB)) { // for a single RGB 2D image;
+				} else	if( (s==0) && (numSlices == 1) && (imageType.equals("RGB"))) { // for a single RGB 2D image;
 					rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
 
-				} else if ( (numSlices > 1) && (isRGB)){ // for a stack of RGB 2D images 
+				} else if ( (numSlices > 1) && (imageType.equals("RGB"))){ // for a stack of RGB 2D images 
 					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 3, s);  //width x height x 3 RGBChannels
 				}
 	
@@ -1112,7 +1107,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		
 		Higuchi2DMethods hig2Method = null;
 		
-		if (isGrey) {// grey image   //additional check, is already checked during validation of active dataset
+		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//******************************************************************************************************
 			if (choiceRadioButt_Method.equals("K-fold differences")) {
 				hig2Method = new Higuchi2D_Grey_KfoldDiff(rai, numKMax, skipZeroes);		
@@ -1156,7 +1151,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 				yAxis = "ln(A(k))";
 			}
 			
-		} else if (isRGB) { // RGB image  //additional check, is already checked during validation of active dataset
+		} else if (imageType.equals("RGB")) { // RGB image  //additional check, is already checked during validation of active dataset
 			if (choiceRadioButt_Method.equals("RGB Diff - K-fold differences")) {
 				hig2Method = new Higuchi2D_RGBDiff_KfoldDiff(rai, numKMax, skipZeroes);
 				plot_method="Higuchi 2D - RGBDiff Kfold differences";
@@ -1236,7 +1231,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		
 		boolean isLineVisible = false; //?		
 		if (optShowPlot) {
-			if ((isGrey) || (isRGB)) { //both are OK
+			if ((imageType.equals("Grey")) || (imageType.equals("RGB"))) { //both are OK
 				String preName = "";
 				if (numSlices > 1) {
 					preName = "Slice-"+String.format("%03d", plane) +"-";
@@ -1275,7 +1270,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 
 	// This method shows the double log plot
 	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int plane, int regMin, int regMax) {
-		if (isGrey) {
+		if (imageType.equals("Grey")) {
 			if (lnDataX == null) {
 				logService.info(this.getClass().getName() + " lnDataX == null, cannot display the plot!");
 				return;
@@ -1307,7 +1302,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 					"Double Log Plot - Higuchi Dimension", preName + datasetName, "ln(k)", "ln(L)", "", regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
-		if (!isGrey) {
+		if (!imageType.equals("Grey")) {
 
 		}
 	}
