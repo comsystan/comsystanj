@@ -4,7 +4,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Image opener
 - Opens a single image or an image stack
-- Grey 8bit or Color RGB images are supported
+- 8bit grey or RGB color images are supported
 - For a stack, all images must be of same size and type  
 - Includes a preview (thumbnail) panel
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
@@ -12,7 +12,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Image generator
 - Generates a single image or an image stack
-- 8bit Grey images or Color RGB images
+- 8bit grey or RGB color images
 - Image size can be set
 - Maximal grey values can be set
 - Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
@@ -30,7 +30,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Box counting dimension
 - Fractal dimension is computed with box counting
-- For binary or grey 8-bit images
+- 8-bit binary or grey images
 - Binary [0, >0] counting or DBC and RDBC
 - Raster box scanning
 - The number of boxes with distinct sizes according to the power of 2 can be set
@@ -38,7 +38,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Pyramid dimension
 - Fractal dimension is computed by using image pyramids
-- For binary 8-bit images
+- 8-bit binary images
 - Binary [0, >0] algorithm
 - Linear regression parameters of the double log plot can be set
 - Number of object pixels is counted for subsequently size reduced images
@@ -48,7 +48,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Minkowski dimension
 - Fractal dimension is computed with morphological dilations and erosions
-- For binary or grey 8-bit images
+- 8-bit binary or grey images
 - Binary [0, >0] dilation
 - Blanket or Variation method with grey value dilation/erosion
 - The number of dilation/erosion steps can be set
@@ -58,7 +58,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Correlation dimension
 - Fractal correlation dimension is computed
-- For binary or grey 8-bit images
+- 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Raster box scanning or
 - Classical pair wise occurrence counting (Sliding box scanning)
@@ -70,7 +70,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Directional correlation dimension
 - A directional dependent fractal correlation dimension is computed
-- For binary or grey 8-bit images
+- 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Classical pair wise occurrence counting
 - Directions can be set
@@ -81,7 +81,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Generalized dimensions
 - Generalized fractal dimensions are computed
-- For binary or grey 8-bit images
+- 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Raster or sliding box scanning
 - Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
@@ -92,7 +92,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Higuchi dimension 1D
 - Fractal dimension is computed for 1D grey value profiles extracted from an image
-- For 8-bit grey value images
+- 8-bit grey images
 - Several extraction methods can be chosen
 - Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
 - Radial lines (grey value profiles) are length corrected and grey values are interpolated
@@ -101,14 +101,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Higuchi dimension 2D
 - Fractal dimension is computed with Higuchi inspired 2D algorithms
-- For 8-bit grey value images
+- 8-bit grey or RGB color images
 - Several options can be chosen
 - Linear regression parameters of the double log plot can be set
 - Ref.: Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
 
 ### FFT dimension
 - Fractal dimension is computed with FFT algorithm
-- For 8-bit grey value images
+- 8-bit grey images
 - Several windowing filters can be set
 - Circluar average of k values or
 - Mean of separate line scans (horizontal and verical) or
@@ -120,7 +120,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Tug of war dimension
 - Fractal dimension is computed by using a tug of war algorithm
-- For binary 8-bit images
+- 8bit binary images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
@@ -131,7 +131,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Lacunarity
 - Lacunarity is computed of a binary image  
-- For binary or grey 8-bit images
+- 8-bit binary or grey images
 - The number of boxes with distinct sizes can be set
 - Shows a double logarithmic plot of lacunarities
 - Raster/Sliding box scanning or Tug of war method
@@ -147,7 +147,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Succolarity
 - Succolarity is computed by flooding the black pixels of a binary image  
-- For binary 8-bit images
+- 8-bit binary images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes can be set
 - Shows a double logarithmic plot of succolarities 
@@ -159,7 +159,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 ### Fractal fragmentation indices
 - Fractal fragmentation index FFI
 - Fractal fragmentation and disorder index FFDI
-- For binary 8-bit images
+- 8-bit binary images
 - Binary [0, >0] algorithm
 - FFI = FD of mass - FD of boundary
 - FFI is the fractal dimension of the image - Fractal dimension of the boundary image
@@ -175,7 +175,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Computes generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
 - Probabilities are computed with plain pixel grey values
-- For 8-bit grey value images
+- 8-bit grey images
 - A plot of Renyi entropies can be shown
 - Ref.: Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108), Tsallis, Introduction to Nonextensive
 Statistical Mechanics, Springer, 2009
@@ -183,7 +183,7 @@ Statistical Mechanics, Springer, 2009
 ### Kolmogorov complexity and Logical depth
 - KC is estimated by the memory size of compressed images saved to disk (LZW, PNG, J2K, JPG)
 - KC is estiamted by compressing data bytes (ZLIB, GZIB)
-- For 8-bit grey value images
+- 8-bit grey images
 - RGB color images may also work, but not tested
 - Lossless and lossy algorithms can be chosen
 - Lossless algorithms are recommended.
