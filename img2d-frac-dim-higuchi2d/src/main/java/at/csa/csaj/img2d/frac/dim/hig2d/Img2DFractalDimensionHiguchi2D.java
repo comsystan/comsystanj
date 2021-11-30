@@ -803,18 +803,16 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 //		// 0 Dh-row, 1 R2-row, 2 StdErr-row, 3 Dh-col, 4 R2-col, 5 StdErr-col, 6 Dh, 7 R2, 8 Stderr
 		
 		//get rai
-		RandomAccessibleInterval<?> rai = null;	
-		if( (s==0) && (numSlices == 1) && (imageType.equals("Grey"))) { // for a single grey 2D image;
-			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
+		RandomAccessibleInterval<T> rai = null;	
+		if( (s==0) && (numSlices == 1)) { // for only one 2D image, Grey or RGB;
+			rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==2 or 3
 
-		} else if ( (numSlices > 1) && (imageType.equals("Grey"))){ // for a stack of grey 2D images
-			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
-		
-		} else	if( (s==0) && (numSlices == 1) && (imageType.equals("RGB"))) { // for a single RGB 2D image;
-			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
-
-		} else if ( (numSlices > 1) && (imageType.equals("RGB"))){ // for a stack of RGB 2D images 
-			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 3, s);  //width x height x 3 RGBChannels
+		} else if ( (numSlices > 1)){ // for a stack of 2D images, Grey or RGB
+			if (imageType.equals("Grey")) {
+				rai = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetIn, 2, s);  //dim==2  x,y,z	
+			} else if (imageType.equals("RGB")) {
+				rai = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetIn, 3, s);  //dim==3  x,y,composite,z  
+			}	
 		}
 
 		// Compute regression parameters
@@ -927,18 +925,17 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 				
 				
 				//get rai
-				RandomAccessibleInterval<?> rai = null;	
-				if( (s==0) && (numSlices == 1) && (imageType.equals("Grey"))) { // for a single grey 2D image;
-					rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
-
-				} else if ( (numSlices > 1) && (imageType.equals("Grey"))){ // for a stack of grey 2D images
-					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
-				
-				} else	if( (s==0) && (numSlices == 1) && (imageType.equals("RGB"))) { // for a single RGB 2D image;
-					rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
-
-				} else if ( (numSlices > 1) && (imageType.equals("RGB"))){ // for a stack of RGB 2D images 
-					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 3, s);  //width x height x 3 RGBChannels
+				RandomAccessibleInterval<T> rai = null;	
+				if( (s==0) && (numSlices == 1) ) { // for only one 2D image;
+					rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==2 or 3
+	
+				}
+				if (numSlices > 1) { // for a stack
+					if (imageType.equals("Grey")) {
+						rai = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetIn, 2, s); //dim==2  x,y,z  
+					} else if (imageType.equals("RGB")) {
+						rai = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetIn, 3, s); //dim==3  x,y,composite,z  
+					}	
 				}
 	
 				// Compute regression parameters
