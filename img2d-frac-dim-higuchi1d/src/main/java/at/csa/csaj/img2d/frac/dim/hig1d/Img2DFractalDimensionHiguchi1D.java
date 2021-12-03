@@ -1471,7 +1471,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 				
 				double[] posReal = new double[2];
 				
-				String interpolType = "Floor";
+				String interpolType = "Linear";
 				
 				// declare how we want the image to be interpolated
 				InterpolatorFactory factory = null;
