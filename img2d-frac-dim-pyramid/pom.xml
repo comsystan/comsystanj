@@ -8,14 +8,13 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>29.2.1</version>
+		<version>31.1.0</version>
 		<relativePath />
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-img2d-frac-dim-pyramid</artifactId>
-	<!-- first numbers of plugin version are identical to used pom-scijava version-->
-	<version>29.2.1.3</version>
+	<version>2.0</version><!--ComsystanJ version-->
 
 	<name>Image(2D) - Fractal dimension - Pyramid</name>
 	<description>ImageJ plugin for computing fractal dimension with image pyramids.</description>
@@ -95,7 +94,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-commons</artifactId>
-			<version>29.2.1.3</version>
+			<version>2.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
