@@ -7,8 +7,8 @@ For binary images black pixels are the background. White pixels are the foregrou
 - 8bit grey or RGB color images are supported
 - For a stack, all images must be of same size and type  
 - Includes a preview (thumbnail) panel
-- Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
-- Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
+- Note: Fiji displays RGB images as 3 channel color images. Workaround: Type Image/Type/RGB Color 
+- Note: Fiji sometimes displays RGB images with an enhanced red channel. Workaround: Image/Color/Arrange Channels... and press OK
 
 ### Image generator
 - Generates a single image or an image stack
