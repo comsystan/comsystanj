@@ -6,10 +6,10 @@
 **ComsystanJ** (Complex Systems Analysis for ImageJ) is a collection of ImageJ2 plugins to compute the complexity, fractal dimension and other nonlinear measures of images and signals. It is recommended to use it with Fiji. Copyright (c) Comsystan Software. Developed and maintained by Helmut Ahammer.
 
 ### Downloads
-- You can download ComsystanJ [here](https://github.com/comsystan/comsystanj/releases)
+- [Downloads](https://github.com/comsystan/comsystanj/releases)
 
 ### Installation
-- Unzip the ComsystanJ-vx.x.x.x-jars.zip file and copy the folder to the Fiji's plugin folder 
+- Unzip the ComsystanJ-vx.x.zip file and copy the folder to the Fiji's plugin folder 
 
 ### Project descriptions
 - Processing 2D images [- Short description of plugins](description/img2-description.md) 
@@ -35,10 +35,9 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
   
-It is recommended to use ComsystanJ jar files and a Fiji distribution with the same pom-scijava version number.
-
-ComsystanJ releases have a 4-digit version number in the jar file names as defined in the corresponding pom.xml files. The first three digits reflect the pom-scijava version. The last digit is the ComsystanJ version number.
-To get the version number of your Fiji, simply start Fiji and execute following command in the search bar: `!ui.showDialog(app.getApp("Fiji").getPOM().getParentVersion())`
+It is recommended to use both ComsystanJ and Fiji with the same pom-scijava version number.
+The pom-scijava version number of ComsystanJ can be viewed directly on the download site [Downloads](https://github.com/comsystan/comsystanj/releases).
+To get the pom-scijava version number of your Fiji, simply start Fiji and execute following command in the search bar: `!ui.showDialog(app.getApp("Fiji").getPOM().getParentVersion())`
 
 ### Contact
 Helmut Ahammer
