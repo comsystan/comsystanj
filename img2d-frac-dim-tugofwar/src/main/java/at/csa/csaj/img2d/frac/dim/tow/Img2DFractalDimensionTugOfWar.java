@@ -556,7 +556,14 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 		}	
 		logService.info(this.getClass().getName() + " Name: " + datasetName); 
 		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
+		logService.info(this.getClass().getName() + " Image type: " + imageType); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
+		
+		//RGB not allowed
+		if (!imageType.equals("Grey")) { 
+			logService.info(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+			this.cancel("WARNING: Grey value image(s) expected!");
+		}
 	}
 	
 	/**

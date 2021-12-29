@@ -77,6 +77,7 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
+import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
@@ -555,6 +556,12 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Con
 		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
 		logService.info(this.getClass().getName() + " Image type: " + imageType); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
+			
+		//RGB not allowed
+		if (!imageType.equals("Grey")) { 
+			logService.info(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+			this.cancel("WARNING: Grey value image(s) expected!");
+		}
 	}
 	
 	/**

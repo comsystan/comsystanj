@@ -608,6 +608,8 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		logService.info(this.getClass().getName() + " Image size = " + width+"x"+height); 
 		logService.info(this.getClass().getName() + " Image type: " + imageType); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
+		
+		//Grey and RGB images are supported
 	}
 
 	/**

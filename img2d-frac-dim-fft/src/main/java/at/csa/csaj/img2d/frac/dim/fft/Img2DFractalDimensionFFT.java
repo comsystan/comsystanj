@@ -600,6 +600,12 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
 		logService.info(this.getClass().getName() + " Image type: " + imageType); 
 		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
+		
+		//RGB not allowed
+		if (!imageType.equals("Grey")) { 
+			logService.info(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+			this.cancel("WARNING: Grey value image(s) expected!");
+		}
 	}
 	
 	/**
