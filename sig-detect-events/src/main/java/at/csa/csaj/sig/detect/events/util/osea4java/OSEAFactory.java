@@ -31,7 +31,7 @@ import at.csa.csaj.sig.detect.events.util.osea4java.classification.RythmChecker;
 
 /*-
  * #%L
- * Project: ImageJ signal plugin for detecting events
+ * Project: ImageJ2 signal plugin for detecting events
  * File: OSEAFactory.java
  * 
  * $Id$

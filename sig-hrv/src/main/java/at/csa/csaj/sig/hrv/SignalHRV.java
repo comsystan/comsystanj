@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for computing standard HRV measurements
+ * Project: ImageJ2 signal plugin for computing standard HRV measurements
  * File: SignalHRV.java
  * 
  * $Id$

@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for computing statistics.
+ * Project: ImageJ2 signal plugin for computing statistics.
  * File: SignalStatistics.java
  * 
  * $Id$

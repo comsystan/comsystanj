@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for computing fractal dimension with Katz algorithm.
+ * Project: ImageJ2 signal plugin for computing fractal dimension with Katz algorithm.
  * File: Katz.java
  * 
  * $Id$

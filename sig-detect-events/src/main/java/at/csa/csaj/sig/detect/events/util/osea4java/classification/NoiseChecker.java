@@ -23,7 +23,7 @@ import at.csa.csaj.sig.detect.events.util.osea4java.QRSDetectorParameters;
 
 /*-
  * #%L
- * Project: ImageJ signal plugin for detecting events
+ * Project: ImageJ2 signal plugin for detecting events
  * File: NoiseChecker.java
  * 
  * $Id$

@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for computing the Hurst coefficient.
+ * Project: ImageJ2 signal plugin for computing the Hurst coefficient.
  * File: BetaSWVH.java
  * 
  * $Id$

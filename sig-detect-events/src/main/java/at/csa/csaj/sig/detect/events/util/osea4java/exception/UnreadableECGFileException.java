@@ -2,7 +2,7 @@ package at.csa.csaj.sig.detect.events.util.osea4java.exception;
 
 /*
  * #%L
- * Project: ImageJ signal plugin for detecting events
+ * Project: ImageJ2 signal plugin for detecting events
  * File: UnreadableECGFileException.java
  * 
  * $Id$

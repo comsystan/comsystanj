@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for down- and upsampling
+ * Project: ImageJ2 signal plugin for down- and upsampling
  * File: SignalResampling.java
  * 
  * $Id$

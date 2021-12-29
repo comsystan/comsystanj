@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for computing Fast Fourier transformation
+ * Project: ImageJ2 signal plugin for computing Fast Fourier transformation
  * File: SignalFFT.java
  * 
  * $Id$

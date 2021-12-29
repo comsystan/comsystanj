@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for computing DFA
+ * Project: ImageJ2 signal plugin for computing DFA
  * File: SignalDFA.java
  * 
  * $Id$

@@ -2,7 +2,7 @@ package at.csa.csaj.sig.allomscale.util;
 
 /*
  * #%L
- * Project: ImageJ signal plugin for allometric scaling
+ * Project: ImageJ2 signal plugin for allometric scaling
  * File: AllometricScaling.java
  * 
  * $Id$

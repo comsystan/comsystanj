@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ signal plugin for symbolic aggregation
+ * Project: ImageJ2 signal plugin for symbolic aggregation
  * File: SignalSymbolicAggregation.java
  * 
  * $Id$

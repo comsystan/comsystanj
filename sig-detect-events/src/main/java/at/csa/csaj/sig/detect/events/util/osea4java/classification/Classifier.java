@@ -27,7 +27,7 @@ import at.csa.csaj.sig.detect.events.util.osea4java.classification.Matcher.BestM
 
 /*-
  * #%L
- * Project: ImageJ signal plugin for detecting events
+ * Project: ImageJ2 signal plugin for detecting events
  * File: Classifier.java
  * 
  * $Id$
