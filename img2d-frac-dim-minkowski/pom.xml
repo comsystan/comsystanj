@@ -17,7 +17,7 @@
 	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Image(2D) - Fractal dimension - Minkowski</name>
-	<description>ImageJ plugin for computing fractal Minkowski dimension</description>
+	<description>ImageJ2 plugin for computing fractal Minkowski dimension</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>

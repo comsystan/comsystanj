@@ -17,7 +17,7 @@
 	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Fractal dimension - Sevcik</name>
-	<description>ImageJ signal plugin for computing fractal dimension with Sevcik algorithm.</description>
+	<description>ImageJ2 signal plugin for computing fractal dimension with Sevcik algorithm.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>

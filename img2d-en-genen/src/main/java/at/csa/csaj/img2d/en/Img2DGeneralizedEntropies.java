@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing the Generalized entropies
+ * Project: ImageJ2 plugin for computing the Generalized entropies
  * File: Img2DGeneralizedEntropies.java
  * 
  * $Id$

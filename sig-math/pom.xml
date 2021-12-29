@@ -17,7 +17,7 @@
 	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Mathematical functions</name>
-	<description>ImageJ signal plugin for mathematical functions</description>
+	<description>ImageJ2 signal plugin for mathematical functions</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>

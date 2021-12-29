@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing the FFI and FFDI
+ * Project: ImageJ2 plugin for computing the FFI and FFDI
  * File: Img2DFractalFragmentation.java
  * 
  * $Id$

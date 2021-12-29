@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin to generate 2D images.
+ * Project: ImageJ2 plugin to generate 2D images.
  * File: Img2DImageGenerator.java
  * 
  * $Id$

@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing direction dependent correlation dimension.
+ * Project: ImageJ2 plugin for computing direction dependent correlation dimension.
  * File: Img2DFractalDimensionDirectionalCorrelation.java
  * 
  * $Id$

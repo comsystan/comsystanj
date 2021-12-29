@@ -17,7 +17,7 @@
 	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Image(2D) - Image opener</name>
-	<description>ImageJ plugin to open single or multiple images.</description>
+	<description>ImageJ2 plugin to open single or multiple images.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>

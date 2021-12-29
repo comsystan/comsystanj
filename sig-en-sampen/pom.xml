@@ -17,7 +17,7 @@
 	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Sample and Approximate entropy</name>
-	<description>ImageJ signal plugin for computing the Sample and Approximate entropy</description>
+	<description>ImageJ2 signal plugin for computing the Sample and Approximate entropy</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>

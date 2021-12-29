@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing Kolmogorov complexity and Logical depth.
+ * Project: ImageJ2 plugin for computing Kolmogorov complexity and Logical depth.
  * File: Img2DKolmogorovComplexity.java
  * 
  * $Id$

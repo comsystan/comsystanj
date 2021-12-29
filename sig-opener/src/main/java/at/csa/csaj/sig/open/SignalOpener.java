@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin to open single or multiple signals.
+ * Project: ImageJ2 plugin to open single or multiple signals.
  * File: SignalOpener.java
  * 
  * $Id$

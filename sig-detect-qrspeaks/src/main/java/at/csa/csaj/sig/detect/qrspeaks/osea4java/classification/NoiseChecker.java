@@ -23,7 +23,7 @@ import at.csa.csaj.sig.detect.qrspeaks.osea4java.QRSDetectorParameters;
 
 /*-
  * #%L
- * Project: ImageJ plugin to detect QRS peaks and RR intervals.
+ * Project: ImageJ2 plugin to detect QRS peaks and RR intervals.
  * File: NoiseChecker.java
  * 
  * $Id$

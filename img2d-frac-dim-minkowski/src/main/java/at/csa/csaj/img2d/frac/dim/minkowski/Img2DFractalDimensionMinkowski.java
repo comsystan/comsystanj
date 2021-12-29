@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing fractal Minkowski dimension
+ * Project: ImageJ2 plugin for computing fractal Minkowski dimension
  * File: Img2DFractalDimensionMinkowski.java
  * 
  * $Id$

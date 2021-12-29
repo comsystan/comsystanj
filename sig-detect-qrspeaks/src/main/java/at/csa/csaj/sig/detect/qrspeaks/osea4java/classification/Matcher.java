@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin to detect QRS peaks and RR intervals.
+ * Project: ImageJ2 plugin to detect QRS peaks and RR intervals.
  * File: Matcher.java
  * 
  * $Id$

@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing lacunarity.
+ * Project: ImageJ2 plugin for computing lacunarity.
  * File: Img2DLacunarity.java
  * 
  * $Id$

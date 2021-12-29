@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing fractal dimension with box counting.
+ * Project: ImageJ2 plugin for computing fractal dimension with box counting.
  * File: Img2DFractalDimensionBoxCounting.java
  * 
  * $Id$

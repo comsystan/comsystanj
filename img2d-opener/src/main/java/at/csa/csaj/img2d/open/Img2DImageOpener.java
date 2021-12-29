@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin to open single or multiple images.
+ * Project: ImageJ2 plugin to open single or multiple images.
  * File: Img2DImageOpener.java
  * 
  * $Id$

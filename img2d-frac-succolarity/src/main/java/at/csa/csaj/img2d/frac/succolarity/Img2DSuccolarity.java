@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing succolarity.
+ * Project: ImageJ2 plugin for computing succolarity.
  * File: Img2DSuccolarity.java
  * 
  * $Id$

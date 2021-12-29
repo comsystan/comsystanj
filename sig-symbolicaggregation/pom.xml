@@ -17,7 +17,7 @@
 	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Symbolic aggregation</name>
-	<description>ImageJ signal plugin for symbolic aggregation</description>
+	<description>ImageJ2 signal plugin for symbolic aggregation</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>

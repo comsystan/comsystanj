@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ plugin for computing fractal dimension with 2D Higuchi algorithms.
+ * Project: ImageJ2 plugin for computing fractal dimension with 2D Higuchi algorithms.
  * File: Img2DFractalDimensionHiguchi2D.java
  * 
  * $Id$

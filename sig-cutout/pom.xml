@@ -17,7 +17,7 @@
 	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Cut out</name>
-	<description>ImageJ signal plugin to cut out (shorten) signals</description>
+	<description>ImageJ2 signal plugin to cut out (shorten) signals</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>

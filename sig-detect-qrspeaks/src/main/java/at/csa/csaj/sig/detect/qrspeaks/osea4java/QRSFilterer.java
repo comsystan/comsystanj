@@ -21,7 +21,7 @@ package at.csa.csaj.sig.detect.qrspeaks.osea4java;
 
 /*-
  * #%L
- * Project: ImageJ plugin to detect QRS peaks and RR intervals.
+ * Project: ImageJ2 plugin to detect QRS peaks and RR intervals.
  * File: QRSFilterer.java
  * 
  * $Id$
