@@ -108,7 +108,7 @@ import io.scif.MetaTable;
 		headless = true,
 		label = "Higuchi dimension 1D",
 		initializer = "initialPluginLaunch",
-		iconPath = "/images/comsystan-logo-grey46-64x64.png", //Does not work
+		//iconPath = "/images/comsystan-??.png", //Menu entry icon
 		menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
