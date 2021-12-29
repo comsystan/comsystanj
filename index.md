@@ -9,7 +9,7 @@
 - [Downloads](https://github.com/comsystan/comsystanj/releases)
 
 ### Installation
-- Unzip the ComsystanJ-vx.x.zip file and copy the folder to the Fiji's plugin folder 
+- Unzip the ComsystanJ-vx.x.x.zip file and copy the folder to the Fiji's plugin folder 
 
 ### Project descriptions
 - Processing 2D images [- Short description of plugins](description/img2-description.md) 
