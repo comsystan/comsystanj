@@ -85,7 +85,10 @@ import javax.swing.UIManager;
  * </p>
  * @param <C>
  */
-@Plugin(type = ContextCommand.class, label = "Image generator", menu = {
+@Plugin(type = ContextCommand.class,
+		label = "Image generator",
+		iconPath = "/images/comsystan-logo-grey46-64x64.png", //Does not work
+		menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),

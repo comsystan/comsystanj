@@ -84,7 +84,10 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = ContextCommand.class, label = "Image opener", menu = {
+@Plugin(type = ContextCommand.class,
+		label = "Image opener",
+		iconPath = "/images/comsystan-logo-grey46-64x64.png", //Does not work
+		menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),

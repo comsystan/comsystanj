@@ -80,6 +80,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	headless = true,
 	label = "Hurst coefficient",
 	initializer = "initialPluginLaunch",
+	iconPath = "/images/comsystan-logo-grey46-64x64.png", //Does not work
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),

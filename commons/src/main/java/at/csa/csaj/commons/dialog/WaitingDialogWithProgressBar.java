@@ -154,7 +154,7 @@ public class WaitingDialogWithProgressBar extends JDialog {
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setUndecorated(false);
 		//this.setIconImage(new ImageIcon(Resources.getImageURL("icon.application.red.32x32")).getImage());
-		this.setIconImage(new ImageIcon(getClass().getResource("/images/comsystan-logo.png")).getImage()); //18 and 32 are better than 48  
+		this.setIconImage(new ImageIcon(getClass().getResource("/images/comsystan-logo-grey46-64x64.png")).getImage()); //18 and 32 are better than 48  
 		this.getContentPane().setBackground(Color.black);
 		this.setContentPane(panel);
 		this.pack(); 

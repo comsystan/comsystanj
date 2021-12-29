@@ -1,7 +1,12 @@
 ComsystanJ change log
 
+Version numbering
+1st digit: major relaese number
+2nd digit: pom-scijava change
+3rd digit: minor changes
+
 **************************************************************
-Version 2.0
+Version 2.0.0
 pom-scijava 31.1.0
 
 Major change:
@@ -20,10 +25,13 @@ Bugfix
 2D Image - Succolarity - Eliminated unnecessary regression min max settings
 
 Miscellaneous
-Signal - Cut renamed to Cutout
+Signal - Cut - Renamed to Cutout
+
+Known issues
+Red cast of RGB color images
 
 **************************************************************
-Version 1.2
+Version 1.0.1
 pom-scijava 29.2.1
 
 New
@@ -62,6 +70,6 @@ Miscellaneous
 - Changed some persist entries
 
 **************************************************************
-Version 1.1 initial release
+Version 1.0.0 initial release
 pom-scijava 29.2.1
 

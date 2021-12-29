@@ -8,13 +8,13 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>31.1.0</version>
-		<relativePath />
+		<version>31.1.0</version><!--pom-scijava version-->
+		<relativePath/>
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-sig-allomscale</artifactId>
-	<version>2.0</version><!--ComsystanJ version-->
+	<version>2.0.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Allometric scaling</name>
 	<description>ImageJ signal plugin for allometric scaling</description>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-sig-opener</artifactId>
-			<version>2.0</version><!--ComsystanJ version-->
+			<version>2.0.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
@@ -122,7 +122,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>2.0.0</version>
+				<version>2.0.0</version><!--license-maven-plugin version-->
 				<configuration>
 					<verbose>false</verbose>
 					<canUpdateCopyright>true</canUpdateCopyright>

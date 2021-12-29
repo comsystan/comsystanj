@@ -60,7 +60,7 @@ public class CSAJPlotFrame extends JFrame {
 	 */
 	public CSAJPlotFrame() {
 		//this.setIconImage(new ImageIcon(Resources.getImageURL("icon.application.magenta.32x32")).getImage());
-		this.setIconImage(new ImageIcon(getClass().getResource("/images/comsystan-logo.png")).getImage());
+		this.setIconImage(new ImageIcon(getClass().getResource("/images/comsystan-logo-grey46-64x64.png")).getImage());
 		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		this.setAlwaysOnTop(false);
 		ToolTipManager ttm = ToolTipManager.sharedInstance();
