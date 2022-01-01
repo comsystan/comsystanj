@@ -10,7 +10,7 @@ package at.csa.csaj.sig.allomscale.util;
  * 
  * This file is part of ComsystanJ software, hereinafter referred to as "this program".
  * %%
- * Copyright (C) 2021 Comsystan Software
+ * Copyright (C) 2021 - 2022 Comsystan Software
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as

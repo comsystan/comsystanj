@@ -1,7 +1,7 @@
 ComsystanJ change log
 
 Version numbering
-1st digit: major relaese number
+1st digit: major release number
 2nd digit: pom-scijava change
 3rd digit: minor changes
 
@@ -12,7 +12,7 @@ pom-scijava 31.1.0
 Major change:
 Changed UI type from InteractiveCommand to ContextCommand for all plugins.
 The UI is now modal.
-This allows the use of ComsystanJ in scripts.
+This allows the use of ComsystanJ in macros.
 But unfortunately, interactivity of plugins is lost.
 
 New
