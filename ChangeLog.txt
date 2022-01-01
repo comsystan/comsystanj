@@ -6,8 +6,29 @@ Version numbering
 3rd digit: minor changes
 
 **************************************************************
+Version 2.0.1
+pom-scijava 31.1.0
+2022-??-?? not released yet
+
+Major change:
+
+New
+
+
+Bugfix
+
+
+Miscellaneous
+
+
+Known issues
+Red cast of RGB color images
+
+
+**************************************************************
 Version 2.0.0
 pom-scijava 31.1.0
+2022-01-01
 
 Major change:
 Changed UI type from InteractiveCommand to ContextCommand for all plugins.
@@ -33,6 +54,7 @@ Red cast of RGB color images
 **************************************************************
 Version 1.0.1
 pom-scijava 29.2.1
+2021-08-16
 
 New
 2D Image - Correlation dimension
@@ -72,4 +94,5 @@ Miscellaneous
 **************************************************************
 Version 1.0.0 initial release
 pom-scijava 29.2.1
+2021-04-21
 

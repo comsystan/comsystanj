@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-sig-frac-dim-higuchi1d</artifactId>
-	<version>2.0.0</version><!--ComsystanJ version-->
+	<version>2.0.1</version><!--ComsystanJ version-->
 
 	<name>Signal - Fractal dimension - Higuchi1D</name>
 	<description>ImageJ2 signal plugin for computing fractal dimension with 1D Higuchi algorithm.</description>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-sig-opener</artifactId>
-			<version>2.0.0</version><!--ComsystanJ version-->
+			<version>2.0.1</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
