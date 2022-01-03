@@ -1277,12 +1277,12 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 								showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 							}
 						} //if					
-						if (regressionValues[4] > 0.9) {
+						//if (regressionValues[4] > 0.9) {
 							numActualRows += 1;
 							resultValues[0] += -regressionValues[1]; // Dh = -slope
 							resultValues[1] += regressionValues[4];
 							resultValues[2] += regressionValues[3];
-						}
+						//}
 					} //if
 				} //for h		
 				resultValues[0] = resultValues[0]/numActualRows; //average
@@ -1313,12 +1313,12 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 							}
 						} // IF
 						
-						if (regressionValues[4] > 0.9) { //R2 >0.9
+						//if (regressionValues[4] > 0.9) { //R2 >0.9
 							numActualColumns += 1;
 							resultValues[3] += -regressionValues[1]; // Dh = -slope
 							resultValues[4] += regressionValues[4];
 							resultValues[5] += regressionValues[3];
-						}//
+						//}//
 					} //if
 				} //for w
 				resultValues[3] = resultValues[3]/numActualColumns; //average
@@ -1672,7 +1672,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 						}					
 						double dim = -regressionValues[1];
 						if (dim == 0.0) dim = Double.NaN;
-						if (regressionValues[4] > 0.9) { //R2 >0.9
+						//if (regressionValues[4] > 0.9) { //R2 > 0.9
 							if (a < (numAngles - 1)) { // Mean only from 4 bzw. 180 angles
 								numActualRadialLines += 1;
 								resultValues[6] += dim; // Dh = -slope
@@ -1686,9 +1686,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 								//one of 181 Dh values
 								resultValues[13+a] = dim;
 							}
-							
-			
-						} //R2 >0.9
+						//} //R2 >0.9
 					}				
 				} //angles a for (int a = 0; a < numAngles; a++) { // loop through angles
 				// mean values
