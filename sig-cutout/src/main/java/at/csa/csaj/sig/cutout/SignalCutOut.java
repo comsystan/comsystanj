@@ -171,13 +171,17 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 	private final String labelOperator = RANGE_LABEL;
 	
 	@Parameter(label = "Range Start", description = "Start index for cutting out", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "1",
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialRangeStart", callback = "callbackRangeStart")
 	private int spinnerInteger_RangeStart;
 	
 		@Parameter(label = "Range End", description = "End index for cutting out", style = NumberWidget.SPINNER_STYLE, 
-			   min = "2", max = "9999999999999999999", stepSize = "1",
+			   min = "2",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialRangeEnd", callback = "callbackRangeEnd")
 	private int spinnerInteger_RangeEnd;
@@ -190,7 +194,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 //			description = "Entire signal, Subsequent boxes or Gliding box",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
-//			//persist  = false,  //restore previous value default = true
+//			persist = true,  //restore previous value default = true
 //			initializer = "initialSignalRange",
 //			callback = "callbackSignalRange")
 //	private String choiceRadioButt_SignalRange;
@@ -199,7 +203,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 //			description = "Surrogates types - Only for Entire signal type!",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-//			persist  = false,  //restore previous value default = true
+//			persist = false,  //restore previous value default = true
 //			initializer = "initialSurrogateType",
 //			callback = "callbackSurrogateType")
 //	private String choiceRadioButt_SurrogateType;
@@ -230,7 +234,7 @@ public class SignalCutOut<T extends RealType<T>> extends ContextCommand implemen
 
 	@Parameter(label = "Overwrite result display(s)",
 	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
+	    	persist = true,  //restore previous value default = true
 			initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 

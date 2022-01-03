@@ -214,7 +214,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	           min = "1",
 	           max =  "10000000000",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialMaxK",
 	           callback    = "callbackMaxK")
     private int spinnerInteger_MaxK;
@@ -225,7 +225,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
  		       min = "1",
  		       max =  "10000000000",
  		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
+ 		       persist = false,   //restore previous value default = true
  		       initializer = "initialRegMin",
  		       callback = "callbackRegMin")
     private int spinnerInteger_RegMin = 1;
@@ -236,7 +236,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		       min = "3",
 		       max = "10000000000",
 		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
+		       persist = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
     private int spinnerInteger_RegMax = 3;
@@ -249,7 +249,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			description = "Windowing type with increasing filter strength",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"Rectangular", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, //In the order of increasing filter strength
-			persist  = false,  //restore previous value default = true
+			persist = true,  //restore previous value default = true
 			initializer = "initialWindowingType",
 			callback = "callbackWindowingType")
 	private String choiceRadioButt_WindowingType;
@@ -258,14 +258,14 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
     		    description = "Type of power spectrum computation",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
       		    choices = {"Circular average", "Mean of line scans", "Integral of line scans"},
-      		    //persist  = false,  //restore previous value default = true
+      		    persist = true,  //restore previous value default = true
     		    initializer = "initialPowerSpecType",
                 callback = "callbackPowerSpecType")
     private String choiceRadioButt_PowerSpecType;
      
 //   @Parameter(label = "Add mirrored images",
 //    		 	description = "Add horizontally,vertically and diagonally mirrored images. Supresses edge errors",
-// 		    	//persist  = false,  //restore previous value default = true
+// 		    	//persist = false,  //restore previous value default = true
 //		        initializer = "initialAddMirroredImages",
 //		        callback = "callbackAddMirroredImages")
 //	 private boolean booleanAddMirroredImages;
@@ -275,13 +275,13 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
     @Parameter(label = "Show double log plot",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
        
     @Parameter(label = "Overwrite result display(s)",
     	    	description = "Overwrite already existing result images, plots or tables",
-    	    	//persist  = false,  //restore previous value default = true
+    	    	persist = true,  //restore previous value default = true
     			initializer = "initialOverwriteDisplays")
     private boolean booleanOverwriteDisplays;
      
@@ -300,8 +300,8 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label   = "   Process single image #    ",
-		    	callback = "callbackProcessSingleImage")
+	@Parameter(label = "   Process single image #    ",
+		       callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
     
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	

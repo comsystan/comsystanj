@@ -174,27 +174,32 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 	private final String labelResamplingOptions = RESAMPLINGOPTIONS_LABEL;
 	
 	@Parameter(label = "Resampling type",
-			description = "Resampling type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Down-sampling", "Up-sampling"},
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialResamplingType",
-			callback = "callbackResamplingType")
+			   description = "Resampling type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Down-sampling", "Up-sampling"},
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialResamplingType",
+			   callback = "callbackResamplingType")
 	private String choiceRadioButt_ResamplingType;
 	
-	@Parameter(label = "Factor #", description = "Resampling factor", style = NumberWidget.SPINNER_STYLE, 
-	   min = "1", max = "9999999999999999999", stepSize = "1",
-	   persist = false, // restore  previous value  default  =  true
-	   initializer = "initialNumFactor", callback = "callbackNumFactor")
+	@Parameter(label = "Factor #",
+			   description = "Resampling factor",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialNumFactor",
+			   callback = "callbackNumFactor")
 	private int spinnerInteger_NumFactor;
 	
 	@Parameter(label = "Interpolation type",
-			description = "Interpolation type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"None", "Linear"},
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialInterpolationType",
-			callback = "callbackInterpolationType")
+			   description = "Interpolation type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"None", "Linear"},
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialInterpolationType",
+			   callback = "callbackInterpolationType")
 	private String choiceRadioButt_InterpolationType;
 
 	//-----------------------------------------------------------------------------------------------------
@@ -205,7 +210,7 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 //			description = "Entire signal, Subsequent boxes or Gliding box",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
-//			//persist  = false,  //restore previous value default = true
+//			//persist = false,  //restore previous value default = true
 //			initializer = "initialSignalRange",
 //			callback = "callbackSignalRange")
 //	private String choiceRadioButt_SignalRange;
@@ -214,7 +219,7 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 //			description = "Surrogates types - Only for Entire signal type!",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-//			persist  = false,  //restore previous value default = true
+//			persist = false,  //restore previous value default = true
 //			initializer = "initialSurrogateType",
 //			callback = "callbackSurrogateType")
 //	private String choiceRadioButt_SurrogateType;
@@ -244,9 +249,9 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------

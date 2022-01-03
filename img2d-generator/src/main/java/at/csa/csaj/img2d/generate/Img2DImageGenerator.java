@@ -143,8 +143,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     		   style = NumberWidget.SPINNER_STYLE,
     		   min = "1",
     		   max = "32768",
-    		   initializer = "initialWidth",
     		   stepSize = "1",
+    		   persist = true,  //restore previous value default = true
+    		   initializer = "initialWidth",
     		   callback = "changedWidth")
     private int spinnerInteger_Width;
     
@@ -152,29 +153,31 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     		   description = "Height of output image in pixel",
  		       style = NumberWidget.SPINNER_STYLE,
  		       min = "1",
- 		       max = "32768",
- 		       initializer = "initialHeight",
+ 		       max = "32768", 
  		       stepSize = "1",
+ 		       persist = true,  //restore previous value default = true
+ 		       initializer = "initialHeight",
  		       callback = "changedHeight")
     private int spinnerInteger_Height;
     
     @Parameter(label = "Number of images",
- 	   	   description = "Number of output images",
+ 	   	       description = "Number of output images",
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "1",
 	  		   max = "999999999999999999999",
-	  		   initializer = "initialNumImages",
 	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialNumImages",  
 	  		   callback = "changedNumImages")
     private int spinnerInteger_NumImages;
     
     @Parameter(label = "Color model",
-			description = "Color model of output image",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Grey-8bit", "Color-RGB"}, //
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialColorModelType",
-			callback = "callbackColorModelType")
+			   description = "Color model of output image",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Grey-8bit", "Color-RGB"}, //
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialColorModelType",
+			   callback = "callbackColorModelType")
 	private String choiceRadioButt_ColorModelType;
     
     @Parameter(label = "Image type",
@@ -184,6 +187,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     				   "Fractal surface - FFT", "Fractal surface - MPD", "Fractal surface - Sum of sine", "Fractal - HRM",
     				   "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
     				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon"},
+    		   persist = true,  //restore previous value default = true
+    		   initializer = "initialImageType",
                callback = "changedImageType")
     private String choiceRadioButt_ImageType;
     
@@ -192,8 +197,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "0",
 	  		   max = "255",
-	  		   initializer = "initialR",
 	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialR",  		 
 	  		   callback = "changedR")
     private int spinnerInteger_R;
     
@@ -202,8 +208,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "0",
 	  		   max = "255",
-	  		   initializer = "initialG",
 	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialG",
 	  		   callback = "changedG")
     private int spinnerInteger_G;
     
@@ -212,8 +219,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "0",
 	  		   max = "255",
-	  		   initializer = "initialB",
 	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true				
+	  		   initializer = "initialB",  		  
 	  		   callback = "changedB")
     private int spinnerInteger_B;
     
@@ -222,18 +230,20 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "1.99", //otherwise 2 cannot be reached becaus of these float errors
 	  		   max = "3",
-	  		   initializer = "initialFracDim",
 	  		   stepSize = "0.1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialFracDim",
 	  		   callback = "changedFracDim")
     private float spinnerFloat_FracDim;
     
     @Parameter(label = "(Sine/Sum of sine) Frequency",
- 		   description = "Frequency for Sine or Sum of sine method ",
+ 		       description = "Frequency for Sine or Sum of sine method ",
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "0", 
 	  		   max = "99999999999999999999",
-	  		   initializer = "initialSineSumOfSineFrequency",
 	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialSineSumOfSineFrequency",
 	  		   callback = "changedSineSumOfSineFrequency")
     private float spinnerFloat_SineSumOfSineFrequency;
     
@@ -242,8 +252,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
  	  		   style = NumberWidget.SPINNER_STYLE,
  	  		   min = "0", 
  	  		   max = "99999999999999999999",
+ 	  	 	   stepSize = "1",
+ 	  		   persist = true,  //restore previous value default = true
  	  		   initializer = "initialSumOfSineAmplitude",
- 	  		   stepSize = "1",
  	  		   callback = "changedSumOfSineAmplitude")
     private float spinnerFloat_SumOfSineAmplitude;
 
@@ -252,8 +263,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "1",
 	  		   max = "999999999999999999999",
-	  		   initializer = "initialNumSumOfSineIterations",
 	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialNumSumOfSineIterations",
 	  		   callback = "changedNumSumOfSineIterations")
     private int spinnerInteger_NumSumOfSineIterations;
     
@@ -262,8 +274,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
   	  		   style = NumberWidget.SPINNER_STYLE,
   	  		   min = "0", 
   	  		   max = "1",
-  	  		   initializer = "initialHRMProbability1",
   	  		   stepSize = "0.01",
+  	  		   persist = true,  //restore previous value default = true
+  	  		   initializer = "initialHRMProbability1",
   	  		   callback = "changedHRMProbability1")
     private float spinnerFloat_HRMProbability1;
     
@@ -272,8 +285,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "0", 
 	  		   max = "1",
-	  		   initializer = "initialHRMProbability2",
 	  		   stepSize = "0.01",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialHRMProbability2",
 	  		   callback = "changedHRMProbability2")
     private float spinnerFloat_HRMProbability2;
     
@@ -282,8 +296,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "0", 
 	  		   max = "1",
-	  		   initializer = "initialHRMProbability3",
 	  		   stepSize = "0.01",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialHRMProbability3",
 	  		   callback = "changedHRMProbability3")
     private float spinnerFloat_HRMProbability3;
     
@@ -292,8 +307,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "3",
 	  		   max = "999999999999999999999",
-	  		   initializer = "initialNumPolygons",
 	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialNumPolygons",
 	  		   callback = "changedNumPolygons")
     private int spinnerInteger_NumPolygons;
     

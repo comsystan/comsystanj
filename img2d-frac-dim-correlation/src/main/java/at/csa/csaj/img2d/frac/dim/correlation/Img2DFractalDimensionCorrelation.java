@@ -196,7 +196,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialNumBoxes",
 	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
@@ -207,7 +207,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
  		       min = "1",
  		       max = "32768",
  		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
+ 		       persist = false,   //restore previous value default = true
  		       initializer = "initialRegMin",
  		       callback = "callbackRegMin")
     private int spinnerInteger_RegMin = 1;
@@ -218,7 +218,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
+		       persist = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
@@ -231,7 +231,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
  		    description = "Raster box or classical disc (radius) over each pixel",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
    		    choices = {"Raster box", "Sliding box"}, // "DBC"}, //DBC still not working
-   		    //persist  = false,  //restore previous value default = true
+   		    persist = true,  //restore previous value default = true
  		    initializer = "initialScanningType",
              callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
@@ -240,7 +240,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
   		    description = "Type of image and computation",
   		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		    choices = {"Binary", "Grey"},
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		    initializer = "initialColorModelType",
               callback = "callbackColorModelType")
      private String choiceRadioButt_ColorModelType;
@@ -251,7 +251,7 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
 	           min = "1",
 	           max = "100",
 	           stepSize = "1",
-	           //persist  = false,  //restore previous value default = true
+	           //persist = false,  //restore previous value default = true
 	           initializer = "initialPixelPercentage",
 	           callback    = "callbackPixelPercentage")
      private int spinnerInteger_PixelPercentage;
@@ -261,13 +261,13 @@ public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends Con
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
        
      @Parameter(label = "Overwrite result display(s)",
     	    	description = "Overwrite already existing result images, plots or tables",
-    	    	//persist  = false,  //restore previous value default = true
+    	    	persist = true,  //restore previous value default = true
     			initializer = "initialOverwriteDisplays")
      private boolean booleanOverwriteDisplays;
      

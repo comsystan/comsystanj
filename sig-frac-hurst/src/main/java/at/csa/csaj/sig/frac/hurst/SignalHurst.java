@@ -209,39 +209,49 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 	private final String labelHurstOptions = HURSTOPTIONS_LABEL;
 	
 	@Parameter(label = "PSD option",
-			description = "PSD or improved PSD",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			//PSD: power spectrum density without any improvements
-			//lowPSDwe: power spectrum density using only lower frequencies (low), parabolic windowing (w) and end matching (e) (bridge detrending)
-			choices = {"PSD", "lowPSDwe"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialPSDType",
-			callback = "callbackPSDType")
+			   description = "PSD or improved PSD",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   //PSD: power spectrum density without any improvements
+			   //lowPSDwe: power spectrum density using only lower frequencies (low), parabolic windowing (w) and end matching (e) (bridge detrending)
+			   choices = {"PSD", "lowPSDwe"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialPSDType",
+			   callback = "callbackPSDType")
 	private String choiceRadioButt_PSDType;
 
 //	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "(PSD) Regression Min", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "(PSD) Regression Min",
+			   description = "Minimum x value of linear regression",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
 	private int spinnerInteger_RegMin = 1;
 
-	@Parameter(label = "(PSD) Regression Max", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "(PSD) Regression Max",
+			   description = "Maximum x value of linear regression",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "3",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 3;
 	
 	@Parameter(label = "SWV option",
-			description = "",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			//SWV: scaled windowed variance (mean of SD's)
-			//bdSWV: scaled windowed variance (mean of SD's) with bridge detrending
-			choices = {"SWV", "bdSWV"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSWVType",
-			callback = "callbackSWVType")
+			   description = "",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   //SWV: scaled windowed variance (mean of SD's)
+			   //bdSWV: scaled windowed variance (mean of SD's) with bridge detrending
+			   choices = {"SWV", "bdSWV"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSWVType",
+			   callback = "callbackSWVType")
 	private String choiceRadioButt_SWVType;
 	
 	//-----------------------------------------------------------------------------------------------------
@@ -249,49 +259,60 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
-		description = "Entire signal, Subsequent boxes or Gliding box",
-		style = ChoiceWidget.LIST_BOX_STYLE,
-		choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
-		//persist  = false,  //restore previous value default = true
-		initializer = "initialSignalRange",
-		callback = "callbackSignalRange")
+			   description = "Entire signal, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSignalRange",
+			   callback = "callbackSignalRange")
 	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
-			description = "Surrogates types - Only for Entire signal type!",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
-		private String choiceRadioButt_SurrogateType;
+			   description = "Surrogates types - Only for Entire signal type!",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
+	private String choiceRadioButt_SurrogateType;
 	
-	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
+	@Parameter(label = "Surrogates #",
+			   description = "Number of computed surrogates",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialNumSurrogates",
+			   callback = "callbackNumSurrogates")
 	private int spinnerInteger_NumSurrogates;
 	
-	@Parameter(label = "Box length", description = "Length of subsequent or gliding box - Shoud be at least three times kMax", style = NumberWidget.SPINNER_STYLE, 
-			   min = "2", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialBoxLength", callback = "callbackBoxLength")
+	@Parameter(label = "Box length",
+			   description = "Length of subsequent or gliding box - Shoud be at least three times kMax",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "2",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialBoxLength",
+			   callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
 	
 	@Parameter(label = "(Surr/Box) Hurst type",
-			description = "Entropy for Surrogates, Subsequent boxes or Gliding box",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"PSD_Beta"},   //may be later  "DISP", "SWV"}, //"PSD", "DISP", "SWV"
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialHurstType",
-			callback = "callbackHurstType")
+			   description = "Entropy for Surrogates, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"PSD_Beta"},   //may be later  "DISP", "SWV"}, //"PSD", "DISP", "SWV"
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialHurstType",
+			   callback = "callbackHurstType")
 	private String choiceRadioButt_HurstType;
 	
 	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-	@Parameter(label = "Remove zero values", persist = false,
+	@Parameter(label = "Remove zero values",
+			   persist = true,
 		       callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
@@ -300,14 +321,14 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
-		   	   // persist = false, //restore previous value default = true
+		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------

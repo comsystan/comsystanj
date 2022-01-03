@@ -175,16 +175,19 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 	private final String labelSurrogateOptions = SURROGATEOPTIONS_LABEL;
 	
 	@Parameter(label = "Surrogate type",
-			description = "Surrogate type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Shuffle", "Gaussian", "Random phase", "AAFT"},
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
+			   description = "Surrogate type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Shuffle", "Gaussian", "Random phase", "AAFT"},
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
 	private String choiceRadioButt_SurrogateType;
 	
-//	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
-//	   min = "1", max = "9999999999999999999", stepSize = "1",
+//	@Parameter(label = "Surrogates #",
+//			   description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
+//	   		   min = "1",
+//			   max = "9999999999999999999",
+//			   stepSize = "1",
 //	   persist = false, // restore  previous value  default  =  true
 //	   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
 //	private int spinnerInteger_NumSurrogates;
@@ -197,7 +200,7 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 //			description = "Entire signal, Subsequent boxes or Gliding box",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
-//			//persist  = false,  //restore previous value default = true
+//			//persist = false,  //restore previous value default = true
 //			initializer = "initialSignalRange",
 //			callback = "callbackSignalRange")
 //	private String choiceRadioButt_SignalRange;
@@ -206,7 +209,7 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 //			description = "Surrogates types - Only for Entire signal type!",
 //			style = ChoiceWidget.LIST_BOX_STYLE,
 //			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-//			persist  = false,  //restore previous value default = true
+//			persist = false,  //restore previous value default = true
 //			initializer = "initialSurrogateType",
 //			callback = "callbackSurrogateType")
 //	private String choiceRadioButt_SurrogateType;
@@ -227,7 +230,8 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-//	@Parameter(label = "Remove zero values", persist = false,
+//	@Parameter(label = "Remove zero values",
+//			   persist = true,
 //		       callback = "callbackRemoveZeroes")
 //	private boolean booleanRemoveZeroes;
 	
@@ -236,9 +240,9 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------

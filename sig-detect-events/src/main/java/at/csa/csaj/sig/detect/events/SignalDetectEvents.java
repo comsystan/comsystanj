@@ -205,7 +205,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			description = "Event type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"Peaks", "Valleys", "Slope", "QRS peaks (Chen&Chen)", "QRS peaks (Osea)"},
-			//persist  = false,  //restore previous value default = true
+			persist = true,  //restore previous value default = true
 			initializer = "initialEventType",
 			callback = "callbackEventType")
 	private String choiceRadioButt_EventType;
@@ -214,82 +214,110 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			description = "Threshold type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"(Peaks, Valleys, Slope) Threshold", "(Slope) MAC"}, //Simple threshold or Moving Average Curves (MACs) according to Lu et al., Med. Phys. 33, 3634 (2006); http://dx.doi.org/10.1118/1"
-			//persist  = false,  //restore previous value default = true
+			persist = true,  //restore previous value default = true
 			initializer = "initialThresholdType",
 			callback = "callbackThresholdType")
 	private String choiceRadioButt_ThresholdType;
 	
 	@Parameter(label = "(Threshold) Threshold", description = "Threshold", style = NumberWidget.SPINNER_STYLE, 
-			   min = "-9999999999999999999", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialThreshold", callback = "callbackThreshold")
+			   min = "-9999999999999999999",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialThreshold",
+			   callback = "callbackThreshold")
 	private float spinnerFloat_Threshold;
 	
 	@Parameter(label = "Estimate Tau", callback = "callbackEstimateTau")
 	private Button buttonEstimateTau;
 	
 	@Parameter(label = "(MAC) Tau", description = "Tau", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialTau", callback = "callbackTau")
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialTau",
+			   callback = "callbackTau")
 	private int spinnerInteger_Tau;
 	
 	@Parameter(label = "(MAC) Offset", description = "Offset", style = NumberWidget.SPINNER_STYLE, 
-			   min = "0", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialOffset", callback = "callbackOffset")
+			   min = "0",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialOffset",
+			   callback = "callbackOffset")
 	private float spinnerFloat_Offset;
 	
 	@Parameter(label = "(Slope) Slope type",
-			description = "Slope type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Positive", "Negative"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSlopeType",
-			callback = "callbackSlopeType")
+		 	   description = "Slope type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Positive", "Negative"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSlopeType",
+			   callback = "callbackSlopeType")
 	private String choiceRadioButt_SlopeType;
 	
-	@Parameter(label = "(Chen&Chen) M", description = "Chen&Chen highpass filter parameter, usually set to 3,5,7,9...\")", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "2",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialChenM", callback = "callbackChenM")
+	@Parameter(label = "(Chen&Chen) M",
+			   description = "Chen&Chen highpass filter parameter, usually set to 3,5,7,9...",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "2",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialChenM",
+			   callback = "callbackChenM")
 	private int spinnerInteger_ChenM;
 	
-	@Parameter(label = "(Chen&Chen) Sum interval", description = "Chen&Chen lowpass filter parameter, usually set to 10,20,30,40,50...", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "10",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialSumInterval", callback = "callbackSumInterval")
+	@Parameter(label = "(Chen&Chen) Sum interval",
+			   description = "Chen&Chen lowpass filter parameter, usually set to 10,20,30,40,50...",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "10",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialSumInterval",
+			   callback = "callbackSumInterval")
 	private int spinnerInteger_SumInterval;
 	
-	@Parameter(label = "(Chen&Chen) Peak frame", description = "Chen&Chen frame for peak parameter, usually set to 100, 150, 200, 250, 300,...", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "50",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialPeakFrame", callback = "callbackPeakFrame")
+	@Parameter(label = "(Chen&Chen) Peak frame",
+			   description = "Chen&Chen frame for peak parameter, usually set to 100, 150, 200, 250, 300,...",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "50",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialPeakFrame",
+			   callback = "callbackPeakFrame")
 	private int spinnerInteger_PeakFrame;
 	
 	@Parameter(label = "(Osea) Osea method",
-			description = "Osea method",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"QRSDetect", "QRSDetect2", "BeatDetectAndClassify"}, //QRSDetect using medians, RSDetect2 using means, BeatDetectionAndClassify using QRSDetect2 for detection
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialOseaMethod",
-			callback = "callbackOseaMethod")
+		   	   description = "Osea method",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+		   	   choices = {"QRSDetect", "QRSDetect2", "BeatDetectAndClassify"}, //QRSDetect using medians, RSDetect2 using means, BeatDetectionAndClassify using QRSDetect2 for detection
+			   persist = true, //restore previous value default = true
+			   initializer = "initialOseaMethod",
+			   callback = "callbackOseaMethod")
 	private String choiceRadioButt_OseaMethod;
 	
-	@Parameter(label = "(Osea) Sample rate (Hz)", description = "Sample rate of singla in Hz", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialSampleRate", callback = "callbackSampleRate")
+	@Parameter(label = "(Osea) Sample rate (Hz)",
+			   description = "Sample rate of singla in Hz",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1", max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialSampleRate",
+			   callback = "callbackSampleRate")
 	private int spinnerInteger_SampleRate;
 		
 	@Parameter(label = "Output type",
-			description = "Output type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values", 
+			   description = "Output type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values", 
 					"(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals", "(Peaks, Valleys) Heights", "(Peaks, Valleys) Energies", "(Peaks, Valleys) delta Heights"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialOutputType",
-			callback = "callbackOutputType")
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialOutputType",
+			   callback = "callbackOutputType")
 	private String choiceRadioButt_OutputType;
 	
 
@@ -298,32 +326,32 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
-			description = "Entire signal, Subsequent boxes or Gliding box",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalRange",
-			callback = "callbackSignalRange")
+			   description = "Entire signal, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSignalRange",
+			   callback = "callbackSignalRange")
 	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
-			description = "Surrogates types - Only for Entire signal type!",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
+			   description = "Surrogates types - Only for Entire signal type!",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
 	private String choiceRadioButt_SurrogateType;
 	
 //	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
 //			   min = "1", max = "9999999999999999999", stepSize = "1",
-//			   persist = false, // restore  previous value  default  =  true
+//			   persist = true, // restore  previous value  default  =  true
 //			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
 //	private int spinnerInteger_NumSurrogates;
 	
 //	@Parameter(label = "Box length", description = "Length of subsequent or gliding box - Shoud be at least three times numMaxLag", style = NumberWidget.SPINNER_STYLE, 
 //			   min = "2", max = "9999999999999999999", stepSize = "1",
-//			   persist = false, // restore  previous value  default  =  true
+//			   persist = true, // restore  previous value  default  =  true
 //			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 //	private int spinnerInteger_BoxLength;
 	
@@ -335,16 +363,22 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 //		       callback = "callbackRemoveZeroes")
 //	private boolean booleanRemoveZeroes;
 	
-	@Parameter(label = "First data column is the domain", persist = false,
-			callback = "callbackFirstColIsDomain")
+	@Parameter(label = "First data column is the domain",
+			   persist = false,
+			   callback = "callbackFirstColIsDomain")
     private boolean booleanFirstColIsDomain;
 	
-	@Parameter(label = "Subtract mean", persist = false,
-			callback = "callbackSubtractMean")
+	@Parameter(label = "Subtract mean",
+			   persist = false,
+			   callback = "callbackSubtractMean")
     private boolean booleanSubtractMean;
 	
-	@Parameter(label = "Signal scaling factor", description = "This factor is multiplied to the signal values. Usefull for small signal levels (e.g. Osea uses int values!)", style = NumberWidget.SPINNER_STYLE, 
-			   min = "-9999999999999999999", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Signal scaling factor",
+			   description = "This factor is multiplied to the signal values. Usefull for small signal levels (e.g. Osea uses int values!)",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "-9999999999999999999",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialSignalScalingFactor", callback = "callbackSignalScalingFactor")
 	private float spinnerFloat_SignalScalingFactor;
@@ -354,19 +388,19 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Display detected events on original signal",
-			   // persist = false, //restore previous value default = true
+			   persist = true, //restore previous value default = true
 			   initializer = "initialDisplayOnOriginalSignal")
 	private boolean booleanDisplayOnOriginalSignal;
 	
 	@Parameter(label = "Display detected events as a signal",
-			   // persist = false, //restore previous value default = true
+			   persist = true, //restore previous value default = true
 			   initializer = "initialDisplayAsSignal")
 	private boolean booleanDisplayAsSignal;
 	
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+			   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------

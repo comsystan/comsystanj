@@ -244,17 +244,23 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	private final String labelEntropyOptions = ENTROPYOPTIONS_LABEL;
 	
 	@Parameter(label = "Probability type",
-			description = "Selection of probability type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Signal values", "Pairwise differences", "Sum of differences", "SD"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialProbabilityType",
-			callback = "callbackProbabilityType")
+			   description = "Selection of probability type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Signal values", "Pairwise differences", "Sum of differences", "SD"}, 
+			   persist = false,  //restore previous value default = true
+			   initializer = "initialProbabilityType",
+			   callback = "callbackProbabilityType")
 	private String choiceRadioButt_ProbabilityType;
 
-	@Parameter(label = "lag", description = "delta for computation", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000000", stepSize = "1",
+	@Parameter(label = "lag",
+			   description = "delta for computation",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "1",
+			   max = "1000000",
+			   stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialLag", callback = "callbackLag")
+			   initializer = "initialLag",
+			   callback = "callbackLag")
 	private int spinnerInteger_Lag;
 	
 	@Parameter(label = "(Renyi/Tsallis/SNorm/SEscort) Min q", description = "minimal Q for Renyi and Tsallis entropies", style = NumberWidget.SPINNER_STYLE, min = "-1000", max = "1000", stepSize = "1",
@@ -322,49 +328,60 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
-			description = "Entire signal, Subsequent boxes or Gliding box",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalRange",
-			callback = "callbackSignalRange")
+			   description = "Entire signal, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSignalRange",
+			   callback = "callbackSignalRange")
 	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
-			description = "Surrogates types - Only for Entire signal type!",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
+			   description = "Surrogates types - Only for Entire signal type!",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
 	private String choiceRadioButt_SurrogateType;
 	
-	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
+	@Parameter(label = "Surrogates #",
+			   description = "Number of computed surrogates",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialNumSurrogates",
+			   callback = "callbackNumSurrogates")
 	private int spinnerInteger_NumSurrogates;
 	
-	@Parameter(label = "Box length", description = "Length of subsequent or gliding box", style = NumberWidget.SPINNER_STYLE, 
-			   min = "2", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialBoxLength", callback = "callbackBoxLength")
+	@Parameter(label = "Box length",
+			   description = "Length of subsequent or gliding box",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "2",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialBoxLength",
+			   callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
 	
 	@Parameter(label = "(Surr/Box) Entropy type",
-			description = "Entropy for Surrogates, Subsequent boxes or Gliding box",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialEntropyType",
-			callback = "callbackEntropyType")
+			   description = "Entropy for Surrogates, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialEntropyType",
+			   callback = "callbackEntropyType")
 	private String choiceRadioButt_EntropyType;
 	
 	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-	@Parameter(label = "Remove zero values", persist = false,
+	@Parameter(label = "Remove zero values",
+			   persist = true,
 		       callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
@@ -373,9 +390,9 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------

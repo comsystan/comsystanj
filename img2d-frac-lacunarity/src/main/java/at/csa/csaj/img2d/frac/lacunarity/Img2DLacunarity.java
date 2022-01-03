@@ -210,7 +210,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialNumBoxes",
 	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
@@ -221,7 +221,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 // 		       min = "1",
 // 		       max = "32768",
 // 		       stepSize = "1",
-// 		       //persist  = false,   //restore previous value default = true
+// 		       persist = false,   //restore previous value default = true
 // 		       initializer = "initialRegMin",
 // 		       callback = "callbackRegMin")
 //    private int spinnerInteger_RegMin = 1;
@@ -232,7 +232,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 //		       min = "3",
 //		       max = "32768",
 //		       stepSize = "1",
-//		       persist  = false,   //restore previous value default = true
+//		       persist = false,   //restore previous value default = true
 //		       initializer = "initialRegMax",
 //		       callback = "callbackRegMax")
 //     private int spinnerInteger_RegMax = 3;
@@ -242,52 +242,52 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
     private final String labelMethodOptions = METHODOPTIONS_LABEL;
     
     @Parameter(label = "Method",
-   		    description = "Type of analysis",
-   		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-     		choices = {"Raster box", "Sliding box", "Tug of war"}, //"Fast Sliding box" is not reliable
-     		//persist  = false,  //restore previous value default = true
-   		    initializer = "initialMethodType",
-            callback = "callbackMethodType")
+    		   description = "Type of analysis",
+   		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+     		   choices = {"Raster box", "Sliding box", "Tug of war"}, //"Fast Sliding box" is not reliable
+     		   persist = true,  //restore previous value default = true
+   		       initializer = "initialMethodType",
+               callback = "callbackMethodType")
     private String choiceRadioButt_MethodType;
     
     @Parameter(label = "Color model",
- 		    description = "Type of image and computation",
- 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Binary", "Grey"},
-   		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialColorModelType",
-             callback = "callbackColorModelType")
+ 		       description = "Type of image and computation",
+ 		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		       choices = {"Binary", "Grey"},
+   		       persist = true,  //restore previous value default = true
+ 		       initializer = "initialColorModelType",
+               callback = "callbackColorModelType")
     private String choiceRadioButt_ColorModelType;
     
     @Parameter(label = "(Sliding box) Pixel %",
-   		   description = "% of image pixels to be taken - to lower computation times",
+   		       description = "% of image pixels to be taken - to lower computation times (default=10%)",
  	       	   style = NumberWidget.SPINNER_STYLE,
  	           min = "1",
  	           max = "100",
  	           stepSize = "1",
- 	           //persist  = false,  //restore previous value default = true
+ 	           persist = true,  //restore previous value default = true
  	           initializer = "initialPixelPercentage",
  	           callback    = "callbackPixelPercentage")
      private int spinnerInteger_PixelPercentage;
     
     @Parameter(label = "(Tug of war) Accuracy",
-		       description = "Accuracy",
+		       description = "Accuracy (default=90)",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "99999999999999",
 	           stepSize = "1",
-	           //persist  = false,  //restore previous value default = true
+	           persist = true,  //restore previous value default = true
 	           initializer = "initialNumAccuracy",
 	           callback    = "callbackNumAccuracy")
     private int spinnerInteger_NumAcurracy;
   
     @Parameter(label = "(Tug of war) Confidence",
-		       description = "Confidence",
+		       description = "Confidence (deafault=15)",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "99999999999999",
 	           stepSize = "1",
-	           //persist  = false,  //restore previous value default = true
+	           persist = true,  //restore previous value default = true
 	           initializer = "initialNumConfidence",
 	           callback    = "callbackNumConfidence")
     private int spinnerInteger_NumConfidence;
@@ -297,13 +297,13 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
        
      @Parameter(label = "Overwrite result display(s)",
     	    	description = "Overwrite already existing result images, plots or tables",
-    	    	//persist  = false,  //restore previous value default = true
+    	    	persist = true,  //restore previous value default = true
     			initializer = "initialOverwriteDisplays")
      private boolean booleanOverwriteDisplays;
      

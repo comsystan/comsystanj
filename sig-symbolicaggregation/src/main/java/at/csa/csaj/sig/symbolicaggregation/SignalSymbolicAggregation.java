@@ -184,46 +184,71 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelSymbolicAggregationOptions = SYMBOLICAGGREGATIONOPTIONS_LABEL;
 	
-	@Parameter(label = "Aggregation length", description = "Aggregation length", style = NumberWidget.SPINNER_STYLE, 
-		min = "2", max = "9999999999999999999", stepSize = "1",
-		persist = false, // restore  previous value  default  =  true
-		initializer = "initialAggLength", callback = "callbackAggLength")
+	@Parameter(label = "Aggregation length",
+			   description = "Aggregation length",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "2",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialAggLength",
+			   callback = "callbackAggLength")
 	private int spinnerInteger_AggLength;
 	
-	@Parameter(label = "Alphabet size", description = "Number of distinct characters", style = NumberWidget.SPINNER_STYLE, 
-		min = "4", max = "4", stepSize = "1", 
-		persist = false, // restore  previous value  default  =  true
-		initializer = "initialAlphabetSize", callback = "callbackAlphabetSize")
+	@Parameter(label = "Alphabet size",
+			   description = "Number of distinct characters",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "4",
+			   max = "4",
+			   stepSize = "1", 
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialAlphabetSize",
+			   callback = "callbackAlphabetSize")
 	private int spinnerInteger_AlphabetSize;
 
-	@Parameter(label = "Word length", description = "Length of a word", style = NumberWidget.SPINNER_STYLE, 
-		min = "1", max = "9999999999999999999", stepSize = "1", 
-		persist = false, // restore  previous value  default  =  true
-		initializer = "initialWordLength", callback = "callbackWordLength")
+	@Parameter(label = "Word length",
+			   description = "Length of a word",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1", 
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialWordLength",
+			   callback = "callbackWordLength")
 	private int spinnerInteger_WordLength;
 	
-		@Parameter(label = "Subword length", description = "Number of characters for reconstruction - Chaos game", style = NumberWidget.SPINNER_STYLE, 
-		min = "1", max = "9999999999999999999", stepSize = "1", 
-		persist = false, // restore  previous value  default  =  true
-		initializer = "initialSubWordLength", callback = "callbackSubWordLength")
+	@Parameter(label = "Subword length",
+			   description = "Number of characters for reconstruction - Chaos game",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1", 
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialSubWordLength",
+			   callback = "callbackSubWordLength")
 	private int spinnerInteger_SubWordLength;
 	
-		@Parameter(label = "Magnification", description = "Magnification for output image", style = NumberWidget.SPINNER_STYLE, 
-		min = "1", max = "9999999999999999999", stepSize = "1", 
-		persist = false, // restore  previous value  default  =  true
-		initializer = "initialMag", callback = "callbackMag")
+	@Parameter(label = "Magnification",
+			   description = "Magnification for output image",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1", 
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialMag",
+			   callback = "callbackMag")
 	private int spinnerInteger_Mag;
 	
 	@Parameter(label = "Image size", visibility = ItemVisibility.MESSAGE, persist = false)
 	private String labelImageSize = "400x400";
 		
 	@Parameter(label = "Color model",
-			description = "Color model of output image",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Grey-8bit", "Color-RGB"}, //
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialColorModelType",
-			callback = "callbackColorModelType")
+			   description = "Color model of output image",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Grey-8bit", "Color-RGB"}, //
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialColorModelType",
+			   callback = "callbackColorModelType")
 	private String choiceRadioButt_ColorModelType;
 
 	//-----------------------------------------------------------------------------------------------------
@@ -231,21 +256,21 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
-			description = "Entire signal, Subsequent boxes or Gliding box",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalRange",
-			callback = "callbackSignalRange")
+			   description = "Entire signal, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSignalRange",
+			   callback = "callbackSignalRange")
 	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
-			description = "Surrogates types - Only for Entire signal type!",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
+			   description = "Surrogates types - Only for Entire signal type!",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
 	private String choiceRadioButt_SurrogateType;
 	
 //	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
@@ -273,9 +298,9 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------

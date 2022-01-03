@@ -206,7 +206,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialNumBoxes",
 	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
@@ -217,7 +217,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
  		       min = "1",
  		       max = "32768",
  		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
+ 		       persist = false,   //restore previous value default = true
  		       initializer = "initialRegMin",
  		       callback = "callbackRegMin")
     private int spinnerInteger_RegMin = 1;
@@ -228,7 +228,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
+		       persist = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
@@ -237,7 +237,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 //		    description = "linear or logarithm distribution of box sizes",
 //		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 //  		    choices = {"Lin", "Log"},
-//  		    //persist  = false,  //restore previous value default = true
+//  		    //persist = false,  //restore previous value default = true
 //		    initializer = "initialBoxSizeDistribution",
 //            callback = "callbackBoxSizeDistribution")
 //     private String choiceRadioButt_BoxSizeDistribution;
@@ -251,9 +251,9 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 	           min = "-32768",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = true,  //restore previous value default = true
 	           initializer = "initialNumMinQ",
-	           callback    = "callbackNumMinQ")
+	           callback = "callbackNumMinQ")
      private int spinnerInteger_NumMinQ;
      
      @Parameter(label = "Max q",
@@ -262,38 +262,38 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
   	           min = "-32768",
   	           max = "32768",
   	           stepSize = "1",
-  	           persist  = false,  //restore previous value default = true
+  	           persist = true,  //restore previous value default = true
   	           initializer = "initialNumMaxQ",
-  	           callback    = "callbackNumMaxQ")
+  	           callback = "callbackNumMaxQ")
      private int spinnerInteger_NumMaxQ;
      
      @Parameter(label = "Scanning type",
- 		    description = "Fixed raster boxes or sliding boxes",
- 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Raster box", "Sliding box"}, //"Fast sliding box"}, //Fast sliding box with image dilation does not work properly
-   		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialScanningType",
-             callback = "callbackScanningType")
+ 		        description = "Fixed raster boxes or sliding boxes",
+ 		        style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		        choices = {"Raster box", "Sliding box"}, //"Fast sliding box"}, //Fast sliding box with image dilation does not work properly
+   		        persist = true,  //restore previous value default = true
+ 		        initializer = "initialScanningType",
+                callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
      
      @Parameter(label = "Color model",
-  		    description = "Type of image and computation",
-  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+  		        description = "Type of image and computation",
+  		        style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		    choices = {"Binary", "Grey"},
-    		    //persist  = false,  //restore previous value default = true
-  		    initializer = "initialColorModelType",
-              callback = "callbackColorModelType")
+    		    persist = true,  //restore previous value default = true
+  		        initializer = "initialColorModelType",
+                callback = "callbackColorModelType")
      private String choiceRadioButt_ColorModelType;
      
      @Parameter(label = "(Sliding box) Pixel %",
-  		   description = "% of image pixels to be taken - to lower computation times",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "1",
-	           max = "100",
-	           stepSize = "1",
-	           //persist  = false,  //restore previous value default = true
-	           initializer = "initialPixelPercentage",
-	           callback    = "callbackPixelPercentage")
+  		        description = "% of image pixels to be taken - to lower computation times",
+	       	    style = NumberWidget.SPINNER_STYLE,
+	            min = "1",
+	            max = "100",
+	            stepSize = "1",
+	            persist = true,  //restore previous value default = true
+	            initializer = "initialPixelPercentage",
+	            callback    = "callbackPixelPercentage")
      private int spinnerInteger_PixelPercentage;
      
  	//-----------------------------------------------------------------------------------------------------
@@ -301,23 +301,23 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
        
      @Parameter(label = "Show Dq plot",
-  		    //persist  = false,  //restore previous value default = true
+  		        persist = true,  //restore previous value default = true
  		        initializer = "initialShowDqPlot")
  	 private boolean booleanShowDqPlot;
       
       @Parameter(label = "Show F spectrum",
-  		    //persist  = false,  //restore previous value default = true
- 		        initializer = "initialShowFSpectrum")
+  		         persist = true,  //restore previous value default = true
+ 		         initializer = "initialShowFSpectrum")
  	 private boolean booleanShowFSpectrum;
      
      @Parameter(label = "Overwrite result display(s)",
     	    	description = "Overwrite already existing result images, plots or tables",
-    	    	//persist  = false,  //restore previous value default = true
+    	    	persist = true,  //restore previous value default = true
     			initializer = "initialOverwriteDisplays")
      private boolean booleanOverwriteDisplays;
      

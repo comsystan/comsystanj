@@ -200,7 +200,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialNumBoxes",
 	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
@@ -221,17 +221,17 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 
 	@Parameter(label = "Direction", description = "Direction counting pair-wise correlations", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
 		       "Horizontal and vertical direction", "Mean of     4 radial directions [0-180°]", "Mean of 180 radial directions [0-180°]" },
-			   persist = false, //restore previous value default = true
+			   persist = true, //restore previous value default = true
 			   initializer = "initialDirection", callback = "callbackDirection")
 	private String choiceRadioButt_Direction;
 
     @Parameter(label = "Color model",
-  		    description = "Type of image and computation",
-  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		    choices = {"Binary", "Grey"},
-    		    //persist  = false,  //restore previous value default = true
-  		    initializer = "initialColorModelType",
-              callback = "callbackColorModelType")
+    		   description = "Type of image and computation",
+  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+    		   choices = {"Binary", "Grey"},
+    		   persist = true,  //restore previous value default = true
+  		       initializer = "initialColorModelType",
+               callback = "callbackColorModelType")
     private String choiceRadioButt_ColorModelType;
 	
 	@Parameter(label = "Pixel %",
@@ -240,7 +240,7 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		       min = "1",
 		       max = "100",
 		       stepSize = "1",
-		       //persist  = false,  //restore previous value default = true
+		       persist = true,  //restore previous value default = true
 		       initializer = "initialPixelPercentage",
 		       callback    = "callbackPixelPercentage")
 	private int spinnerInteger_PixelPercentage;
@@ -254,19 +254,19 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
-		   	   // persist = false, //restore previous value default = true
+		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 
 	@Parameter(label = "Get Dc values of all radial directions",
-			   // persist = false, //restore previous value default = true
+			   persist = true, //restore previous value default = true
 			   initializer = "initialGetAllRadialDsValues")
 	private boolean booleanGetAllRadialDsValues;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+			   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)

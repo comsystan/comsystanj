@@ -211,7 +211,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 	           min = "3",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialNumImages",
 	           callback    = "callbackNumImages")
 	private int spinnerInteger_PyramidImages;
@@ -222,7 +222,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
  		       min = "1",
  		       max = "32768",
  		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
+ 		       persist = false,   //restore previous value default = true
  		       initializer = "initialRegMin",
  		       callback = "callbackRegMin")
     private int spinnerInteger_RegMin = 1;
@@ -233,7 +233,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
+		       persist = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
@@ -246,7 +246,7 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
 //    		    description = "Type of interpolation for subscaled images",
 //    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 //      		    choices = {"Linear", "Floor", "Lanczos", "Nearest Neighbor"},
-//      		    //persist  = false,  //restore previous value default = true
+//      		    //persist = false,  //restore previous value default = true
 //    		    initializer = "initialInterpolation",
 //                callback = "callbackInterpolation")
 //     private String choiceRadioButt_Interpolation;
@@ -256,18 +256,18 @@ public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends Context
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
       
      @Parameter(label = "Show downscaled images",
-    		    //persist  = false,  //restore previous value default = true   
+    		    persist = true,  //restore previous value default = true   
     		    initializer = "initialShowImages")
  	 private boolean booleanShowImages;
      
      @Parameter(label = "Overwrite result display(s)",
     	    	description = "Overwrite already existing result images, plots or tables",
-    	    	//persist  = false,  //restore previous value default = true
+    	    	persist = true,  //restore previous value default = true
     			initializer = "initialOverwriteDisplays")
     private boolean booleanOverwriteDisplays;
      

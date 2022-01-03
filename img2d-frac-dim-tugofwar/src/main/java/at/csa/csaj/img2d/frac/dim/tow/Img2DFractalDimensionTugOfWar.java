@@ -196,7 +196,7 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialNumBoxes",
 	           callback    = "callbackNumBoxes")
     private int spinnerInteger_NumBoxes;
@@ -207,7 +207,7 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
  		       min = "1",
  		       max = "32768",
  		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
+ 		       persist = false,   //restore previous value default = true
  		       initializer = "initialRegMin",
  		       callback = "callbackRegMin")
     private int spinnerInteger_RegMin = 1;
@@ -218,7 +218,7 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
+		       persist = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
@@ -228,25 +228,25 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
      @Parameter(label = "Accuracy",
- 		       description = "Accuracy",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "1",
-	           max = "99999999999999",
-	           stepSize = "1",
-	           //persist  = false,  //restore previous value default = true
-	           initializer = "initialNumAccuracy",
-	           callback    = "callbackNumAccuracy")
+ 		        description = "Accuracy (default=90)",
+	       	    style = NumberWidget.SPINNER_STYLE,
+	            min = "1",
+	            max = "99999999999999",
+	            stepSize = "1",
+	            persist = true,  //restore previous value default = true
+	            initializer = "initialNumAccuracy",
+	            callback    = "callbackNumAccuracy")
      private int spinnerInteger_NumAcurracy;
      
-     @Parameter(label = "Confidence",
- 		       description = "Confidence",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "1",
-	           max = "99999999999999",
-	           stepSize = "1",
-	           //persist  = false,  //restore previous value default = true
-	           initializer = "initialNumConfidence",
-	           callback    = "callbackNumConfidence")
+     @Parameter(label = "Confidence (default=15)",
+ 		        description = "Confidence",
+	       	    style = NumberWidget.SPINNER_STYLE,
+	            min = "1",
+	            max = "99999999999999",
+	            stepSize = "1",
+	            persist = true,  //restore previous value default = true
+	            initializer = "initialNumConfidence",
+	            callback    = "callbackNumConfidence")
      private int spinnerInteger_NumConfidence;
      
  	//-----------------------------------------------------------------------------------------------------
@@ -254,13 +254,13 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
        
      @Parameter(label = "Overwrite result display(s)",
     	    	description = "Overwrite already existing result images, plots or tables",
-    	    	//persist  = false,  //restore previous value default = true
+    	    	persist = true,  //restore previous value default = true
     			initializer = "initialOverwriteDisplays")
      private boolean booleanOverwriteDisplays;
      

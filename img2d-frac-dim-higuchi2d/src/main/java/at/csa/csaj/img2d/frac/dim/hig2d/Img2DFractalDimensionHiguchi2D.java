@@ -233,7 +233,7 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 			   "RGB Multiplicated differences",	  
 			   "RGB Squared differences",        //   "RGB - color weighted (alpha)",  "RGB - ROI color weighted (alpha)"},
 			   },
-			   persist = false, //restore previous value default = true
+			   persist = true, //restore previous value default = true
 			   initializer = "initialMethod", callback = "callbackMethod")
 	private String choiceRadioButt_Method;
 
@@ -241,7 +241,8 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 	
-	@Parameter(label = "Skip zero values", persist = false,
+	@Parameter(label = "Skip zero values",
+			   persist = true,
 		       callback = "callbackSkipZeroes")
 	private boolean booleanSkipZeroes;
 	
@@ -250,13 +251,13 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
-		   	   // persist = false, //restore previous value default = true
+		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 
 	@Parameter(label = "Overwrite result display(s)",
 	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
+	    	persist = true,  //restore previous value default = true
 			initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 

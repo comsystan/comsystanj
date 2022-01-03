@@ -182,18 +182,24 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends ContextCommand
 			description = "Autocorrelation",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"Large N", "Small N", "FFT"}, 
-			//persist  = false,  //restore previous value default = true
+			persist = true,  //restore previous value default = true
 			initializer = "initialAutoCorrelationMethod",
 			callback = "callbackAutoCorrelationMethod")
 	private String choiceRadioButt_AutoCorrelationMethod;
 
-	@Parameter(label = "Limit to Max lag", persist = false,
+	@Parameter(label = "Limit to Max lag",
+			   persist = true,
 		       callback = "callbackLimitToMaxLag")
 	private boolean booleanLimitToMaxLag;
 	
-	@Parameter(label = "(Limit) Max lag", description = "maximal (time) lag", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialNumMaxLag", callback = "callbackNumMaxLag")
+	@Parameter(label = "(Limit) Max lag", description = "maximal (time) lag",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "1",
+			   max = "1000",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialNumMaxLag",
+			   callback = "callbackNumMaxLag")
 	private int spinnerInteger_NumMaxLag;
 
 	//-----------------------------------------------------------------------------------------------------
@@ -201,21 +207,21 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends ContextCommand
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
-			description = "Entire signal, Subsequent boxes or Gliding box",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalRange",
-			callback = "callbackSignalRange")
+		       description = "Entire signal, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSignalRange",
+			   callback = "callbackSignalRange")
 		private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
-			description = "Surrogates types - Only for Entire signal type!",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
+			   description = "Surrogates types - Only for Entire signal type!",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
 		private String choiceRadioButt_SurrogateType;
 	
 //	@Parameter(label = "# Surrogates:", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
@@ -244,7 +250,7 @@ public class SignalAutoCorrelation<T extends RealType<T>> extends ContextCommand
 
 	@Parameter(label = "Overwrite result display(s)",
 	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
+	    	persist = true,  //restore previous value default = true
 			initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 

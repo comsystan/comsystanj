@@ -117,8 +117,9 @@ public class DetectQRSPeaks  extends ContextCommand implements Previewable { //m
     		   style = NumberWidget.SPINNER_STYLE,
     		   min = "0",
     		   max = "32768",
-    		   initializer = "initialOffset",
     		   stepSize = "1",
+    		   persist = true,
+    		   initializer = "initialOffset",
     		   callback = "callbackOffset")
     private int spinnerInteger_Offset;
     
@@ -126,14 +127,16 @@ public class DetectQRSPeaks  extends ContextCommand implements Previewable { //m
  		       style = NumberWidget.SPINNER_STYLE,
  		       min = "1",
  		       max = "32768",
+ 		 	   stepSize = "1",
+ 		       persist = true,
  		       initializer = "initialSampleRate",
- 		       stepSize = "1",
  		       callback = "callbackSampleRate")
     private int spinnerInteger_SampleRate;
     
     @Parameter(label = "Method",
     		   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		   choices = { "QRSDetect1", "QRSDetect2", "BeatDetectAndClassify" },
+    		   persist = true,
     		   initializer = "initialMethod",
                callback = "callbackMethod")
     private String choiceRadioButt_Method;
@@ -141,11 +144,13 @@ public class DetectQRSPeaks  extends ContextCommand implements Previewable { //m
     @Parameter(label = "Output option",
     		   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		   choices = {"RRIntervals", "QRSPeaksCoordinates" },
+    		   persist = true,
     		   initializer = "initialOutputOption",
                callback = "callbackOutputOption")
     private String choiceRadioButt_OutputOption;
     
-    @Parameter(label = "Save file", persist = true,
+    @Parameter(label = "Save file",
+    		   persist = true,
 		       callback = "callbackSaveFile")
 	private boolean booleanSaveFile;
     

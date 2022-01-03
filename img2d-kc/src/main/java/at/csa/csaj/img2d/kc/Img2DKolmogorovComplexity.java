@@ -209,7 +209,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
 		    description = "Type of image compression",
 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
   		    choices = {"LZW (lossless)", "PNG (lossless)", "ZLIB (lossless)", "GZIB (lossless)", "J2K (lossless)", "JPG (lossy)"},  //"PNG (lossless)" "ZIP (lossless)" 
-  		    //persist  = false,  //restore previous value default = true
+  		    persist = true,  //restore previous value default = true
 		    initializer = "initialCompression",
             callback = "callbackCompression")
     private String choiceRadioButt_Compression;
@@ -220,13 +220,13 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
 	           min = "1",
 	           max = "99999999999999",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = true,  //restore previous value default = true
 	           initializer = "initialNumIterations",
 	           callback    = "callbackNumIterations")
     private int spinnerInteger_NumIterations;
     
 //    @Parameter(label = "Correct system bias",
-//    		 //persist  = false,  //restore previous value default = true
+//    		 //persist = false,  //restore previous value default = true
 //  		       initializer = "initialCorrectSystemBias")
 //	private boolean booleanCorrectSystemBias;
     
@@ -236,7 +236,7 @@ public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCom
     
     @Parameter(label = "Overwrite result display(s)",
         	description = "Overwrite already existing result images, plots or tables",
-        	//persist  = false,  //restore previous value default = true
+        	persist = true,  //restore previous value default = true
     		initializer = "initialOverwriteDisplays")
     private boolean booleanOverwriteDisplays;
       

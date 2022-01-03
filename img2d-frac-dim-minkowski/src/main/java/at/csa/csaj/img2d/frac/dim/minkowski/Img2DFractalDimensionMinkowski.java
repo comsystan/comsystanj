@@ -218,7 +218,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
-	           persist  = false,  //restore previous value default = true
+	           persist = false,  //restore previous value default = true
 	           initializer = "initialNumDilations",
 	           callback    = "callbackNumDilations")
     private int spinnerInteger_NumDilations;
@@ -229,7 +229,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
  		       min = "1",
  		       max = "32768",
  		       stepSize = "1",
- 		       //persist  = false,   //restore previous value default = true
+ 		       persist = false,   //restore previous value default = true
  		       initializer = "initialRegMin",
  		       callback = "callbackRegMin")
     private int spinnerInteger_RegMin = 1;
@@ -240,7 +240,7 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
 		       min = "3",
 		       max = "32768",
 		       stepSize = "1",
-		       persist  = false,   //restore previous value default = true
+		       persist = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
      private int spinnerInteger_RegMax = 3;
@@ -250,21 +250,21 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
      private final String labelMethodOptions = MORPHOLOGYOPTIONS_LABEL;
      
      @Parameter(label = "Kernel shape type",
-  		    description = "Shape of morphological structuring element",
-  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+  		    	description = "Shape of morphological structuring element",
+  		    	style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
     		    choices = {"Square", "Horizontal", "Vertical"},
-    		    //persist  = false,  //restore previous value default = true
-  		    initializer = "initialShapeType",
-              callback = "callbackShapeType")
+    		    persist = true,  //restore previous value default = true
+    		    initializer = "initialShapeType",
+    		    callback = "callbackShapeType")
       private String choiceRadioButt_ShapeType;
      
      @Parameter(label = "Morphological operator",
- 		    description = "Type of image and according morphological operation",
- 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"},
-   		    //persist  = false,  //restore previous value default = true
- 		    initializer = "initialMorphologicalOperator",
-             callback = "callbackMorphologicalOperator")
+    		 	description = "Type of image and according morphological operation",
+    		 	style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+    		 	choices = {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"},
+    		 	persist = true,  //restore previous value default = true
+    		 	initializer = "initialMorphologicalOperator",
+    		 	callback = "callbackMorphologicalOperator")
      private String choiceRadioButt_MorphologicalOperator;
      
  	//-----------------------------------------------------------------------------------------------------
@@ -272,18 +272,18 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
      @Parameter(label = "Show double log plot",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
      
      @Parameter(label = "Show last dilated/eroded image",
- 		    //persist  = false,  //restore previous value default = true
+ 		    	persist = true,  //restore previous value default = true
 		        initializer = "initialShowLastMorphImg")
 	 private boolean booleanShowLastMorphImg;
          
      @Parameter(label = "Overwrite result display(s)",
     		    description = "Overwrite already existing result images, plots or tables",
-    		    //persist  = false,  //restore previous value default = true
+    		    persist = true,  //restore previous value default = true
 		        initializer = "initialOverwriteDisplays")
 	 private boolean booleanOverwriteDisplays;
      

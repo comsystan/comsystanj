@@ -180,54 +180,59 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 	private final String labelFFTOptions = FFTOPTIONS_LABEL;
 	
 	@Parameter(label = "Windowing",
-			description = "Windowing type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Rectangular", "Cosine", "Lanczos", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialWindowingType",
-			callback = "callbackWindowingType")
+			   description = "Windowing type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Rectangular", "Cosine", "Lanczos", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialWindowingType",
+			   callback = "callbackWindowingType")
 	private String choiceRadioButt_WindowingType;
 	
 	@Parameter(label = "Output",
-			description = "Output type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Power", "Magnitude"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialOutputType",
-			callback = "callbackOutputType")
+			   description = "Output type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Power", "Magnitude"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialOutputType",
+			   callback = "callbackOutputType")
 	private String choiceRadioButt_OutputType;
 	
 	@Parameter(label = "Normalization",
-			description = "Normalization type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Standard", "Unitary"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialNormalizationType",
-			callback = "callbackNormalizationType")
+			   description = "Normalization type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Standard", "Unitary"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialNormalizationType",
+			   callback = "callbackNormalizationType")
 	private String choiceRadioButt_NormalizationType;
 	
 	@Parameter(label = "Scaling",
-			description = "Scaling of output values",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Log", "Ln", "Linear"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialScalingType",
-			callback = "callbackScalingType")
+			   description = "Scaling of output values",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Log", "Ln", "Linear"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialScalingType",
+			   callback = "callbackScalingType")
 	private String choiceRadioButt_ScalingType;
 	
 	@Parameter(label = "Time domain",
-			description = "Time domain type",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Unitary", "Hz"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialTimeDomainType",
-			callback = "callbackTimeDomainType")
+			   description = "Time domain type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Unitary", "Hz"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialTimeDomainType",
+			   callback = "callbackTimeDomainType")
 	private String choiceRadioButt_TimeDomainType;
 	
-	@Parameter(label = "Sample rate (Hz)", description = "Sample rate", style = NumberWidget.SPINNER_STYLE, 
-	   min = "1", max = "9999999999999999999", stepSize = "1",
-	   persist = false, // restore  previous value  default  =  true
-	   initializer = "initialSampleRate", callback = "callbackSampleRate")
+	@Parameter(label = "Sample rate (Hz)",
+			   description = "Sample rate",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialSampleRate",
+			   callback = "callbackSampleRate")
 	private int spinnerInteger_SampleRate;
 
 	//-----------------------------------------------------------------------------------------------------
@@ -235,32 +240,32 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
-			description = "Entire signal, Subsequent boxes or Gliding box",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
-			//persist  = false,  //restore previous value default = true
-			initializer = "initialSignalRange",
-			callback = "callbackSignalRange")
+			   description = "Entire signal, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire signal"}, //, "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSignalRange",
+			   callback = "callbackSignalRange")
 	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
-			description = "Surrogates types - Only for Entire signal type!",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
+			   description = "Surrogates types - Only for Entire signal type!",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
 	private String choiceRadioButt_SurrogateType;
 	
 //	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
 //			   min = "1", max = "9999999999999999999", stepSize = "1",
-//			   persist = false, // restore  previous value  default  =  true
+//			   persist = true, // restore  previous value  default  =  true
 //			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
 //	private int spinnerInteger_NumSurrogates;
 	
 //	@Parameter(label = "Box length", description = "Length of subsequent or gliding box - Shoud be at least three times numMaxLag", style = NumberWidget.SPINNER_STYLE, 
 //			   min = "2", max = "9999999999999999999", stepSize = "1",
-//			   persist = false, // restore  previous value  default  =  true
+//			   persist = true, // restore  previous value  default  =  true
 //			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 //	private int spinnerInteger_BoxLength;
 	
@@ -277,9 +282,9 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------

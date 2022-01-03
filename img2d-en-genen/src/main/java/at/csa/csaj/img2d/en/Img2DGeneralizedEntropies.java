@@ -260,7 +260,7 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
 			description = "Selection of probability type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			choices = {"Grey values"}, //, "Pairwise differences", "Sum of differences", "SD"}, 
-			//persist  = false,  //restore previous value default = true
+			persist = true,  //restore previous value default = true
 			initializer = "initialProbabilityType",
 			callback = "callbackProbabilityType")
 	private String choiceRadioButt_ProbabilityType;
@@ -337,13 +337,13 @@ public class Img2DGeneralizedEntropies<T extends RealType<T>> extends ContextCom
     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
     
     @Parameter(label = "Show Renyi plot",
- 		    //persist  = false,  //restore previous value default = true
-		        initializer = "initialShowRenyiPlot")
+ 		       persist = true,  //restore previous value default = true
+		       initializer = "initialShowRenyiPlot")
 	 private boolean booleanShowRenyiPlot;
      
     @Parameter(label = "Overwrite result display(s)",
    	    	description = "Overwrite already existing result images, plots or tables",
-   	    	//persist  = false,  //restore previous value default = true
+   	    	persist = true,  //restore previous value default = true
    			initializer = "initialOverwriteDisplays")
     private boolean booleanOverwriteDisplays;
      

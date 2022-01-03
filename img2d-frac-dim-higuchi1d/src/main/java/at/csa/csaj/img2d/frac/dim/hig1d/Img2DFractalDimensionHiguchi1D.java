@@ -232,7 +232,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 
 	@Parameter(label = "Method", description = "Type of 1D signal gathering", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
 		       "Single centered row/column", "Single meander row/column", "Mean of all rows/columns", "Mean of      4 radial lines [0-180°]", "Mean of 180 radial lines [0-180°]" },
-			   persist = false, //restore previous value default = true
+			   persist = true, //restore previous value default = true
 			   initializer = "initialMethod", callback = "callbackMethod")
 	private String choiceRadioButt_Method;
 
@@ -240,7 +240,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 	
-	@Parameter(label = "Remove zero values", persist = false,
+	@Parameter(label = "Remove zero values", persist = true,
 		       callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
@@ -249,23 +249,23 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
-		   	   // persist = false, //restore previous value default = true
+		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 	
 	@Parameter(label = "Show some radial line plots",
-		   	   // persist = false, //restore previous value default = true
+		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowSomeRadialLinePlots")
 	private boolean booleanShowSomeRadialLinePlots;
 
 	@Parameter(label = "Get Dh values of all radial lines",
-			   // persist = false, //restore previous value default = true
+			   persist = true, //restore previous value default = true
 			   initializer = "initialGetAllRadialDhValues")
 	private boolean booleanGetAllRadialDhValues;
 	
 	@Parameter(label = "Overwrite result display(s)",
 	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
+	    	persist = true,  //restore previous value default = true
 			initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 

@@ -176,17 +176,32 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "Maximal length", description = "Maximal length of sub-sequences", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Maximal length",
+			   description = "Maximal length of sub-sequences",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "3",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialLMax", callback = "callbackLMax")
 	private int spinnerInteger_LMax;
 
-	@Parameter(label = "Regression Min", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "2", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Min",
+			   description = "Minimum x value of linear regression",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "2",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMin", callback = "callbackRegMin")
 	private int spinnerInteger_RegMin = 3;
 
-	@Parameter(label = "Regression Max", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Regression Max",
+			   description = "Maximum x value of linear regression",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "3",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialRegMax", callback = "callbackRegMax")
 	private int spinnerInteger_RegMax = 8;
@@ -195,12 +210,22 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRSEOptions = RSEOPTIONS_LABEL;
 
-	@Parameter(label = "M", description = "Number of randomly chosen sub-sequences for each length (M=50 recommended)", style = NumberWidget.SPINNER_STYLE, min = "1", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "M",
+			   description = "Number of randomly chosen sub-sequences for each length (M=50 recommended)",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialNumM", callback = "callbackNumM")
 	private int spinnerInteger_NumM = 50;
 	
-	@Parameter(label = "Polynomial Order", description = "Order of polynomial flattening (1.. recommended, 0.. without flattening)", style = NumberWidget.SPINNER_STYLE, min = "0", max = "9999999999999999999", stepSize = "1",
+	@Parameter(label = "Polynomial Order",
+			   description = "Order of polynomial flattening (1.. recommended, 0.. without flattening)",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "0",
+			   max = "9999999999999999999",
+			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialFlatteningOrder", callback = "callbackFlatteningOrder")
 	private int spinnerInteger_FlatteningOrder = 1;
@@ -210,32 +235,41 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
 
 	@Parameter(label = "Signal range",
-		description = "Entire signal, Subsequent boxes or Gliding box",
-		style = ChoiceWidget.LIST_BOX_STYLE,
-		choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
-		//persist  = false,  //restore previous value default = true
-		initializer = "initialSignalRange",
-		callback = "callbackSignalRange")
+			   description = "Entire signal, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire signal", "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSignalRange",
+			   callback = "callbackSignalRange")
 	private String choiceRadioButt_SignalRange;
 	
 	@Parameter(label = "(Entire signal) Surrogates",
-			description = "Surrogates types - Only for Entire signal type!",
-			style = ChoiceWidget.LIST_BOX_STYLE,
-			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-			persist  = false,  //restore previous value default = true
-			initializer = "initialSurrogateType",
-			callback = "callbackSurrogateType")
-		private String choiceRadioButt_SurrogateType;
+			   description = "Surrogates types - Only for Entire signal type!",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
+	private String choiceRadioButt_SurrogateType;
 	
-	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialNumSurrogates", callback = "callbackNumSurrogates")
+	@Parameter(label = "Surrogates #",
+			   description = "Number of computed surrogates",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialNumSurrogates",
+			   callback = "callbackNumSurrogates")
 	private int spinnerInteger_NumSurrogates;
 	
-	@Parameter(label = "Box length", description = "Length of subsequent or gliding box - Shoud be at least three times LMax", style = NumberWidget.SPINNER_STYLE, 
-			   min = "2", max = "9999999999999999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
+	@Parameter(label = "Box length",
+			   description = "Length of subsequent or gliding box - Shoud be at least three times LMax",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "2",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
 			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
 	
@@ -243,7 +277,8 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-	@Parameter(label = "Remove zero values", persist = false,
+	@Parameter(label = "Remove zero values",
+			   persist = true,
 		       callback = "callbackRemoveZeroes")
 	private boolean booleanRemoveZeroes;
 	
@@ -252,14 +287,14 @@ public class SignalFractalDimensionRSE<T extends RealType<T>> extends ContextCom
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Show double log plot",
-		   	   // persist = false, //restore previous value default = true
+		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	//persist  = false,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
