@@ -68,7 +68,7 @@
 	</mailingLists>
 
 	<scm>
-		<connection>scm:git:git://https://github.com/comsystan/comsystanj</connection>
+		<connection>scm:git:https://github.com/comsystan/comsystanj</connection>
 		<developerConnection>scm:git:git@github.com:comsystan/comsystanj</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/comsystan/comsystanj</url>
