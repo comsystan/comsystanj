@@ -153,7 +153,6 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
-	
 	@Parameter
 	private ImageJ ij;
 
@@ -230,11 +229,17 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelInterpolation = METHODOPTIONS_LABEL;
 
-	@Parameter(label = "Method", description = "Type of 1D signal gathering", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
+	@Parameter(label = "Method", description = "Type of 1D grey value profile extraction", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
 		       "Single centered row/column", "Single meander row/column", "Mean of all rows/columns", "Mean of      4 radial lines [0-180°]", "Mean of 180 radial lines [0-180°]" },
 			   persist = true, //restore previous value default = true
 			   initializer = "initialMethod", callback = "callbackMethod")
 	private String choiceRadioButt_Method;
+	
+	@Parameter(label = "Only high quality regressions",
+			   description = "Takes for multiple grey value profiles only those with a coefficient of determination > 0.9",
+		   	   persist = true, //restore previous value default = true
+			   initializer = "initialOnlyHighQualityRegressions")
+	private boolean booleanOnlyHighQualityRegressions;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -321,9 +326,13 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 	protected void initialMethod() {
 		choiceRadioButt_Method = "Single centered row/column";
 	}
-
+	
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
+	}
+
+	protected void initialOnlyHighQualityRegressions() {
+		booleanOnlyHighQualityRegressions = true;
 	}
 
 	protected void initialShowSomeRadialLinePlotss() {
@@ -977,6 +986,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		IntColumn columnRegMin           	= new IntColumn("RegMin");
 		IntColumn columnRegMax           	= new IntColumn("RegMax");
 		GenericColumn columnMethod       	= new GenericColumn("Method");
+		BoolColumn columnOnlyHQR2  			= new BoolColumn("R^2>0.9");
 		BoolColumn columnZeroesRemoved   	= new BoolColumn("Zeroes removed");
 		DoubleColumn columnDhRow      	 	= new DoubleColumn("Dh-row");
 		DoubleColumn columnDhCol     	 	= new DoubleColumn("Dh-col");
@@ -999,6 +1009,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		tableOut.add(columnRegMin);
 		tableOut.add(columnRegMax);
 		tableOut.add(columnMethod);
+		tableOut.add(columnOnlyHQR2);
 		tableOut.add(columnZeroesRemoved);
 		tableOut.add(columnDhRow);
 		tableOut.add(columnDhCol);
@@ -1038,25 +1049,26 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		// fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",  	tableOut.getRowCount() - 1, datasetName);	
-		if (sliceLabels != null) 	tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-		tableOut.set("k",              tableOut.getRowCount() - 1, numKMax);
-		tableOut.set("RegMin",         tableOut.getRowCount() - 1, regMin);
-		tableOut.set("RegMax",         tableOut.getRowCount() - 1, regMax);
-		tableOut.set("Method",         tableOut.getRowCount() - 1, choiceRadioButt_Method);
-		tableOut.set("Zeroes removed", tableOut.getRowCount() - 1, booleanRemoveZeroes);
-		tableOut.set("Dh-row",     	tableOut.getRowCount() - 1, resultValuesTable[s][0]);
-		tableOut.set("Dh-col",     	tableOut.getRowCount() - 1, resultValuesTable[s][1]);
-		tableOut.set("Dh",         	tableOut.getRowCount() - 1, resultValuesTable[s][2]);
-		tableOut.set("R2-row",     	tableOut.getRowCount() - 1, resultValuesTable[s][3]);
-		tableOut.set("R2-col",     	tableOut.getRowCount() - 1, resultValuesTable[s][4]);
-		tableOut.set("R2",         	tableOut.getRowCount() - 1, resultValuesTable[s][5]);
-		tableOut.set("StdErr-row", 	tableOut.getRowCount() - 1, resultValuesTable[s][6]);
-		tableOut.set("StdErr-col", 	tableOut.getRowCount() - 1, resultValuesTable[s][7]);
-		tableOut.set("StdErr",    		tableOut.getRowCount() - 1, resultValuesTable[s][8]);
-		tableOut.set("# Rows",         tableOut.getRowCount() - 1, (int) resultValuesTable[s][9]);
-		tableOut.set("# Columns",      tableOut.getRowCount() - 1, (int) resultValuesTable[s][10]);
-		tableOut.set("# Radial lines", tableOut.getRowCount() - 1, (int) resultValuesTable[s][11]);
+		tableOut.set("File name",  	     tableOut.getRowCount() - 1, datasetName);	
+		if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		tableOut.set("k",                tableOut.getRowCount() - 1, numKMax);
+		tableOut.set("RegMin",           tableOut.getRowCount() - 1, regMin);
+		tableOut.set("RegMax",           tableOut.getRowCount() - 1, regMax);
+		tableOut.set("Method",           tableOut.getRowCount() - 1, choiceRadioButt_Method);
+		tableOut.set("R^2>0.9",			 tableOut.getRowCount() - 1, booleanOnlyHighQualityRegressions);
+		tableOut.set("Zeroes removed",   tableOut.getRowCount() - 1, booleanRemoveZeroes);
+		tableOut.set("Dh-row",     	     tableOut.getRowCount() - 1, resultValuesTable[s][0]);
+		tableOut.set("Dh-col",     	     tableOut.getRowCount() - 1, resultValuesTable[s][1]);
+		tableOut.set("Dh",         	     tableOut.getRowCount() - 1, resultValuesTable[s][2]);
+		tableOut.set("R2-row",     	     tableOut.getRowCount() - 1, resultValuesTable[s][3]);
+		tableOut.set("R2-col",     	     tableOut.getRowCount() - 1, resultValuesTable[s][4]);
+		tableOut.set("R2",         	     tableOut.getRowCount() - 1, resultValuesTable[s][5]);
+		tableOut.set("StdErr-row", 	     tableOut.getRowCount() - 1, resultValuesTable[s][6]);
+		tableOut.set("StdErr-col", 	     tableOut.getRowCount() - 1, resultValuesTable[s][7]);
+		tableOut.set("StdErr",    	     tableOut.getRowCount() - 1, resultValuesTable[s][8]);
+		tableOut.set("# Rows",			 tableOut.getRowCount() - 1, (int) resultValuesTable[s][9]);
+		tableOut.set("# Columns",		 tableOut.getRowCount() - 1, (int) resultValuesTable[s][10]);
+		tableOut.set("# Radial lines",	 tableOut.getRowCount() - 1, (int) resultValuesTable[s][11]);
 		tableOut.set("Anisotropy index", tableOut.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anistropy index =(Dr-Dc)/(De-Dt)
 
 		//add 181 angles
@@ -1086,28 +1098,29 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		for (int s = 0; s < numSlices; s++) { // slices of an image stack
 			// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			// fill table with values
-			tableOut.appendRow();
-			tableOut.set("File name",  	tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) 	tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("k",              tableOut.getRowCount() - 1, numKMax);
-			tableOut.set("RegMin",         tableOut.getRowCount() - 1, regMin);
-			tableOut.set("RegMax",         tableOut.getRowCount() - 1, regMax);
-			tableOut.set("Method",         tableOut.getRowCount() - 1, choiceRadioButt_Method);
-			tableOut.set("Zeroes removed", tableOut.getRowCount() - 1, booleanRemoveZeroes);
-			tableOut.set("Dh-row",		tableOut.getRowCount() - 1, resultValuesTable[s][0]);
-			tableOut.set("Dh-col",    	tableOut.getRowCount() - 1, resultValuesTable[s][1]);
-			tableOut.set("Dh",         	tableOut.getRowCount() - 1, resultValuesTable[s][2]);
-			tableOut.set("R2-row",     	tableOut.getRowCount() - 1, resultValuesTable[s][3]);
-			tableOut.set("R2-col",     	tableOut.getRowCount() - 1, resultValuesTable[s][4]);
-			tableOut.set("R2",         	tableOut.getRowCount() - 1, resultValuesTable[s][5]);
-			tableOut.set("StdErr-row", 	tableOut.getRowCount() - 1, resultValuesTable[s][6]);
-			tableOut.set("StdErr-col", 	tableOut.getRowCount() - 1, resultValuesTable[s][7]);
-			tableOut.set("StdErr",     	tableOut.getRowCount() - 1, resultValuesTable[s][8]);
-			tableOut.set("# Rows",         tableOut.getRowCount() - 1, (int)resultValuesTable[s][9]);
-			tableOut.set("# Columns",      tableOut.getRowCount() - 1, (int)resultValuesTable[s][10]);
-			tableOut.set("# Radial lines", tableOut.getRowCount() - 1, (int)resultValuesTable[s][11]);
-			tableOut.set("Anisotropy index", tableOut.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anisotropy index =(Dr-Dc)/(De-Dt)
-			
+			tableOut.appendRow();			
+			tableOut.set("File name",  	     tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("k",                tableOut.getRowCount() - 1, numKMax);
+			tableOut.set("RegMin",           tableOut.getRowCount() - 1, regMin);
+			tableOut.set("RegMax",           tableOut.getRowCount() - 1, regMax);
+			tableOut.set("Method",           tableOut.getRowCount() - 1, choiceRadioButt_Method);
+			tableOut.set("R^2>0.9",			 tableOut.getRowCount() - 1, booleanOnlyHighQualityRegressions);
+			tableOut.set("Zeroes removed",   tableOut.getRowCount() - 1, booleanRemoveZeroes);
+			tableOut.set("Dh-row",     	     tableOut.getRowCount() - 1, resultValuesTable[s][0]);
+			tableOut.set("Dh-col",     	     tableOut.getRowCount() - 1, resultValuesTable[s][1]);
+			tableOut.set("Dh",         	     tableOut.getRowCount() - 1, resultValuesTable[s][2]);
+			tableOut.set("R2-row",     	     tableOut.getRowCount() - 1, resultValuesTable[s][3]);
+			tableOut.set("R2-col",     	     tableOut.getRowCount() - 1, resultValuesTable[s][4]);
+			tableOut.set("R2",         	     tableOut.getRowCount() - 1, resultValuesTable[s][5]);
+			tableOut.set("StdErr-row", 	     tableOut.getRowCount() - 1, resultValuesTable[s][6]);
+			tableOut.set("StdErr-col", 	     tableOut.getRowCount() - 1, resultValuesTable[s][7]);
+			tableOut.set("StdErr",    	     tableOut.getRowCount() - 1, resultValuesTable[s][8]);
+			tableOut.set("# Rows",			 tableOut.getRowCount() - 1, (int) resultValuesTable[s][9]);
+			tableOut.set("# Columns",		 tableOut.getRowCount() - 1, (int) resultValuesTable[s][10]);
+			tableOut.set("# Radial lines",	 tableOut.getRowCount() - 1, (int) resultValuesTable[s][11]);
+			tableOut.set("Anisotropy index", tableOut.getRowCount() - 1, resultValuesTable[s][12]); //Anisotropy index Higuchi anistropy index =(Dr-Dc)/(De-Dt)
+		
 			//add 181 angles
 			if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") && (booleanGetAllRadialDhValues)){
 				for (int a = 0; a < 181; a++) {
@@ -1136,6 +1149,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 		int regMin = spinnerInteger_RegMin;
 		int regMax = spinnerInteger_RegMax;
 		int numKMax = spinnerInteger_KMax;
+		boolean onlyHighQualityRegressions = booleanOnlyHighQualityRegressions;
 		boolean removeZeores = booleanRemoveZeroes;
 	
 		int numBands = 1;
@@ -1277,12 +1291,12 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 								showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, regMin, regMax);
 							}
 						} //if					
-						//if (regressionValues[4] > 0.9) {
+						if (((onlyHighQualityRegressions) && (regressionValues[4] > 0.9)) || (!onlyHighQualityRegressions)) {
 							numActualRows += 1;
 							resultValues[0] += -regressionValues[1]; // Dh = -slope
 							resultValues[1] += regressionValues[4];
 							resultValues[2] += regressionValues[3];
-						//}
+						}
 					} //if
 				} //for h		
 				resultValues[0] = resultValues[0]/numActualRows; //average
@@ -1313,12 +1327,12 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 							}
 						} // IF
 						
-						//if (regressionValues[4] > 0.9) { //R2 >0.9
+						if (((onlyHighQualityRegressions) && (regressionValues[4] > 0.9)) || (!onlyHighQualityRegressions)) { //R2 >0.9
 							numActualColumns += 1;
 							resultValues[3] += -regressionValues[1]; // Dh = -slope
 							resultValues[4] += regressionValues[4];
 							resultValues[5] += regressionValues[3];
-						//}//
+						}//
 					} //if
 				} //for w
 				resultValues[3] = resultValues[3]/numActualColumns; //average
@@ -1672,7 +1686,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 						}					
 						double dim = -regressionValues[1];
 						if (dim == 0.0) dim = Double.NaN;
-						//if (regressionValues[4] > 0.9) { //R2 > 0.9
+						if (((onlyHighQualityRegressions) && (regressionValues[4] > 0.9)) || (!onlyHighQualityRegressions)) { //R2 > 0.9
 							if (a < (numAngles - 1)) { // Mean only from 4 bzw. 180 angles
 								numActualRadialLines += 1;
 								resultValues[6] += dim; // Dh = -slope
@@ -1686,7 +1700,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 								//one of 181 Dh values
 								resultValues[13+a] = dim;
 							}
-						//} //R2 >0.9
+						} //R2 >0.9
 					}				
 				} //angles a for (int a = 0; a < numAngles; a++) { // loop through angles
 				// mean values
