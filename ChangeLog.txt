@@ -13,7 +13,8 @@ pom-scijava 31.1.0
 Major change:
 
 New
-
+2D Image - Image Generator - Added Mandelbrot islands/lakes
+2D Image - Image Generator - Added Random lines
 
 Bugfix
 
@@ -67,10 +68,12 @@ New
 2D Image - Lacunarity
 2D Image - Succolarity
 2D Image - Generalized entropies
+2D Image - Image generator - Added Hirarchical random maps 
 Signal - Permutation entropy
 Signal - Katz dimension
 Signal - Petrosian dimension
 Signal - Sevcik dimension
+Signal - Signal generator - Added Weierstraß-Mandelbrot signals
 
 Bugfix
 2D Image - Kolmogorov complexcity - Did register as signal plugin
@@ -79,8 +82,6 @@ Bugfix
 2D Image - Box counting - Check maximal number of boxes
 2D Image - Pyramid dimension - Subsampling with averaging
 2D Image - Image generator - JTransforms FFT instead of ImgLib2 FFT for fractal surfaces
-2D Image - Image generator - Added Hirarchical random maps 
-Signal - Signal generator - Added Weierstraß-Mandelbrot signals
 Signal - HRV - Subsequent boxes did not compute frequency mesurements because subdomain values did not start with zero
 
 Miscellaneous

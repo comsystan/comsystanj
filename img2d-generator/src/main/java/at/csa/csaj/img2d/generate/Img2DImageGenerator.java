@@ -186,7 +186,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     		   choices = {"Random", "Gaussian", "Sine - radial", "Sine - horizontal", "Sine - vertical",  "Constant", 
     				   "Fractal surface - FFT", "Fractal surface - MPD", "Fractal surface - Sum of sine", "Fractal - HRM",
     				   "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
-    				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon"},
+    				   "Fractal IFS - Mandelbrot island-1", "Fractal IFS - Mandelbrot island-2",
+    				   "Fractal IFS - Mandelbrot island&lake-1", "Fractal IFS - Mandelbrot island&lake-2", 
+    				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon",
+    				   "Fractal IFS - Random lines"},
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialImageType",
                callback = "changedImageType")
@@ -268,6 +271,28 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   initializer = "initialNumSumOfSineIterations",
 	  		   callback = "changedNumSumOfSineIterations")
     private int spinnerInteger_NumSumOfSineIterations;
+    
+    @Parameter(label = "(IFS-Random line) thickness",
+	   	       description = "Thickness of lines",
+	  		   style = NumberWidget.SPINNER_STYLE,
+	  		   min = "1",
+	  		   max = "999999999999999999999",
+	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialLineThickness",
+	  		   callback = "changedLineThickness")
+    private int spinnerInteger_LineThickness;
+    
+    @Parameter(label = "(IFS-Random line) thickness scaling",
+   		   description = "Scaling of hyperbolic thickness",
+  	  		   style = NumberWidget.SPINNER_STYLE,
+  	  		   min = "0", 
+  	  		   max = "1",
+  	  	 	   stepSize = "0.1",
+  	  		   persist = true,  //restore previous value default = true
+  	  		   initializer = "initialThicknessScaling",
+  	  		   callback = "changedThicknessScaling")
+     private float spinnerFloat_ThicknessScaling;
     
     @Parameter(label = "(HRM) Probability 1",
     		   description = "Probability of first level",
@@ -368,6 +393,15 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		spinnerInteger_NumSumOfSineIterations = 10;
 	}
 	
+	protected void initialLineThickness() {
+		spinnerInteger_LineThickness = 1;
+	}
+	
+	protected void initialThicknessScaling() {
+	 	//round to one decimal after the comma
+	 	spinnerFloat_ThicknessScaling = 0.5f;
+	}
+	
 	protected void initialHRMProbability1() {
 	 	//round to two decimal after the comma
 	 	spinnerFloat_HRMProbability1 = 0.5f;
@@ -455,6 +489,19 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	/** Executed whenever the {@link #spinnerInteger_NumSumOfSineIterations} parameter changes. */
 	protected void changedNumSumOfSineIterations() {
 		logService.info(this.getClass().getName() + " Sum of sine iterations changed to " + spinnerInteger_NumSumOfSineIterations);
+	}
+	
+	/** Executed whenever the {@link #spinnerInteger_LineThickness} parameter changes. */
+	protected void changedLineThickness() {
+		logService.info(this.getClass().getName() + " Thicknes of line changed to " + spinnerInteger_LineThickness);
+	}
+	
+	protected void changedThicknessScaling() {
+		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_ThicknessScaling);
+	 	//round to ?? decimal after the comma
+	 	//spinnerFloat_ThicknessScaling = Math.round(spinnerFloat_ThicknessScaling * 1f)/1f;
+	 	spinnerFloat_ThicknessScaling = Precision.round(spinnerFloat_ThicknessScaling, 2);
+	 	logService.info(this.getClass().getName() + " Probability 1 changed to " + spinnerFloat_ThicknessScaling);
 	}
 	
 	protected void changedHRMProbability1() {
@@ -1493,6 +1540,542 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		ifsRaster = null;
   	}
     
+    
+    private void computeFracMandelbrotIsland1(int numIterations, int greyValueMax) {
+	   //See Mandelbrot book page 118 oder Seite 130
+    	
+//		numIterations = 10; // iteration
+	 	int width  = (int)datasetOut.dimension(0);
+    	int height = (int)datasetOut.dimension(1);
+    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+    	//RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
+    	
+		// this algorithm properly works only for image sizes
+		// 2*4*4*4*4.......
+		int ifsWidth  = 2;
+		int ifsHeight = 2;
+
+		while ((width > ifsWidth) && (height > ifsHeight)){
+			ifsWidth  = ifsWidth  * 4;
+			ifsHeight = ifsHeight * 4;
+		}
+
+		//System.out.println("ImageGenerator:     width:   " + width);
+		//System.out.println("ImageGenerator
+		int tileSizeX = ifsWidth/4;
+		int tileSizeY = ifsHeight/4;
+
+		ifsBuffImg = new BufferedImage(ifsWidth, ifsHeight, BufferedImage.TYPE_BYTE_GRAY);
+		ifsRaster  = ifsBuffImg.getRaster();
+	
+		//ifsImg = new ArrayImgFactory<>(new UnsignedByteType()).create(tempWidth, tempHeight);
+		//RandomAccess<UnsignedByteType> ifsRa = ifsImg.randomAccess();
+		
+		// set initial centered square
+		int xMin = (int)Math.round((float) ifsWidth  /4.0);
+		int xMax = (int)Math.round((float) ifsWidth  /4.0*3.0);
+		int yMin = (int)Math.round((float) ifsHeight /4.0);
+		int yMax = (int)Math.round((float) ifsHeight /4.0*3.0);
+		
+		for (int x = xMin ; x < xMax ; x++) {
+		for (int y = yMin ; y < yMax ; y++) {
+			ifsRaster.setSample(x, y, 0, greyValueMax);
+		}
+		}
+
+		// Affine transformation
+		//4 surrounding images with 1/4 size
+		AffineTransform at1 = new AffineTransform(1.0f / 4.0f, 0.0f, 0.0f, 1.0f / 4.0f, 0.0f * ifsWidth, 0.0f * ifsHeight);	
+		BufferedImage ifsBI1 = null;
+		WritableRaster ifsR1 = null;
+		AffineTransformOp op;
+		
+		int thres = greyValueMax/2;
+		int greyValue;
+		for (int i = 0; i < numIterations; i++) {
+		
+			op = new AffineTransformOp(at1, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			ifsBI1 = op.filter(ifsBuffImg, null);
+			ifsR1 = ifsBI1.getRaster();
+			
+			//Stitch together 4 surrounding images	
+			for (int x = 0; x < tileSizeX; x++) { //ifsR1 has only 1/4 the size of ifsRaster
+			for (int y = 0; y < tileSizeY; y++) {
+				greyValue = ifsR1.getSample(x, y, 0);
+				ifsRaster.setSample(tileSizeX   + x,               y, 0, greyValue); //Island oben links		
+				ifsRaster.setSample(              x, tileSizeY*2 + y, 0, greyValue); //Island links unten
+				ifsRaster.setSample(tileSizeX*3 + x, tileSizeY   + y, 0, greyValue); //Island rechts oben			
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*3 + y, 0, greyValue); //Island unten rechts
+		
+			}
+			}
+			
+			//binarize if e.g. for bilinear interpolation
+//	    	for (int x = 0; x < ifsWidth;  x++) {
+//			for (int y = 0; y < ifsHeight; y++) {	
+//				//greyValue = ifsRaster.getSample(x, y, 0);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				else ifsRaster.setSample(x,  y,  0,  0);
+//			}
+//	    	}
+		}
+
+		//rescale to original size if necessary	 
+		if ((width != ifsWidth) || (height != ifsHeight)) {
+			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
+		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
+		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
+		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
+		    graphics2D.dispose();	
+			ifsBuffImg = ifsBuffImgResized;
+			ifsBuffImgResized = null;
+			ifsRaster = ifsBuffImg.getRaster();
+		}
+		
+		 
+		//binarize e.g for bilinear interpolation
+    	for (int x = 0; x < width;  x++) {
+		for (int y = 0; y < height; y++) {	
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			else ifsRaster.setSample(x,  y,  0,  0);
+		}
+    	}
+    	
+		// Convert---------------------------------------
+		Cursor<UnsignedByteType> cursor = resultImg.cursor();
+    	long[] pos = new long[2];
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			cursor.localize(pos);
+			cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
+		}  	
+		
+		ifsBuffImg = null;
+		ifsRaster = null;
+		
+		ifsBI1 = null;
+		ifsR1 = null;
+
+    }
+   
+    private void computeFracMandelbrotIsland2(int numIterations, int greyValueMax) {
+	   //See Mandelbrot book page 118 oder Seite 130
+    	
+//		numIterations = 10; // iteration
+	 	int width  = (int)datasetOut.dimension(0);
+    	int height = (int)datasetOut.dimension(1);
+    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+    	//RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
+    	
+		// this algorithm properly works only for image sizes
+		// 2*4*4*4*4.......
+		int ifsWidth  = 2;
+		int ifsHeight = 2;
+
+		while ((width > ifsWidth) && (height > ifsHeight)){
+			ifsWidth  = ifsWidth  * 4;
+			ifsHeight = ifsHeight * 4;
+		}
+		
+
+		//System.out.println("ImageGenerator:     width:   " + width);
+		//System.out.println("ImageGenerator
+		int tileSizeX;
+		int tileSizeY;
+		
+		ifsBuffImg = new BufferedImage(ifsWidth, ifsHeight, BufferedImage.TYPE_BYTE_GRAY);
+		ifsRaster  = ifsBuffImg.getRaster();
+	
+		//ifsImg = new ArrayImgFactory<>(new UnsignedByteType()).create(tempWidth, tempHeight);
+		//RandomAccess<UnsignedByteType> ifsRa = ifsImg.randomAccess();
+		
+		// set initial centered square
+		int xMin = (int)Math.round((float) ifsWidth  /4.0);
+		int xMax = (int)Math.round((float) ifsWidth  /4.0*3.0);
+		int yMin = (int)Math.round((float) ifsHeight /4.0);
+		int yMax = (int)Math.round((float) ifsHeight /4.0*3.0);
+		
+		for (int x = xMin ; x < xMax ; x++) {
+		for (int y = yMin ; y < yMax ; y++) {
+			ifsRaster.setSample(x, y, 0, greyValueMax);
+		}
+		}
+
+		// Affine transformation
+		//4 surrounding images	
+		AffineTransform at1;
+		BufferedImage ifsBI1;
+		WritableRaster ifsR1;
+		
+		AffineTransform at2;
+		BufferedImage ifsBI2;
+		WritableRaster ifsR2;
+		
+		AffineTransformOp op;
+		
+		int thres = greyValueMax/2;
+		int greyValue;
+	
+		for (int i = 0; i < numIterations; i++) {
+		
+			//Island oben links	and unten rechts
+			at1   = new AffineTransform(1.0f/4.0f, 0.0f, 0.0f, 1.0f/8.0f, 0.0f*ifsWidth, 0.0f*ifsHeight);
+			op = new AffineTransformOp(at1, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			ifsBI1  = op.filter(ifsBuffImg, null);
+			ifsR1  = ifsBI1.getRaster();
+			
+			//Island links unten and rechts oben
+			at2   = new AffineTransform(1.0f/8.0f, 0.0f, 0.0f, 1.0f/4.0f, 0.0f*ifsWidth, 0.0f*ifsHeight);
+			op = new AffineTransformOp(at2, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			ifsBI2  = op.filter(ifsBuffImg, null);
+			ifsR2  = ifsBI2.getRaster();
+			
+			
+			tileSizeX = ifsWidth/4;
+			tileSizeY = ifsHeight/8;
+			//add transformed image
+			for (int x = 0; x < tileSizeX; x++) { //ifsR has only 1/4 the size of ifsRaster
+			for (int y = 0; y < tileSizeY; y++) {
+				greyValue = ifsR1.getSample(x, y, 0);
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY/2               + y, 0, greyValue); 	//Island oben links
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*6 + tileSizeY/2 + y, 0, greyValue); 	//Island unten rechts
+			}
+			}		
+				
+			tileSizeX = ifsWidth/8;
+			tileSizeY = ifsHeight/4;
+			//add transformed image
+			for (int x = 0; x < tileSizeX; x++) {
+			for (int y = 0; y < tileSizeY; y++) {
+				greyValue = ifsR2.getSample(x, y, 0);
+				ifsRaster.setSample(tileSizeX/2 +               x, tileSizeY*2 + y, 0, greyValue); //Island links unten
+				ifsRaster.setSample(tileSizeX*6 + tileSizeX/2 + x, tileSizeY   + y, 0, greyValue); //Island rechts oben
+			}
+			}		
+			//binarize if e.g. for bilinear interpolation
+//	    	for (int x = 0; x < ifsWidth;  x++) {
+//			for (int y = 0; y < ifsHeight; y++) {	
+//				//greyValue = ifsRaster.getSample(x, y, 0);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				else ifsRaster.setSample(x,  y,  0,  0);
+//			}
+//	    	}
+			
+		}
+
+		//rescale to original size if necessary	 
+		if ((width != ifsWidth) || (height != ifsHeight)) {
+			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
+		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
+		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
+		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
+		    graphics2D.dispose();	
+			ifsBuffImg = ifsBuffImgResized;
+			ifsBuffImgResized = null;
+			ifsRaster = ifsBuffImg.getRaster();
+		}
+		
+		 
+		//binarize e.g for bilinear interpolation
+    	for (int x = 0; x < width;  x++) {
+		for (int y = 0; y < height; y++) {	
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			else ifsRaster.setSample(x,  y,  0,  0);
+		}
+    	}
+    	
+		// Convert---------------------------------------
+		Cursor<UnsignedByteType> cursor = resultImg.cursor();
+    	long[] pos = new long[2];
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			cursor.localize(pos);
+			cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
+		}  	
+		
+		ifsBuffImg = null;
+		ifsRaster = null;
+		
+		ifsBI1 = null;
+		ifsR1 = null;
+		
+		ifsBI2 = null;
+		ifsR2 = null;
+
+    }
+   
+    private void computeFracMandelbrotIslandLake1(int numIterations, int greyValueMax) {
+	   //See Mandelbrot book page 121
+    	
+//		numIterations = 10; // iteration
+	 	int width  = (int)datasetOut.dimension(0);
+    	int height = (int)datasetOut.dimension(1);
+    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+    	//RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
+    	
+		// this algorithm properly works only for image sizes
+		// 2*4*4*4*4.......
+		int ifsWidth  = 2;
+		int ifsHeight = 2;
+
+		while ((width > ifsWidth) && (height > ifsHeight)){
+			ifsWidth  = ifsWidth  * 4;
+			ifsHeight = ifsHeight * 4;
+		}
+
+		//System.out.println("ImageGenerator:     width:   " + width);
+		//System.out.println("ImageGenerator
+		int tileSizeX = ifsWidth/4;
+		int tileSizeY = ifsHeight/4;
+
+		ifsBuffImg = new BufferedImage(ifsWidth, ifsHeight, BufferedImage.TYPE_BYTE_GRAY);
+		ifsRaster  = ifsBuffImg.getRaster();
+	
+		//ifsImg = new ArrayImgFactory<>(new UnsignedByteType()).create(tempWidth, tempHeight);
+		//RandomAccess<UnsignedByteType> ifsRa = ifsImg.randomAccess();
+		
+		// set initial centered square
+		int xMin = (int)Math.round((float) ifsWidth  /4.0);
+		int xMax = (int)Math.round((float) ifsWidth  /4.0*3.0);
+		int yMin = (int)Math.round((float) ifsHeight /4.0);
+		int yMax = (int)Math.round((float) ifsHeight /4.0*3.0);
+		
+		for (int x = xMin ; x < xMax ; x++) {
+		for (int y = yMin ; y < yMax ; y++) {
+			ifsRaster.setSample(x, y, 0, greyValueMax);
+		}
+		}
+
+		// Affine transformation
+		//4 surrounding images with 1/4 size
+		AffineTransform at1 = new AffineTransform(1.0f / 4.0f, 0.0f, 0.0f, 1.0f / 4.0f, 0.0f * ifsWidth, 0.0f * ifsHeight);
+		
+		BufferedImage ifsBI1 = null;
+		WritableRaster ifsR1 = null;
+
+		AffineTransformOp op;
+		int thres = greyValueMax/2;
+		int greyValue;
+		for (int i = 0; i < numIterations; i++) {
+		
+			op = new AffineTransformOp(at1, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			ifsBI1 = op.filter(ifsBuffImg, null);
+			ifsR1 = ifsBI1.getRaster();
+			
+			//Stitch together 4 surrounding images	
+			for (int x = 0; x < tileSizeX; x++) { //ifsR1 has only 1/4 the size of ifsRaster
+			for (int y = 0; y < tileSizeY; y++) {
+				greyValue = ifsR1.getSample(x, y, 0);
+				ifsRaster.setSample(tileSizeX   + x,               y, 0, greyValue); //Island oben links
+				ifsRaster.setSample(              x, tileSizeY*2 + y, 0, greyValue); //Island links unten
+				ifsRaster.setSample(tileSizeX*3 + x, tileSizeY   + y, 0, greyValue); //Island rechts oben			
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*3 + y, 0, greyValue); //Island unten rechts
+				
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY   + y, 0, greyValueMax - greyValue); //Lake oben rechts
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY   + y, 0, greyValueMax - greyValue); //Lake links oben
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*2 + y, 0, greyValueMax - greyValue); //Lake rechts unten
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY*2 + y, 0, greyValueMax - greyValue); //Lake unten links
+			}
+			}
+			
+			//binarize if e.g. for bilinear interpolation
+//	    	for (int x = 0; x < ifsWidth;  x++) {
+//			for (int y = 0; y < ifsHeight; y++) {	
+//				//greyValue = ifsRaster.getSample(x, y, 0);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				else ifsRaster.setSample(x,  y,  0,  0);
+//			}
+//	    	}
+		}
+
+		//rescale to original size if necessary	 
+		if ((width != ifsWidth) || (height != ifsHeight)) {
+			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
+		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
+		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
+		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
+		    graphics2D.dispose();	
+			ifsBuffImg = ifsBuffImgResized;
+			ifsBuffImgResized = null;
+			ifsRaster = ifsBuffImg.getRaster();
+		}
+		
+		 
+		//binarize e.g for bilinear interpolation
+    	for (int x = 0; x < width;  x++) {
+		for (int y = 0; y < height; y++) {	
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			else ifsRaster.setSample(x,  y,  0,  0);
+		}
+    	}
+    	
+		// Convert---------------------------------------
+		Cursor<UnsignedByteType> cursor = resultImg.cursor();
+    	long[] pos = new long[2];
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			cursor.localize(pos);
+			cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
+		}  	
+		
+		ifsBuffImg = null;
+		ifsRaster = null;
+		
+		ifsBI1 = null;
+		ifsR1 = null;
+
+    }
+
+    private void computeFracMandelbrotIslandLake2(int numIterations, int greyValueMax) {
+	   //See Mandelbrot book page 118 oder Seite 130
+    	
+//		numIterations = 10; // iteration
+	 	int width  = (int)datasetOut.dimension(0);
+    	int height = (int)datasetOut.dimension(1);
+    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+    	//RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
+    	
+		// this algorithm properly works only for image sizes
+		// 2*4*4*4*4.......
+		int ifsWidth  = 2;
+		int ifsHeight = 2;
+
+		while ((width > ifsWidth) && (height > ifsHeight)){
+			ifsWidth  = ifsWidth  * 4;
+			ifsHeight = ifsHeight * 4;
+		}
+		
+
+		//System.out.println("ImageGenerator:     width:   " + width);
+		//System.out.println("ImageGenerator
+		int tileSizeX;
+		int tileSizeY;
+		
+		ifsBuffImg = new BufferedImage(ifsWidth, ifsHeight, BufferedImage.TYPE_BYTE_GRAY);
+		ifsRaster  = ifsBuffImg.getRaster();
+	
+		//ifsImg = new ArrayImgFactory<>(new UnsignedByteType()).create(tempWidth, tempHeight);
+		//RandomAccess<UnsignedByteType> ifsRa = ifsImg.randomAccess();
+		
+		// set initial centered square
+		int xMin = (int)Math.round((float) ifsWidth  /4.0);
+		int xMax = (int)Math.round((float) ifsWidth  /4.0*3.0);
+		int yMin = (int)Math.round((float) ifsHeight /4.0);
+		int yMax = (int)Math.round((float) ifsHeight /4.0*3.0);
+		
+		for (int x = xMin ; x < xMax ; x++) {
+		for (int y = yMin ; y < yMax ; y++) {
+			ifsRaster.setSample(x, y, 0, greyValueMax);
+		}
+		}
+
+		// Affine transformation
+		//4 surrounding images	
+		AffineTransform at1;
+		BufferedImage ifsBI1;
+		WritableRaster ifsR1;
+		
+		AffineTransform at2;
+		BufferedImage ifsBI2;
+		WritableRaster ifsR2;
+		
+		AffineTransformOp op;
+		
+		int thres = greyValueMax/2;
+		int greyValue;
+	
+		for (int i = 0; i < numIterations; i++) {
+		
+			//Island oben links	and unten rechts
+			at1   = new AffineTransform(1.0f/4.0f, 0.0f, 0.0f, 1.0f/8.0f, 0.0f*ifsWidth, 0.0f*ifsHeight);
+			op = new AffineTransformOp(at1, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			ifsBI1  = op.filter(ifsBuffImg, null);
+			ifsR1  = ifsBI1.getRaster();
+			
+			//Island links unten and rechts oben
+			at2   = new AffineTransform(1.0f/8.0f, 0.0f, 0.0f, 1.0f/4.0f, 0.0f*ifsWidth, 0.0f*ifsHeight);
+			op = new AffineTransformOp(at2, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+			ifsBI2  = op.filter(ifsBuffImg, null);
+			ifsR2  = ifsBI2.getRaster();
+			
+			
+			tileSizeX = ifsWidth/4;
+			tileSizeY = ifsHeight/8;
+			//add transformed image
+			for (int x = 0; x < tileSizeX; x++) { //ifsR has only 1/4 the size of ifsRaster
+			for (int y = 0; y < tileSizeY; y++) {
+				greyValue = ifsR1.getSample(x, y, 0);
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY/2               + y, 0, greyValue); 				//Island oben links
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*6 + tileSizeY/2 + y, 0, greyValue); 				//Island unten rechts
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*2 + tileSizeY/2 + y, 0, greyValueMax-greyValue); //Lake   oben rechts
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY*4 + tileSizeY/2 + y, 0, greyValueMax-greyValue); //Lake   unten links
+			}
+			}		
+				
+			tileSizeX = ifsWidth/8;
+			tileSizeY = ifsHeight/4;
+			//add transformed image
+			for (int x = 0; x < tileSizeX; x++) {
+			for (int y = 0; y < tileSizeY; y++) {
+				greyValue = ifsR2.getSample(x, y, 0);
+				ifsRaster.setSample(tileSizeX/2 +               x, tileSizeY*2 + y, 0, greyValue); 				//Island links unten
+				ifsRaster.setSample(tileSizeX*6 + tileSizeX/2 + x, tileSizeY   + y, 0, greyValue); 				//Island rechts oben
+				ifsRaster.setSample(tileSizeX*2 + tileSizeX/2 + x, tileSizeY   + y, 0, greyValueMax-greyValue); //Lake   links oben
+				ifsRaster.setSample(tileSizeX*4 + tileSizeX/2 + x, tileSizeY*2 + y, 0, greyValueMax-greyValue); //Lake   rechts unten
+			}
+			}		
+			//binarize if e.g. for bilinear interpolation
+//	    	for (int x = 0; x < ifsWidth;  x++) {
+//			for (int y = 0; y < ifsHeight; y++) {	
+//				//greyValue = ifsRaster.getSample(x, y, 0);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				else ifsRaster.setSample(x,  y,  0,  0);
+//			}
+//	    	}
+			
+		}
+
+		//rescale to original size if necessary	 
+		if ((width != ifsWidth) || (height != ifsHeight)) {
+			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
+		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
+		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
+		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
+		    graphics2D.dispose();	
+			ifsBuffImg = ifsBuffImgResized;
+			ifsBuffImgResized = null;
+			ifsRaster = ifsBuffImg.getRaster();
+		}
+		
+		 
+		//binarize e.g for bilinear interpolation
+    	for (int x = 0; x < width;  x++) {
+		for (int y = 0; y < height; y++) {	
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			else ifsRaster.setSample(x,  y,  0,  0);
+		}
+    	}
+    	
+		// Convert---------------------------------------
+		Cursor<UnsignedByteType> cursor = resultImg.cursor();
+    	long[] pos = new long[2];
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			cursor.localize(pos);
+			cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
+		}  	
+		
+		ifsBuffImg = null;
+		ifsRaster = null;
+		
+		ifsBI1 = null;
+		ifsR1 = null;
+		
+		ifsBI2 = null;
+		ifsR2 = null;
+
+    }
+    
     private void computeFracKochSnowflake(int numPolygons, int numIterations, int greyValueMax) {
     	
     	int width  = (int)datasetOut.dimension(0);
@@ -1831,7 +2414,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		int y2 = yorig - scaling;
 		int x3 = xorig - scaling;
 		int y3 = yorig;
-		dragonr(g, scaling, x1, y1, x2, y2, x3, y3, numIterations);
+		drawDragonr(g, scaling, x1, y1, x2, y2, x3, y3, numIterations);
 
   	// binarize, if necessary
 //  	for (int x = 0; x < width;  x++) {
@@ -1868,7 +2451,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 * @param y3
 	 * @param n
 	 */
-	public void dragonr(Graphics g, int scaling, int x1, int y1, int x2,
+	public void drawDragonr(Graphics g, int scaling, int x1, int y1, int x2,
 			int y2, int x3, int y3, int n) {
 		if (n == 1) {
 			g.drawLine(x1 + scaling, y1 + scaling, x2 + scaling, y2 + scaling);
@@ -1878,20 +2461,200 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			int y4 = (y1 + y3) / 2;
 			int x5 = x3 + x2 - x4;
 			int y5 = y3 + y2 - y4;
-			dragonr(g, scaling, x2, y2, x4, y4, x1, y1, n - 1);
-			dragonr(g, scaling, x2, y2, x5, y5, x3, y3, n - 1);
+			drawDragonr(g, scaling, x2, y2, x4, y4, x1, y1, n - 1);
+			drawDragonr(g, scaling, x2, y2, x5, y5, x3, y3, n - 1);
 		}
 	}
+	
+	private void computeFracRandomLines(int numIterations, int lineThickness, float thicknessScaling, int greyValueMax) {
+		//According to Mandelbrot Chapter 31 p285
+		//Direction is isotropic
+		//Widths follow a hyperbolic distribution 
+		//The intersection (line) of the background at least with D>1 is a Levy dust 
+		
+		int width  = (int)datasetOut.dimension(0);
+		int height = (int)datasetOut.dimension(1);
+		resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+
+		ifsBuffImg = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+		ifsRaster  = ifsBuffImg.getRaster();
+				
+		Graphics g = ifsBuffImg.getGraphics();
+		//g.setColor(Color.WHITE);
+		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
+
+		// Polygon polygon = new Polygon();
+		// polygon.addPoint(imgWidth/3, imgHeight/3);
+		// polygon.addPoint(imgWidth/3, imgHeight/3*2);
+		// polygon.addPoint(imgWidth/3*2, imgHeight/3*2);
+		// polygon.addPoint(imgWidth/3*2, imgHeight/3);
+		// g.fillPolygon(polygon);
+
+	
+		drawRandomLines(g, width, height, lineThickness, thicknessScaling, numIterations);
+
+		// binarize, if necessary
+//		for (int x = 0; x < width;  x++) {
+//			for (int y = 0; y < height; y++) {	
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				else ifsRaster.setSample(x,  y,  0,  0);
+//			}
+//		}
+
+		// Convert---------------------------------------
+		Cursor<UnsignedByteType> cursor = resultImg.cursor();
+		long[] pos = new long[2];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
+			}  	
+			g.dispose();
+		ifsBuffImg = null;
+		ifsRaster = null;
+	}
+	
+
 	/**
-     * This main function serves for development purposes.
-     * It allows you to run the plugin immediately out of
-     * your integrated development environment (IDE).
-     *
-     * @param args whatever, it's ignored
+	 * This methods draws randomly distributes lines
+	 * 
+	 * @param g
+	 * @param width
+	 * @param height
+	 * @param thicknessMax
+	 * @param thicknessScaling
+	 * @param n
+	 */
+	public void drawRandomLines(Graphics g, int width, int height, int thicknessMax, float thicknessScaling, int numIterations) {
+	
+		int x1 = 0;
+		int x2 = 0;
+		int y1 = 0;
+		int y2 = 0;
+		int[] point;
+		
+		int thickness = 0;
+		int[] thicknesses = null;
+		double r = 0.0;
+		Random random = new Random();
+	
+		
+		if (thicknessMax > 1) {
+			thicknesses   = new int[thicknessMax];
+			for (int t = 0; t < thicknessMax; t++) {
+				thicknesses[t] = (int)Math.round((double)thicknessMax*Math.exp(-thicknessScaling*t)); //good approximation for hyperbolic distribution, see Excel file
+			}
+			//thicknesses decrease from thicknessMax to lower values
+		}
+	
+		for (int n = 0; n < numIterations; n++) {
+			point = getRandomPoint(width, height);
+			x1 = point[0];
+			y1 = point[1];
+				
+			while ((point[0] == x1) || (point[1] == y1)) {//initially the point is x1 y1
+				point = getRandomPoint(width, height);
+			}
+			x2 = point[0];
+			y2 = point[1];
+			
+			if (thicknessMax == 1) { //Thickness must be >= 1
+				g.drawLine(x1, y1, x2, y2);
+			} else {
+				thickness = thicknesses[random.nextInt(thicknessMax)];
+				if (thickness < 1) thickness = 1;
+				if (thickness == 1) { //Thickness must be >= 1
+					g.drawLine(x1, y1, x2, y2);
+				}
+				else {
+					drawPolygonLine(g, x1, y1, x2, y2, thickness);	
+				}
+			}
+		}	
+	}
+	
+	
+	/**
+	 * This method computes a random point on a rectangle
+	 * @param width
+	 * @param height
+	 * @return int[]
+	 */
+	public int[] getRandomPoint(int width, int height) {
+		
+		int[] point = new int[2];	
+		int position;	
+		Random random = new Random();
+		
+		position = random.nextInt(2); //0 top bottom; 1 left or right
+		if (position == 0){ //top bottom			
+			point[0] = random.nextInt(width);
+			position = random.nextInt(2);
+			if (position == 0){ 
+				point[1] = 0;
+			}
+			else {
+				point[1] = height - 1;
+			}		
+		} 
+		else { //left or right
+			point[1] = random.nextInt(height);
+			position = random.nextInt(2);
+			if (position == 0){ 
+				point[0] = 0;
+			}
+			else {
+				point[0] = width - 1;
+			}		
+		}
+				
+		return point;	
+	}
+
+	/**
+	 * This methods draws a polygon
+	 * 
+	 * @param g
+	 * @param x1
+	 * @param y1
+	 * @param x2
+	 * @param y2
+	 * @param thickness
+	 * @param n
+	 */
+	public void drawPolygonLine(Graphics g, int x1, int y1, int x2, int y2, int thickness) {
+		
+		int dX = x2 - x1;
+		int dY = y2 - y1;
+		// line length
+		double lineLength = Math.sqrt(dX * dX + dY * dY);
+
+		double scale = (double)(thickness) / (2 * lineLength);
+
+		// The x,y increments from an endpoint needed to create a rectangle
+		double ddx = -scale * (double)dY;
+		double ddy = scale * (double)dX;
+		ddx += (ddx > 0) ? 0.5 : -0.5;
+		ddy += (ddy > 0) ? 0.5 : -0.5;
+		int dx = (int)ddx;
+		int dy = (int)ddy;
+
+		//Corner points
+		int xPoints[] = new int[4];
+		int yPoints[] = new int[4];
+
+		xPoints[0] = x1 + dx; yPoints[0] = y1 + dy;
+		xPoints[1] = x1 - dx; yPoints[1] = y1 - dy;
+		xPoints[2] = x2 - dx; yPoints[2] = y2 - dy;
+		xPoints[3] = x2 + dx; yPoints[3] = y2 + dy;
+		
+		g.fillPolygon(xPoints, yPoints, 4);
+	}
+	
+	/**
+     * @param 
      * @throws Exception
      */
-    
-
     @Override
     public void run() {
     	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Generating 2D image, please wait...<br>Open console window for further info.</html>");
@@ -1933,27 +2696,34 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
 		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
 		int numIterations		= spinnerInteger_NumSumOfSineIterations;
+		int lineThickness		= spinnerInteger_LineThickness;
+		float thicknessScaling  = spinnerFloat_ThicknessScaling;
 		int numPolygons			= spinnerInteger_NumPolygons;
 	
 		// Create an image.
 		
 		String name = "2D image";
-		if 		(imageType.equals("Random"))   						name = "Random image(s)";
-		else if (imageType.equals("Gaussian")) 						name = "Gaussian image(s)";
-		else if (imageType.equals("Sine - radial")) 				name = "Radial sinusoidal image(s)";
-		else if (imageType.equals("Sine - horizontal")) 			name = "Horizontal sinusoidal image(s)";
-		else if (imageType.equals("Sine - vertical")) 				name = "Vertical sinusoidal image(s)";
-		else if (imageType.equals("Constant")) 						name = "Constant image(s)";
-		else if (imageType.equals("Fractal surface - FFT"))			name = "Fractal surface(s) - FFT";
-		else if (imageType.equals("Fractal surface - MPD"))			name = "Fractal surface(s) - MPD";
-		else if (imageType.equals("Fractal surface - Sum of sine")) name = "Fractal surface(s) - Sum of sine";
-		else if (imageType.equals("Fractal - HRM"))					name = "Fractal - HRM";
-		else if (imageType.equals("Fractal IFS - Menger"))			name = "Fractal IFS - Menger";
-		else if (imageType.equals("Fractal IFS - Sierpinski-1"))	name = "Fractal IFS - Sierpinski-1";
-		else if (imageType.equals("Fractal IFS - Sierpinski-2"))	name = "Fractal IFS - Sierpinski-2";
-		else if (imageType.equals("Fractal IFS - Koch snowflake"))	name = "Fractal IFS - Koch snowflake";
-		else if (imageType.equals("Fractal IFS - Fern"))			name = "Fractal IFS - Fern";
-		else if (imageType.equals("Fractal IFS - Heighway dragon"))	name = "Fractal IFS - Heighway dragon";
+		if 		(imageType.equals("Random"))   									name = "Random image(s)";
+		else if (imageType.equals("Gaussian")) 									name = "Gaussian image(s)";
+		else if (imageType.equals("Sine - radial")) 							name = "Radial sinusoidal image(s)";
+		else if (imageType.equals("Sine - horizontal")) 						name = "Horizontal sinusoidal image(s)";
+		else if (imageType.equals("Sine - vertical")) 							name = "Vertical sinusoidal image(s)";
+		else if (imageType.equals("Constant")) 									name = "Constant image(s)";
+		else if (imageType.equals("Fractal surface - FFT"))						name = "Fractal surface(s) - FFT";
+		else if (imageType.equals("Fractal surface - MPD"))						name = "Fractal surface(s) - MPD";
+		else if (imageType.equals("Fractal surface - Sum of sine"))			 	name = "Fractal surface(s) - Sum of sine";
+		else if (imageType.equals("Fractal - HRM"))								name = "Fractal - HRM";
+		else if (imageType.equals("Fractal IFS - Menger"))						name = "Fractal IFS - Menger";
+		else if (imageType.equals("Fractal IFS - Sierpinski-1"))				name = "Fractal IFS - Sierpinski-1";
+		else if (imageType.equals("Fractal IFS - Sierpinski-2"))				name = "Fractal IFS - Sierpinski-2";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))			name = "Fractal IFS - Mandelbrot island-1";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))			name = "Fractal IFS - Mandelbrot island-2";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))	name = "Fractal IFS - Mandelbrot island&lake-1";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))	name = "Fractal IFS - Mandelbrot island&lake-2";
+		else if (imageType.equals("Fractal IFS - Koch snowflake"))				name = "Fractal IFS - Koch snowflake";
+		else if (imageType.equals("Fractal IFS - Fern"))						name = "Fractal IFS - Fern";
+		else if (imageType.equals("Fractal IFS - Heighway dragon"))				name = "Fractal IFS - Heighway dragon";
+		else if (imageType.equals("Fractal IFS - Random lines"))				name = "Fractal IFS - Random lines";
 			
 		AxisType[] axes  = null;
 		long[] dims 	 = null;
@@ -1973,22 +2743,27 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				axes = new AxisType[]{Axes.X, Axes.Y};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
 
-				if      (imageType.equals("Random"))   						computeRandomImage(greyR);
-				else if (imageType.equals("Gaussian")) 						computeGaussianImage(greyR);
-				else if (imageType.equals("Sine - radial")) 				computeSineImage("radial",     frequency, greyR);
-				else if (imageType.equals("Sine - horizontal")) 			computeSineImage("horizontal", frequency, greyR);
-				else if (imageType.equals("Sine - vertical")) 				computeSineImage("vertical",   frequency, greyR);
-				else if (imageType.equals("Constant")) 						computeConstantImage(greyR);
-				else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyR);
-				else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyR);
-				else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
-				else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyR);
-				else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Koch snowflake"))	computeFracKochSnowflake(numPolygons, numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Fern"))			computeFracFern(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Heighway dragon"))	computeFracHeighway(numIterations, greyR);
+				if      (imageType.equals("Random"))   								computeRandomImage(greyR);
+				else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyR);
+				else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyR);
+				else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyR);
+				else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyR);
+				else if (imageType.equals("Constant")) 								computeConstantImage(greyR);
+				else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyR);
+				else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
+				else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
+				else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
+				else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations, lineThickness, thicknessScaling, greyR);
 				
 				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 				Cursor<UnsignedByteType> cursor = resultImg.cursor();
@@ -2029,22 +2804,27 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 					startTime = System.currentTimeMillis();
 					logService.info(this.getClass().getName() + " Generating image number " + (n+1) + "(" + numImages + ")");
 					
-					if      (imageType.equals("Random"))   						computeRandomImage(greyR);
-					else if (imageType.equals("Gaussian")) 						computeGaussianImage(greyR);
-					else if (imageType.equals("Sine - radial")) 				computeSineImage("radial",     frequency, greyR);
-					else if (imageType.equals("Sine - horizontal")) 			computeSineImage("horizontal", frequency, greyR);
-					else if (imageType.equals("Sine - vertical")) 				computeSineImage("vertical",   frequency, greyR);
-					else if (imageType.equals("Constant")) 						computeConstantImage(greyR);
-					else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyR);
-					else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyR);
-					else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
-					else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyR);
-					else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Koch snowflake"))	computeFracKochSnowflake(numPolygons, numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Fern"))			computeFracFern(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Heighway dragon"))	computeFracHeighway(numIterations, greyR);
+					if      (imageType.equals("Random"))   								computeRandomImage(greyR);
+					else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyR);
+					else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyR);
+					else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyR);
+					else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyR);
+					else if (imageType.equals("Constant")) 								computeConstantImage(greyR);
+					else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyR);
+					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
+					else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
+					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
+					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations, lineThickness, thicknessScaling, greyR);
 					
 					ra = datasetOut.randomAccess();
 					cursor = resultImg.cursor();
@@ -2089,22 +2869,27 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 						case 1: greyValue = greyG; break;
 						case 2: greyValue = greyB; break;
 					}
-					if (imageType.equals("Random"))   			    			computeRandomImage(greyValue);
-					else if (imageType.equals("Gaussian")) 						computeGaussianImage(greyValue);
-					else if (imageType.equals("Sine - radial")) 				computeSineImage("radial",     frequency, greyValue);
-					else if (imageType.equals("Sine - horizontal")) 			computeSineImage("horizontal", frequency, greyValue);
-					else if (imageType.equals("Sine - vertical")) 				computeSineImage("vertical",   frequency, greyValue);
-					else if (imageType.equals("Constant")) 						computeConstantImage(greyValue);
-					else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyValue);
-					else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyValue);
-					else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
-					else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyValue);
-					else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Koch snowflake"))	computeFracKochSnowflake(numPolygons, numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Fern"))			computeFracFern(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Heighway dragon"))	computeFracHeighway(numIterations, greyValue);
+					if (imageType.equals("Random"))   			   						computeRandomImage(greyValue);
+					else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyValue);
+					else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyValue);
+					else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyValue);
+					else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyValue);
+					else if (imageType.equals("Constant")) 								computeConstantImage(greyValue);
+					else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyValue);
+					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
+					else if (imageType.equals("Fractal surface - Sum of sine"))			computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
+					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
+					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations, lineThickness, thicknessScaling, greyValue);
 					
 					cursor = resultImg.cursor();
 					
@@ -2154,22 +2939,27 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 						case 1: greyValue = greyG; break;
 						case 2: greyValue = greyB; break;
 					}
-						if (imageType.equals("Random"))   			    			computeRandomImage(greyValue);
-						else if (imageType.equals("Gaussian")) 						computeGaussianImage(greyValue);
-						else if (imageType.equals("Sine - radial")) 				computeSineImage("radial",     frequency, greyValue);
-						else if (imageType.equals("Sine - horizontal")) 			computeSineImage("horizontal", frequency, greyValue);
-						else if (imageType.equals("Sine - vertical")) 				computeSineImage("vertical",   frequency, greyValue);
-						else if (imageType.equals("Constant")) 						computeConstantImage(greyValue);
-						else if (imageType.equals("Fractal surface - FFT"))			computeFrac2DFFT(fracDim, greyValue);
-						else if (imageType.equals("Fractal surface - MPD")) 		computeFrac2DMPD(fracDim, greyValue);
-						else if (imageType.equals("Fractal surface - Sum of sine")) computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
-						else if (imageType.equals("Fractal - HRM"))					computeFracHRM(3, probabilities, greyValue);
-						else if (imageType.equals("Fractal IFS - Menger"))			computeFracMenger(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Sierpinski-1"))	computeFracSierpinski1(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Sierpinski-2"))	computeFracSierpinski2(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Koch snowflake"))	computeFracKochSnowflake(numPolygons, numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Fern"))			computeFracFern(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Heighway dragon"))	computeFracHeighway(numIterations, greyValue);
+						if (imageType.equals("Random"))   					    			computeRandomImage(greyValue);
+						else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyValue);
+						else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyValue);
+						else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyValue);
+						else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyValue);
+						else if (imageType.equals("Constant")) 								computeConstantImage(greyValue);
+						else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyValue);
+						else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
+						else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
+						else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
+						else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations,  lineThickness, thicknessScaling, greyValue);
 						
 						cursor = resultImg.cursor();
 						pos2D = new long[2];		
