@@ -272,8 +272,19 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   callback = "changedNumSumOfSineIterations")
     private int spinnerInteger_NumSumOfSineIterations;
     
-    @Parameter(label = "(IFS-Random line) thickness",
-	   	       description = "Thickness of lines",
+    @Parameter(label = "(IFS-Koch) Number of polygons",
+	   	       description = "Starting number of polygons for Koch snowflake",
+	  		   style = NumberWidget.SPINNER_STYLE,
+	  		   min = "3",
+	  		   max = "999999999999999999999",
+	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialNumPolygons",
+	  		   callback = "changedNumPolygons")
+    private int spinnerInteger_NumPolygons;
+    
+    @Parameter(label = "(IFS-Random lines) thickness",
+	   	       description = "Thickness of lines in pixels",
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "1",
 	  		   max = "999999999999999999999",
@@ -283,8 +294,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   callback = "changedLineThickness")
     private int spinnerInteger_LineThickness;
     
-    @Parameter(label = "(IFS-Random line) thickness scaling",
-   		   description = "Scaling of hyperbolic thickness",
+    @Parameter(label = "(IFS-Random lines) thickness scaling",
+   		   description = "Scaling of hyperbolic thickness [0, 1]", //0..without scaling, same thickness   1..maximal scaling
   	  		   style = NumberWidget.SPINNER_STYLE,
   	  		   min = "0", 
   	  		   max = "1",
@@ -327,17 +338,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   callback = "changedHRMProbability3")
     private float spinnerFloat_HRMProbability3;
     
-    @Parameter(label = "(Koch) Number of polygons",
-	   	       description = "Starting number of polygons for Koch snowflake",
-	  		   style = NumberWidget.SPINNER_STYLE,
-	  		   min = "3",
-	  		   max = "999999999999999999999",
-	  		   stepSize = "1",
-	  		   persist = true,  //restore previous value default = true
-	  		   initializer = "initialNumPolygons",
-	  		   callback = "changedNumPolygons")
-    private int spinnerInteger_NumPolygons;
-    
+  
     //---------------------------------------------------------------------
     
     
@@ -393,6 +394,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		spinnerInteger_NumSumOfSineIterations = 10;
 	}
 	
+	protected void initialNumPolygons() {
+		spinnerInteger_NumPolygons = 3;
+	}
+	
 	protected void initialLineThickness() {
 		spinnerInteger_LineThickness = 1;
 	}
@@ -417,9 +422,6 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 	spinnerFloat_HRMProbability3 = 0.5f;
 	}
 	
-	protected void initialNumPolygons() {
-		spinnerInteger_NumPolygons = 3;
-	}
     
 	// ------------------------------------------------------------------------------
 	
@@ -491,6 +493,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		logService.info(this.getClass().getName() + " Sum of sine iterations changed to " + spinnerInteger_NumSumOfSineIterations);
 	}
 	
+	/** Executed whenever the {@link #spinnerInteger_NumPolygons} parameter changes. */
+	protected void changedNumPolygons() {
+		logService.info(this.getClass().getName() + " Number of polygons changed to " + spinnerInteger_NumPolygons);
+	}
+	
 	/** Executed whenever the {@link #spinnerInteger_LineThickness} parameter changes. */
 	protected void changedLineThickness() {
 		logService.info(this.getClass().getName() + " Thicknes of line changed to " + spinnerInteger_LineThickness);
@@ -526,11 +533,6 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 	//spinnerFloat_HRMProbability = Math.round(spinnerFloat_HRMProbability * 1f)/1f;
 	 	spinnerFloat_HRMProbability3 = Precision.round(spinnerFloat_HRMProbability3, 2);
 	 	logService.info(this.getClass().getName() + " Probability 3 changed to " + spinnerFloat_HRMProbability3);
-	}
-	
-	/** Executed whenever the {@link #spinnerInteger_NumPolygons} parameter changes. */
-	protected void changedNumPolygons() {
-		logService.info(this.getClass().getName() + " Number of polygons changed to " + spinnerInteger_NumPolygons);
 	}
 	
     // You can control how previews work by overriding the "preview" method.
@@ -2694,11 +2696,12 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		float fracDim 			= spinnerFloat_FracDim;
 		float frequency  		= spinnerFloat_SineSumOfSineFrequency;
 		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
-		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
 		int numIterations		= spinnerInteger_NumSumOfSineIterations;
+		int numPolygons			= spinnerInteger_NumPolygons;
 		int lineThickness		= spinnerInteger_LineThickness;
 		float thicknessScaling  = spinnerFloat_ThicknessScaling;
-		int numPolygons			= spinnerInteger_NumPolygons;
+		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
+		
 	
 		// Create an image.
 		
