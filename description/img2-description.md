@@ -23,7 +23,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Hirarchical random maps
 - - Three probabilities can be set
 - Fractal random shapes
-- - The number of shapes ca nbe set
+- - The number of shapes can be set
 - - The size (thickness/radius/size) of random shapes can be set
 - - The hyperbolic downscaling [0, 1] of the size can be set (scaling=0... without downscaling, scaling=1... maximal downscaling)  
 - Fractal Iterated function system (IFS) - Menger, Sierpinski, Mandelbrot islands/lakes,  Koch snowflake, Fern, Heighway dragon
