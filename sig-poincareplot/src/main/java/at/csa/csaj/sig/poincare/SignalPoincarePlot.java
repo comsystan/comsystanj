@@ -249,6 +249,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 	
 	protected void initialPluginLaunch() {
 		//tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+		initialNumLag();
 		checkItemIOIn();
 	}
 	
@@ -456,10 +457,11 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 			
 //		sliceLabels = new String[(int) numColumns];
 		
-		numLag = this.spinnerInteger_NumLag;
+		numLag = spinnerInteger_NumLag;
 		// number of lags > numDataPoints is not allowed
 		if (numLag >= numRows) {
 			numLag = (int)numRows - 1;
+			spinnerInteger_NumLag = numLag;
 		}
 	   
 		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
