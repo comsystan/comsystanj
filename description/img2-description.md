@@ -16,17 +16,20 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Image size can be set
 - Maximal grey values can be set
 - Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
-- Frequency can be set for Sine
+- - Frequency can be set for Sine
 - Fractal surface - Fourier (FFT) or Midpoint displacment (MPD) or Sum of sine method
-- Theoretical fractal dimension in the range of [2,3] can be set
-- For Sum of sine the frequency, amplitude and number of iterations can be set
-- Hirarchical random maps, probabilities can be set
-- Fractal Iterated function system (IFS) - Menger, Sierpinski, Mandelbrot islands/lakes,  Koch snowflake, Fern, Heighway dragon, Random lines
-- The number of IFS iterations can be set
-- The polygon number for the Koch snowflake can be set
-- The thickness of random lines can be set
-- The hyperbolic scaling [0, 1] of line thicknesses can be set (scaling=0... without scaling, scaling=1... maximal scaling)  
-- Note: The number of iterates must be really high for the Fern 
+- - Theoretical fractal dimension in the range of [2,3] can be set
+- - For Sum of sine the frequency, amplitude and number of iterations can be set
+- Hirarchical random maps
+- - Three probabilities can be set
+- Fractal random shapes
+- - The number of shapes ca nbe set
+- - The size (thickness/radius/size) of random shapes can be set
+- - The hyperbolic downscaling [0, 1] of the size can be set (scaling=0... without downscaling, scaling=1... maximal downscaling)  
+- Fractal Iterated function system (IFS) - Menger, Sierpinski, Mandelbrot islands/lakes,  Koch snowflake, Fern, Heighway dragon
+- - The number of IFS iterations can be set
+- - The polygon number for the Koch snowflake can be set
+- - The number of iterates must be really high for the Fern 
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
@@ -140,8 +143,8 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
 - Grey value algortihm for Raster/Sliding box
 - Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
-- \<L\>-R&P Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [DOI10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
-- \<L\>-S&V Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [DOI 10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
+- \<L\>-R&P... Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [DOI10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
+- \<L\>-S&V... Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [DOI 10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
 - In the original paper accuracy=30 and confidence=5  
 - But it is recommended to set accuracy and confidence as high as computation times allow
