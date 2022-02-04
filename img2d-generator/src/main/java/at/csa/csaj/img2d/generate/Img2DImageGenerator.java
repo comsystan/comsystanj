@@ -94,9 +94,10 @@ import javax.swing.UIManager;
         @Menu(label = "Image (2D)"),
         @Menu(label = "Image generator", weight = 2)})
 public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextCommand implements Previewable { //modal GUI with cancel
-	
-	private static final String PLUGIN_LABEL = "<html><b>Generates 2D images</b></html>";
-	private static final String SPACE_LABEL = "";
+		
+	private static final String PLUGIN_LABEL 			= "<html><b>Generates 2D images</b></html>";
+	private static final String SPACE_LABEL 			= "";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
   
 	@Parameter
 	private LogService logService;
@@ -182,18 +183,23 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     
     @Parameter(label = "Image type",
     		   description = "Type of output image, FFT..Fast Fourier transform, MPD..Midpoint displacement, HRM..Hirarchical random maps, IFS..Iterated function system",
-    		   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+    		   style = ChoiceWidget.LIST_BOX_STYLE,
     		   choices = {"Random", "Gaussian", "Sine - radial", "Sine - horizontal", "Sine - vertical",  "Constant", 
     				   "Fractal surface - FFT", "Fractal surface - MPD", "Fractal surface - Sum of sine", "Fractal - HRM",
+    				   "Fractal random shapes - Lines", "Fractal random shapes - Circles", "Fractal random shapes - Squares", "Fractal random shapes - Filled circles", "Fractal random shapes - Filled squares",
     				   "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
     				   "Fractal IFS - Mandelbrot island-1", "Fractal IFS - Mandelbrot island-2",
     				   "Fractal IFS - Mandelbrot island&lake-1", "Fractal IFS - Mandelbrot island&lake-2", 
-    				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon",
-    				   "Fractal IFS - Random lines"},
+    				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon"
+    				  },
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialImageType",
                callback = "changedImageType")
     private String choiceRadioButt_ImageType;
+    
+	//-----------------------------------------------------------------------------------------------------
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+    private final String labelMethodOptions = METHODOPTIONS_LABEL;
     
     @Parameter(label = "Grey/R",
     		   description = "Grey value of Grey image or of the RGB R channel",
@@ -251,7 +257,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     private float spinnerFloat_SineSumOfSineFrequency;
     
     @Parameter(label = "(Sum of sine) Amplitude",
-  		   description = "Amplitude for Sum of sine method ",
+  		       description = "Amplitude for Sum of sine method ",
  	  		   style = NumberWidget.SPINNER_STYLE,
  	  		   min = "0", 
  	  		   max = "99999999999999999999",
@@ -261,17 +267,39 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
  	  		   callback = "changedSumOfSineAmplitude")
     private float spinnerFloat_SumOfSineAmplitude;
 
-    @Parameter(label = "(Sum of sine/IFS) Iterations",
- 	   	       description = "Number of iterations for Sum of sine method",
+    @Parameter(label = "(Sum of sine/Random shapes/IFS) #",
+ 	   	       description = "Number of iterations or Sum of sine, Random shapes and IFS algorithms",
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "1",
 	  		   max = "999999999999999999999",
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
-	  		   initializer = "initialNumSumOfSineIterations",
-	  		   callback = "changedNumSumOfSineIterations")
-    private int spinnerInteger_NumSumOfSineIterations;
+	  		   initializer = "initialNumIterations",
+	  		   callback = "changedNumIterations")
+    private int spinnerInteger_NumIterations;
     
+    @Parameter(label = "(Random shapes) Size",
+	   	       description = "Maximal thickness/radius/size of shapes in pixels",
+	  		   style = NumberWidget.SPINNER_STYLE,
+	  		   min = "1",
+	  		   max = "999999999999999999999",
+	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialRandomShapeSize",
+	  		   callback = "changedRandomShapeSize")
+    private int spinnerInteger_RandomShapeSize;
+    
+    @Parameter(label = "(Random shapes) Scaling",
+   		   	   description = "Scaling of hyperbolic thickness/radius/size distribution [0, 1]", //0..without scaling, same thickness   1..maximal scaling
+  	  		   style = NumberWidget.SPINNER_STYLE,
+  	  		   min = "0", 
+  	  		   max = "1",
+  	  	 	   stepSize = "0.1",
+  	  		   persist = true,  //restore previous value default = true
+  	  		   initializer = "initialRandomShapeScaling",
+  	  		   callback = "changedRandomShapeScaling")
+    private float spinnerFloat_RandomShapeScaling;
+      
     @Parameter(label = "(IFS-Koch) Number of polygons",
 	   	       description = "Starting number of polygons for Koch snowflake",
 	  		   style = NumberWidget.SPINNER_STYLE,
@@ -282,28 +310,6 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	  		   initializer = "initialNumPolygons",
 	  		   callback = "changedNumPolygons")
     private int spinnerInteger_NumPolygons;
-    
-    @Parameter(label = "(IFS-Random lines) thickness",
-	   	       description = "Thickness of lines in pixels",
-	  		   style = NumberWidget.SPINNER_STYLE,
-	  		   min = "1",
-	  		   max = "999999999999999999999",
-	  		   stepSize = "1",
-	  		   persist = true,  //restore previous value default = true
-	  		   initializer = "initialLineThickness",
-	  		   callback = "changedLineThickness")
-    private int spinnerInteger_LineThickness;
-    
-    @Parameter(label = "(IFS-Random lines) thickness scaling",
-   		   description = "Scaling of hyperbolic thickness [0, 1]", //0..without scaling, same thickness   1..maximal scaling
-  	  		   style = NumberWidget.SPINNER_STYLE,
-  	  		   min = "0", 
-  	  		   max = "1",
-  	  	 	   stepSize = "0.1",
-  	  		   persist = true,  //restore previous value default = true
-  	  		   initializer = "initialThicknessScaling",
-  	  		   callback = "changedThicknessScaling")
-     private float spinnerFloat_ThicknessScaling;
     
     @Parameter(label = "(HRM) Probability 1",
     		   description = "Probability of first level",
@@ -390,21 +396,21 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 	spinnerFloat_SumOfSineAmplitude = 2f;
 	}
 	
-	protected void initialNumSumOfSineIterations() {
-		spinnerInteger_NumSumOfSineIterations = 10;
+	protected void initialNumIterations() {
+		spinnerInteger_NumIterations = 10;
+	}
+	
+	protected void initialRandomShapeSize() {
+		spinnerInteger_RandomShapeSize = 10;
+	}
+	
+	protected void initialRandomShapeScaling() {
+	 	//round to one decimal after the comma
+	 	spinnerFloat_RandomShapeScaling = 0.5f;
 	}
 	
 	protected void initialNumPolygons() {
 		spinnerInteger_NumPolygons = 3;
-	}
-	
-	protected void initialLineThickness() {
-		spinnerInteger_LineThickness = 1;
-	}
-	
-	protected void initialThicknessScaling() {
-	 	//round to one decimal after the comma
-	 	spinnerFloat_ThicknessScaling = 0.5f;
 	}
 	
 	protected void initialHRMProbability1() {
@@ -488,27 +494,27 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 	logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_SumOfSineAmplitude);
 	}
 	
-	/** Executed whenever the {@link #spinnerInteger_NumSumOfSineIterations} parameter changes. */
-	protected void changedNumSumOfSineIterations() {
-		logService.info(this.getClass().getName() + " Sum of sine iterations changed to " + spinnerInteger_NumSumOfSineIterations);
+	/** Executed whenever the {@link #spinnerInteger_NumIterations} parameter changes. */
+	protected void changedNumIterations() {
+		logService.info(this.getClass().getName() + " Iterations/Number changed to " + spinnerInteger_NumIterations);
+	}
+	
+	/** Executed whenever the {@link #spinnerInteger_RandomShapeSize} parameter changes. */
+	protected void changedRandomShapeSize() {
+		logService.info(this.getClass().getName() + " Random shape size changed to " + spinnerInteger_RandomShapeSize);
+	}
+	
+	protected void changedRandomShapeScaling() {
+		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_RandomShapeScaling);
+	 	//round to ?? decimal after the comma
+	 	//spinnerFloat_RandomShapeScaling = Math.round(spinnerFloat_RandomShapeScaling * 1f)/1f;
+	 	spinnerFloat_RandomShapeScaling = Precision.round(spinnerFloat_RandomShapeScaling, 2);
+	 	logService.info(this.getClass().getName() + " Random shape scaling changed to " + spinnerFloat_RandomShapeScaling);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumPolygons} parameter changes. */
 	protected void changedNumPolygons() {
 		logService.info(this.getClass().getName() + " Number of polygons changed to " + spinnerInteger_NumPolygons);
-	}
-	
-	/** Executed whenever the {@link #spinnerInteger_LineThickness} parameter changes. */
-	protected void changedLineThickness() {
-		logService.info(this.getClass().getName() + " Thicknes of line changed to " + spinnerInteger_LineThickness);
-	}
-	
-	protected void changedThicknessScaling() {
-		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_ThicknessScaling);
-	 	//round to ?? decimal after the comma
-	 	//spinnerFloat_ThicknessScaling = Math.round(spinnerFloat_ThicknessScaling * 1f)/1f;
-	 	spinnerFloat_ThicknessScaling = Precision.round(spinnerFloat_ThicknessScaling, 2);
-	 	logService.info(this.getClass().getName() + " Probability 1 changed to " + spinnerFloat_ThicknessScaling);
 	}
 	
 	protected void changedHRMProbability1() {
@@ -2439,40 +2445,19 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		ifsRaster = null;
   }
   
-	/**
-	 * This method draws the Heighway's Dragon This is adapted from the
-	 * Nonlinear Workbook
-	 * 
-	 * @param g
-	 * @param scaling
-	 * @param x1
-	 * @param y1
-	 * @param x2
-	 * @param y2
-	 * @param x3
-	 * @param y3
-	 * @param n
-	 */
-	public void drawDragonr(Graphics g, int scaling, int x1, int y1, int x2,
-			int y2, int x3, int y3, int n) {
-		if (n == 1) {
-			g.drawLine(x1 + scaling, y1 + scaling, x2 + scaling, y2 + scaling);
-			g.drawLine(x2 + scaling, y2 + scaling, x3 + scaling, y3 + scaling);
-		} else {
-			int x4 = (x1 + x3) / 2;
-			int y4 = (y1 + y3) / 2;
-			int x5 = x3 + x2 - x4;
-			int y5 = y3 + y2 - y4;
-			drawDragonr(g, scaling, x2, y2, x4, y4, x1, y1, n - 1);
-			drawDragonr(g, scaling, x2, y2, x5, y5, x3, y3, n - 1);
-		}
-	}
 	
-	private void computeFracRandomLines(int numIterations, int lineThickness, float thicknessScaling, int greyValueMax) {
-		//According to Mandelbrot Chapter 31 p285
+  private void computeFracRandomShapes(int numShapes, int shapeSize, float shapeScaling, String shapeType, int greyValueMax) {
+		
+		//Random lines according to Mandelbrot Chapter 31 p285
 		//Direction is isotropic
 		//Widths follow a hyperbolic distribution 
 		//The intersection (line) of the background at least with D>1 is a Levy dust 
+		
+		//Filled circles (discs) According to Mandelbrot Chapter 33 p301
+		//Lunar craters and disc tremas
+		//Randomly distributed discs
+		//Radii follow a hyperbolic distribution 
+	  	//The intersection (line) of the background is also a Levy dust p285
 		
 		int width  = (int)datasetOut.dimension(0);
 		int height = (int)datasetOut.dimension(1);
@@ -2485,15 +2470,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//g.setColor(Color.WHITE);
 		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
 
-		// Polygon polygon = new Polygon();
-		// polygon.addPoint(imgWidth/3, imgHeight/3);
-		// polygon.addPoint(imgWidth/3, imgHeight/3*2);
-		// polygon.addPoint(imgWidth/3*2, imgHeight/3*2);
-		// polygon.addPoint(imgWidth/3*2, imgHeight/3);
-		// g.fillPolygon(polygon);
-
-	
-		drawRandomLines(g, width, height, lineThickness, thicknessScaling, numIterations);
+		if (shapeType.equals("Lines"))          drawRandomLines(g, width, height, shapeSize, shapeScaling, numShapes);
+		if (shapeType.equals("Circles")) 	    drawRandomCircles(g, width, height, shapeSize, shapeScaling, numShapes);
+		if (shapeType.equals("Squares")) 	    drawRandomSquares(g, width, height, shapeSize, shapeScaling, numShapes);
+		if (shapeType.equals("Filled circles")) drawRandomFilledCircles(g, width, height, shapeSize, shapeScaling, numShapes);
+		if (shapeType.equals("Filled squares")) drawRandomFilledSquares(g, width, height, shapeSize, shapeScaling, numShapes);
 
 		// binarize, if necessary
 //		for (int x = 0; x < width;  x++) {
@@ -2515,8 +2496,36 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		ifsBuffImg = null;
 		ifsRaster = null;
 	}
-	
 
+	/**
+	 * This method draws the Heighway's Dragon This is adapted from the
+	 * Nonlinear Workbook
+	 * 
+	 * @param g
+	 * @param scaling
+	 * @param x1
+	 * @param y1
+	 * @param x2
+	 * @param y2
+	 * @param x3
+	 * @param y3
+	 * @param n
+	 */
+  	public void drawDragonr(Graphics g, int scaling, int x1, int y1, int x2,
+			int y2, int x3, int y3, int n) {
+		if (n == 1) {
+			g.drawLine(x1 + scaling, y1 + scaling, x2 + scaling, y2 + scaling);
+			g.drawLine(x2 + scaling, y2 + scaling, x3 + scaling, y3 + scaling);
+		} else {
+			int x4 = (x1 + x3) / 2;
+			int y4 = (y1 + y3) / 2;
+			int x5 = x3 + x2 - x4;
+			int y5 = y3 + y2 - y4;
+			drawDragonr(g, scaling, x2, y2, x4, y4, x1, y1, n - 1);
+			drawDragonr(g, scaling, x2, y2, x5, y5, x3, y3, n - 1);
+		}
+	}
+	
 	/**
 	 * This methods draws randomly distributes lines
 	 * 
@@ -2524,10 +2533,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 * @param width
 	 * @param height
 	 * @param thicknessMax
-	 * @param thicknessScaling
+	 * @param randomShapeScaling
 	 * @param n
 	 */
-	public void drawRandomLines(Graphics g, int width, int height, int thicknessMax, float thicknessScaling, int numIterations) {
+	public void drawRandomLines(Graphics g, int width, int height, int thicknessMax, float randomShapeScaling, int numLines) {
 	
 		int x1 = 0;
 		int x2 = 0;
@@ -2537,25 +2546,23 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		int thickness = 0;
 		int[] thicknesses = null;
-		double r = 0.0;
 		Random random = new Random();
-	
 		
 		if (thicknessMax > 1) {
 			thicknesses   = new int[thicknessMax];
 			for (int t = 0; t < thicknessMax; t++) {
-				thicknesses[t] = (int)Math.round((double)thicknessMax*Math.exp(-thicknessScaling*t)); //good approximation for hyperbolic distribution, see Excel file
+				thicknesses[t] = (int)Math.round((double)thicknessMax*Math.exp(-randomShapeScaling*t)); //good approximation for hyperbolic distribution, see Excel file
 			}
 			//thicknesses decrease from thicknessMax to lower values
 		}
 	
-		for (int n = 0; n < numIterations; n++) {
-			point = getRandomPoint(width, height);
+		for (int n = 0; n < numLines; n++) {
+			point = getRandomPointOnRectangle(width, height);
 			x1 = point[0];
 			y1 = point[1];
 				
 			while ((point[0] == x1) || (point[1] == y1)) {//initially the point is x1 y1
-				point = getRandomPoint(width, height);
+				point = getRandomPointOnRectangle(width, height);
 			}
 			x2 = point[0];
 			y2 = point[1];
@@ -2582,7 +2589,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	 * @param height
 	 * @return int[]
 	 */
-	public int[] getRandomPoint(int width, int height) {
+	public int[] getRandomPointOnRectangle(int width, int height) {
 		
 		int[] point = new int[2];	
 		int position;	
@@ -2654,6 +2661,211 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	}
 	
 	/**
+	 * This methods draws randomly distributes discs
+	 * 
+	 * @param g
+	 * @param width
+	 * @param height
+	 * @param radiusMax
+	 * @param radiusScaling
+	 * @param n
+	 */
+	public void drawRandomCircles(Graphics g, int width, int height, int radiusMax, float radiusScaling, int numDiscs) {
+	
+		int x1 = 0; //Center of a disc
+		int y1 = 0;
+		
+		int radius = 0;
+		int[] radii = null;
+		Random random = new Random();
+	
+		if (radiusMax > 1) {
+			radii   = new int[radiusMax];
+			for (int r = 0; r < radiusMax; r++) {
+				radii[r] = (int)Math.round((double)radiusMax*Math.exp(-radiusScaling*r)); //good approximation for hyperbolic distribution, see Excel file
+			}
+			//radii decrease from radiusMax to lower values
+		}
+	
+		for (int n = 0; n < numDiscs; n++) {
+		
+			x1 = random.nextInt(width);
+			y1 = random.nextInt(height);
+			
+			if (radiusMax == 1) { //Radius must be >= 1
+				radius = radiusMax;
+				g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
+				//g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
+			} else {
+				radius = radii[random.nextInt(radiusMax)];
+				if (radius < 1) radius = 1;
+				if (radius == 1) { //Radius must be >= 1
+					g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
+					//g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
+				}
+				else {
+					g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
+					//g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
+				}
+			}
+		}	
+	}
+	
+	/**
+	 * This methods draws randomly distributes discs
+	 * 
+	 * @param g
+	 * @param width
+	 * @param height
+	 * @param radiusMax
+	 * @param radiusScaling
+	 * @param n
+	 */
+	public void drawRandomFilledCircles(Graphics g, int width, int height, int radiusMax, float radiusScaling, int numDiscs) {
+	
+		int x1 = 0; //Center of a disc
+		int y1 = 0;
+		
+		int radius = 0;
+		int[] radii = null;
+		Random random = new Random();
+	
+		if (radiusMax > 1) {
+			radii   = new int[radiusMax];
+			for (int r = 0; r < radiusMax; r++) {
+				radii[r] = (int)Math.round((double)radiusMax*Math.exp(-radiusScaling*r)); //good approximation for hyperbolic distribution, see Excel file
+			}
+			//radii decrease from radiusMax to lower values
+		}
+	
+		for (int n = 0; n < numDiscs; n++) {
+		
+			x1 = random.nextInt(width);
+			y1 = random.nextInt(height);
+			
+			if (radiusMax == 1) { //Radius must be >= 1
+				radius = radiusMax;
+				//g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
+				g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
+			} else {
+				radius = radii[random.nextInt(radiusMax)];
+				if (radius < 1) radius = 1;
+				if (radius == 1) { //Radius must be >= 1
+					//g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
+					g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
+				}
+				else {
+					//g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
+					g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
+				}
+			}
+		}	
+	}
+	
+	/**
+	 * This methods draws randomly distributes squares
+	 * 
+	 * @param g
+	 * @param width
+	 * @param height
+	 * @param size
+	 * @param sizeScaling
+	 * @param n
+	 */
+	public void drawRandomSquares(Graphics g, int width, int height, int sizeMax, float sizeScaling, int numSquares) {
+	
+		int x1 = 0; //Center of a disc
+		int y1 = 0;
+		
+		int size = 0;
+		int[] sizes = null;
+		Random random = new Random();
+	
+		if (sizeMax > 1) {
+			sizes   = new int[sizeMax];
+			for (int r = 0; r < sizeMax; r++) {
+				sizes[r] = (int)Math.round((double)sizeMax*Math.exp(-sizeScaling*r)); //good approximation for hyperbolic distribution, see Excel file
+			}
+			//sizes decrease from sizeMax to lower values
+		}
+	
+		for (int n = 0; n < numSquares; n++) {
+		
+			x1 = random.nextInt(width);
+			y1 = random.nextInt(height);
+			
+			if (sizeMax == 1) { //Radius must be >= 1
+				size = sizeMax;
+				g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
+				//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+			} else {
+				size = sizes[random.nextInt(sizeMax)];
+				if (size < 1) size = 1;
+				if (size == 1) { //Radius must be >= 1
+					g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
+					//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+				}
+				else {
+					g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
+					//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+				}
+			}
+		}	
+	}
+	
+	
+	/**
+	 * This methods draws randomly distributes filled squares
+	 * 
+	 * @param g
+	 * @param width
+	 * @param height
+	 * @param size
+	 * @param sizeScaling
+	 * @param n
+	 */
+	public void drawRandomFilledSquares(Graphics g, int width, int height, int sizeMax, float sizeScaling, int numSquares) {
+	
+		int x1 = 0; //Center of a disc
+		int y1 = 0;
+		
+		int size = 0;
+		int[] sizes = null;
+		Random random = new Random();
+	
+		if (sizeMax > 1) {
+			sizes   = new int[sizeMax];
+			for (int r = 0; r < sizeMax; r++) {
+				sizes[r] = (int)Math.round((double)sizeMax*Math.exp(-sizeScaling*r)); //good approximation for hyperbolic distribution, see Excel file
+			}
+			//sizes decrease from sizeMax to lower values
+		}
+	
+		for (int n = 0; n < numSquares; n++) {
+		
+			x1 = random.nextInt(width);
+			y1 = random.nextInt(height);
+			
+			if (sizeMax == 1) { //Radius must be >= 1
+				size = sizeMax;
+				//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
+				g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+			} else {
+				size = sizes[random.nextInt(sizeMax)];
+				if (size < 1) size = 1;
+				if (size == 1) { //Radius must be >= 1
+					//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
+					g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+				}
+				else {
+					//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
+					g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+				}
+			}
+		}	
+	}
+	
+	/**
      * @param 
      * @throws Exception
      */
@@ -2696,10 +2908,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		float fracDim 			= spinnerFloat_FracDim;
 		float frequency  		= spinnerFloat_SineSumOfSineFrequency;
 		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
-		int numIterations		= spinnerInteger_NumSumOfSineIterations;
+		int numIterations		= spinnerInteger_NumIterations;
+		int randomShapeSize		= spinnerInteger_RandomShapeSize;
+		float randomShapeScaling= spinnerFloat_RandomShapeScaling;
 		int numPolygons			= spinnerInteger_NumPolygons;
-		int lineThickness		= spinnerInteger_LineThickness;
-		float thicknessScaling  = spinnerFloat_ThicknessScaling;
 		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
 		
 	
@@ -2716,6 +2928,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		else if (imageType.equals("Fractal surface - MPD"))						name = "Fractal surface(s) - MPD";
 		else if (imageType.equals("Fractal surface - Sum of sine"))			 	name = "Fractal surface(s) - Sum of sine";
 		else if (imageType.equals("Fractal - HRM"))								name = "Fractal - HRM";
+		else if (imageType.equals("Fractal random shapes - Lines"))				name = "Fractal random shapes - Lines";
+		else if (imageType.equals("Fractal random shapes - Circles"))			name = "Fractal random shapes - Circles";
+		else if (imageType.equals("Fractal random shapes - Squares"))			name = "Fractal random shapes - Squares";
+		else if (imageType.equals("Fractal random shapes - Filled circles"))	name = "Fractal random shapes - Filled circles";
+		else if (imageType.equals("Fractal random shapes - Filled squares"))	name = "Fractal random shapes - Filled squares";
 		else if (imageType.equals("Fractal IFS - Menger"))						name = "Fractal IFS - Menger";
 		else if (imageType.equals("Fractal IFS - Sierpinski-1"))				name = "Fractal IFS - Sierpinski-1";
 		else if (imageType.equals("Fractal IFS - Sierpinski-2"))				name = "Fractal IFS - Sierpinski-2";
@@ -2726,7 +2943,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		else if (imageType.equals("Fractal IFS - Koch snowflake"))				name = "Fractal IFS - Koch snowflake";
 		else if (imageType.equals("Fractal IFS - Fern"))						name = "Fractal IFS - Fern";
 		else if (imageType.equals("Fractal IFS - Heighway dragon"))				name = "Fractal IFS - Heighway dragon";
-		else if (imageType.equals("Fractal IFS - Random lines"))				name = "Fractal IFS - Random lines";
+		
 			
 		AxisType[] axes  = null;
 		long[] dims 	 = null;
@@ -2756,6 +2973,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
 				else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
 				else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
+				else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "lines",  greyR);
+				else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
+				else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
+				else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
+				else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
 				else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
@@ -2766,7 +2988,6 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations, lineThickness, thicknessScaling, greyR);
 				
 				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 				Cursor<UnsignedByteType> cursor = resultImg.cursor();
@@ -2817,6 +3038,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
 					else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
 					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
+					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyR);
+					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
+					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
+					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
+					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
 					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
@@ -2827,8 +3053,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations, lineThickness, thicknessScaling, greyR);
-					
+						
 					ra = datasetOut.randomAccess();
 					cursor = resultImg.cursor();
 					pos2D = new long[2];
@@ -2882,6 +3107,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
 					else if (imageType.equals("Fractal surface - Sum of sine"))			computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
 					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
+					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
+					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
+					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
+					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
+					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
 					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
@@ -2892,8 +3122,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations, lineThickness, thicknessScaling, greyValue);
-					
+								
 					cursor = resultImg.cursor();
 					
 					while (cursor.hasNext()) {
@@ -2952,6 +3181,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 						else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
 						else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
 						else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
+						else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
+						else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
+						else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
+						else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
+						else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
 						else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
@@ -2962,7 +3196,6 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 						else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Random lines"))			computeFracRandomLines(numIterations,  lineThickness, thicknessScaling, greyValue);
 						
 						cursor = resultImg.cursor();
 						pos2D = new long[2];		
