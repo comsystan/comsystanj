@@ -73,7 +73,7 @@ import javax.swing.UIManager;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
 	@Menu(label = "QRS peaks detection (from file)", weight = 120)})
-public class DetectQRSPeaks  extends ContextCommand implements Previewable { //modal GUI with cancel
+public class SignalDetectQRSPeaks  extends ContextCommand implements Previewable { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";
 	private static final String SPACE_LABEL = "";
@@ -317,11 +317,11 @@ public class DetectQRSPeaks  extends ContextCommand implements Previewable { //m
 //            ij.ui().show(dataset);
 //
 //            // invoke the plugin
-//            ij.command().run(FracCreate3D.class, true);
+//            ij.command().run(???????.class, true);
 //        }
 //       
          //invoke the plugin
-         ij.command().run(DetectQRSPeaks.class, true);
+         ij.command().run(SignalDetectQRSPeaks.class, true);
     	
     }
 
