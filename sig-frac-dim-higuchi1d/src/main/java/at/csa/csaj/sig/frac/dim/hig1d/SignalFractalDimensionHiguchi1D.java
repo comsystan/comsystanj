@@ -83,7 +83,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Higuchi dimension", weight = 17)})
+	@Menu(label = "Higuchi dimension", weight = 170)})
 //public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 

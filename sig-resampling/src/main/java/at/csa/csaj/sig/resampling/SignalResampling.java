@@ -82,7 +82,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Resampling", weight = 4)})
+	@Menu(label = "Resampling", weight = 30)})
 //public class SignalResampling<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalResampling<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 

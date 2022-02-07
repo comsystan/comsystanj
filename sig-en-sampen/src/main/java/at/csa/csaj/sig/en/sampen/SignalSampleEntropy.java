@@ -83,7 +83,7 @@ import at.csa.csaj.sig.en.sampen.util.SampleEntropy;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Sample entropy", weight = 30)})
+	@Menu(label = "Sample entropy", weight = 300)})
 //public class SignalSampleEntropy<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalSampleEntropy<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 

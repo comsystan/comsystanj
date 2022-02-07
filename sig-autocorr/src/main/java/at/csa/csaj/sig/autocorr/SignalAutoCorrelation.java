@@ -88,7 +88,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Autocorrelation", weight = 9)})
+	@Menu(label = "Autocorrelation", weight = 90)})
 //public class SignalAutoCorrelation<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalAutoCorrelation<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 

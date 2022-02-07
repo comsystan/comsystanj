@@ -121,7 +121,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Standard HRV measurements", weight = 13)})
+	@Menu(label = "Standard HRV measurements", weight = 130)})
 //public class SignalHRV<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalHRV<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 

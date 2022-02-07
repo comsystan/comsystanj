@@ -85,7 +85,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Hurst coefficient", weight = 16)})
+	@Menu(label = "Hurst coefficient", weight = 160)})
 //public class SignalHurst<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalHurst<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
