@@ -16,6 +16,7 @@ Major change:
 New
 2D Image - Image Generator - Added Mandelbrot islands/lakes
 2D Image - Image Generator - Added Fractal random shapes (lines, circles, squares, filled circles, filled squares)
+Signal - Noise
 
 Bugfix
 

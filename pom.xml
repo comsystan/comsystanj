@@ -53,6 +53,7 @@
 		<module>sig-hrv</module>
 		<module>sig-kc</module>
 		<module>sig-math</module>
+		<module>sig-noise</module>
 		<module>sig-opener</module>
 		<module>sig-poincareplot</module>
 		<module>sig-resampling</module>
