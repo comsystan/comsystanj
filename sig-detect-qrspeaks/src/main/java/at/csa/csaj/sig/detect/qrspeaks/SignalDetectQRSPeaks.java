@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin to detect QRS peaks and RR intervals.
- * File: DetectQRSPeaks.java
+ * File: SignalDetectQRSPeaks.java
  * 
  * $Id$
  * $HeadURL$
