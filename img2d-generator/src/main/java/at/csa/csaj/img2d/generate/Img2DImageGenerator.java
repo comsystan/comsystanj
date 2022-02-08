@@ -290,8 +290,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     private int spinnerInteger_RandomShapeSize;
     
     @Parameter(label = "(Random shapes) Scaling",
-   		   	   description = "Scaling of hyperbolic thickness/radius/size distribution [0, 1]", //0..without scaling, same thickness   1..maximal scaling
-  	  		   style = NumberWidget.SPINNER_STYLE,
+   		   	   description = "Scaling of exponential thickness/radius/size distribution [0, 1]", //0..without scaling, same thickness   1..maximal scaling
+  	  		   //Statt hyperbolic Näherung mit exp Funktion: Vorteil scaling von 0 -1, daher auch ohne Skalierung der Größe möglich
+   		   	   style = NumberWidget.SPINNER_STYLE,
   	  		   min = "0", 
   	  		   max = "1",
   	  	 	   stepSize = "0.1",
@@ -406,7 +407,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	
 	protected void initialRandomShapeScaling() {
 	 	//round to one decimal after the comma
-	 	spinnerFloat_RandomShapeScaling = 0.5f;
+	 	spinnerFloat_RandomShapeScaling = 0.1f;
 	}
 	
 	protected void initialNumPolygons() {
@@ -2458,6 +2459,13 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//Randomly distributed discs
 		//Radii follow a hyperbolic distribution 
 	  	//The intersection (line) of the background is also a Levy dust p285
+	  
+	  	//https://demonstrations.wolfram.com/HyperbolicDistribution/
+		//https://reference.wolfram.com/language/ref/HyperbolicDistribution.html
+		//https://en.wikipedia.org/wiki/Hyperbolic_distribution
+
+	  	//NOTE: Statt hyperbolic Näherung mit exp Funktion: Vorteil scaling von 0 -1, daher auch ohne Skalierung der Größe möglich
+	  	//Siehe Excel file in development
 		
 		int width  = (int)datasetOut.dimension(0);
 		int height = (int)datasetOut.dimension(1);
@@ -2570,7 +2578,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			if (thicknessMax == 1) { //Thickness must be >= 1
 				g.drawLine(x1, y1, x2, y2);
 			} else {
-				thickness = thicknesses[random.nextInt(thicknessMax)];
+				if (n == 0) {
+					thickness = thicknessMax; //first shape has always the maximal size
+				} else {
+					thickness = thicknesses[random.nextInt(thicknessMax)];
+				}
 				if (thickness < 1) thickness = 1;
 				if (thickness == 1) { //Thickness must be >= 1
 					g.drawLine(x1, y1, x2, y2);
@@ -2697,7 +2709,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
 				//g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
 			} else {
-				radius = radii[random.nextInt(radiusMax)];
+				if (n == 0) {
+					radius = radiusMax; //first shape has always the maximal size
+				} else {
+					radius = radii[random.nextInt(radiusMax)];
+				}		
 				if (radius < 1) radius = 1;
 				if (radius == 1) { //Radius must be >= 1
 					g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
@@ -2748,7 +2764,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				//g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
 				g.fillOval(x1 - radius, y1 - radius, radius*2, radius*2); //Disc
 			} else {
-				radius = radii[random.nextInt(radiusMax)];
+				if (n == 0) {
+					radius = radiusMax; //first shape has always the maximal size
+				} else {
+					radius = radii[random.nextInt(radiusMax)];
+				}	
 				if (radius < 1) radius = 1;
 				if (radius == 1) { //Radius must be >= 1
 					//g.drawOval(x1 - radius, y1 - radius, radius*2, radius*2); //Circle
@@ -2796,18 +2816,22 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			
 			if (sizeMax == 1) { //Radius must be >= 1
 				size = sizeMax;
-				g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
-				//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+				g.drawRect(x1 - size, y1 - size, size*2, size*2); //Rectangle
+				//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Filled rectangle
 			} else {
-				size = sizes[random.nextInt(sizeMax)];
+				if (n == 0) {
+					size = sizeMax; //first shape has always the maximal size
+				} else {
+					size = sizes[random.nextInt(sizeMax)];
+				}	
 				if (size < 1) size = 1;
 				if (size == 1) { //Radius must be >= 1
-					g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
-					//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+					g.drawRect(x1 - size, y1 - size, size*2, size*2); //Rectangle
+					//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Filled rectangle
 				}
 				else {
-					g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
-					//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+					g.drawRect(x1 - size, y1 - size, size*2, size*2); //Rectangle
+					//g.fillRect(x1 - size, y1 - size, size*2, size*2); //Filled rectangle
 				}
 			}
 		}	
@@ -2848,18 +2872,22 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			
 			if (sizeMax == 1) { //Radius must be >= 1
 				size = sizeMax;
-				//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
-				g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+				//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Rectangle
+				g.fillRect(x1 - size, y1 - size, size*2, size*2); //Filled rectangle
 			} else {
-				size = sizes[random.nextInt(sizeMax)];
+				if (n == 0) {
+					size = sizeMax; //first shape has always the maximal size
+				} else {
+					size = sizes[random.nextInt(sizeMax)];
+				}	
 				if (size < 1) size = 1;
 				if (size == 1) { //Radius must be >= 1
-					//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
-					g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+					//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Rectangle
+					g.fillRect(x1 - size, y1 - size, size*2, size*2); //Filled rectangle
 				}
 				else {
-					//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Circle
-					g.fillRect(x1 - size, y1 - size, size*2, size*2); //Disc
+					//g.drawRect(x1 - size, y1 - size, size*2, size*2); //Rectangle
+					g.fillRect(x1 - size, y1 - size, size*2, size*2); //Filled rectangle
 				}
 			}
 		}	
