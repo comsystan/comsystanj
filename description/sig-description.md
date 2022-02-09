@@ -32,7 +32,7 @@
 - Shot, Salt&Pepper
   - Percentage of data points that will be changed can be set
 - Uniform
-  - Percentage of value changes can be set
+  - Percentage of maximum value changes can be set
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
