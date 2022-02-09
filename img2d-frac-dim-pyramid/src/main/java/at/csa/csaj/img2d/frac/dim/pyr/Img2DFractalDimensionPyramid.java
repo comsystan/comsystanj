@@ -116,7 +116,7 @@ import io.scif.MetaTable;
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
-        @Menu(label = "Pyramid dimension", weight = 4)})
+        @Menu(label = "Pyramid dimension", weight = 40)})
 //public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
 public class Img2DFractalDimensionPyramid<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	

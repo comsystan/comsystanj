@@ -116,7 +116,7 @@ import io.scif.MetaTable;
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
-        @Menu(label = "Minkowski dimension", weight = 5)})
+        @Menu(label = "Minkowski dimension", weight = 50)})
 //public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
 public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	

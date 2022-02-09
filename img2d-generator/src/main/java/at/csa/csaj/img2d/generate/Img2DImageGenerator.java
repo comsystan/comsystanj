@@ -92,7 +92,7 @@ import javax.swing.UIManager;
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
-        @Menu(label = "Image generator", weight = 2)})
+        @Menu(label = "Image generator", weight = 10)})
 public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextCommand implements Previewable { //modal GUI with cancel
 		
 	private static final String PLUGIN_LABEL 			= "<html><b>Generates 2D images</b></html>";

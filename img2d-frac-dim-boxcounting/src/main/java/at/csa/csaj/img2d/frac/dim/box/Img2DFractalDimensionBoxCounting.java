@@ -107,7 +107,7 @@ import io.scif.MetaTable;
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (2D)"),
-        @Menu(label = "Box counting dimension", weight = 3)})
+        @Menu(label = "Box counting dimension", weight = 30)})
 //public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
 public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	

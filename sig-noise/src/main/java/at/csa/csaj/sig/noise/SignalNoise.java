@@ -88,7 +88,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Noise", weight = 60)})
+	@Menu(label = "Noise ", weight = 60)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SignalNoise<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalNoise<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
@@ -175,7 +175,7 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelFFTOptions = NOISEOPTIONS_LABEL;
+	private final String labelNoiseOptions = NOISEOPTIONS_LABEL;
 	
 	@Parameter(label = "Noise",
 			   description = "Noise type",
@@ -792,8 +792,9 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 		//int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints  = dgt.getRowCount();
 		//boolean removeZeores  = booleanRemoveZeroes;
-		String  noiseType      = choiceRadioButt_NoiseType;//"Gaussian"  "Uniform" "Shot"
-		float   percentage     = spinnerFloat_Percentage;
+		String  noiseType      = choiceRadioButt_NoiseType;//"Shot" "Salt&Pepper", "Uniform" "Gaussian" "Rayleigh" "Exponential"
+		double  fraction       = (double)spinnerFloat_Percentage/100.0;
+		double  scaleParam     = spinnerFloat_Percentage; //That is not a good practice
 		//******************************************************************************************************
 		
 	
@@ -841,9 +842,8 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 			//rangeOut  = new double[numDataPoints];
 			
 			Random random = new Random();
+			random.setSeed(System.currentTimeMillis());
 			int randomInt;
-			double scaleParam = percentage; //That is not a good practice
-			
 			
 			if (noiseType.equals("Shot")) {
 				//The percentage of all pixels are changed 
@@ -856,7 +856,7 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 				}
 				
 				for (int i = 0; i < numDataPoints; i++) {
-					if (random.nextDouble()*100 < percentage) {
+					if (random.nextDouble() < fraction) {
 						signalOut[i] = max;
 					}
 					else {
@@ -867,7 +867,7 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 			}
 			
 			else if (noiseType.equals("Salt&Pepper")) {
-				//The percentage of all pixels are changed  
+				//The percentage of all values are changed  
 				double max = -Double.MAX_VALUE;
 				double min = Double.MAX_VALUE;
 				
@@ -877,7 +877,7 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 				}
 				
 				for (int i = 0; i < numDataPoints; i++) {
-					if (random.nextDouble()*100 < percentage) {
+					if (random.nextDouble() < fraction) {
 						randomInt = random.nextInt(2);
 						if 		(randomInt == 0) signalOut[i] = max;
 						else if (randomInt == 1) signalOut[i] = min;
@@ -896,8 +896,8 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 				for (int i = 0; i < numDataPoints; i++) {
 					
 					randomInt = random.nextInt(2);
-					if 		(randomInt == 0) signalOut [i] = signal1D[i] + random.nextDouble()*(double)percentage/100.0*signal1D[i];
-					else if (randomInt == 1) signalOut [i] = signal1D[i] - random.nextDouble()*(double)percentage/100.0*signal1D[i];
+					if 		(randomInt == 0) signalOut [i] = signal1D[i] + random.nextDouble()*fraction*signal1D[i];
+					else if (randomInt == 1) signalOut [i] = signal1D[i] - random.nextDouble()*fraction*signal1D[i];
 				}	
 				
 			}
@@ -911,7 +911,7 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 			}
 				
 			else if (noiseType.equals("Rayleigh")) {
-				//Rayleigh noise with the specified sigma is added
+				//Rayleigh noise with the specified scale parameter is added
 				//see https://www.randomservices.org/random/special/Rayleigh.html      point 35.
 				//or
 				//https://en.wikipedia.org/wiki/Rayleigh_distribution
@@ -926,7 +926,7 @@ public class SignalNoise<T extends RealType<T>> extends ContextCommand implement
 			}
 			
 			else if (noiseType.equals("Exponential")) {
-				//Exponential noise with the specified lamda is added
+				//Exponential noise with the specified scale parameter is added
 				//see https://randomservices.org/random/poisson/Exponential.html     Point 5
 				//scale parameter = 1/lamda chosen. Otherwise noise level would go to the opposite direction compared to the other methods;
 				//or

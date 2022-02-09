@@ -120,7 +120,7 @@ import io.scif.config.SCIFIOConfig;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Image (2D)"),
-	@Menu(label = "Kolmogorov complexity and LD", weight = 34)})
+	@Menu(label = "Kolmogorov complexity and LD", weight = 170)})
 //public class Img2DKolmogorovComplexity<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
 public class Img2DKolmogorovComplexity<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	
