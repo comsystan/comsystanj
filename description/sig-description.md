@@ -30,7 +30,7 @@
 ### Noise
 - Adding noise
 - Shot, Salt&Pepper
-- - Percentage of pixels that will be changed can be set
+- - Percentage of data points that will be changed can be set
 - Uniform
 - - Percentage of value changes can be set
 - Gaussian, Rayleigh, Exponential
