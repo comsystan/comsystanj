@@ -33,6 +33,15 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
+### Noise
+- Adding noise
+- Shot, Salt&Pepper
+- - Percentage of pixels that will be changed can be set
+- Uniform
+- - Percentage of value changes can be set
+- Gaussian, Rayleigh, Exponential
+- - Scaling parameter can be set
+
 ### Box counting dimension
 - Fractal dimension is computed with box counting
 - 8-bit binary or grey images
