@@ -30,11 +30,11 @@
 ### Noise
 - Adding noise
 - Shot, Salt&Pepper
-- - Percentage of data points that will be changed can be set
+  - Percentage of data points that will be changed can be set
 - Uniform
-- - Percentage of value changes can be set
+  - Percentage of value changes can be set
 - Gaussian, Rayleigh, Exponential
-- - Scaling parameter can be set
+  - Scaling parameter can be set
 
 ### Cut out
 - Cutting out of a sub-signal
