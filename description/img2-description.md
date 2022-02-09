@@ -36,11 +36,11 @@ For binary images black pixels are the background. White pixels are the foregrou
 ### Noise
 - Adding noise
 - Shot, Salt&Pepper
-- - Percentage of pixels that will be changed can be set
+  - Percentage of pixels that will be changed can be set
 - Uniform
-- - Percentage of value changes can be set
+  - Percentage of value changes can be set
 - Gaussian, Rayleigh, Exponential
-- - Scaling parameter can be set
+  - Scaling parameter can be set
 
 ### Box counting dimension
 - Fractal dimension is computed with box counting
