@@ -31,6 +31,7 @@
 		<module>img2d-frac-succolarity</module>
 		<module>img2d-generator</module>
 		<module>img2d-kc</module>
+		<module>img2d-noise</module>
 		<module>img2d-opener</module>
 		<module>sig-allomscale</module>
 		<module>sig-autocorr</module>
