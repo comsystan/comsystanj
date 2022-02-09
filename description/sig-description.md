@@ -27,6 +27,15 @@
 - Table can be exported as comma delimited text file in Fiji
 - Note: Select to export column and row headers
 
+### Noise
+- Adding noise
+- Shot, Salt&Pepper
+- - Percentage of pixels that will be changed can be set
+- Uniform
+- - Percentage of value changes can be set
+- Gaussian, Rayleigh, Exponential
+- - Scaling parameter can be set
+
 ### Cut out
 - Cutting out of a sub-signal
 - The range of the sub-signal is selected with the data value indices
