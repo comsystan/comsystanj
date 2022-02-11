@@ -33,6 +33,7 @@
 		<module>img2d-kc</module>
 		<module>img2d-noise</module>
 		<module>img2d-opener</module>
+		<module>img2d-surrogate</module>
 		<module>sig-allomscale</module>
 		<module>sig-autocorr</module>
 		<module>sig-cutout</module>
