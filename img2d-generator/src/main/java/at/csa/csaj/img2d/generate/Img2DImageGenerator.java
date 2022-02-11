@@ -742,7 +742,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		final long[] origin4  = {columns-1, rows-1}; //right bottom
 		
 		// generate random pixel values
-		Random generator = new Random();
+		Random random = new Random();
+		random.setSeed(System.currentTimeMillis());
+		
 		double b = 8.0f - (2.0f * fracDim);		// FD = (B+6)/2 laut Closed contour fractal dimension estimation... J.B. Florindo
 		double dist1;
 		double dist2;
@@ -759,8 +761,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				posFFT[1] = k1;
 				posFFT[0] = k2;
 				dist1  = Util.distance(origin1, posFFT); //Distance
-				g = generator.nextGaussian();
-				u = generator.nextFloat();
+				g = random.nextGaussian();
+				u = random.nextFloat();
 				n = g * Math.cos(2 * Math.PI * u);
 				m = g * Math.sin(2 * Math.PI * u);
 				n = n * Math.pow(dist1+1, -b / 2);
@@ -775,8 +777,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				posFFT[1] = k1;
 				posFFT[0] = k2;
 				dist2  = Util.distance(origin2, posFFT); //Distance
-				g = generator.nextGaussian();
-				u = generator.nextFloat();
+				g = random.nextGaussian();
+				u = random.nextFloat();
 				n = g * Math.cos(2 * Math.PI * u);
 				m = g * Math.sin(2 * Math.PI * u);
 				n = n * Math.pow(dist2+1, -b / 2);
@@ -790,8 +792,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				posFFT[1] = k1;
 				posFFT[0] = k2;
 				dist3  = Util.distance(origin3, posFFT); //Distance
-				g = generator.nextGaussian();
-				u = generator.nextFloat();
+				g = random.nextGaussian();
+				u = random.nextFloat();
 				n = g * Math.cos(2 * Math.PI * u);
 				m = g * Math.sin(2 * Math.PI * u);
 				n = n * Math.pow(dist3+1, -b / 2);
@@ -805,8 +807,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				posFFT[1] = k1;
 				posFFT[0] = k2;
 				dist4  = Util.distance(origin4, posFFT); //Distance
-				g = generator.nextGaussian();
-				u = generator.nextFloat();
+				g = random.nextGaussian();
+				u = random.nextFloat();
 				n = g * Math.cos(2 * Math.PI * u);
 				m = g * Math.sin(2 * Math.PI * u);
 				n = n * Math.pow(dist4+1, -b / 2);
