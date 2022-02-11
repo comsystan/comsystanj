@@ -38,8 +38,6 @@ import org.apache.commons.math3.transform.DftNormalization;
 import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 
-
-
 /**
  * This class calculates surrogate data
  * Options: Shuffle, Gaussian, Phase randomized, AAFT, Pseudo-Periodic, Multivariate
@@ -171,12 +169,14 @@ public class Surrogate {
 		double[] surrogate = new double[signal.length];
 		Vector<Double> signalVec = this.convertDoubleArrayToVector(signal);
 		
-		Random generator = new Random();
+		Random random = new Random();
+		random.setSeed(System.currentTimeMillis());
+		
 		int index;
 		int i = 0;
 		int n = signalVec.size();
 		while (signalVec.size() > 0){
-			index = generator.nextInt(signalVec.size());	
+			index = random.nextInt(signalVec.size());	
 			surrogate[i] = signalVec.get(index);
 			signalVec.removeElementAt(index);
 			i = i + 1;
@@ -192,12 +192,13 @@ public class Surrogate {
 	 */
 	public Vector<Double> calcSurrogateGaussian(Vector<Double> data1D) {	
 		Vector<Double> vec = new Vector<Double>();
-		Random generator = new Random();
+		Random random = new Random();
+		random.setSeed(System.currentTimeMillis());
 		double mean   = this.calcMean(data1D);
 		double stdDev = this.calcStandardDeviation(data1D);
 		double nextDataPoint;
 		for (int i = 0; i < data1D.size(); i++){
-			nextDataPoint = generator.nextGaussian()*stdDev + mean;	
+			nextDataPoint = random.nextGaussian()*stdDev + mean;	
 			vec.add(nextDataPoint);
 		}		
 		return vec;
@@ -210,12 +211,13 @@ public class Surrogate {
 	 */
 	public double[] calcSurrogateGaussian(double[] signal) {	
 		double[] surrogate = new double[signal.length];
-		Random generator = new Random();
+		Random random = new Random();
+		random.setSeed(System.currentTimeMillis());
 		double mean   = this.calcMean(signal);
 		double stdDev = this.calcStandardDeviation(signal);
 		
 		for (int i = 0; i < surrogate.length; i++){
-			surrogate[i]  = generator.nextGaussian()*stdDev + mean;	
+			surrogate[i]  = random.nextGaussian()*stdDev + mean;	
 		}		
 		return surrogate;
 	}
@@ -223,23 +225,52 @@ public class Surrogate {
 	/**
 	 * This method calculates a surrogate data double array using the phase randomized method
 	 * The signal is FFT converted, phase randomized and inverse FFT back converted
-	 * @param signal
+	 * @param signal1D
 	 * @return surrogate data 
 	 */
-	public double[] calcSurrogateRandomPhase(double[] signal) {	
+	public double[] calcSurrogateRandomPhase(double[] signal1D, String windowingType) {	
 		
-		int signalLength = signal.length;
-		Random generator = new Random();	
+		int signalLength = signal1D.length;
+		Random random = new Random();
+		random.setSeed(System.currentTimeMillis());	
+		
+		if (windowingType.equals("Rectangular")) {
+			signal1D = windowingRectangular(signal1D);
+		}
+		else if (windowingType.equals("Cosine")) {
+			signal1D = windowingCosine(signal1D);
+		}
+		else if (windowingType.equals("Lanczos")) {
+			signal1D = windowingLanczos(signal1D);
+		}
+		else if (windowingType.equals("Bartlett")) {
+			signal1D = windowingBartlett(signal1D);
+		}
+		else if (windowingType.equals("Hamming")) {
+			signal1D = windowingHamming(signal1D);
+		}
+		else if (windowingType.equals("Hanning")) {
+			signal1D = windowingHanning(signal1D);
+		}
+		else if (windowingType.equals("Blackman")) {
+			signal1D = windowingBlackman(signal1D);
+		}	
+		else if (windowingType.equals("Gaussian")) {
+			signal1D = windowingGaussian(signal1D);
+		}
+		else if (windowingType.equals("Parzen")) {
+			signal1D = windowingParzen(signal1D);
+		}
 		
 		//FFT needs power of two
 		if (!isPowerOfTwo(signalLength)) {
-			signal = addZerosUntilPowerOfTwo(signal);
+			signal1D = addZerosUntilPowerOfTwo(signal1D);
 		}
 		
-		double[] surrogate = new double[signal.length];	
+		double[] surrogate = new double[signal1D.length];	
 		
 		FastFourierTransformer transformer = new FastFourierTransformer(DftNormalization.STANDARD);
-		Complex[] complx = transformer.transform(signal, TransformType.FORWARD);  
+		Complex[] complx = transformer.transform(signal1D, TransformType.FORWARD);  
 		
 //	    double[] real = new double[complx.length];
 //	    double[] imaginary = new double[complx.length];
@@ -253,7 +284,7 @@ public class Surrogate {
 		double angle;
 		double magnitude;
 		for (int i = 0; i < complx.length; i++){		
-			angle = generator.nextDouble()*2*Math.PI;
+			angle = random.nextDouble()*2*Math.PI;
 			//get Magnitude;
 			magnitude = Math.sqrt(complx[i].getImaginary()*complx[i].getImaginary() + complx[i].getReal()*complx[i].getReal());
 			//set back complex number with identical magnitude but shuffled phase
@@ -278,8 +309,6 @@ public class Surrogate {
 		return surrogate;
 	}
 
-
-
 	/**
 	 * This method calculates a surrogate data double array using the AAFT (amplitude adjusted FT) method
 	 * A Gaussian signal y is constructed
@@ -287,9 +316,10 @@ public class Surrogate {
 	 * then y is FFT converted, phase randomized and inverse FFT back converted yielding y'
 	 * the original signal is ranked according to y'
 	 * @param signal
+	 * @param windowing type
 	 * @return surrogate data 
 	 */
-	public double[] calcSurrogateAAFT(double[] signal) {
+	public double[] calcSurrogateAAFT(double[] signal, String windowingType) {
 		
 		int signalLength = signal.length;
 		double[] surrogate = new double[signalLength];
@@ -300,10 +330,11 @@ public class Surrogate {
 	
      
         //Calculate Gaussian signal
-		Random generator = new Random();
+    	Random random = new Random();
+		random.setSeed(System.currentTimeMillis());;
 		double[] gauss = new double[signalLength];
 		for (int i = 0; i < signalLength; i++){
-			gauss[i] = generator.nextGaussian();	
+			gauss[i] = random.nextGaussian();	
 		}
 
 
@@ -315,7 +346,7 @@ public class Surrogate {
 		
         //calculate phase randomized signal of ranked Gaussian
 		//this call fires also the progress bar events
-        double[] gaussPhaseRandom = this.calcSurrogateRandomPhase(gaussRank);
+        double[] gaussPhaseRandom = this.calcSurrogateRandomPhase(gaussRank, windowingType);
 	
         //calculate rank of Gaussian (Ranked) phase randomized
 		ranking = new NaturalRanking(NaNStrategy.REMOVED, TiesStrategy.SEQUENTIAL);
@@ -360,7 +391,8 @@ public class Surrogate {
 	 * @return Vector of Series (vectors)
 	 * 
 	 */
-	public Vector<Vector<Double>> calcSurrogateSeries(Vector<Double> data1D, int method, int times){
+	public Vector<Vector<Double>> calcSurrogateSeries(Vector<Double> data1D, int method, String windowingType, int times){
+		
 		Vector<Vector<Double>> surrogateSeries = new Vector<Vector<Double>>(times);
 		double[] signal = this.convertVectorToDoubleArray(data1D);
 			
@@ -374,10 +406,10 @@ public class Surrogate {
 		     		surrogate = this.calcSurrogateGaussian(signal);
 		     		break;
 		     	case SURROGATE_RANDOMPHASE:
-		     		surrogate = this.calcSurrogateRandomPhase(signal);
+		     		surrogate = this.calcSurrogateRandomPhase(signal, windowingType);
 		     		break;
 		     	case SURROGATE_AAFT:
-		     		surrogate = this.calcSurrogateAAFT(signal);
+		     		surrogate = this.calcSurrogateAAFT(signal, windowingType);
 		     		break;
 		     	case SURROGATE_PSEUDOPERIODIC:
 		     		surrogate = this.calcSurrogatePseudoPeriodic(signal);
@@ -430,5 +462,175 @@ public class Surrogate {
 		}
 		return newSignal;
 	}
+	
+	/**
+	 * This method does Rectangular windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingRectangular (double[] signal) {
+		double weight = 1.0;
+	     for(int i = 0; i < signal.length; ++i) {
+	    	 signal[i] = signal[i] * weight;
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Cosine windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingCosine (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = Math.sin(Math.PI*n/M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Cosine weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does  Lanczos windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingLanczos (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+		 double x = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 x = Math.PI*(2.0*n/M-1);
+	    	 if (x == 0) weight = 1.0;
+	    	 else weight =  Math.sin(x)/x;
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Lanczos weight  n " + n + "  "  + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Bartlett windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBartlett (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 1.0-(2.0*Math.abs((double)n-M/2.0)/M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Bartlett weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Hamming windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHamming (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Hamming weight " + weight);
+	     }
+	     return signal; 
+	}
+
+	/**
+	 * This method does Hanning windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingHanning (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Hanning weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Blackman windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingBlackman (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 weight = 0.42 - 0.5 * Math.cos(2.0 * Math.PI * n / M) + 0.008 * Math.cos(4.0 * Math.PI * n / M);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Blackman weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Gaussian windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingGaussian (double[] signal) {
+		 double M = signal.length - 1;
+		 double weight = 0.0;
+		 double sigma = 0.3;
+		 double exponent = 0.0;
+	     for(int n = 0; n < signal.length; n++) {
+	    	 exponent = ((double)n-M/2)/(sigma*M/2.0);
+	    	 exponent *= exponent;
+	    	 weight = Math.exp(-0.5*exponent);
+	    	 signal[n] = signal[n] * weight;
+	    	 //System.out.println("SignalFFT Gaussian weight " + weight);
+	     }
+	     return signal; 
+	}
+	
+	/**
+	 * This method does Parzen windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param signal
+	 * @return windowed signal
+	 */
+	private double[] windowingParzen (double[] signal) {
+		double M = signal.length - 1;
+		double nn;
+		double weight = 0.0;
+	    for(int n = 0; n < signal.length; n++) {
+	    	nn = Math.abs((double)n-M/2);
+	    	if      ((nn >= 0.0) && (nn < M/4))  weight = 1.0 - 6.0*Math.pow(nn/(M/2), 2) * (1- nn/(M/2));
+	    	else if ((nn >= M/4) && (nn <= M/2)) weight = 2.0*Math.pow(1-nn/(M/2), 3);
+	    	signal[n] = signal[n] * weight;
+	      	//System.out.println("SignalFFT Parzen weight n " + n + "  "  + weight);
+	     }
+	     return signal; 
+	}
+	
 
 }
