@@ -108,6 +108,13 @@
 					</exclusion>
 				</exclusions>
 		</dependency>
+		<!-- JTransforms is needed for this project on the compile classpath, but it is already on the runtime classpath from another project-->
+		<!-- Maven central lists also a edu.emory.mathcs "JTransform" version2.4 and others-->
+		<dependency>
+    		<groupId>edu.emory.mathcs</groupId>
+    		<artifactId>jtransforms</artifactId>
+    		<version>2.4</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
