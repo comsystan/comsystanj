@@ -526,7 +526,7 @@ public class Img2DImageNoise<T extends RealType<T>> extends ContextCommand imple
 	*/
 	protected void startWorkflowForSingleImage() {
 		
-		dlgProgress = new WaitingDialogWithProgressBar("Computing histogram modification, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Adding noise, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		
 		dlgProgress.updatePercent("");
@@ -549,7 +549,7 @@ public class Img2DImageNoise<T extends RealType<T>> extends ContextCommand imple
 	*/
 	protected void startWorkflowForAllImages() {
 
-		dlgProgress = new WaitingDialogWithProgressBar("Computing histogram modification, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Adding noise, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 	
