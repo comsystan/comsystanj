@@ -82,14 +82,14 @@ import at.csa.csaj.sig.open.SignalOpener;
  */
 @Plugin(type = ContextCommand.class,
 	headless = true,
-	label = "FFT",
+	label = "FFT ",
 	initializer = "initialPluginLaunch",
 	//iconPath = "/images/comsystan-??.png", //Menu entry icon
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "FFT", weight = 80)})
+	@Menu(label = "FFT ", weight = 80)}) //Space at the end of the label is necessary to avoid conflict with Fiji FFT plugin 
 //public class SignalFFT<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalFFT<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
@@ -936,8 +936,8 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 				if (surrType.equals("Shuffle"))      signal1D = surrogate.calcSurrogateShuffle(signal1D);
 				if (surrType.equals("Gaussian"))     signal1D = surrogate.calcSurrogateGaussian(signal1D);
-				if (surrType.equals("Random phase")) signal1D = surrogate.calcSurrogateRandomPhase(signal1D);
-				if (surrType.equals("AAFT"))         signal1D = surrogate.calcSurrogateAAFT(signal1D);
+				if (surrType.equals("Random phase")) signal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
+				if (surrType.equals("AAFT"))         signal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	

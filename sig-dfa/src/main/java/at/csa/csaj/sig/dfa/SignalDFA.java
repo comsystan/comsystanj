@@ -920,12 +920,13 @@ public class SignalDFA<T extends RealType<T>> extends ContextCommand implements 
 					double sumR2s    = 0.0;
 					double sumStdErr = 0.0;
 					Surrogate surrogate = new Surrogate();
+					String windowingType = "Rectangular";
 					for (int s = 0; s < numSurrogates; s++) {
-						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"},
 						if (surrType.equals("Shuffle"))      surrSignal1D = surrogate.calcSurrogateShuffle(signal1D);
 						if (surrType.equals("Gaussian"))     surrSignal1D = surrogate.calcSurrogateGaussian(signal1D);
-						if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D);
-						if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D);
+						if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
+						if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 				
 						dfa = new DFA(logService);
 						F = dfa.computeFluctuationFunction(surrSignal1D, numWinSizeMax);

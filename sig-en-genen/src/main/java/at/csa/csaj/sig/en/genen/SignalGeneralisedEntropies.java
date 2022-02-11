@@ -1336,12 +1336,13 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 				
 				double sumEntropies   = 0.0f;
 				Surrogate surrogate = new Surrogate();
+				String windowingType = "Rectangular";
 				for (int s = 0; s < numSurrogates; s++) {
-					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 	
 					if      (surrType.equals("Shuffle"))      surrSignal1D = surrogate.calcSurrogateShuffle(signal1D);
 					else if (surrType.equals("Gaussian"))     surrSignal1D = surrogate.calcSurrogateGaussian(signal1D);
-					else if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D);
-					else if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D);
+					else if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
+					else if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 			
 					probabilities = compProbabilities(surrSignal1D, numLag, probType);		
 					

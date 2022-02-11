@@ -85,7 +85,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Surrogates", weight = 50)})
+	@Menu(label = "Surrogates ", weight = 50)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SignalSurrogate<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalSurrogate<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
@@ -828,10 +828,14 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 				signal1D = surrogate.calcSurrogateGaussian(signal1D);
 				
 			} else 	if (surrType.equals("Random phase")) {
-				signal1D = surrogate.calcSurrogateRandomPhase(signal1D);
+				//String windowingType = "Rectangular";
+				String windowingType = "Bartlett"; 
+				signal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
 				
 			} else 	if (surrType.equals("AAFT")) {
-				signal1D = surrogate.calcSurrogateAAFT(signal1D);
+				//String windowingType = "Rectangular";
+				String windowingType = "Bartlett"; 
+				signal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 				
 			}
 				

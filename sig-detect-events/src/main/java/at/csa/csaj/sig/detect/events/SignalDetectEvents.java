@@ -1471,10 +1471,11 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			if (!surrType.equals("No surrogates")) {
 				Surrogate surrogate = new Surrogate();	
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+				String windowingType = "Rectangular";
 				if (surrType.equals("Shuffle"))      signal1D = surrogate.calcSurrogateShuffle(signal1D);
 				if (surrType.equals("Gaussian"))     signal1D = surrogate.calcSurrogateGaussian(signal1D);
-				if (surrType.equals("Random phase")) signal1D = surrogate.calcSurrogateRandomPhase(signal1D);
-				if (surrType.equals("AAFT"))         signal1D = surrogate.calcSurrogateAAFT(signal1D);
+				if (surrType.equals("Random phase")) signal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
+				if (surrType.equals("AAFT"))         signal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	

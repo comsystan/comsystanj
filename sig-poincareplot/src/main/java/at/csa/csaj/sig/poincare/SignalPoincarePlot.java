@@ -765,11 +765,12 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 			
 			if (!surrType.equals("No surrogates")) {
 				Surrogate surrogate = new Surrogate();	
+				String windowingType = "Rectangular";
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 				if (surrType.equals("Shuffle"))      signal1D = surrogate.calcSurrogateShuffle(signal1D);
 				if (surrType.equals("Gaussian"))     signal1D = surrogate.calcSurrogateGaussian(signal1D);
-				if (surrType.equals("Random phase")) signal1D = surrogate.calcSurrogateRandomPhase(signal1D);
-				if (surrType.equals("AAFT"))         signal1D = surrogate.calcSurrogateAAFT(signal1D);
+				if (surrType.equals("Random phase")) signal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
+				if (surrType.equals("AAFT"))         signal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 			}
 			
 			//Generate Poincare plot

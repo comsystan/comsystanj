@@ -1172,8 +1172,8 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 					if      (surrType.equals("Shuffle"))      surrSignal1D = surrogate.calcSurrogateShuffle(signal1D);
 					else if (surrType.equals("Gaussian"))     surrSignal1D = surrogate.calcSurrogateGaussian(signal1D);
-					else if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D);
-					else if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D);
+					else if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
+					else if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 											
 					//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
 					//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
