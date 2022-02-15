@@ -17,7 +17,7 @@
 	<version>2.0.1</version><!--ComsystanJ version-->
 
 	<name>Image(2D) - Surrogate</name>
-	<description>ImageJ2 plugin for constructing suurogate images.</description>
+	<description>ImageJ2 plugin for constructing surrogate images.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2022</inceptionYear>
 	<organization>

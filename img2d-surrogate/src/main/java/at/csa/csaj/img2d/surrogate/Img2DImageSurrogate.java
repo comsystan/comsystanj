@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 plugin for constructing suurogate images.
+ * Project: ImageJ2 plugin for constructing surrogate images.
  * File: Img2DImageSurrogate.java
  * 
  * $Id$
