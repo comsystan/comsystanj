@@ -73,7 +73,7 @@ import javax.swing.UIManager;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Signal opener", weight = 1)})
+	@Menu(label = "Signal opener ", weight = 1)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 public class SignalOpener<T extends RealType<T>> extends ContextCommand { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "Opens single or multiple signals";

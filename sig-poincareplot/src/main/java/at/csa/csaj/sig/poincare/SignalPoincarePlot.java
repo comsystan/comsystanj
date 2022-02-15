@@ -80,7 +80,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "Poincare plot", weight = 140)})
+	@Menu(label = "Poincare plot ", weight = 140)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SignalPoincarePlot<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 

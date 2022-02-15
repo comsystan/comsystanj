@@ -72,7 +72,7 @@ import javax.swing.UIManager;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "Signal"),
-	@Menu(label = "QRS peaks detection (from file)", weight = 120)})
+	@Menu(label = "QRS peaks detection (from file) ", weight = 120)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 public class SignalDetectQRSPeaks  extends ContextCommand implements Previewable { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";
