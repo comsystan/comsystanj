@@ -92,6 +92,7 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 	private static final String PLUGIN_LABEL                = "<html><b>Surrogate</b></html>";
 	private static final String SPACE_LABEL                 = "";
 	private static final String SURROGATEOPTIONS_LABEL      = "<html><b>Surrogate options</b></html>";
+	private static final String FFTOPTIONS_LABEL            = "<html><b>FFT options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL       = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL     = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL        = "<html><b>Display option</b></html>";
@@ -182,6 +183,19 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 			   initializer = "initialSurrogateType",
 			   callback = "callbackSurrogateType")
 	private String choiceRadioButt_SurrogateType;
+	
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelFFTOptions = FFTOPTIONS_LABEL;
+	
+	@Parameter(label = "(Ranom phase/AAFT)Windowing",
+			   description = "Windowing type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Rectangular", "Cosine", "Lanczos", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialWindowingType",
+			   callback = "callbackWindowingType")
+	private String choiceRadioButt_WindowingType;
 	
 //	@Parameter(label = "Surrogates #",
 //			   description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
@@ -274,6 +288,10 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 	protected void initialSurrogateType() {
 		choiceRadioButt_SurrogateType = "Shuffle";
 	} 
+	
+	protected void initialWindowingType() {
+		choiceRadioButt_WindowingType = "Hanning";
+	} 
 		
 //	protected void initialSignalRange() {
 //		choiceRadioButt_SignalRange = "Entire signal";
@@ -313,6 +331,11 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
+	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
+	protected void callbackWindowingType() {
+		logService.info(this.getClass().getName() + " Windowing type set to " + choiceRadioButt_WindowingType);
 	}
 	
 //	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
@@ -742,15 +765,22 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 	private void writeToTable(int signalNumber, double[] resultValues) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
+		String surrType = "";
+		if      (this.choiceRadioButt_SurrogateType.equals("Shuffle"))      surrType = "Shuffle";  //+ this.spinnerInteger_NumSurrogates;
+		else if (this.choiceRadioButt_SurrogateType.equals("Gaussian"))     surrType = "Gaussian"; //+ this.spinnerInteger_NumSurrogates;
+		else if (this.choiceRadioButt_SurrogateType.equals("Random phase")) surrType = "RndPhase" + "(" + choiceRadioButt_WindowingType+ ")"; //+ this.spinnerInteger_NumSurrogates;
+		else if (this.choiceRadioButt_SurrogateType.equals("AAFT"))         surrType = "AAFT"     + "(" + choiceRadioButt_WindowingType+ ")"; //+ this.spinnerInteger_NumSurrogates;
+	
 		for (int r = 0; r < resultValues.length; r++ ) {
-			tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+			
+			tableOut.set(0, r, surrType);
 			tableOut.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
 		}
 		
 		//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
 		if (tableOut.getRowCount() > resultValues.length) {
 			for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
-				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+				tableOut.set(0, r, choiceRadioButt_SurrogateType);
 				tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
 			}
 		}
@@ -781,6 +811,7 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 		//boolean removeZeores  = booleanRemoveZeroes;
 		//String  surrogateType     = choiceRadioButt_SurrogateType;//
 		//int     numSurrogates    = spinnerInteger_NumSurrogates;
+		String  windowingType  = choiceRadioButt_WindowingType;
 		//******************************************************************************************************
 		
 	
@@ -829,12 +860,10 @@ public class SignalSurrogate<T extends RealType<T>> extends ContextCommand imple
 				
 			} else 	if (surrType.equals("Random phase")) {
 				//String windowingType = "Rectangular";
-				String windowingType = "Bartlett"; 
 				signal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
 				
 			} else 	if (surrType.equals("AAFT")) {
 				//String windowingType = "Rectangular";
-				String windowingType = "Bartlett"; 
 				signal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 				
 			}
