@@ -27,15 +27,6 @@
 - Table can be exported as comma delimited text file in Fiji
 - Note: Select to export column and row headers
 
-### Noise
-- Adding noise
-- Shot, Salt&Pepper
-  - Percentage of data points that will be changed can be set
-- Uniform
-  - Percentage of maximum value changes can be set
-- Gaussian, Rayleigh, Exponential
-  - Scaling parameter can be set
-
 ### Cut out
 - Cutting out of a sub-signal
 - The range of the sub-signal is selected with the data value indices
@@ -56,12 +47,6 @@
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data conversion
 
-### Surrogate
-- Computes surrogate signals
-- Shuffle, Gaussian, Random phase, AAFT
-- Signals should be opened with the CSAJ Signal Opener
-- Ref: Mark Shelhammer, Nonlinear Dynamics in Physiology, World Scientific 2007
-
 ### Filter
 - Computes Moving average or Moving Median
 - The range of average or median computation can be set
@@ -69,6 +54,21 @@
 - A range of e.g. 3 means that for a data point, the previous value, the value itself and the next value are taken for the computation  
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data conversion
+
+### Noise
+- Adding noise
+- Shot, Salt&Pepper
+  - Percentage of data points that will be changed can be set
+- Uniform
+  - Percentage of maximum value changes can be set
+- Gaussian, Rayleigh, Exponential
+  - Scaling parameter can be set
+
+### Surrogates
+- Computes surrogate signals
+- Shuffle, Gaussian, Random phase, AAFT
+- Signals should be opened with the CSAJ Signal Opener
+- Ref: Mark Shelhammer, Nonlinear Dynamics in Physiology, World Scientific 2007
 
 ### FFT
 - Computes the Power- or Magnitude spectrum
