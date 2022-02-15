@@ -196,7 +196,7 @@ public class Img2DImageFilter<T extends RealType<T>> extends ContextCommand impl
 	@Parameter(label = "(Gauss)Sigma",
 			   description = "Sigma of Gaussina blur",
 			   style = NumberWidget.SPINNER_STYLE, 
-			   min = "0",
+			   min = "0.5",
 			   max = "9999999999999999999",
 			   stepSize = "0.1",
 			   persist = true, // restore  previous value  default  =  true
@@ -293,8 +293,6 @@ public class Img2DImageFilter<T extends RealType<T>> extends ContextCommand impl
 	}
 	
 	// ------------------------------------------------------------------------------
-	
-
 	/** Executed whenever the {@link #choiceRadioButt_FilterType} parameter changes. */
 	protected void callbackFilterType() {
 		logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_FilterType);
@@ -304,6 +302,7 @@ public class Img2DImageFilter<T extends RealType<T>> extends ContextCommand impl
 	protected void callbackSigma() {
 		//round to ?? decimal after the comma
 	 	//spinnerFloat_Sigma = Math.round(spinnerFloat_Aigma * 10f)/10f;
+		if (spinnerFloat_Sigma < 0.5f) spinnerFloat_Sigma = 0.5f;
 	 	spinnerFloat_Sigma = Precision.round(spinnerFloat_Sigma, 2);
 		logService.info(this.getClass().getName() + " Sigma set to " + spinnerFloat_Sigma);
 	}
