@@ -34,6 +34,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
 ### Filter
+- Image filtering
 - Gaussian blur
   - Sigma can be set
 - Mean, Median
@@ -51,7 +52,9 @@ For binary images black pixels are the background. White pixels are the foregrou
   - Scaling parameter can be set
 
 ### Surrogates
-- 
+- Computes surrogate images
+- Shuffle, Gaussian, Random phase, AAFT
+- FFT windowing can be set
 
 ### Box counting dimension
 - Fractal dimension is computed with box counting
