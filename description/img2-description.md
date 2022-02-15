@@ -33,6 +33,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
+### Filter
+- Gaussian blur
+  - Sigma can be set
+- Mean, Median
+  - Size of kernel can be set
+- Lowpass with FFT
+  - Radius (Cutoff frequency) can be set
+
 ### Noise
 - Adding noise
 - Shot, Salt&Pepper
@@ -41,6 +49,9 @@ For binary images black pixels are the background. White pixels are the foregrou
   - Percentage of maximum value changes can be set
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
+
+### Surrogates
+- 
 
 ### Box counting dimension
 - Fractal dimension is computed with box counting
