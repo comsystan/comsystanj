@@ -16,6 +16,7 @@
 	<modules>
 		<module>commons</module>
 		<module>img2d-en-genen</module>
+		<module>img2d-filter</module>
 		<module>img2d-frac-dim-boxcounting</module>
 		<module>img2d-frac-dim-correlation-directional</module>
 		<module>img2d-frac-dim-ff</module>

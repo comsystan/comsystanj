@@ -14,6 +14,7 @@ Major change:
 
 
 New
+2D Image - Filter
 2D Image - Noise
 2D Image - Surrogates
 2D Image - Image Generator - Added Mandelbrot islands/lakes
