@@ -67,6 +67,7 @@
 ### Surrogates
 - Computes surrogate signals
 - Shuffle, Gaussian, Random phase, AAFT
+- FFT windowing can be set
 - Signals should be opened with the CSAJ Signal Opener
 - Ref: Mark Shelhammer, Nonlinear Dynamics in Physiology, World Scientific 2007
 
