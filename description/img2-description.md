@@ -4,7 +4,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Image opener
 - Opens a single image or an image stack
-- 8bit grey or RGB color images are supported
+- 8bit grey or RGB color images
 - For a stack, all images must be of same size and type  
 - Includes a preview (thumbnail) panel
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Type Image/Type/RGB Color 
@@ -35,6 +35,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Filter
 - Image filtering
+- 8bit grey or RGB color images
 - Gaussian blur
   - Sigma can be set
 - Mean, Median
@@ -44,6 +45,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Noise
 - Adding noise
+- 8bit grey or RGB color images
 - Shot, Salt&Pepper
   - Percentage of pixels that will be changed can be set
 - Uniform
@@ -53,6 +55,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Surrogates
 - Computes surrogate images
+- 8bit grey or RGB color images
 - Shuffle, Gaussian, Random phase, AAFT
 - FFT windowing can be set
 
