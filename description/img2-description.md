@@ -115,6 +115,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Raster or sliding box scanning
+- NOTE: Fast sliding box using convolution ist still in beta
 - Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
 - Dq and f-spectrum plots can be shown
 - The number of boxes with distinct sizes according to the power of 2 can be set
