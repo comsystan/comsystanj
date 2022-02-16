@@ -51,17 +51,20 @@ import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
+import net.imglib2.Interval;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.outofbounds.OutOfBoundsBorderFactory;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Intervals;
+import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -140,8 +143,8 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 	private static String imageType = "";
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
-	private static ArrayList<SignalPlotFrame> genDimPlotList       = new ArrayList<SignalPlotFrame>();
-	private static ArrayList<SignalPlotFrame> fSpecPlotList        = new ArrayList<SignalPlotFrame>();
+	private static ArrayList<SignalPlotFrame> genDimPlotList        = new ArrayList<SignalPlotFrame>();
+	private static ArrayList<SignalPlotFrame> fSpecPlotList         = new ArrayList<SignalPlotFrame>();
 	private static double[][][] resultValuesTable; //First column is q, then the image index, second column are the corresponding regression values
 	private static final String tableOutName = "Table - Generalized dimensions";
 	
@@ -270,7 +273,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
      @Parameter(label = "Scanning type",
  		        description = "Fixed raster boxes or sliding boxes",
  		        style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		        choices = {"Raster box", "Sliding box"}, //"Fast sliding box"}, //Fast sliding box with image dilation does not work properly
+   		        choices = {"Raster box", "Sliding box", "Fast sliding box (beta)"}, //Fast sliding box with image dilation does not work properly
    		        persist = true,  //restore previous value default = true
  		        initializer = "initialScanningType",
                 callback = "callbackScanningType")
@@ -1059,14 +1062,14 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 			//fill table with values
 			tableOut.appendRow();
 			tableOut.set("File name",	   	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null)	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numBoxes);	
+			if (sliceLabels != null)		 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",    	 	 tableOut.getRowCount()-1, numBoxes);	
 			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
 			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
-			tableOut.set("Min q",      	 tableOut.getRowCount()-1, numMinQ);	
-			tableOut.set("Max q",      	 tableOut.getRowCount()-1, numMaxQ);	
-			tableOut.set("Scanning type",   tableOut.getRowCount()-1, scanningType);
-			tableOut.set("Color model",     tableOut.getRowCount()-1, colorModelType);
+			tableOut.set("Min q",      	 	 tableOut.getRowCount()-1, numMinQ);	
+			tableOut.set("Max q",      	 	 tableOut.getRowCount()-1, numMaxQ);	
+			tableOut.set("Scanning type",    tableOut.getRowCount()-1, scanningType);
+			tableOut.set("Color model",      tableOut.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) tableOut.set("(Sliding box) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
 			
 			int numQ = numMaxQ - numMinQ + 1;
@@ -1241,20 +1244,19 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 			}
 		}
 		//Fast sliding box does not work properly
-		//for some kernel sizes 5x5 it produces for  negative q strange results
+		//negative q -  strange results
 		//e.g. for Menger carpet
-		//and largest kernels are larger than image itself! 
-		else if (scanningType.equals("Fast sliding box")) {
-			RectangleShape kernel;
-			Runtime runtime = Runtime.getRuntime();
-			long maxMemory = runtime.maxMemory();
-			long totalMemory = runtime.totalMemory();
-			long freeMemory = runtime.freeMemory();
-			int availableProcessors = runtime.availableProcessors();
-			//System.out.println("Available processors: " + availableProcessors);
-			
-			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
-			if (numThreads > availableProcessors) numThreads = availableProcessors;
+		//the first 3x3 kernel does not fit to the larger ones
+		else if (scanningType.equals("Fast sliding box (beta)")) {
+//			RectangleShape kernel;
+//			Runtime runtime = Runtime.getRuntime();
+//			long maxMemory = runtime.maxMemory();
+//			long totalMemory = runtime.totalMemory();
+//			long freeMemory = runtime.freeMemory();
+//			int availableProcessors = runtime.availableProcessors();
+//			//System.out.println("Available processors: " + availableProcessors);	
+//			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
+//			if (numThreads > availableProcessors) numThreads = availableProcessors;
 			
 			//create binary image with 0 and 1
 			//later neighbors can be simply counted by dilation
@@ -1262,53 +1264,70 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 			//uiService.show("imgBin1", imgBin);
 			raBin = imgBin.randomAccess();
 			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+			
+			Interval interval;	 
+		    IntervalView<?> iv;
+				
 			cursor = imgBin.localizingCursor();
-			double sample = 0.0;
-			double count = 0.0;
+			int sample = 0;
+			double count = 0.0; //Sum of grey values
 			int[] pos = new int[2];
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
 				ra.setPosition(pos);
-				sample = (double)((UnsignedByteType) ra.get()).getInteger();
-				if (sample == 0.0) {
+				sample = ((UnsignedByteType) ra.get()).getInteger();
+				if (sample == 0) {
 					((UnsignedByteType) cursor.get()).set(0);
 				} else {
 					//((UnsignedByteType) cursor.get()).set(1);
 					if (colorModelType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
-					if (colorModelType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
+					if (colorModelType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set(sample); //simply a copy
 				}		
 			}
 			//uiService.show("imgBin2", imgBin);
+			int proz;
 			int epsWidth = 1;
+			int kernelSize; 
+			Img<DoubleType> avgKernel;
 			//loop through box sizes
 			for (int n = 0; n < numBoxes; n++) {
 				
-				int proz = (int) (n + 1) * 95 / numBoxes;
+				proz = (int) (n + 1) * 95 / numBoxes;
 				//Compute dilated image
-				int kernelSize = 2 * epsWidth + 1;
-				eps[n]   = kernelSize;// = epsWidth; = kernelSize; //overwrite eps[n]	
+				kernelSize = 2 * epsWidth + 1;
+				eps[n] = kernelSize;// = epsWidth; = kernelSize; //overwrite eps[n]	
 				
-	//			kernel = new RectangleShape(kernelSize, false); //kernelSize x kernelSize skipCenter = true
-	//			imgDil = (Img<UnsignedByteType>) Dilation.dilate(imgBin, kernel, numThreads);
+//				kernel = new RectangleShape(kernelSize, false); //kernelSize x kernelSize skipCenter = true
+//				imgDil = (Img<UnsignedByteType>) Dilation.dilate(imgBin, kernel, numThreads);
 				
 				// create the averaging kernel
-				Img<DoubleType> avgKernel = opService.create().img(new int[] {kernelSize, kernelSize});
+				avgKernel = opService.create().img(new int[] {kernelSize, kernelSize});
 				for (DoubleType k : avgKernel) {
 					k.setReal(1.0);
 				}
-				imgDil = (Img<FloatType>) opService.filter().convolve(imgBin, avgKernel);
-				
+				//imgDil = (Img<FloatType>) opService.filter().convolve(imgBin, avgKernel);
+				imgDil = (Img<FloatType>) opService.filter().convolve(imgBin, avgKernel, new OutOfBoundsBorderFactory()); //not really a difference compared to without Factory
+			
+//				interval = Intervals.expand(imgBin, -kernelSize );
+//				OutOfBoundsBorderFactory oobf = new OutOfBoundsBorderFactory();
+//				oobf.create(interval);		 
+//				imgDil = (Img<FloatType>) opService.filter().convolve(imgBin, avgKernel, oobf);
+						
 				//uiService.show("n=" + n + " imgDil", imgDil);
-				// each pixel value is now the sum of the box (neighborhood values)
+				
+				//Each pixel value is now the sum of the box (neighborhood values)
+				
+				//Restricted interval, because border values are not correctly computed
+				interval = Intervals.expand(imgDil, - kernelSize );		 
+			    iv = Views.interval(imgDil, interval);
 				count = 0.0;
-				cursor = imgDil.localizingCursor();
+				cursor = iv.localizingCursor();
 				while (cursor.hasNext()) {
 					cursor.fwd();
-					count = ((FloatType) cursor.get()).getRealFloat();//-1 subtract midpoint itself from number
-					for (int b = 0; b < numBands; b++) {
+					count = ((FloatType) cursor.get()).getRealFloat(); 
+					for (int b = 0; b < numBands; b++) { 
 						totalsMax[n][b] = totalsMax[n][b] + count; // calculate total count for normalization
-					
 						// System.out.println("IqmOpFracGendim: b: "+b+ "   count: "+ count );
 						if (count > 0) {
 							for (int q = 0; q < numQ; q++) {
@@ -1320,12 +1339,12 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 						}
 					}//bands
 				}				
-				epsWidth = epsWidth * 2;
-				// epsWidth = epsWidth+1;
+				//epsWidth = epsWidth * 2; // kernels larger than image size! Must be in accordance with getMaxBoxNumber()
+				epsWidth = epsWidth + 2;
 			} // 0>=l<=numEps loop through eps
 		}	
 		
-		// normalization
+		//Normalization
 		for (int n = 0; n < numBoxes; n++) {
 			for (int b = 0; b < numBands; b++) { // several bands
 				for (int q = 0; q < numQ; q++) {
@@ -1333,8 +1352,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 				}
 			}
 		}
-		
-		
+		 	
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
 		double[][][] lnTotals = new double[numQ][numBoxes][numBands];
@@ -1358,8 +1376,7 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 			}
 		}
 		
-		//Create double log plot
-	
+		//Create double log plot	
 		for (int b = 0; b < numBands; b++) { // mehrere Bands
 			
 			// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1388,6 +1405,10 @@ public class Img2DFractalDimensionGeneralized<T extends RealType<T>> extends Con
 					axisNameY = "ln(Count)";
 				}
 				else if (scanningType.equals("Sliding box")) {
+					axisNameX = "ln(Box size)";
+					axisNameY = "ln(Count)";
+				}
+				else if (scanningType.equals("Fast sliding box (beta)")) {
 					axisNameX = "ln(Box size)";
 					axisNameY = "ln(Count)";
 				}
