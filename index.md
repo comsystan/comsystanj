@@ -31,6 +31,9 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 ###### Time series
 - Ahammer et al., Front.Physiol., 2018, [https://doi.org/10.3389/fphys.2018.00546](https://doi.org/10.3389/fphys.2018.00546)
 
+### Collaborations
+<img src="images/comsystan-logo-grey46.png" width=378 height=100/> Open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
+
 ### Notes for using ComsystanJ with Fiji
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
