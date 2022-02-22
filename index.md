@@ -32,7 +32,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 - Ahammer et al., Front.Physiol., 2018, [https://doi.org/10.3389/fphys.2018.00546](https://doi.org/10.3389/fphys.2018.00546)
 
 ### Collaborations
-[<img src="images/noologica-logo.png" width=330 height=60/>](https://noologica.com) [Noologica](https://noologica.com) - An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
+[<img src="images/noologica-logo.png" width=300 height=50/>](https://noologica.com) [Noologica](https://noologica.com) - An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
 
 ### Notes for using ComsystanJ with Fiji
 
