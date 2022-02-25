@@ -55,6 +55,7 @@
 		<module>sig-generator</module>
 		<module>sig-hrv</module>
 		<module>sig-kc</module>
+		<module>sig-lyapunov</module>
 		<module>sig-math</module>
 		<module>sig-noise</module>
 		<module>sig-opener</module>
