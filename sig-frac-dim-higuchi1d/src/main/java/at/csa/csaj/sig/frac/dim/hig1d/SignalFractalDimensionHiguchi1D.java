@@ -951,9 +951,9 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 						L = hig.calcLengths(surrSignal1D, numKMax);
 						regressionValues = hig.calcDimension(L, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						resultValues[lastMainResultsIndex + 4 + s]                    = -regressionValues[1];
-						resultValues[lastMainResultsIndex + 4 + numSurrogates + s]    = regressionValues[4];
-						resultValues[lastMainResultsIndex + 4 + (2*numSurrogates) +s] = regressionValues[3];
+						resultValues[lastMainResultsIndex + 4 + s]                   = -regressionValues[1];
+						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionValues[4];
+						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionValues[3];
 						sumDims    += -regressionValues[1];
 						sumR2s     +=  regressionValues[4];
 						sumStdErr  +=  regressionValues[3];

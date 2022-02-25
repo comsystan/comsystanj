@@ -193,9 +193,11 @@ public class Higuchi {
 		//logService.info(this.getClass().getName() + ": Higuchi: lnk        ln(L)"); // Eliminate this line for Alex (auch noch in PlotOpFracHiguchi Zeile 126)
 		//System.out.println(this.getClass().getName() + ": Higuchi: lnk        ln(L)"); // Eliminate this line for Alex (auch noch in PlotOpFracHiguchi Zeile 126)
 	
+		double lnX;
+		double lnY;
 		for (int i = 0; i < L.length; i++) {
-			double lnX = Math.log(i + 1);
-			double lnY = Math.log(L[i]);
+			lnX = Math.log(i + 1);
+			lnY = Math.log(L[i]);
 			lnDataX[i] = lnX;
 			lnDataY[i] = lnY;
 			// System.out.println(lnX + " " + lnY);
