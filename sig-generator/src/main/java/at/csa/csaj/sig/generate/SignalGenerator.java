@@ -115,6 +115,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     		   description = "Type of signal, fGn..fractional Gaussian noise, fBm..fractional Brownian noise, W-M..Weierstraß-Mandelbrot signal",
  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
  		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm", "W-M"},
+ 		       initializer = "initialMethod",
                callback = "changedMethod")
     private String choiceRadioButt_Method;
     
@@ -271,21 +272,25 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 	
 	/** Executed whenever the {@link #spinFloat_ParamA} parameter changes. */
 	protected void changedParamA() {
+		spinnerFloat_ParamA= Precision.round(spinnerFloat_ParamA, 2);
 		logService.info(this.getClass().getName() + " Parameter a changed to " + spinnerFloat_ParamA);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_ParamB} parameter changes. */
 	protected void changedParamB() {
+		spinnerFloat_ParamB= Precision.round(spinnerFloat_ParamB, 2);
 		logService.info(this.getClass().getName() + " Parameter b changed to " + spinnerFloat_ParamB);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_Hurst} parameter changes. */
 	protected void changedHurst() {
+		spinnerFloat_Hurst = Precision.round(spinnerFloat_Hurst, 2);
 		logService.info(this.getClass().getName() + " Hurst coefficient changed to " + spinnerFloat_Hurst);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_FractalDim} parameter changes. */
 	protected void changedFractalDim() {
+		spinnerFloat_FractalDim= Precision.round(spinnerFloat_FractalDim, 2);
 		logService.info(this.getClass().getName() + " Fractal dimension changed to " + spinnerFloat_FractalDim);
 	}
 	
@@ -499,6 +504,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
     	double SD = 1.0;
     	double mean = 0.0;
     
@@ -533,6 +539,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
     	double amplitude = 1.0;
     
  	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
@@ -571,6 +578,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
     	double amplitude = 1.0;
     	
     	double valueX;
@@ -629,6 +637,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
     	double amplitude = 1.0;
     	//double[] signalX; //X coordinate of  Henon map
     	
@@ -698,6 +707,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
     	double amplitude = 1.0;
     	double valueX;
     
@@ -756,6 +766,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	
     	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
     	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
     	double amplitude = 1.0;
     	double valueX;
     
@@ -888,6 +899,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 		double[] signalPower;
 		double[] signal;
 		Random generator = new Random();
+		generator.setSeed(System.currentTimeMillis());
 		
  	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
  	  	  	
@@ -907,6 +919,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
  	  		
  	  		// generate random phase variables [0, 2pi]
 			generator = new Random();
+			generator.setSeed(System.currentTimeMillis());
 			for (int i = 0; i < M; i++) {
 				signalPhase[i] = generator.nextDouble() * 2.0d * Math.PI;// -1.0d*Math.PI);
 			}
@@ -978,6 +991,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 	
 	    float fracDim = spinnerFloat_FractalDim;
     	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
     	int M = 50;
     	double gamma = 1.5;
     	double phi;
@@ -1167,6 +1181,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 
 		// generate random variables
 		Random generator = new Random();
+		generator.setSeed(System.currentTimeMillis());
 		// RandomData generator = new RandomDataImpl();
 		double stdDev = 1.0d;
 		double mean   = 0.0d;
