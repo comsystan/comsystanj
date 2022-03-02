@@ -1227,7 +1227,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 						showPlot(lya.getDataX(), lya.getDataY(), preName, col, regMin, regMax);
 					}	
 					resultValues[i]                            = regressionValues[1]*sampFrequ; // slope;
-					resultValues[(int)(i + 2*numGlidingBoxes)] = regressionValues[4];  //R2		
+					resultValues[(int)(i + numGlidingBoxes)] = regressionValues[4];  //R2		
 				}
 				//***********************************************************************
 			}

@@ -154,16 +154,17 @@ public class Lyapunov {
 	public double[] calcLyaDirect(double[] signal1d, double eps, int kMax) {
 		
 		int N = signal1d.length;
-		int M = N-kMax;
+		int M = 0;
 		double dist    = 0.0;
 		double sumDist = 0.0;
 		double[]   divergences = new double[kMax];
-		double[][] diffs       = new double[M][kMax];
+		double[][] diffs       = new double[N][kMax];
 		
-		for (int i = 0; i < M; i++) {
-			for (int j = 1; i < M; i++) {
-				if (Math.abs(signal1d[i] - signal1d[j]) < eps) { //neighboring points
-					for (int k = 0; k < kMax; k++) {
+		for (int k = 0; k < kMax; k++) {
+			M = N-k;
+			for (int i = 0; i < M; i++) {
+				for (int j = i+1; i < M; i++) {
+					if (Math.abs(signal1d[i] - signal1d[j]) < eps) { //neighboring points
 						//if (((i+k) < N) && ((j+k) < N)) {
 							dist = Math.abs(signal1d[i+k] - signal1d[j+k]); //distance of neighboring points at distance k
 							if (dist != 0) diffs[i][k] = Math.log(dist);		 
@@ -175,10 +176,10 @@ public class Lyapunov {
 		//Get divergences for each k
 		//Get mean of all differences 
 		for (int k = 0; k < kMax; k++) {
-				
+			//M = N-k;
 			sumDist = 0.0;	
 			int num = 0;
-			for (int i = 0; i < M; i++) {
+			for (int i = 0; i < N; i++) {
 				dist = diffs[i][k];
 				if (dist != 0) {
 					sumDist = sumDist + dist;
@@ -229,8 +230,6 @@ public class Lyapunov {
 		
 	}
 	
-	
-
 	/**
 	 * This method computes the phase spcae reconstruction
 	 * 
