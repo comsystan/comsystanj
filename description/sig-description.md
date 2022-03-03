@@ -329,6 +329,29 @@ Statistical Mechanics, Springer, 2009
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Zenil et al., 2012, Complexity, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
+### Lyapunov exponent
+- Computes the largest Lyapunov exponent
+- Rosenstein's and Kantz's algorithms are implemented
+- Additionally a direct method without phase space reconstruction is implemented but should be used with care.
+- The maximum delay can be set
+- The regression minimum and maximum can be set
+- The most linear part of the first k values should be taken
+- The embedding dimension can be set (usually not too high)
+- The tau for the pase space reconstruction can be set (a relaible value value is the first minimum of the autocorrelation)
+- The sampling frequency can be set. If not known it should be 1
+- For the Rosenstein algorithm only one initial distance (minimum distance) is used.
+- For the Kantz algorithm the number of initial distances can be set. The average of the linear regressions is computed. This might be better for noisy data series. 
+- For the Direct method a maximum eps (initial distance) can be set. Averages for every k are computed.
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Rosenstein et al., 1993, PhysicaD, [10.1016/0167-2789(93)90009-P](https://doi.org/10.1016/0167-2789(93)90009-P), Kantz, 1994, Physics Letters A, [10.1016/0375-9601(94)90991-1](https://doi.org/10.1016/0375-9601(94)90991-1)
+
 ### Allometric scaling
 - Computes a double log plot of aggregated variances and means
 - Regression parameters can be set
