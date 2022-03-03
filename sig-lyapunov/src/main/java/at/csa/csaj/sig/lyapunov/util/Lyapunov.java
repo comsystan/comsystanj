@@ -146,6 +146,11 @@ public class Lyapunov {
 	
 	/**
 	 * Author HA
+	 * Searches for nearby points that have a value distance < eps and 
+	 * sums up the value distances at a delay k
+	 * 
+	 * Is not reliable for e.g. Sine function
+	 *  
 	 * @param signal1d
 	 * @param eps neighborhood delta of x-axis from one point to another
 	 * @param k  maximum  delay/lag
@@ -163,7 +168,7 @@ public class Lyapunov {
 		for (int k = 0; k < kMax; k++) {
 			M = N-k;
 			for (int i = 0; i < M; i++) {
-				for (int j = i+1; i < M; i++) {
+				for (int j = i + 1; j < M; j++) {
 					if (Math.abs(signal1d[i] - signal1d[j]) < eps) { //neighboring points
 						//if (((i+k) < N) && ((j+k) < N)) {
 							dist = Math.abs(signal1d[i+k] - signal1d[j+k]); //distance of neighboring points at distance k
@@ -191,43 +196,6 @@ public class Lyapunov {
 		}
 		
 		return divergences;
-	
-//		//Using ArrayLists yields the same results
-//		ArrayList<Double> distances;
-//		ArrayList<ArrayList<Double>> distancesList = new ArrayList<ArrayList<Double>>();	
-//		for (int k = 0; k < kMax; k++) {
-//			distancesList.add(new ArrayList<Double>());  //divergences == new ArrayList<Double>();
-//		}
-//		
-//		for (int i = 0; i < N; i++) {
-//			for (int j = 1; i < N; i++) {
-//				if (Math.abs(signal1d[i] -signal1d[j]) < eps) {
-//					for (int k = 0; k < kMax; k++) {
-//						distances = distancesList.get(k);
-//						if (((i+k) < N) && ((j+k) < N)) {
-//							dist = Math.abs(signal1d[i+k] - signal1d[j+k]);
-//							if (dist != 0.0) {
-//								 distances.add(Math.log(dist));		 
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//		//Get Lyapunov exponents for each k	
-//		for (int k = 0; k < kMax; k++) {
-//			
-//			dist = 0.0;
-//			distances = distancesList.get(k); 
-//			for (int i = 0; i < distances.size(); i++) {
-//				dist = dist + distances.get(i);
-//			}
-//			divergences[k] = dist/distances.size(); 	
-//			//System.out.println("Lypunov: Lyapunov("+k+"): "+dist);		
-//		}
-//					
-//		return divergences;
-		
 	}
 	
 	/**
@@ -274,9 +242,16 @@ public class Lyapunov {
 	 * Adapted from Merve Kizilkaya's MatLab code
 	 * https://de.mathworks.com/matlabcentral/fileexchange/38424-largest-lyapunov-exponent-with-rosenstein-s-algorithm
 	 * 
+	 * Point pairs with position distances (not value distances!) <= periodMean are not considered 
+	 * NOTE: Must be at least 0 to remove point pairs constructed of one single point with value distance = 0
+	 * periodMean >= 0: 
+	 * 
 	 * @param data  1D data double[]
 	 * @param m embedding dimension
 	 * @param tau time lag
+	 * @param periodMean
+	 * @param kMax
+	 * @param numInitialPoint
 	 * 
 	 * @return double[] divergences
 	 */
@@ -289,7 +264,7 @@ public class Lyapunov {
 		
 		double[][] psr         = new double[M][m]; //M data points   m embedding dimension
 		double[]   divergences = new double[kMax]; 
-		double[][] x0          = new double[M][m];
+		//double[][] x0          = new double[M][m];
 		double[][] diffs       = new double[M][m];
 		double[]   distances   = new double[M];
 		double[]   nearDist    = new double[M];
@@ -297,21 +272,23 @@ public class Lyapunov {
 		double min        = Double.MAX_VALUE;
 		int    indxMax    = 0;
 		int    indxMin    = 0;
-		double sumDist  = 0.0;
-		double countDist = 0.0;
-		double dist      = 0.0;
+		double sumDist    = 0.0;
+		double countDist  = 0.0;
+		double dist       = 0.0;
 			
 		//Compute phase space reconstruction
 		psr = calcPSR(data, m, tau, M);
 		
 		for (int i = 0; i < M; i++) {
 			
+			distances   = new double[M];
+			
 			//Generate Initial points matrix
-			for (int ii = 0; ii < M; ii++) {
-				for (int jj = 0; jj < m; jj++) {
-					x0[ii][jj] = psr[i][jj]; //The content of psr in row i is copied to every row of X0  index i and not ii for psr[i][jj]!!!!!!!!!
-				}
-			}
+//			for (int ii = 0; ii < M; ii++) {
+//				for (int jj = 0; jj < m; jj++) {
+//					x0[ii][jj] = psr[i][jj]; //The content of psr in row i is copied to every row of X0  index i and not ii for psr[i][jj]!!!!!!!!!
+//				}
+//			}
 							
 			//Diff Matrix
 			//Simply all differences of all pairs of data points
@@ -319,7 +296,7 @@ public class Lyapunov {
 			//According to Schreiber 1995 this is a god way for n<1000 data points  
 			for (int ii = 0; ii < M; ii++) {
 				for (int jj = 0; jj < m; jj++) {
-					diffs[ii][jj] = psr[ii][jj] - x0[ii][jj];      //All differences to the row i
+					diffs[ii][jj] = psr[ii][jj] - psr[i][jj]; //This is shorter as with additional matrix - x0[ii][jj];      //All differences to the row i
 					diffs[ii][jj] = diffs[ii][jj]*diffs[ii][jj];
 				}
 			}
@@ -332,16 +309,19 @@ public class Lyapunov {
 				distances[ii] = Math.sqrt(distances[ii]); //Wurzel(a^2 + b^2 +....)
 			}
 			
-			//Neglect very small distances 
-			for (int j = 0; j < M; j++) {	
-				if (Math.abs(j-i) <= periodMean) distances[j] = Double.MAX_VALUE; //These distances are not of interest any more
+			//Neglect distances of very near points
+			//Point pairs with position distances (not value distances!) <= periodMean are not considered 
+			//NOTE: Must be at least 0 to remove point pairs constructed of one single point with value distance = 0
+			//periodMean >= 0: 
+			for (int ii = 0; ii < M; ii++) {	
+				if (Math.abs(ii-i) <= periodMean) distances[ii] = Double.MAX_VALUE; //These distances are not of interest any more
 			}
 			
 			//Searching for the smallest distance
 			min = Double.MAX_VALUE;
 			for (int ii = 0; ii < M; ii++) {	
 				if (distances[ii] < min) {
-					min = distances[ii];
+					min     = distances[ii];
 					indxMin = ii;
 				}
 			}					
@@ -351,9 +331,10 @@ public class Lyapunov {
 
 		//Compute divergences with time lag k
 		for (int k = 0; k < kMax; k++) {
+		
 			indxMax   = M-k;
 			dist      = 0.0;
-			sumDist  = 0.0;
+			sumDist   = 0.0;
 			countDist = 0.0;
 		
 			for (int i = 0; i < M; i++) {	
@@ -383,6 +364,10 @@ public class Lyapunov {
 	 * This method calculates the "Divergences" according to the Kantz paper
 	 * Kantz, Holger. „A Robust Method to Estimate the Maximal Lyapunov Exponent of a Time Series“. Physics Letters A 185, Nr. 1 (31. Januar 1994): 77–87. https://doi.org/10.1016/0375-9601(94)90991-1.
 	 * 
+	 * Point pairs with position distances (not value distances!) <= periodMean are not considered 
+	 * NOTE: Must be at least 0 to remove point pairs constructed of one single point with value distance = 0
+	 * periodMean >= 0: 
+	 * 
 	 * @param data  1D data double[]
 	 * @param m embedding dimension
 	 * @param tau time lag
@@ -402,14 +387,14 @@ public class Lyapunov {
 		
 		double[][] psr         = new double[M][m]; //M data points   m embedding dimension
 		double[][] divergences = new double[numEps][kMax]; 
-		double[][] x0          = new double[M][m];
+		//double[][] x0          = new double[M][m];
 		double[][] diffs       = new double[M][m];
 		double[]   distances   = new double[M];
 		double[][] nearDist    = new double[numEps][M];
 		int[][]    nearIndx    = new int[numEps][M];
-		double min        = Double.MAX_VALUE;
+		//double min        = Double.MAX_VALUE;
 		int    indxMax    = 0;
-		int    indxMin    = 0;
+		//int    indxMin    = 0;
 		double meanDist  = 0.0;
 		double countDist = 0.0;
 		double dist      = 0.0;
@@ -421,12 +406,14 @@ public class Lyapunov {
 		
 		for (int i = 0; i < M; i++) {
 			
+			distances   = new double[M];
+			
 			//Generate Initial points matrix
-			for (int ii = 0; ii < M; ii++) {
-				for (int jj = 0; jj < m; jj++) {
-					x0[ii][jj] = psr[i][jj]; //The content of psr in row i is copied to every row of X0  index i and not ii for psr[i][jj]!!!!!!!!!
-				}
-			}
+//			for (int ii = 0; ii < M; ii++) {
+//				for (int jj = 0; jj < m; jj++) {
+//					x0[ii][jj] = psr[i][jj]; //The content of psr in row i is copied to every row of X0  index i and not ii for psr[i][jj]!!!!!!!!!
+//				}
+//			}
 							
 			//Diff Matrix
 			//Simply all differences of all pairs of data points
@@ -434,7 +421,7 @@ public class Lyapunov {
 			//According to Schreiber 1995 this is a god way for n<1000 data points  
 			for (int ii = 0; ii < M; ii++) {
 				for (int jj = 0; jj < m; jj++) {
-					diffs[ii][jj] = psr[ii][jj] - x0[ii][jj];      //All differences to the row i
+					diffs[ii][jj] = psr[ii][jj] - psr[i][jj]; //This is shorter as with additional matrix - x0[ii][jj];      //All differences to the row i
 					diffs[ii][jj] = diffs[ii][jj]*diffs[ii][jj];
 				}
 			}
@@ -447,25 +434,28 @@ public class Lyapunov {
 				distances[ii] = Math.sqrt(distances[ii]);
 			}
 			
-			//Neglect very small distances 
-			for (int j = 0; j < M; j++) {	
-				if (Math.abs(j-i) <= periodMean) distances[j] = Double.MAX_VALUE; //These distances are not of interest any more
+			//Neglect distances of very near points
+			//Point pairs with position distances (not value distances!) <= periodMean are not considered 
+			//NOTE: Must be at least 0 to remove point pairs constructed of one single point with value distance = 0
+			//periodMean >= 0: 
+			for (int ii = 0; ii < M; ii++) {	
+				if (Math.abs(ii-i) <= periodMean) distances[ii] = Double.MAX_VALUE; //These distances are not of interest any more
 			}
 			
 			//Searching for the smallest distances	
 			DoubleSort ds = new DoubleSort(distances);
-			ds.sort();
 			sortedDoubles = ds.getSortedDoubles();
 			sortedIndxs   = ds.getSortedIndices(); 
 	
 			for (int e = 0; e < numEps; e++) { 
-				nearDist[e][i] = sortedDoubles[e]; //e smallest values 
-				nearIndx[e][i] = sortedIndxs[e];   //e indices to these smallest values
+				nearDist[e][i] = sortedDoubles[e]; //numEps smallest values 
+				nearIndx[e][i] = sortedIndxs[e];   //numEps indices to these smallest values
 			}			
 		} //i  [0,M-1]
 	
 		//Compute divergences with time lag k
 		for (int k = 0; k < kMax; k++) {
+			
 			indxMax   = M-k;
 			dist      = 0.0;
 			meanDist  = 0.0;

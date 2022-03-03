@@ -217,7 +217,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	@Parameter(label = "Algorithm",
     		   description = "Type of algorithm",
  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
- 		       choices = {"Direct", "Rosenstein", "Kantz"},
+ 		       choices = {"Rosenstein", "Kantz", "Direct"},
  		       initializer = "initialAlgorithm",
                callback = "changedAlgorithm")
     private String choiceRadioButt_Algorithm;
@@ -225,17 +225,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelPhaseSpaceOptions = PHASESPACE_LABEL;
-	
-	@Parameter(label = "(Direct)Eps",
-			   description = "Epsilon of neighboring data points",
-		       style = NumberWidget.SPINNER_STYLE,
-		       min = "0",
-		       max = "999999999999999999999999",
-		       initializer = "initialEps",
-		       stepSize = "0.01",
-		       callback = "changedEps")
-	 private float spinnerFloat_Eps;
-	
+		
 	@Parameter(label = "(Rosen/Kantz)Embedding dimension",
 			   description = "Embedding dimension of phase space",
 			   style = NumberWidget.SPINNER_STYLE, 
@@ -278,6 +268,16 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		       stepSize = "1",
 		       callback = "changedNumPointPairs")
     private int spinnerInteger_NumPointPairs;
+    
+	@Parameter(label = "(Direct)Eps",
+			   description = "Epsilon of neighboring data points",
+		       style = NumberWidget.SPINNER_STYLE,
+		       min = "0",
+		       max = "999999999999999999999999",
+		       initializer = "initialEps",
+		       stepSize = "0.01",
+		       callback = "changedEps")
+	 private float spinnerFloat_Eps;
     
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -384,13 +384,10 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	}
 	protected void initialRegMax() {
 		//numbKMax = (int) Math.floor(tableIn.getRowCount() / 3.0);
-		spinnerInteger_RegMax = 4;
+		spinnerInteger_RegMax = 8;
 	}
 	protected void initialAlgorithm() {
-		choiceRadioButt_Algorithm = "Direct";
-	}
-	protected void initialEps() {
-	    spinnerFloat_Eps = 0.001f;
+		choiceRadioButt_Algorithm = "Rosenstein";
 	}
 	protected void initialEmbDim() {
 		spinnerInteger_EmbDim = 2;
@@ -403,6 +400,9 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	}
 	protected void initialNumPointPairs() {
 	    spinnerInteger_NumPointPairs = 10;
+	}
+	protected void initialEps() {
+	    spinnerFloat_Eps = 0.001f;
 	}
 	protected void initialSignalRange() {
 		choiceRadioButt_SignalRange = "Entire signal";
@@ -482,11 +482,6 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		logService.info(this.getClass().getName() + " Algorithm changed to " + choiceRadioButt_Algorithm);
 	}
 	
-	/** Executed whenever the {@link #spinFloat_Eps} parameter changes. */
-	protected void changedEps() {
-		logService.info(this.getClass().getName() + " Epsilon changed to " + spinnerFloat_Eps);
-	}
-	
 	/** Executed whenever the {@link #spinnerInteger_EmbDim} parameter changes. */
 	protected void callbackEmbDim() {
 		logService.info(this.getClass().getName() + " Embedding dimension set to " + spinnerInteger_EmbDim);
@@ -505,6 +500,11 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	/** Executed whenever the {@link #spinFloat_NumPointPairs} parameter changes. */
 	protected void changedNumPointPairs() {
 		logService.info(this.getClass().getName() + " Number ofpoint pairs changed to " + spinnerInteger_NumPointPairs);
+	}
+	
+	/** Executed whenever the {@link #spinFloat_Eps} parameter changes. */
+	protected void changedEps() {
+		logService.info(this.getClass().getName() + " Epsilon changed to " + spinnerFloat_Eps);
 	}
 	
 	
@@ -757,15 +757,14 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		tableOut.add(new IntColumn("# Surrogates"));
 		tableOut.add(new IntColumn("Box length"));
 		tableOut.add(new BoolColumn("Zeroes removed"));
-		
 		tableOut.add(new IntColumn("Max delay k"));
 		tableOut.add(new IntColumn("Reg Min"));
 		tableOut.add(new IntColumn("Reg Max"));
-		tableOut.add(new IntColumn("Emb dim"));
-		tableOut.add(new IntColumn("Tau"));
-		tableOut.add(new IntColumn("Samp Freq(Hz)"));
-		tableOut.add(new FloatColumn("(Direct) Eps"));
-		tableOut.add(new IntColumn("(Kantz) # Point pairs"));
+		tableOut.add(new IntColumn("(Rosen/Kantz)Emb dim"));
+		tableOut.add(new IntColumn("(Rosen/Kantz)Tau"));
+		tableOut.add(new IntColumn("(Rosen/Kantz)Samp Freq(Hz)"));
+		tableOut.add(new IntColumn("(Kantz)# Point pairs"));
+		tableOut.add(new FloatColumn("(Direct)Eps"));
 		tableOut.add(new GenericColumn("Algorithm"));
 	
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
@@ -943,16 +942,15 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		} else {
 			tableOut.set(5, row, null);
 		}	
-		tableOut.set( 6, row, booleanRemoveZeroes); //Zeroes removed
-		
+		tableOut.set( 6, row, booleanRemoveZeroes); //Zeroes removed	
 		tableOut.set( 7, row, spinnerInteger_KMax);      //KMax
 		tableOut.set( 8, row, spinnerInteger_RegMin);    //RegMin
 		tableOut.set( 9, row, spinnerInteger_RegMax);    //RegMax	
 		tableOut.set(10, row, spinnerInteger_EmbDim);    //EmbDim	
 		tableOut.set(11, row, spinnerInteger_Tau);       //Tau	
 		tableOut.set(12, row, spinnerInteger_SampFrequ); //SampFrequ	
-		tableOut.set(13, row, spinnerFloat_Eps); //Eps	
-		tableOut.set(14, row, spinnerInteger_NumPointPairs); //# Point pairs	
+		tableOut.set(13, row, spinnerInteger_NumPointPairs); //# Point pairs
+		tableOut.set(14, row, spinnerFloat_Eps); //Eps	
 		tableOut.set(15, row, choiceRadioButt_Algorithm); //Algorithm	
 		tableColLast = 15;
 		
@@ -1014,25 +1012,27 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;
 		String algorithm      = choiceRadioButt_Algorithm; //"Rosenstein" "Kantz"
-		double eps 			  = spinnerFloat_Eps;
 		int embDim			  = spinnerInteger_EmbDim;
 		int tau				  = spinnerInteger_Tau;
 		int sampFrequ		  = spinnerInteger_SampFrequ;
 		int numPointPairs     = spinnerInteger_NumPointPairs; //only for Kantz. This number = 1 for Rosenstein
+		double eps 			  = spinnerFloat_Eps;
 		boolean removeZeores  = booleanRemoveZeroes;
 	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 			
-		//???????????????????????????????????????????????????????
-		int periodMean = 10;
-		//????????????????????????????????????????????????????????
+		//************************************************************************************************
+		//Point pairs with position distances (not value distances!) <= periodMean are not considered 
+		//NOTE: Must be at least 0 to remove point pairs constructed of one single point with value distance = 0
+		//periodMean >= 0: 
+		int periodMean = 0;
+		//*************************************************************************************************
 		
 		double[] resultValues = new double[4]; // LyaX0, Lya, R2, StdErr
 		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 
-		//******************************************************************************************************
 		domain1D  = new double[numDataPoints];
-		signal1D = new double[numDataPoints];
+		signal1D  = new double[numDataPoints];
 		
 		signalColumn = dgt.get(col);
 		for (int n = 0; n < numDataPoints; n++) {
@@ -1043,10 +1043,10 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
 		Lyapunov   lya;
-		double[]   divergencesDirect = null;
+		double[]   divergencesDirect     = null;
 		double[]   divergencesRosenstein = null; //Divergences
-		double[][] divergencesKantz = null;
-		double[]   regressionValues = null;
+		double[][] divergencesKantz      = null;
+		double[]   regressionValues      = null;
 	
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
@@ -1063,17 +1063,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 				
 				lya   = new Lyapunov();
 			
-				if (algorithm.equals("Direct")) {
-					divergencesDirect = lya.calcLyaDirect(signal1D, eps, numKMax);		
-					regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
-					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-					if (optShowPlot) {
-						String preName = signalColumn.getHeader();
-						//showPlot(lya.getLnDataX(), lya.getLnDataY(), preName, col, regMin, regMax);
-						showPlot(lya.getDataX(), lya.getDataY(), preName, col, regMin, regMax);
-					}
-				}		
-				else if (algorithm.equals("Rosenstein")) {
+				if (algorithm.equals("Rosenstein")) {
 					divergencesRosenstein = lya.calcDivergencesRosenstein(signal1D, embDim, tau, periodMean, numKMax);
 					regressionValues 	  = lya.calcRegression(divergencesRosenstein, regMin, regMax);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
@@ -1093,6 +1083,16 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 						showPlots(lya.getDataX(), lya.getDataYs(), preName, col, regMin, regMax);
 					}
 				}
+				else if (algorithm.equals("Direct")) {
+					divergencesDirect = lya.calcLyaDirect(signal1D, eps, numKMax);		
+					regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
+					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+					if (optShowPlot) {
+						String preName = signalColumn.getHeader();
+						//showPlot(lya.getLnDataX(), lya.getLnDataY(), preName, col, regMin, regMax);
+						showPlot(lya.getDataX(), lya.getDataY(), preName, col, regMin, regMax);
+					}
+				}	
 					
 				resultValues[0] = regressionValues[1]*sampFrequ; // slope
 				resultValues[1] = regressionValues[4]; //R2
@@ -1114,12 +1114,8 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 						if (surrType.equals("Random phase")) surrSignal1D = surrogate.calcSurrogateRandomPhase(signal1D, windowingType);
 						if (surrType.equals("AAFT"))         surrSignal1D = surrogate.calcSurrogateAAFT(signal1D, windowingType);
 				
-						if (algorithm.equals("Direct")) {
-							divergencesDirect = lya.calcLyaDirect(surrSignal1D, eps, numKMax);		
-							regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
-							// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						}		
-						else if (algorithm.equals("Rosenstein")) {
+						
+						if (algorithm.equals("Rosenstein")) {
 							divergencesRosenstein = lya.calcDivergencesRosenstein(surrSignal1D, embDim, tau, periodMean, numKMax);
 							regressionValues 	  = lya.calcRegression(divergencesRosenstein, regMin, regMax);
 							// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
@@ -1129,6 +1125,12 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 							regressionValues = lya.calcRegressionsMean(divergencesKantz, regMin, regMax);
 							// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						}
+						else if (algorithm.equals("Direct")) {
+							divergencesDirect = lya.calcLyaDirect(surrSignal1D, eps, numKMax);		
+							regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
+							// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+						}	
+						
 						resultValues[lastMainResultsIndex + 4 +                 + s] = regressionValues[1]*sampFrequ;
 						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionValues[4];
 						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionValues[3];
@@ -1159,12 +1161,8 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 				//Compute specific values************************************************
 				if (subSignal1D.length > (numKMax * 2)) { // only data series which are large enough
 					lya              = new Lyapunov();
-					if (algorithm.equals("Direct")) {
-						divergencesDirect = lya.calcLyaDirect(subSignal1D, eps, numKMax);		
-						regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
-						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-					}	
-					else if (algorithm.equals("Rosenstein")) {
+					
+					if (algorithm.equals("Rosenstein")) {
 						divergencesRosenstein = lya.calcDivergencesRosenstein(subSignal1D, embDim, tau, periodMean, numKMax);
 						regressionValues 	  = lya.calcRegression(divergencesRosenstein, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
@@ -1174,6 +1172,11 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 						regressionValues = lya.calcRegressionsMean(divergencesKantz, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					}
+					else if (algorithm.equals("Direct")) {
+						divergencesDirect = lya.calcLyaDirect(subSignal1D, eps, numKMax);		
+						regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
+						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+					}	
 					
 					//if (optShowPlot){ //show all plots
 					if ((optShowPlot) && (i==0)){ //show only first plot
@@ -1204,12 +1207,8 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 				//Compute specific values************************************************
 				if (subSignal1D.length > (numKMax * 2)) { // only data series which are large enough
 					lya              = new Lyapunov();
-					if (algorithm.equals("Direct")) {
-						divergencesDirect = lya.calcLyaDirect(subSignal1D, eps, numKMax);		
-						regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
-						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-					}
-					else if (algorithm.equals("Rosenstein")) {
+					
+					if (algorithm.equals("Rosenstein")) {
 						divergencesRosenstein = lya.calcDivergencesRosenstein(subSignal1D, embDim, tau, periodMean, numKMax);
 						regressionValues 	  = lya.calcRegression(divergencesRosenstein, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
@@ -1217,6 +1216,11 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 					else if (algorithm.equals("Kantz")) {
 						divergencesKantz = lya.calcDivergencesKantz(subSignal1D, embDim, tau, periodMean, numKMax, numPointPairs);
 						regressionValues = lya.calcRegressionsMean(divergencesKantz, regMin, regMax);
+						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+					}
+					else if (algorithm.equals("Direct")) {
+						divergencesDirect = lya.calcLyaDirect(subSignal1D, eps, numKMax);		
+						regressionValues  = lya.calcRegression(divergencesDirect, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					}
 					
