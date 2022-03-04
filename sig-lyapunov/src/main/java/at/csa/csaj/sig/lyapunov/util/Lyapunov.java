@@ -54,7 +54,6 @@ public class Lyapunov {
 	private double[]   dataY;
 	private double[][] dataYs;
 	
-	int numEps; 
 
 	public double[] getDataX() {
 		return dataX;
@@ -400,7 +399,7 @@ public class Lyapunov {
 	 * @param tau time lag
 	 * @param periodMean
 	 * @param kMax
-	 * @param numInitialPoint
+	 * @param mumInitialPoints
 	 * 
 	 * @return double[] divergences
 	 */
@@ -410,8 +409,9 @@ public class Lyapunov {
 		
 		//Normalization to [0,1] is not necessary, does not change the result
 		//data = this.scaleToUnity(data);
-		numEps = numInitialPoints; //Number of maximal neighboring points;
-		
+	
+		int numEps = numInitialPoints; //Number of maximal neighboring points;		
+			
 		double[][] psr         = new double[M][m]; //M data points   m embedding dimension
 		double[][] divergences = new double[numEps][kMax]; 
 		//double[][] x0          = new double[M][m];
@@ -444,12 +444,13 @@ public class Lyapunov {
 							
 			//Diff Matrix
 			//Simply all differences of all pairs of data points
-			//Without restricting to a neigborhood
+			//Without restricting to a neighborhood
 			//According to Schreiber 1995 this is a god way for n<1000 data points  
 			for (int ii = 0; ii < M; ii++) {
 				for (int jj = 0; jj < m; jj++) {
-					diffs[ii][jj] = psr[ii][jj] - psr[i][jj]; //This is shorter as with additional matrix - x0[ii][jj];      //All differences to the row i
-					diffs[ii][jj] = diffs[ii][jj]*diffs[ii][jj];
+					//Kantz uses absolute distances instead of Euclidean norm
+					diffs[ii][jj] = Math.abs(psr[ii][jj] - psr[i][jj]); //This is shorter as with additional matrix - x0[ii][jj];      //All differences to the row i
+					//diffs[ii][jj] = diffs[ii][jj]*diffs[ii][jj];
 				}
 			}
 			
@@ -458,7 +459,7 @@ public class Lyapunov {
 				for (int jj = 0; jj < m; jj++) {
 					distances[ii] = distances[ii] + diffs[ii][jj];
 				}
-				distances[ii] = Math.sqrt(distances[ii]);
+				//distances[ii] = Math.sqrt(distances[ii]);
 			}
 			
 			//Neglect distances of very near points
@@ -493,14 +494,16 @@ public class Lyapunov {
 					if ((i < indxMax) && (nearIndx[e][i] < indxMax)) {				
 						dist = 0.0;
 						for (int jj = 0; jj < m; jj++) {	
-							dist = dist + ((psr[i+k][jj]-psr[nearIndx[e][i]+k][jj])*(psr[i+k][jj]-psr[nearIndx[e][i]+k][jj]));
+							//dist = dist + ((psr[i+k][jj]-psr[nearIndx[e][i]+k][jj])*(psr[i+k][jj]-psr[nearIndx[e][i]+k][jj]));
+							//Kantz uses absolute distances instead of Euclidean norm
+							dist = dist + Math.abs(psr[i+k][jj]-psr[nearIndx[e][i]+k][jj]);
 						}
-						dist = Math.sqrt(dist);
+						//dist = Math.sqrt(dist);
 						if (dist != 0) {
 							meanDist = meanDist + Math.log(dist);
 							countDist = countDist + 1.0;
 						}			
-					}
+					}	
 				}			
 				if (countDist > 0) divergences[e][k] = meanDist/countDist; //Mean divergence for k
 				else divergences[e][k] = 0.0;
