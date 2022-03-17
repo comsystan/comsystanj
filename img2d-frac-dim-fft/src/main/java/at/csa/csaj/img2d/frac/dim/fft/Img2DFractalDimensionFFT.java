@@ -697,9 +697,9 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 //			//for (int i = 0; i < list.size(); i++) {
 //			//	display = list.get(i);
 //			//	System.out.println("display name: " + display.getName());
-//			//	if (display.getName().equals("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
+//			//	if (display.getName().contains("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
 //			//}			
-//			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Does not also close in Fiji
+//			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
 //		
 //			Frame frame;
 //			Frame[] listFrames = JFrame.getFrames();

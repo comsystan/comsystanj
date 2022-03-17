@@ -681,9 +681,9 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 //			//for (int i = 0; i < list.size(); i++) {
 //			//	display = list.get(i);
 //			//	System.out.println("display name: " + display.getName());
-//			//	if (display.getName().equals("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
+//			//	if (display.getName().contains("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
 //			//}			
-//			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Does not also close in Fiji
+//			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
 //		
 //			Frame frame;
 //			Frame[] listFrames = JFrame.getFrames();
@@ -1207,6 +1207,8 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 				}
 				if (removeZeores) signal1D = removeZeroes(signal1D);
 				logService.info(this.getClass().getName() + " Single row #: "+ (height/2) + "  Size of signal = " + signal1D.length);
+				//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
+				
 				if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
 					numActualRows += 1;
 					hig = new Higuchi();
@@ -1234,6 +1236,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 				}
 				if (removeZeores) signal1D = removeZeroes(signal1D);
 				logService.info(this.getClass().getName() + " Single column #: "+ (width/2) + "  Size of signal = " + signal1D.length);
+				//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 				if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
 					numActualColumns += 1;
 					hig = new Higuchi();
@@ -1279,6 +1282,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 					}
 					if (removeZeores) signal1D = removeZeroes(signal1D);
 					//logService.info(this.getClass().getName() + " Row #: "+ h + "  Size of signal = " + signal1D.length);
+					//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 					if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
 						hig = new Higuchi();
 						L = hig.calcLengths(signal1D, numKMax);
@@ -1314,6 +1318,8 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 					}
 					if (removeZeores) signal1D = removeZeroes(signal1D);
 					//logService.info(this.getClass().getName() + " Column #: "+ w + "  Size of signal = " + signal1D.length);
+					//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
+					
 					if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
 						hig = new Higuchi();
 						L = hig.calcLengths(signal1D, numKMax);
@@ -1378,6 +1384,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 				}
 				if (removeZeores) signal1D = removeZeroes(signal1D);
 				logService.info(this.getClass().getName() + " Single meander row:   Size of signal = " + signal1D.length);
+				//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 				if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
 					numActualRows += 1;
 					hig = new Higuchi();
@@ -1416,6 +1423,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 				}
 				if (removeZeores) signal1D = removeZeroes(signal1D);
 				logService.info(this.getClass().getName() + " Single meander column:   Size of signal = " + signal1D.length);
+				//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 				if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
 					numActualColumns += 1;
 					hig = new Higuchi();
@@ -1668,6 +1676,7 @@ public class Img2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Conte
 					}
 										
 					logService.info(this.getClass().getName() + " Radial line: "+ a + "  Size of signal = " + signal1D.length);
+					//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 					if (signal1D.length > (numKMax * 2)) { // only data series which are large enough		
 						hig = new Higuchi();
 						L = hig.calcLengths(signal1D, numKMax);

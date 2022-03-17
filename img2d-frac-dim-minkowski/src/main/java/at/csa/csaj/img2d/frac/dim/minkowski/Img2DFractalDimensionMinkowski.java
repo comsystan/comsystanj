@@ -676,10 +676,10 @@ public class Img2DFractalDimensionMinkowski<T extends RealType<T>> extends Conte
 //			for (int i = 0; i < list.size(); i++) {
 //				display = list.get(i);
 //				System.out.println("display name: " + display.getName());
-//				if (display.getName().equals("Last dilated image")) display.close(); //does not close correctly in Fiji, it is only not available any more
-//				if (display.getName().equals("Last eroded image"))  display.close();
+//				if (display.getName().contains("Last dilated image")) display.close(); //does not close correctly in Fiji, it is only not available any more
+//				if (display.getName().contains("Last eroded image"))  display.close();
 //			}			
-//			List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Does not also close in Fiji
+//			List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
 		
 			Frame frame;
 			Frame[] listFrames = JFrame.getFrames();
