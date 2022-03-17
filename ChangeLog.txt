@@ -10,8 +10,8 @@ Version 2.0.1
 pom-scijava 31.1.0
 2022-??-?? not released yet
 
-Major change:
-
+Major changes:
+Signal - text columns allowed
 
 New
 2D Image - Filter
@@ -29,7 +29,7 @@ Miscellaneous
 
 
 Known issues
-Red cast of RGB color images
+Fiji: Red cast of RGB color images
 
 
 **************************************************************
@@ -37,7 +37,7 @@ Version 2.0.0
 pom-scijava 31.1.0
 2022-01-01
 
-Major change:
+Major changes:
 Changed UI type from InteractiveCommand to ContextCommand for all plugins.
 The UI is now modal.
 This allows the use of ComsystanJ in macros.
@@ -56,7 +56,7 @@ Miscellaneous
 Signal - Cut - Renamed to Cutout
 
 Known issues
-Red cast of RGB color images
+Fiji: Red cast of RGB color images
 
 **************************************************************
 Version 1.0.1

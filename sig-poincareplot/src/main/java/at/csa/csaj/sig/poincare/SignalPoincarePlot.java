@@ -567,7 +567,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 //			for (int i = 0; i < list.size(); i++) {
 //				Display<?> display = list.get(i);
 //				//System.out.println("display name: " + display.getName());
-//				if (display.getName().equals(tableOutName))
+//				if (display.getName().contains(tableOutName))
 //					display.close();
 //			}
 //		}
@@ -598,6 +598,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
+			if (dataY == null) return;
 			int[] cols = new int[1]; 
 			boolean isLineVisible = true;
 			String signalTitle = "Poincare plot Signal #" + (s+1) + " " + tableIn.getColumnHeader(s);
@@ -648,8 +649,10 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 				// Compute result values
 				double[] resultValues = process(tableIn, s);
 				
-				for (int i = 0; i < resultValues.length; i++) {
-					dataY[s][i] = resultValues[i]; 
+				if (resultValues != null) {
+					for (int i = 0; i < resultValues.length; i++) {
+						dataY[s][i] = resultValues[i]; 
+					}
 				}
 				
 				logService.info(this.getClass().getName() + " Processing finished.");
@@ -731,10 +734,21 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 		int numLag            = this.numLag; 
 		
 		//******************************************************************************************************
-		//domain1D  = new double[numDataPoints];
+		//domain1D = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
+		for (int n = 0; n < numDataPoints; n++) {
+			//domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
 		
 		signalColumn = dgt.get(col);
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
@@ -742,9 +756,15 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 		
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
-		
+
 		//numDataPoints may be smaller now
 		numDataPoints = signal1D.length;
+		
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
+		
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1;
 		
 		// number of max lag >= numDataPoints is not allowed
 		if (numLag >= numDataPoints) {
@@ -755,10 +775,7 @@ public class SignalPoincarePlot<T extends RealType<T>> extends ContextCommand im
 		for (int i = 0; i < numDataPoints; i++) {
 			resultValues[i]   = Double.NaN;
 		}
-			
-		//int numActualRows = 0;
-		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
-			
+						
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		if (signalRange.equals("Entire signal")){	//only this option is possible for autocorrelation

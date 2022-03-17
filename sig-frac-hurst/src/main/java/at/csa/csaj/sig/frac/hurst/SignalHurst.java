@@ -830,7 +830,7 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -935,37 +935,20 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 	
 		tableColLast = 8;
 		
-		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalRange.equals("Entire signal")){
-			tableOut.set(tableColLast + 1, row, signalType); //Signal type fGn or fBm or ?
-			int numParameters = resultValues.length;
-			tableColStart = tableColLast + 1 + 1;
-			tableColEnd = tableColStart + numParameters;
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
-				//do nothing	
-			} else { //Surrogates
-				//already set
-			}	
-		} 
-		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
-			//Dh R2 StdErr
-			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); // 2 parameters
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
+		if (resultValues == null) { //set missing result values to NaN
+			tableColStart = tableColLast + 1;
+			tableColEnd = tableOut.getColumnCount() - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
+				tableOut.set(c, row, Double.NaN);
+			}
 		}
-		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
-			//Dh R2 StdErr
-			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); // 2 parameters 
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
+		else { //set result values
+			tableColStart = tableColLast + 1;
+			tableColEnd = tableColStart + resultValues.length - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
 				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-		}	
+			}
+		}
 	}
 
 	/**
@@ -1010,10 +993,21 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 //			//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
 //		}
 		//******************************************************************************************************
-		//domain1D  = new double[numDataPoints];
+		//domain1D = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
+		for (int n = 0; n < numDataPoints; n++) {
+			//domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
 		
 		signalColumn = dgt.get(col);
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
@@ -1021,8 +1015,16 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 		
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
+
+		//numDataPoints may be smaller now
+		numDataPoints = signal1D.length;
 		
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
 		
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
+				
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		if (signalRange.equals("Entire signal")){	
@@ -1032,8 +1034,9 @@ public class SignalHurst<T extends RealType<T>> extends ContextCommand implement
 				resultValues = new double[15+2+2*numSurrogates]; //+ Mean_Surr, Mean R2_Surr,  Dim_Surr1, Dim_Surr2,  Dim_Surr3, ......R2_Surr1,.... 2, 3......
 			}
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
-			logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
-	
+			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+			//if (signal1D.length) == 0) return null; //e.g. if signal had only NaNs
+			
 			psd_Beta    = Double.NaN;
 			psd_H       = Double.NaN;
 			psd_r2      = Double.NaN;

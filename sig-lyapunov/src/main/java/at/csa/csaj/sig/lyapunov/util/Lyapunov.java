@@ -28,12 +28,7 @@
 
 package at.csa.csaj.sig.lyapunov.util;
 
-
-import java.util.ArrayList;
-import java.util.Comparator;
-
 import org.scijava.log.LogService;
-
 import at.csa.csaj.commons.regression.LinearRegression;
 import at.csa.csaj.commons.utils.DoubleSort;
 

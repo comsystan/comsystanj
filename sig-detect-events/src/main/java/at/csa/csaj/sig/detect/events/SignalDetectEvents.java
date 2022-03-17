@@ -128,16 +128,16 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 	private static double[] eventY2; //This holds a copy of dataX2 for displaying (plotting)
 
 	//Output variables
-	private static ArrayList<Double> detectedEvents = new ArrayList<Double>();
-	private static ArrayList<Double> detectedDomain = new ArrayList<Double>();
+	private static ArrayList<Double> detectedEvents   = new ArrayList<Double>();
+	private static ArrayList<Double> detectedDomain   = new ArrayList<Double>();
 	private static ArrayList<Integer> eventDataIdx    = new ArrayList<Integer>(); //Integer!
 	//private static ArrayList<Double> coordinateX    = new ArrayList<Double>();
 	//private static ArrayList<Double> intervals      = new ArrayList<Double>();
 	//private static ArrayList<Double> heights        = new ArrayList<Double>();
 	//private static ArrayList<Double> deltaHeights   = new ArrayList<Double>();
 	//private static ArrayList<Double> energies       = new ArrayList<Double>();
-	private static ArrayList<Double> eventDataX2    = new ArrayList<Double>(); //events and for displaying points in extra frame
-	private static ArrayList<Double> eventDataY2    = new ArrayList<Double>(); //events and for displaying points in extra frame
+	private static ArrayList<Double> eventDataX2      = new ArrayList<Double>(); //events and for displaying points in extra frame
+	private static ArrayList<Double> eventDataY2      = new ArrayList<Double>(); //events and for displaying points in extra frame
 	
 	private static final int numTableOutPreCols = 1; //Number of columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
 	private static ArrayList<SignalPlotFrame> displayList = new ArrayList<SignalPlotFrame>();
@@ -528,13 +528,6 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 	
 	protected void initialNumColumn() {
 		spinnerInteger_NumColumn = 1;
-		if (spinnerInteger_NumColumn < numColumns) {
-			signalColumn = tableIn.get(this.spinnerInteger_NumColumn - 1);
-			signal1D = new double[signalColumn.size()];
-			for (int n = 0; n < signalColumn.size(); n++) {
-				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
-			}	
-		}
 	}
 
 	// ------------------------------------------------------------------------------
@@ -789,14 +782,6 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			logService.info(this.getClass().getName() + " No more columns available");
 			spinnerInteger_NumColumn = tableIn.getColumnCount();
 		}
-		if (this.spinnerInteger_NumColumn < numColumns) {
-			signalColumn = tableIn.get(this.spinnerInteger_NumColumn - 1);
-			signal1D = new double[signalColumn.size()];
-			for (int n = 0; n < signalColumn.size(); n++) {
-				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
-			}	
-		}
-		
 		logService.info(this.getClass().getName() + " Column number set to " + spinnerInteger_NumColumn);
 	}
 	
@@ -1123,7 +1108,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -1148,7 +1133,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-		if (booleanDisplayAsSignal) {
+		if ((booleanDisplayAsSignal) && (detectedEvents != null)) {
 			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = false;
 			String signalTitle = "Events - ";			
@@ -1186,7 +1171,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			pdf.setVisible(true);
 			displayList.add(pdf);
 		}
-		if (booleanDisplayOnOriginalSignal) {
+		if ((booleanDisplayOnOriginalSignal) && (detectedEvents != null)) {
 			boolean isLineVisible = false;
 			eventX2 = new double[eventDataX2.size()];
  			eventY2 = new double[eventDataY2.size()]; //should have the same size as X2
@@ -1261,7 +1246,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-		if (booleanDisplayAsSignal) {
+		if ((booleanDisplayAsSignal) && (detectedEvents != null)) {
 			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "Events - ";			
@@ -1287,7 +1272,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//-because of first text columns				
 			}
 			domainNew = new double[tableOut.getRowCount()];
-			for (int i = 0; i<domainNew.length; i++) {
+			for (int i = 0; i < domainNew.length; i++) {
 				domainNew[i] = i+1; 
 			}
 			//display of detected events only 
@@ -1299,7 +1284,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			pdf.setVisible(true);
 			displayList.add(pdf);
 		}
-		if (booleanDisplayOnOriginalSignal) {
+		if ((booleanDisplayOnOriginalSignal) && (detectedEvents != null)) {
 
 			//TO DO
 			
@@ -1370,11 +1355,11 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no signal for processing!");
 		}
 		
-		String  signalRange   = choiceRadioButt_SignalRange;
+		String  signalRange    = choiceRadioButt_SignalRange;
 		String  surrType       = choiceRadioButt_SurrogateType;
-		//int     boxLength     = spinnerInteger_BoxLength;
+		//int     boxLength    = spinnerInteger_BoxLength;
 		int     numDataPoints  = dgt.getRowCount();
-		//boolean removeZeores  = booleanRemoveZeroes;
+		//boolean removeZeores = booleanRemoveZeroes;
 	
 		String eventType      = choiceRadioButt_EventType; //"Peaks", "Valleys", "Slope", "QRS peaks (Chen&Chen)", "QRS peaks (Osea)"},
 		String thresholdType  = choiceRadioButt_ThresholdType; //"(Peaks, Valleys, Slope) Threshold", "(Slope) MAC"}, //Simple threshold or Moving Average Curves (MACs) according to Lu et al., Med. Phys. 33, 3634 (2006); http://dx.doi.org/10.1118/1"
@@ -1419,6 +1404,16 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			signal1D = new double[numDataPoints];
 			domainColumn = dgt.get(0);
 			signalColumn = dgt.get(col);
+			
+			String columnType = signalColumn.get(0).getClass().getSimpleName();	
+			logService.info(this.getClass().getName() + " Column type: " + columnType);	
+			if (!columnType.equals("Double")) {
+				logService.info(this.getClass().getName() + " NOTE: Column type is not supported");
+				detectedEvents = null;
+				detectedDomain = null;
+				return; 
+			}
+			
 			for (int n = 0; n < numDataPoints; n++) {
 				domain1D[n] = Double.valueOf((Double)domainColumn.get(n));
 				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
@@ -1426,7 +1421,17 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 		} else {
 			domain1D = new double[numDataPoints];
 			signal1D = new double[numDataPoints];
+			
 			signalColumn = dgt.get(col);
+			String columnType = signalColumn.get(0).getClass().getSimpleName();	
+			logService.info(this.getClass().getName() + " Column type: " + columnType);	
+			if (!columnType.equals("Double")) {
+				logService.info(this.getClass().getName() + " NOTE: Column type is not supported");
+				detectedEvents = null;
+				detectedDomain = null;
+				return; 
+			}
+			
 			for (int n = 0; n < numDataPoints; n++) {
 				domain1D[n] = n+1;
 				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
@@ -1452,21 +1457,28 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			logService.info(this.getClass().getName() + " Signal scaled by " + scalingFactor);
 		}
 		
-		double samplingInterval   = domain1D[1] - domain1D[0];
+		double samplingInterval = domain1D[1] - domain1D[0];
 		
 		//signal1D = removeNaN(signal1D);
 		//if (removeZeores) signal1D = removeZeroes(signal1D);
 		
 		//numDataPoints may be smaller now
-		numDataPoints = signal1D.length;
-			
+		//numDataPoints = signal1D.length;
 		
-		//int numActualRows = 0;
 		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
-			
+		if (numDataPoints == 0) {//e.g. if signal had only NaNs
+			detectedEvents = null;
+			detectedDomain = null;
+			return;
+		}
+		
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
+					
+		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
-		if (signalRange.equals("Entire signal")){	//only this option is possible for FFT
+		if (signalRange.equals("Entire signal")) {	//only this option is possible for FFT
 			
 			if (!surrType.equals("No surrogates")) {
 				Surrogate surrogate = new Surrogate();	
@@ -1479,6 +1491,7 @@ public class SignalDetectEvents<T extends RealType<T>> extends ContextCommand im
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+			//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 				
 			//"Peaks", "Valleys", "Slope", "QRS peaks (Chen&Chen)", "QRS peaks (Osea)"},	
 			if (eventType.equals("Peaks")) {

@@ -624,7 +624,7 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -649,18 +649,20 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
-			boolean isLineVisible = true;
-			String signalTitle = "Resampling - " + this.choiceRadioButt_ResamplingType;
-			String xLabel = "#";
-			String yLabel = "Value";
-			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
-			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
-				cols[c-numTableOutPreCols] = c; //- because of first text columns	
-				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
+			if (resultValues != null) { 
+				int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
+				boolean isLineVisible = true;
+				String signalTitle = "Resampling - " + this.choiceRadioButt_ResamplingType;
+				String xLabel = "#";
+				String yLabel = "Value";
+				String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
+				for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
+					cols[c-numTableOutPreCols] = c; //- because of first text columns	
+					seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
+				}
+				SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+				pdf.setVisible(true);
 			}
-			SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
-			pdf.setVisible(true);
 		//}
 		
 		long duration = System.currentTimeMillis() - startTime;
@@ -751,22 +753,28 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 	private void writeToTable(int signalNumber, double[] resultValues) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
-		for (int r = 0; r < resultValues.length; r++ ) {;
-			//"Down-sampling", "Up-sampling"
-			if      (this.choiceRadioButt_ResamplingType.equals("Down-sampling")) {
-				tableOut.set(0, r, "Down/" + this.spinnerInteger_NumFactor + " Interp-" + this.choiceRadioButt_InterpolationType);
+		if (resultValues == null) {
+			for (int r = 0; r < tableOut.getRowCount(); r++ ) {
+				tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
 			}
-			else if (this.choiceRadioButt_ResamplingType.equals("Up-sampling"))  {
-				tableOut.set(0, r, "Up*" + this.spinnerInteger_NumFactor + " Interp-" + this.choiceRadioButt_InterpolationType);			
+		}
+		else {
+			for (int r = 0; r < resultValues.length; r++ ) {
+				//"Down-sampling", "Up-sampling"
+				if      (this.choiceRadioButt_ResamplingType.equals("Down-sampling")) {
+					tableOut.set(0, r, "Down/" + this.spinnerInteger_NumFactor + " Interp-" + this.choiceRadioButt_InterpolationType);
+				}
+				else if (this.choiceRadioButt_ResamplingType.equals("Up-sampling"))  {
+					tableOut.set(0, r, "Up*" + this.spinnerInteger_NumFactor + " Interp-" + this.choiceRadioButt_InterpolationType);			
+				}		
+				tableOut.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
 			}
 			
-			tableOut.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
-		}
-		
-		//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
-		if (tableOut.getRowCount() > resultValues.length) {
-			for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
-				tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+			//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
+			if (tableOut.getRowCount() > resultValues.length) {
+				for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
+					tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+				}
 			}
 		}
 	}
@@ -794,45 +802,60 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 		String interpolType = this.choiceRadioButt_InterpolationType;
 		//String  signalRange     = choiceRadioButt_SignalRange;
 		//int     boxLength        = spinnerInteger_BoxLength;
-		int     numDataPointsIn    = dgt.getRowCount();
+		int     numDataPoints    = dgt.getRowCount();
 		//boolean removeZeores     = booleanRemoveZeroes;
 		//String  surrogateType    = choiceRadioButt_SurrogateType;//
 		//int     numSurrogates    = spinnerInteger_NumSurrogates;
 		//******************************************************************************************************
 		
 	
-		//domain1D  = new double[numDataPoints];
-		signal1D = new double[numDataPointsIn];
+		//domain1D = new double[numDataPoints];
+		signal1D = new double[numDataPoints];
+		for (int n = 0; n < numDataPoints; n++) {
+			//domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
+		
 		signalColumn = dgt.get(col);
-		for (int n = 0; n < numDataPointsIn; n++) {
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
+		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		
-		//signal1D = removeNaN(signal1D);
+		signal1D = removeNaN(signal1D);
 		//if (removeZeores) signal1D = removeZeroes(signal1D);
-		
+
 		//numDataPoints may be smaller now
-		numDataPointsIn = signal1D.length;
+		numDataPoints = signal1D.length;
+		
+		//int numActualRows = 0;
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs	
+	
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1;
+		
 		signalOut = null;
 		
-//		double[] signalOut = new double[numDataPoints];
+//		signalOut = new double[numDataPoints];
 //		for (double d: signalOut) {
 //			d = Double.NaN;
 //		}
-		
-		
-		//int numActualRows = 0;
-		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPointsIn);	
-			
+				
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		//if (signalRange.equals("Entire signal")){	//only this option is possible for FFT
 			
-			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
 			
 		if (rsType.equals("Down-sampling")) {
-			int numDataPointsOut = numDataPointsIn/rsFactor;
+			int numDataPointsOut = numDataPoints/rsFactor;
 			signalOut = new double[numDataPointsOut];
 			for (double d: signalOut) d = Double.NaN;
 				
@@ -857,13 +880,13 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 			}	
 			
 		} else if (rsType.equals("Up-sampling")) {
-			int numDataPointsOut = numDataPointsIn*rsFactor;
+			int numDataPointsOut = numDataPoints*rsFactor;
 			signalOut = new double[numDataPointsOut];
 			for (double d: signalOut) d = Double.NaN;
 			
 			if (interpolType.equals("None")) { 
-				for (int i=0;  i < signal1D.length;  i++) {
-					for (int d=0; d<rsFactor; d++) { //adding identical data values
+				for (int i = 0;  i < signal1D.length;  i++) {
+					for (int d = 0; d<rsFactor; d++) { //adding identical data values
 						signalOut[i*rsFactor+d] = signal1D[i];
 					}
 				}	
@@ -871,15 +894,15 @@ public class SignalResampling<T extends RealType<T>> extends ContextCommand impl
 			if (interpolType.equals("Linear")) { 
 				int i;
 				double linearDeltaSignal = 0;
-				for (i=0;  i < signal1D.length - 1;  i++) { //-1 because signal1D[i+1] is not available
+				for (i = 0;  i < signal1D.length - 1;  i++) { //-1 because signal1D[i+1] is not available
 					linearDeltaSignal = (signal1D[i+1] - signal1D[i])/rsFactor;
-					for (int d=0; d<rsFactor; d++) { //adding values
+					for (int d = 0; d<rsFactor; d++) { //adding values
 						signalOut[i*rsFactor+d] = signal1D[i] + d*linearDeltaSignal;
 					}
 				}	
 				//last values
 				i = signal1D.length -1 ; //last values are computed with last delta
-				for (int d=0; d<rsFactor; d++) { //adding values
+				for (int d = 0; d<rsFactor; d++) { //adding values
 					signalOut[i*rsFactor+d] = signal1D[i] + d*linearDeltaSignal;
 				}
 			}

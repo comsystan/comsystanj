@@ -1050,7 +1050,7 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -1155,34 +1155,20 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		tableOut.set(8, row, spinnerInteger_Lag);    // Lag
 		tableColLast = 8;
 		
-		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalRange.equals("Entire signal")){
-			int numParameters = resultValues.length;
+		if (resultValues == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
-			tableColEnd = tableColStart + numParameters;
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
-				//do nothing	
-			} else { //Surrogates
-				//already set
-			}	
-		} 
-		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
-			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 1 * numSubsequentBoxes); //1 or 2  for 1 or 2 parameters
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
+			tableColEnd = tableOut.getColumnCount() - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
+				tableOut.set(c, row, Double.NaN);
+			}
 		}
-		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
-			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 1 * numGlidingBoxes); //1 or 2 for 1 or 2 parameters 
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
+		else { //set result values
+			tableColStart = tableColLast + 1;
+			tableColEnd = tableColStart + resultValues.length - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
 				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-		}	
+			}
+		}
 	}
 
 	/**
@@ -1233,23 +1219,39 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 		
 		//******************************************************************************************************
-		domain1D  = new double[numDataPoints];
+		//domain1D = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
 		
-		signalColumn = dgt.get(col);
 		for (int n = 0; n < numDataPoints; n++) {
-			domain1D[n]  = n+1;
+			//domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
+		
+		signalColumn = dgt.get(col);
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
+		for (int n = 0; n < numDataPoints; n++) {
+			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
 		
-		//May be smaller than before
+		//numDataPoints may be smaller now
 		numDataPoints = signal1D.length;
 		
 		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
-		
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
+	
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
+				
 		double entropyValue = Float.NaN;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
@@ -1260,7 +1262,8 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 				resultValues = new double[numOfEntropies]; // 		
 				for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 				
-				logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+				//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+				//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 				
 				probabilities = compProbabilities(signal1D, numLag, probType);				
 				genEntSE      = this.compSE();

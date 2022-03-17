@@ -693,7 +693,7 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -730,27 +730,29 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
-			boolean isLineVisible = true;
-			String signalTitle = "FFT - " + this.choiceRadioButt_OutputType;
-			String xLabel = "#";
-			if (choiceRadioButt_TimeDomainType.equals("Unitary")) xLabel = "#";
-			else if (choiceRadioButt_TimeDomainType.equals("Hz")) xLabel = "Hz";
-			String yLabel = "Value";
-			if (choiceRadioButt_ScalingType.equals("Log")) yLabel = "Log("+choiceRadioButt_OutputType+")";
-			else if (choiceRadioButt_ScalingType.equals("Ln")) yLabel = "Ln("+choiceRadioButt_OutputType+")";
-			else if (choiceRadioButt_ScalingType.equals("Linear")) yLabel = choiceRadioButt_OutputType;
-			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
-			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
-				cols[c-numTableOutPreCols] = c; //- because of first text columns	
-				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
+			if (resultValues != null) { 
+				int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
+				boolean isLineVisible = true;
+				String signalTitle = "FFT - " + this.choiceRadioButt_OutputType;
+				String xLabel = "#";
+				if (choiceRadioButt_TimeDomainType.equals("Unitary")) xLabel = "#";
+				else if (choiceRadioButt_TimeDomainType.equals("Hz")) xLabel = "Hz";
+				String yLabel = "Value";
+				if (choiceRadioButt_ScalingType.equals("Log")) yLabel = "Log("+choiceRadioButt_OutputType+")";
+				else if (choiceRadioButt_ScalingType.equals("Ln")) yLabel = "Ln("+choiceRadioButt_OutputType+")";
+				else if (choiceRadioButt_ScalingType.equals("Linear")) yLabel = choiceRadioButt_OutputType;
+				String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
+				for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
+					cols[c-numTableOutPreCols] = c; //- because of first text columns	
+					seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
+				}
+				SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableOut, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+				Point pos = pdf.getLocation();
+				pos.x = (int) (pos.getX() - 100);
+				pos.y = (int) (pos.getY() + 100);
+				pdf.setLocation(pos);
+				pdf.setVisible(true);
 			}
-			SignalPlotFrame pdf = new SignalPlotFrame(domain1D, tableOut, cols, isLineVisible, "FFT Signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
-			Point pos = pdf.getLocation();
-			pos.x = (int) (pos.getX() - 100);
-			pos.y = (int) (pos.getY() + 100);
-			pdf.setLocation(pos);
-			pdf.setVisible(true);
 		//}
 		
 		long duration = System.currentTimeMillis() - startTime;
@@ -850,24 +852,36 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 	private void writeToTable(int signalNumber, double[] resultValues) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
-		for (int r = 0; r < resultValues.length; r++ ) {
-			tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
-			tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
-			tableOut.set(2, r, this.choiceRadioButt_WindowingType);
-			tableOut.set(3, r, domain1D[r]); // time domain column	
-			tableOut.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
+		if (resultValues == null) {
+			for (int r = 0; r < tableOut.getRowCount(); r++ ) {
+				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+				tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
+				tableOut.set(2, r, this.choiceRadioButt_WindowingType);
+				tableOut.set(3, r, Double.NaN); // time domain column	
+				tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+			}
 		}
-		
-		//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
-		if (tableOut.getRowCount() > resultValues.length) {
-			for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
+		else {
+			for (int r = 0; r < resultValues.length; r++ ) {
 				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
 				tableOut.set(2, r, this.choiceRadioButt_WindowingType);
 				tableOut.set(3, r, domain1D[r]); // time domain column	
-				tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+				tableOut.set(numTableOutPreCols + signalNumber, r, resultValues[r]); //+ because of first text columns	
+			}
+			
+			//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
+			if (tableOut.getRowCount() > resultValues.length) {
+				for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
+					tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+					tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
+					tableOut.set(2, r, this.choiceRadioButt_WindowingType);
+					tableOut.set(3, r, Double.NaN); // time domain column	
+					tableOut.set(numTableOutPreCols + signalNumber, r, Double.NaN); //+ because of first text columns	
+				}
 			}
 		}
+		
 	}
 
 	/**
@@ -888,11 +902,11 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no signal for processing!");
 		}
 		
-		String  signalRange   = choiceRadioButt_SignalRange;
+		String  signalRange    = choiceRadioButt_SignalRange;
 		String  surrType       = choiceRadioButt_SurrogateType;
-		//int     boxLength     = spinnerInteger_BoxLength;
+		//int     boxLength    = spinnerInteger_BoxLength;
 		int     numDataPoints  = dgt.getRowCount();
-		//boolean removeZeores  = booleanRemoveZeroes;
+		//boolean removeZeores = booleanRemoveZeroes;
 		String  outType        = choiceRadioButt_OutputType;//"Magnitude", "Power"
 		String  normType       = choiceRadioButt_NormalizationType;//"Standard", "Unitary"
 		String  scalingType    = choiceRadioButt_ScalingType;//"Standard", "Unitary"
@@ -901,10 +915,23 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 		String  windowingType  = choiceRadioButt_WindowingType;
 		//******************************************************************************************************
 		
-	
-		//domain1D  = new double[numDataPoints];
+		//domain1D is constructed later
+		//domain1D = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
+	
+		for (int n = 0; n < numDataPoints; n++) {
+			//domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
+		
 		signalColumn = dgt.get(col);
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
@@ -916,16 +943,19 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 		//numDataPoints may be smaller now
 		numDataPoints = signal1D.length;
 		
+		//int numActualRows = 0;
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
+
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1;
+			
 		signalOut = null;
 		
-//		double[] signalOut = new double[numDataPoints];
+//		signalOut = new double[numDataPoints];
 //		for (double d: signalOut) {
 //			d = Double.NaN;
 //		}
-		
-		
-		//int numActualRows = 0;
-		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
@@ -941,7 +971,8 @@ public class SignalFFT<T extends RealType<T>> extends ContextCommand implements 
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
-		
+			//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
+			
 			if (windowingType.equals("Rectangular")) {
 				signal1D = windowingRectangular(signal1D);
 			}

@@ -100,6 +100,7 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 	private static double[] domain1D;
 	private static double[] subSignal1D;
 	private static double[] surrSignal1D;
+	private static double[] signalOut;
 	Column<? extends Object> signalColumn;
 	Column<? extends Object> domainColumn;
 	
@@ -112,7 +113,7 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
-	private static final int numTableOutTxtCols = 2; //Number of text columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
+	private static final int numTableOutPreCols = 2; //Number of text columns before data (signal) columns, see methods generateTableHeader() and writeToTable()
 	private static final String tableOutName = "Table - Mathematical function";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
@@ -327,6 +328,10 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 				logService.info(this.getClass().getName() + " Column #1 cannot be a data column as well as the domain column");
 				choiceRadioButt_Domain = "Unity";
 			}
+			if (!tableIn.get(0).get(0).getClass().getSimpleName().equals("Double")) { //e.g. String column
+				logService.info(this.getClass().getName() + " Column #1 is not a Double value column");
+				choiceRadioButt_Domain = "Unity";
+			}	
 		}	
 		logService.info(this.getClass().getName() + " Domain set to " + choiceRadioButt_Domain);
 	}
@@ -609,7 +614,7 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -642,26 +647,28 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 		writeToTable(s, resultValues);
 		
 		//eliminate empty columns
-		leaveOverOnlyOneSignalColumn(s+numTableOutTxtCols); // +because of first text columns
+		leaveOverOnlyOneSignalColumn(s+numTableOutPreCols); // +because of first text columns
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableOut.getColumnCount()-numTableOutTxtCols]; //- because of first text columns	
-			boolean isLineVisible = true;
-			String signalTitle = "Function - " + this.choiceRadioButt_Operator;
-			String xLabel = "#";
-			String yLabel = "Value";
-			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutTxtCols]; //- because of first text columns			
-			for (int c = numTableOutTxtCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
-				cols[c-numTableOutTxtCols] = c; //- because of first text columns	
-				seriesLabels[c-numTableOutTxtCols] = tableOut.getColumnHeader(c); //- because of first text columns					
+			if (resultValues != null) { 
+				int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
+				boolean isLineVisible = true;
+				String signalTitle = "Function - " + this.choiceRadioButt_Operator;
+				String xLabel = "#";
+				String yLabel = "Value";
+				String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
+				for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
+					cols[c-numTableOutPreCols] = c; //- because of first text columns	
+					seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first text columns					
+				}
+				SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Result signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
+				Point pos = pdf.getLocation();
+				pos.x = (int) (pos.getX() - 100);
+				pos.y = (int) (pos.getY() + 100);
+				pdf.setLocation(pos);
+				pdf.setVisible(true);
 			}
-			SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Result signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
-			Point pos = pdf.getLocation();
-			pos.x = (int) (pos.getX() - 100);
-			pos.y = (int) (pos.getY() + 100);
-			pdf.setLocation(pos);
-			pdf.setVisible(true);
 		//}
 		
 		long duration = System.currentTimeMillis() - startTime;
@@ -722,15 +729,15 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelations?\nNot recommended for a large number of signals", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableOut.getColumnCount()-numTableOutTxtCols]; //- because of first text columns	
+			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = true;
 			String signalTitle = "Function - " + this.choiceRadioButt_Operator;
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutTxtCols]; //- because of first text columns		
-			for (int c = numTableOutTxtCols; c < tableOut.getColumnCount(); c++) { // because of first text columns	
-				cols[c-numTableOutTxtCols] = c;  //- because of first text columns	
-				seriesLabels[c-numTableOutTxtCols] = tableOut.getColumnHeader(c);	//- because of first text columns				
+			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns		
+			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { // because of first text columns	
+				cols[c-numTableOutPreCols] = c;  //- because of first text columns	
+				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//- because of first text columns				
 			}
 			SignalPlotFrame pdf = new SignalPlotFrame(tableOut, cols, isLineVisible, "Result signal(s)", signalTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
@@ -756,20 +763,29 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 	private void writeToTable(int signalNumber, double[] resultValues) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
-		for (int r = 0; r < resultValues.length; r++ ) {
-			tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
-			tableOut.set(1, r, this.choiceRadioButt_Operator);
-			tableOut.set(signalNumber + numTableOutTxtCols, r, resultValues[r]); //+ because of first text columns	
-		}
-		
-		//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
-		if (tableOut.getRowCount() > resultValues.length) {
-			for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
+		if (resultValues == null) {
+			for (int r = 0; r < tableOut.getRowCount(); r++ ) {
 				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableOut.set(1, r, this.choiceRadioButt_Operator);
-				tableOut.set(signalNumber + numTableOutTxtCols, r, Double.NaN); //+ because of first text columns	
+				tableOut.set(signalNumber + numTableOutPreCols, r, Double.NaN); //+ because of first text columns	
 			}
 		}
+		else {
+			for (int r = 0; r < resultValues.length; r++ ) {
+				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+				tableOut.set(1, r, this.choiceRadioButt_Operator);
+				tableOut.set(signalNumber + numTableOutPreCols, r, resultValues[r]); //+ because of first text columns	
+			}
+			
+			//Fill up with NaNs (this can be because of NaNs in the input signal or deletion of zeroes)
+			if (tableOut.getRowCount() > resultValues.length) {
+				for (int r = resultValues.length; r < tableOut.getRowCount(); r++ ) {
+					tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+					tableOut.set(1, r, this.choiceRadioButt_Operator);
+					tableOut.set(signalNumber + numTableOutPreCols, r, Double.NaN); //+ because of first text columns	
+				}
+			}
+		}	
 	}
 
 	/**
@@ -799,22 +815,41 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 		String optDomain      = choiceRadioButt_Domain; //"Unity", "Column #1"
 		
 		//******************************************************************************************************
+		//domain1D = new double[numDataPoints];
+//		signal1D = new double[numDataPoints];
+//		for (int n = 0; n < numDataPoints; n++) {
+//			//domain1D[n] = Double.NaN;
+//			signal1D[n] = Double.NaN;
+//		}
 		
 		if (optDomain.equals("Unity")){
 			//domain1D  = new double[numDataPoints];
-			signal1D = new double[numDataPoints];
+			signal1D     = new double[numDataPoints];
 			signalColumn = dgt.get(col);
+			String columnType = signalColumn.get(0).getClass().getSimpleName();	
+			logService.info(this.getClass().getName() + " Column type: " + columnType);	
+			if (!columnType.equals("Double")) {
+				logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+				return null; 
+			}
+			
 			for (int n = 0; n < numDataPoints; n++) {
 				//domain1D[n]  = n+1;
 				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 			}	
 		} else if (optDomain.equals("Column #1")){
-			domain1D  = new double[numDataPoints];
+			domain1D = new double[numDataPoints];
 			signal1D = new double[numDataPoints];
 			domainColumn = dgt.get(0);
 			signalColumn = dgt.get(col);
+			String columnType = signalColumn.get(0).getClass().getSimpleName();	
+			logService.info(this.getClass().getName() + " Column type: " + columnType);	
+			if (!columnType.equals("Double")) {
+				logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+				return null; 
+			}
 			for (int n = 0; n < numDataPoints; n++) {
-				domain1D[n]  = Double.valueOf((Double)domainColumn.get(n));
+				domain1D[n] = Double.valueOf((Double)domainColumn.get(n));
 				signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 			}	
 		}
@@ -824,17 +859,15 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 		//if (removeZeores) signal1D = removeZeroes(signal1D);
 		
 		//numDataPoints may be smaller now
-		numDataPoints = signal1D.length;
+		//numDataPoints = signal1D.length;
 		
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
 	
-		double[] signalOut = new double[numDataPoints];
+		signalOut = new double[numDataPoints];
 		for (double d: signalOut) {
 			d = Double.NaN;
 		}
-		
-		
-		//int numActualRows = 0;
-		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
@@ -851,6 +884,7 @@ public class SignalMathematics<T extends RealType<T>> extends ContextCommand imp
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+			//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 			
 			//"Diff+", "Diff-", "Diff+-", "Integral", "Exp", "Ln", "Log", "Sin", "Cos", "Tan"
 			if (choiceRadioButt_Operator.equals("Diff+")) {

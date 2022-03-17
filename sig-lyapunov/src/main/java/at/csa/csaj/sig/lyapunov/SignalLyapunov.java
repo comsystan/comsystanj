@@ -40,7 +40,6 @@ import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
-import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -266,7 +265,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		       max = "9999999999999999999",
 		       initializer = "initialNumPointPairs",
 		       stepSize = "1",
-		       callback = "changedNumPointPairs")
+		       callback = "callbackNumPointPairs")
     private int spinnerInteger_NumPointPairs;
     
 	@Parameter(label = "(Direct)Eps",
@@ -274,9 +273,9 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		       style = NumberWidget.SPINNER_STYLE,
 		       min = "0",
 		       max = "999999999999999999999999",
-		       initializer = "initialEps",
 		       stepSize = "0.01",
-		       callback = "changedEps")
+		       initializer = "initialEps",
+		       callback = "callbackEps")
 	 private float spinnerFloat_Eps;
     
 	//-----------------------------------------------------------------------------------------------------
@@ -498,12 +497,12 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	}
 	
 	/** Executed whenever the {@link #spinFloat_NumPointPairs} parameter changes. */
-	protected void changedNumPointPairs() {
+	protected void callbackNumPointPairs() {
 		logService.info(this.getClass().getName() + " Number ofpoint pairs changed to " + spinnerInteger_NumPointPairs);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_Eps} parameter changes. */
-	protected void changedEps() {
+	protected void callbackEps() {
 		logService.info(this.getClass().getName() + " Epsilon changed to " + spinnerFloat_Eps);
 	}
 	
@@ -679,7 +678,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Huguchi1D dimensions, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Lyapunov exponent, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -700,7 +699,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Huguchi1D dimensions, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Lyapunov exponents, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -793,7 +792,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 			}
 		}
 		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
-			for (int n = 1; n <= numSubsequentBoxes; n++) {
+			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableOut.add(new DoubleColumn("λ-#" + n));	
 			}
 			for (int n = 1; n <= numGlidingBoxes; n++) {
@@ -841,7 +840,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -858,7 +857,7 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		// Compute result values
 		double[] resultValues = process(tableIn, c); 
 		// 0 Lya, 1 R2, 2 StdErr
-		logService.info(this.getClass().getName() + " λ: " + resultValues[0]);
+		if (resultValues != null) logService.info(this.getClass().getName() + " λ: " + resultValues[0]);
 			
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, resultValues); //write always to the first row
@@ -920,7 +919,8 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 	 */
 	private void writeToTable(int rowNumber, int signalNumber, double[] resultValues) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
-			int row = rowNumber;
+		
+		int row = rowNumber;
 		int tableColStart = 0;
 		int tableColEnd   = 0;
 		int tableColLast  = 0;
@@ -954,36 +954,20 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		tableOut.set(15, row, choiceRadioButt_Algorithm); //Algorithm	
 		tableColLast = 15;
 		
-		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalRange.equals("Entire signal")){
-			int numParameters = resultValues.length;
+		if (resultValues == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
-			tableColEnd = tableColStart + numParameters;
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
-				//do nothing	
-			} else { //Surrogates
-				//already set
-			}	
-		} 
-		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
-			//Lya R2
-			tableColStart = tableColLast + 1;
-			tableColEnd = (int) (tableColStart + 2 * numSubsequentBoxes); // 2 parameters
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
+			tableColEnd = tableOut.getColumnCount() - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
+				tableOut.set(c, row, Double.NaN);
+			}
 		}
-		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
-			//Lya R2
+		else { //set result values
 			tableColStart = tableColLast + 1;
-			tableColEnd = (int) (tableColStart + 2 * numGlidingBoxes); // 2 parameters 
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
+			tableColEnd = tableColStart + resultValues.length - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
 				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-		}	
+			}
+		}
 	}
 
 	/**
@@ -1018,7 +1002,6 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		int numPointPairs     = spinnerInteger_NumPointPairs; //only for Kantz. This number = 1 for Rosenstein
 		double eps 			  = spinnerFloat_Eps;
 		boolean removeZeores  = booleanRemoveZeroes;
-	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 			
 		//************************************************************************************************
@@ -1028,20 +1011,41 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 		int periodMean = 0;
 		//*************************************************************************************************
 		
-		double[] resultValues = new double[4]; // LyaX0, Lya, R2, StdErr
+		double[] resultValues = new double[3]; // LyaX0, R2, StdErr
 		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 
-		domain1D  = new double[numDataPoints];
-		signal1D  = new double[numDataPoints];
+		//domain1D = new double[numDataPoints];
+		signal1D = new double[numDataPoints];
+		for (int n = 0; n < numDataPoints; n++) {
+			//domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
 		
 		signalColumn = dgt.get(col);
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
 		for (int n = 0; n < numDataPoints; n++) {
-			domain1D[n] = n+1;
+			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}	
 		
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
+		
+		//numDataPoints may be smaller now
+		numDataPoints = signal1D.length;
+
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
+		
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1;
+			
 		Lyapunov   lya;
 		double[]   divergencesDirect     = null;
 		double[]   divergencesRosenstein = null; //Divergences
@@ -1058,7 +1062,9 @@ public class SignalLyapunov<T extends RealType<T>> extends ContextCommand implem
 				resultValues = new double[3+3+3*numSurrogates]; // Lya_Surr, R2_Surr, StdErr_Surr,	Lya_Surr1, Lya_Surr2,  Lya_Surr3, ......R2_Surr1,.... 2, 3......
 			}
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
-			logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);
+			//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
+			
 			if (signal1D.length > (numKMax * 2)) { // only data series which are large enough
 				
 				lya   = new Lyapunov();

@@ -28,6 +28,7 @@
 
 package at.csa.csaj.sig.symbolicaggregation;
 
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -675,13 +678,24 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 			optDeleteExistingImgs   = true;
 		}
 		
-		if (optDeleteExistingImgs) {
-			List<Display<?>> list = defaultDisplayService.getDisplays();
-			for (int i = 0; i < list.size(); i++) {
-				Display<?> display = list.get(i);
-				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(datasetOutName))
-					display.close();
+		if (optDeleteExistingImgs) {	
+			//List<Display<?>> list = defaultDisplayService.getDisplays();
+			//for (int i = 0; i < list.size(); i++) {
+			//	display = list.get(i);
+			//	System.out.println("display name: " + display.getName());
+			//	if (display.getName().contains("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
+			//}			
+			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
+		
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().contains(datasetOutName)) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
 			}
 		}
 	}
@@ -696,6 +710,8 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		
 		// Compute result values
 		singleImg = process(tableIn, s); 
+		if (singleImg == null) return;
+		
 		datasetOut = datasetService.create(singleImg);	
 		
 		if (datasetOut.numDimensions() == 2) {
@@ -734,8 +750,9 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		long[] pos;
 		int value;
 		
+		boolean firstImageIsGenerated = false;
 		// loop over all slices of stack
-		for (int s = 0; s < numColumns; s++) { // s... numb er of signal column
+		for (int s = 0; s < numColumns; s++) { // s... number of signal column
 			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
@@ -749,71 +766,73 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 				// Compute result values
 				singleImg = process(tableIn, s);
 				
-				//create stack datasetOut with info from first image
-				if (s == 0) {
-					String name = datasetOutName;
-					int bitsPerPixel;
-					AxisType[] axes;
-					long[] dims;
-					if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Grey-8bit"))) {
-						bitsPerPixel = 8;
-						dims = new long[]{singleImg.dimension(0), singleImg.dimension(1), numColumns};
-						axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
+				if (singleImg != null) {	
+					//create stack datasetOut with info from first image
+					if (firstImageIsGenerated == false) {
+						String name = datasetOutName;
+						int bitsPerPixel;
+						AxisType[] axes;
+						long[] dims;
+						if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Grey-8bit"))) {
+							bitsPerPixel = 8;
+							dims = new long[]{singleImg.dimension(0), singleImg.dimension(1), numColumns};
+							axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
+						}
+						else if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color-RGB"))) {
+							bitsPerPixel = 8; //24 throws an error?
+							dims = new long[]{singleImg.dimension(0), singleImg.dimension(1), 3, numColumns}; //RGB
+							axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
+						}
+						else {
+							logService.info(this.getClass().getName() + " Number of images is " + numColumns +" - Generation not possible!");
+							return;
+						}
+						
+						boolean signed   = false;
+						boolean floating = false;
+						boolean virtual  = false;
+	
+						//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
+						datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+						if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color-RGB"))) {
+							datasetOut.setCompositeChannelCount(3);
+							datasetOut.setRGBMerged(true);
+						}
+						//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
+						//resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(singleImg.dimension(0), singleImg.dimension(1), numColumns);
+						randomAccessResultImg = (RandomAccess<T>) datasetOut.randomAccess();
+						firstImageIsGenerated = true;
 					}
-					else if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color-RGB"))) {
-						bitsPerPixel = 8; //24 throws an error?
-						dims = new long[]{singleImg.dimension(0), singleImg.dimension(1), 3, numColumns}; //RGB
-						axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
+					//Copy to resultImg
+					if (choiceRadioButt_ColorModelType.equals("Grey-8bit")) {
+						cursor = singleImg.localizingCursor();
+						pos = new long[2];
+						while (cursor.hasNext()) {
+							cursor.fwd();
+							cursor.localize(pos);
+							value = cursor.get().getInteger();
+							randomAccessResultImg.setPosition(pos[0], 0);
+							randomAccessResultImg.setPosition(pos[1], 1);
+							randomAccessResultImg.setPosition(s, 2);
+							randomAccessResultImg.get().setReal(value);
+						}  	
 					}
-					else {
-						logService.info(this.getClass().getName() + " Number of images is " + numColumns +" - Generation not possible!");
-						return;
-					}
-					
-					boolean signed   = false;
-					boolean floating = false;
-					boolean virtual  = false;
-
-					//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
-					datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-					if ((numColumns > 1) && (choiceRadioButt_ColorModelType.equals("Color-RGB"))) {
-						datasetOut.setCompositeChannelCount(3);
-						datasetOut.setRGBMerged(true);
-					}
-					//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
-					//resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(singleImg.dimension(0), singleImg.dimension(1), numColumns);
-					randomAccessResultImg = (RandomAccess<T>) datasetOut.randomAccess();
-				}
-				//Copy to resultImg
-				if (choiceRadioButt_ColorModelType.equals("Grey-8bit")) {
-					cursor = singleImg.localizingCursor();
-					pos = new long[2];
-					while (cursor.hasNext()) {
-						cursor.fwd();
-						cursor.localize(pos);
-						value = cursor.get().getInteger();
-						randomAccessResultImg.setPosition(pos[0], 0);
-						randomAccessResultImg.setPosition(pos[1], 1);
-						randomAccessResultImg.setPosition(s, 2);
-						randomAccessResultImg.get().setReal(value);
-					}  	
-				}
-			
-				if (choiceRadioButt_ColorModelType.equals("Color-RGB")) {
-					cursor = singleImg.localizingCursor();
-					pos = new long[3];
-					while (cursor.hasNext()) {
-						cursor.fwd();
-						cursor.localize(pos);
-						value = cursor.get().getInteger();
-						randomAccessResultImg.setPosition(pos[0], 0);
-						randomAccessResultImg.setPosition(pos[1], 1);
-						randomAccessResultImg.setPosition(pos[2], 2);
-						randomAccessResultImg.setPosition(s, 3);
-						randomAccessResultImg.get().setReal(value);
-					}  	
-				}
 				
+					if (choiceRadioButt_ColorModelType.equals("Color-RGB")) {
+						cursor = singleImg.localizingCursor();
+						pos = new long[3];
+						while (cursor.hasNext()) {
+							cursor.fwd();
+							cursor.localize(pos);
+							value = cursor.get().getInteger();
+							randomAccessResultImg.setPosition(pos[0], 0);
+							randomAccessResultImg.setPosition(pos[1], 1);
+							randomAccessResultImg.setPosition(pos[2], 2);
+							randomAccessResultImg.setPosition(s, 3);
+							randomAccessResultImg.get().setReal(value);
+						}  	
+					}
+				} //singleImg != null
 				logService.info(this.getClass().getName() + " Processing finished.");
 			
 				long duration = System.currentTimeMillis() - startTime;
@@ -864,11 +883,22 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		int     mag             = spinnerInteger_Mag;
 		String  colorModelType  = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
 		//******************************************************************************************************
-		
 	
-		//domain1D  = new double[numDataPoints];
+		//domain1D = new double[numDataPoints];
 		signal1D = new double[numDataPoints];
+		for (int n = 0; n < numDataPoints; n++) {
+			//domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
+		
 		signalColumn = dgt.get(col);
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
@@ -876,13 +906,16 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		
 		signal1D = removeNaN(signal1D);
 		//if (removeZeores) signal1D = removeZeroes(signal1D);
-		
+
 		//numDataPoints may be smaller now
 		numDataPoints = signal1D.length;
 		
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
+
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1;
 		
-		//int numActualRows = 0;
-		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
 			
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
@@ -899,6 +932,7 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+			//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 			
 			Img<UnsignedByteType> img = null;
 			RandomAccess<UnsignedByteType> randomAccess = null;
@@ -1425,8 +1459,6 @@ public class SignalSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		return signal1D;
 	}
 	
-
-
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
 		try {

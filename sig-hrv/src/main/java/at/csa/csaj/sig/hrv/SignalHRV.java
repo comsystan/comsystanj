@@ -842,7 +842,7 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().equals(tableOutName))
+				if (display.getName().contains(tableOutName))
 					display.close();
 			}
 		}
@@ -947,34 +947,20 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 		tableOut.set(8, row, this.choiceRadioButt_WindowingType);
 		tableColLast = 8;
 		
-		//"Entire signal", "Subsequent boxes", "Gliding box" 
-		if (choiceRadioButt_SignalRange.equals("Entire signal")){
-			int numParameters = resultValues.length;
+		if (resultValues == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
-			tableColEnd = tableColStart + numParameters;
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
-				//do nothing	
-			} else { //Surrogates
-				//already set
-			}	
-		} 
-		else if (choiceRadioButt_SignalRange.equals("Subsequent boxes")){
-			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 1 * numSubsequentBoxes); //1 or 2  for 1 or 2 parameters
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
+			tableColEnd = tableOut.getColumnCount() - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
+				tableOut.set(c, row, Double.NaN);
+			}
 		}
-		else if (choiceRadioButt_SignalRange.equals("Gliding box")){
-			tableColStart = tableColLast +1;
-			tableColEnd = (int) (tableColStart + 1 * numGlidingBoxes); //1 or 2 for 1 or 2 parameters 
-			for (int c = tableColStart; c < tableColEnd; c++ ) {
+		else { //set result values
+			tableColStart = tableColLast + 1;
+			tableColEnd = tableColStart + resultValues.length - 1;
+			for (int c = tableColStart; c <= tableColEnd; c++ ) {
 				tableOut.set(c, row, resultValues[c-tableColStart]);
-			}	
-		}	
+			}
+		}
 	}
 
 	/**
@@ -1010,20 +996,25 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 		
 		//******************************************************************************************************
-		domain1D         = new double[numDataPoints];
-		signal1D         = new double[numDataPoints];
+		domain1D = new double[numDataPoints];
+		signal1D = new double[numDataPoints];
+		for (int n = 0; n < numDataPoints; n++) {
+			domain1D[n] = Double.NaN;
+			signal1D[n] = Double.NaN;
+		}
 		
-		signalColumn = dgt.get(col); 
+		signalColumn = dgt.get(col);
+		String columnType = signalColumn.get(0).getClass().getSimpleName();	
+		logService.info(this.getClass().getName() + " Column type: " + columnType);	
+		if (!columnType.equals("Double")) {
+			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
+			return null; 
+		}
+		
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			signal1D[n] = Double.valueOf((Double)signalColumn.get(n));
 		}
-		//Compute time values from intervals
-		domain1D[0] = 0.0;
-		for (int n = 1; n < numDataPoints; n++) {
-			//domain1D[n]  = n+1;
-			domain1D[n]  = domain1D[n-1] + signal1D[n];  //time values from intervals
-		}	
 		
 		signal1D = removeNaN(signal1D);
 		if (removeZeores) signal1D = removeZeroes(signal1D);
@@ -1032,7 +1023,15 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 		numDataPoints = signal1D.length;
 		
 		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + numDataPoints);	
+		if (numDataPoints == 0) return null; //e.g. if signal had only NaNs
 		
+		//Compute time values from intervals
+		domain1D = new double[numDataPoints];
+		domain1D[0] = 0.0;
+		for (int n = 1; n < numDataPoints; n++) {
+			domain1D[n]  = domain1D[n-1] + signal1D[n];  //time values from intervals
+		}	
+						
 		double measurementValue = Float.NaN;
 		
 		//"Entire signal", "Subsequent boxes", "Gliding box" 
@@ -1043,6 +1042,7 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 				resultValues = new double[numOfMeasurements]; // 		
 				for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;			
 				//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + signalColumn.getHeader() + "  Size of signal = " + signal1D.length);	
+				//if (signal1D.length == 0) return null; //e.g. if signal had only NaNs
 				
 				numbnn = (double)numDataPoints;
 				meannn = calcMeanNN(signal1D, timeBase);
@@ -1251,7 +1251,7 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSignal1D = new double[(int) boxLength];
-			subdomain1D  = new double[(int) boxLength];
+			subdomain1D = new double[(int) boxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
 			long actualNumSubsequentBoxes = (long) Math.floor((double)signal1D.length/(double)spinnerInteger_BoxLength);
 		
@@ -1349,7 +1349,7 @@ public class SignalHRV<T extends RealType<T>> extends ContextCommand implements 
 				int start = i;
 				for (int ii = start; ii < (start + boxLength); ii++){ 
 					subSignal1D[ii-start] = signal1D[ii];
-					subdomain1D[ii-start]  = domain1D[ii];
+					subdomain1D[ii-start] = domain1D[ii];
 				}	
 				
 				//Compute specific values************************************************
