@@ -14,6 +14,7 @@
 	No inheritance, no dependencies on parent etc. https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance
 	Projects are still independent and can be built independently-->
 	<modules>
+		<!--2D plugins-->
 		<module>commons</module>
 		<module>img2d-en-genen</module>
 		<module>img2d-filter</module>
@@ -35,6 +36,9 @@
 		<module>img2d-noise</module>
 		<module>img2d-opener</module>
 		<module>img2d-surrogate</module>
+		<!--3D plugins-->
+		<module>img3d-generator</module>
+		<!--Signal plugins-->
 		<module>sig-allomscale</module>
 		<module>sig-autocorr</module>
 		<module>sig-cutout</module>

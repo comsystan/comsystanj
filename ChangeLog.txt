@@ -19,6 +19,9 @@ New
 2D Image - Surrogates
 2D Image - Image Generator - Added Mandelbrot islands/lakes
 2D Image - Image Generator - Added Fractal random shapes (lines, circles, squares, filled circles, filled squares)
+
+3D Volume- Image volume generator
+
 Signal - Lyapunov exponent
 Signal - Noise
 
@@ -29,7 +32,7 @@ Miscellaneous
 
 
 Known issues
-Fiji: Red cast of RGB color images
+ImageJ2/Fiji - Display bug: Oversaturated grey level images, red cast of RGB color images.
 
 
 **************************************************************
