@@ -49,6 +49,11 @@
 	</developers>
 	<contributors>
 		<contributor>
+		    <name>Michael Mayrhofer-Reinhartshuber</name>
+			<url></url>
+			<properties><id></id></properties>
+		</contributor>
+		<contributor>
 		    <name>Helmut Ahammer</name>
 			<url></url>
 			<properties><id></id></properties>

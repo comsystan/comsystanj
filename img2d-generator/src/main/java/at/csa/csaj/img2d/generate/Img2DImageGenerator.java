@@ -557,7 +557,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
  	}
  	
     
-    private void computeRandomImage(int greyValueMax) {
+    private void computeRandomImage(int greyMax) {
     
     	Random random = new Random();
     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1));
@@ -566,13 +566,14 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			//cursor.localize(pos);
-			cursor.get().setReal((int)(random.nextFloat()*greyValueMax));
+			cursor.get().setReal((int)(random.nextFloat()*greyMax));
 		}  			
 	}
     
-    private void computeGaussianImage(int greyValueMax) {
+    private void computeGaussianImage(int greyMax) {
         
-    	float greyMiddle = (float)greyValueMax/2.f;
+    	float mu = (float)greyMax/2.f;
+    	float sigma = 30f;
     	Random random = new Random();
     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1));
     	Cursor<UnsignedByteType> cursor = resultImg.cursor();
@@ -580,11 +581,11 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			//cursor.localize(pos);
-			cursor.get().setReal((int)(random.nextGaussian()*30f + greyMiddle));
+			cursor.get().setReal((int)(random.nextGaussian()*sigma + mu));
 		}  			
 	}
     
-    private void computeSineImage(String type, float frequency, int greyValueMax) {
+    private void computeSineImage(String type, float frequency, int greyMax) {
 	  
 	    long width  = datasetOut.dimension(0);   
 	    long height = datasetOut.dimension(1);
@@ -609,7 +610,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				else if (type.equals("vertical")) {
 					value = (float) (Math.sin((float) y / (width - 1) * omega + phi));
 				}
-				value = (value + 1.0f) / 2.0f * greyValueMax;  //Make positive and Normalize, greyValueMax up to 255
+				value = (value + 1.0f) / 2.0f * greyMax;  //Make positive and Normalize, greyMax up to 255
 				resultImgRa.setPosition(x, 0);
 				resultImgRa.setPosition(y, 1);
 				resultImgRa.get().set((byte)value);
@@ -630,7 +631,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		}  			
 	}
     
-    private void computeFrac2DFFT(float fracDim, int greyValueMax) {
+    private void computeFrac2DFFT(float fracDim, int greyMax) {
     	   
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
@@ -665,14 +666,21 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//https://github.com/wendykierp/JTransforms
 		//https://wendykierp.github.io/JTransforms/apidocs/
 		//The sizes of both dimensions must be power of two.
-		int dftWidth = 2; 
-		int dftHeight = 2;
-		while (dftWidth < width) {
-			dftWidth = dftWidth * 2;
-		}
-		while (dftHeight < height) {
-			dftHeight = dftHeight * 2;
-		}
+//		int dftWidth = 2; 
+//		int dftHeight = 2;
+//		while (dftWidth < width) {
+//			dftWidth = dftWidth * 2;
+//		}
+//		while (dftHeight < height) {
+//			dftHeight = dftHeight * 2;
+//		}
+		// Round to next largest power of two. The resulting volume will be later cropped according to GUI input
+		int dftWidth  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+		int dftHeight = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+		
+		//All DFT axes must have the same size, otherwise image will be anisotropic
+		dftWidth  = (int)Math.max(dftWidth, dftHeight); 
+		dftHeight = dftWidth;
 				
 		//JTransform needs rows and columns swapped!!!!!
 		int rows    = dftHeight;
@@ -736,10 +744,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		long[] posFFT = new long[2];
 		
 		//Get power values
-		final long[] origin1  = {0, 0};         	 //left top
-		final long[] origin2  = {0, rows-1};    	 //left bottom
-		final long[] origin3  = {columns-1, 0}; 	 //right top
-		final long[] origin4  = {columns-1, rows-1}; //right bottom
+		final long[] origin1 = {0, 0};         	 //left top
+		final long[] origin2 = {0, rows-1};    	 //left bottom
+		final long[] origin3 = {columns-1, 0}; 	 //right top
+		final long[] origin4 = {columns-1, rows-1}; //right bottom
 		
 		// generate random pixel values
 		Random random = new Random();
@@ -754,6 +762,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		double u;
 		double n;
 		double m;
+		double real;
+		double imag;
 				
 		//set FFT real and imaginary values
 		for (int k1 = 0; k1 < rows/2; k1++) {
@@ -825,6 +835,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//imgA is now really complex, Real and Imaginary pairs
 		FFT.complexInverse(imgA, false);
 		
+		//Write to imgFloat
+		//Note that only the values inside the dimensions of imgFloat are copied 
 		cursorF = imgFloat.localizingCursor();
 		pos = new long[2];
 		while (cursorF.hasNext()) {
@@ -832,6 +844,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			cursorF.localize(pos); 
 			//JTransform needs rows and columns swapped!!!!!
 			cursorF.get().set((float) imgA[(int)pos[1]][(int)(2*pos[0])]);
+			//real = imgA[(int)pos[1]][(int)(2*pos[0])];
+			//imag = imgA[(int)pos[1]][(int)(2*pos[0]+1)];
+			//cursorF.get().set((float)Math.sqrt(real*real + imag*imag));
 		}
 		
 		//uiService.show("imgFloat after Inverse FFT", imgFloat);	
@@ -853,7 +868,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
 		cursorF = imgFloat.cursor();
     	pos = new long[resultImg.numDimensions()];
-    	float rf = (greyValueMax/(max-min)); //rescale factor
+    	float rf = (greyMax/(max-min)); //rescale factor
 		while (cursorF.hasNext()) {
 			cursorF.fwd();
 			cursorF.localize(pos);
@@ -865,8 +880,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//resultImg;
 	}
     
-    //
-    private void computeFrac2DMPD(float fracDim, int greyValueMax) {
+    //@author Michael Mayrhofer-Reinhartshuber
+    private void computeFrac2DMPD(float fracDim, int greyMax) {
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
@@ -879,7 +894,12 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	    int mpdWidth  = (int)Math.pow(2, N_steps-1) + 1; 
 	    int mpdHeight = (int)Math.pow(2, N_steps-1) + 1; 
 		
-		mpdImg = new ArrayImgFactory<>(new FloatType()).create(mpdWidth, mpdHeight);
+		//All axes must have the same size, otherwise image will be anisotropic
+	    //is not needed because they are already the same size
+		//mpdWidth  = (int)Math.max(mpdWidth, mpdHeight); 
+		//mpdHeight = mpdWidth; 
+	    
+	    mpdImg = new ArrayImgFactory<>(new FloatType()).create(mpdWidth, mpdHeight);
 		RandomAccess<FloatType> mpdRa = mpdImg.randomAccess();
 		//-----------------------------------
 		//Hurst exponent:
@@ -990,7 +1010,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		    I = I2;
 		} //kk
 
-		//double greyValueMax = 255.0;
+		//double greyMax = 255.0;
 		double min = Double.MAX_VALUE;
 		double max = -Double.MAX_VALUE;
 		
@@ -1011,8 +1031,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 //			cursorFloat.fwd();
 //			//cursorFloat.localize(pos);
 //			//float value = cursorFloat.get().getRealFloat();
-//			//float newValue = (float) (greyValueMax*(value-min)/(max-min));
-//			cursorFloat.get().set((float) (greyValueMax*(cursorFloat.get().get()-min)/(max-min)));
+//			//float newValue = (float) (greyMax*(value-min)/(max-min));
+//			cursorFloat.get().set((float) (greyMax*(cursorFloat.get().get()-min)/(max-min)));
 //		} 
 		
 		// Crop to original size & Normalize---------------------------------------
@@ -1022,13 +1042,13 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			cursor.fwd();
 			cursor.localize(pos);
 			mpdRa.setPosition(pos);
-			cursor.get().set((int)Math.round(greyValueMax*(mpdRa.get().get() - min)/(max -min)));
+			cursor.get().set((int)Math.round(greyMax*(mpdRa.get().get() - min)/(max -min)));
 		}  		
 		
 	}
     
     
-    private void computeFracSumOfSine(int numIterations, float frequency, float amplitude, float greyValueMax) {
+    private void computeFracSumOfSine(int numIterations, float frequency, float amplitude, float greyMax) {
     	
 //		numIterations = 10; // iteration (number of summations)
 //		frequency = 2; // frequency
@@ -1042,7 +1062,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     	sosImg = new ArrayImgFactory<>(new FloatType()).create(width, height);
 		RandomAccess<FloatType> sosRa = sosImg.randomAccess();
 		
-		//greyValueMax = 255.0;
+		//greyMax = 255.0;
 		double min = Double.MAX_VALUE;
 		double max = -Double.MAX_VALUE;
 		
@@ -1072,8 +1092,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 //			cursorFloat.fwd();
 //			//cursorFloat.localize(pos);
 //			//float value = cursorFloat.get().getRealFloat();
-//			//float newValue = (float) (greyValueMax*(value-min)/(max-min));
-//			cursorFloat.get().set((float) (greyValueMax*(cursorFloat.get().get()-min)/(max-min)));
+//			//float newValue = (float) (greyMax*(value-min)/(max-min));
+//			cursorFloat.get().set((float) (greyMax*(cursorFloat.get().get()-min)/(max-min)));
 //		} 
 		
 		// Convert & Normalize---------------------------------------
@@ -1083,7 +1103,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			cursor.fwd();
 			cursor.localize(pos);
 			sosRa.setPosition(pos);
-			cursor.get().set((int)Math.round(greyValueMax*(sosRa.get().get() - min)/(max -min)));
+			cursor.get().set((int)Math.round(greyMax*(sosRa.get().get() - min)/(max -min)));
 		}  		
     }
     
@@ -1100,7 +1120,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
      * @param probabilities
      * @param greValueMax
      */
-    private void computeFracHRM(int numIterations, float[] probabilities, float greyValueMax) {
+    private void computeFracHRM(int numIterations, float[] probabilities, float greyMax) {
     	
 		//numIterations = 3; // iterations
     	
@@ -1134,7 +1154,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			cursor.fwd();
 			//cursor.localize(pos);
 			if (random.nextDouble() < probabilities[0]) {
-				cursor.get().setReal((int)greyValueMax); //255
+				cursor.get().setReal((int)greyMax); //255
 			} else {
 				cursor.get().setReal(0); //0
 			}
@@ -1188,9 +1208,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				cursor.localize(pos);
 				sample = cursor.get().getInteger();
 				
-				if (sample == greyValueMax){
+				if (sample == greyMax){
 					if (random.nextDouble() < probabilities[i]){
-						cursor.get().setReal((int)greyValueMax); //255
+						cursor.get().setReal((int)greyMax); //255
 					}
 					else {
 						cursor.get().setReal(0); //0
@@ -1242,7 +1262,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		hrmImg = null;
     }
     
-    private void computeFracMenger(int numIterations, int greyValueMax) {
+    private void computeFracMenger(int numIterations, int greyMax) {
     	
 //		numIterations = 10; // iteration
 	 	int width  = (int)datasetOut.dimension(0);
@@ -1279,7 +1299,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		for (int x = xMin - 1; x < xMax - 1; x++) {
 		for (int y = yMin - 1; y < yMax - 1; y++) {
-			ifsRaster.setSample(x, y, 0, greyValueMax);
+			ifsRaster.setSample(x, y, 0, greyMax);
 		}
 		}
 
@@ -1291,7 +1311,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		WritableRaster ifsR1 = null;
 
 		AffineTransformOp op;
-		int thres = greyValueMax/2;
+		int thres = greyMax/2;
 		int greyValue;
 		for (int i = 0; i < numIterations; i++) {
 		
@@ -1320,7 +1340,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 //	    	for (int x = 0; x < ifsWidth;  x++) {
 //			for (int y = 0; y < ifsHeight; y++) {	
 //				//greyValue = ifsRaster.getSample(x, y, 0);
-//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //				else ifsRaster.setSample(x,  y,  0,  0);
 //			}
 //	    	}
@@ -1342,7 +1362,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//binarize e.g for bilinear interpolation
     	for (int x = 0; x < width;  x++) {
 		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 			else ifsRaster.setSample(x,  y,  0,  0);
 		}
     	}
@@ -1364,7 +1384,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 
     }
 
-    private void computeFracSierpinski1(int numIterations, int greyValueMax) {
+    private void computeFracSierpinski1(int numIterations, int greyMax) {
     	// Sierpinski Gasket Method 1
 		// adapted from THE NONLINEAR WORKBOOK
 		// THE NONLINEAR WORKBOOK Chaos, Fractals, Cellular Automata, Neural Networks, Genetic Algorithms, Gene Expression Programming, Support Vector Machine, Wavelets,
@@ -1381,7 +1401,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		Graphics g = ifsBuffImg.getGraphics();
 		//g.setColor(Color.WHITE);
-		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
+		g.setColor(new Color(greyMax, greyMax, greyMax));
 		// g.drawRect(0, 0, imgWidth-1, imgHeight-1);
 		int n, n1, l, k, m, u1l, u2l, v1l, v2l, xl;
 		double u1, u2, v1, v2, a, h, s, x, y;
@@ -1429,7 +1449,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		ifsRaster = null;
 	}
     
-    private void computeFracSierpinski2(int numIterations, int greyValueMax) {
+    private void computeFracSierpinski2(int numIterations, int greyMax) {
 
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
@@ -1440,7 +1460,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		Graphics g = ifsBuffImg.getGraphics();
 		//g.setColor(Color.WHITE);
-		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
+		g.setColor(new Color(greyMax, greyMax, greyMax));
 
 		// length of initial triangle
 		int l = width / 10 * 10;
@@ -1483,7 +1503,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		WritableRaster ifsR3 = null;
 
 		AffineTransformOp op;
-		int thres = greyValueMax/2;
+		int thres = greyMax/2;
 		int greyValue;
 		for (int i = 0; i < numIterations; i++) {
 		
@@ -1533,7 +1553,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		// binarize, da affine interpoliert
     	for (int x = 0; x < width;  x++) {
 		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 			else ifsRaster.setSample(x,  y,  0,  0);
 		}
     	}
@@ -1552,7 +1572,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
   	}
     
     
-    private void computeFracMandelbrotIsland1(int numIterations, int greyValueMax) {
+    private void computeFracMandelbrotIsland1(int numIterations, int greyMax) {
 	   //See Mandelbrot book page 118 oder Seite 130
     	
 //		numIterations = 10; // iteration
@@ -1590,7 +1610,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		for (int x = xMin ; x < xMax ; x++) {
 		for (int y = yMin ; y < yMax ; y++) {
-			ifsRaster.setSample(x, y, 0, greyValueMax);
+			ifsRaster.setSample(x, y, 0, greyMax);
 		}
 		}
 
@@ -1601,7 +1621,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		WritableRaster ifsR1 = null;
 		AffineTransformOp op;
 		
-		int thres = greyValueMax/2;
+		int thres = greyMax/2;
 		int greyValue;
 		for (int i = 0; i < numIterations; i++) {
 		
@@ -1625,7 +1645,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 //	    	for (int x = 0; x < ifsWidth;  x++) {
 //			for (int y = 0; y < ifsHeight; y++) {	
 //				//greyValue = ifsRaster.getSample(x, y, 0);
-//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //				else ifsRaster.setSample(x,  y,  0,  0);
 //			}
 //	    	}
@@ -1647,7 +1667,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//binarize e.g for bilinear interpolation
     	for (int x = 0; x < width;  x++) {
 		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 			else ifsRaster.setSample(x,  y,  0,  0);
 		}
     	}
@@ -1669,7 +1689,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 
     }
    
-    private void computeFracMandelbrotIsland2(int numIterations, int greyValueMax) {
+    private void computeFracMandelbrotIsland2(int numIterations, int greyMax) {
 	   //See Mandelbrot book page 118 oder Seite 130
     	
 //		numIterations = 10; // iteration
@@ -1708,7 +1728,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		for (int x = xMin ; x < xMax ; x++) {
 		for (int y = yMin ; y < yMax ; y++) {
-			ifsRaster.setSample(x, y, 0, greyValueMax);
+			ifsRaster.setSample(x, y, 0, greyMax);
 		}
 		}
 
@@ -1724,7 +1744,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		AffineTransformOp op;
 		
-		int thres = greyValueMax/2;
+		int thres = greyMax/2;
 		int greyValue;
 	
 		for (int i = 0; i < numIterations; i++) {
@@ -1767,7 +1787,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 //	    	for (int x = 0; x < ifsWidth;  x++) {
 //			for (int y = 0; y < ifsHeight; y++) {	
 //				//greyValue = ifsRaster.getSample(x, y, 0);
-//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //				else ifsRaster.setSample(x,  y,  0,  0);
 //			}
 //	    	}
@@ -1790,7 +1810,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//binarize e.g for bilinear interpolation
     	for (int x = 0; x < width;  x++) {
 		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 			else ifsRaster.setSample(x,  y,  0,  0);
 		}
     	}
@@ -1815,7 +1835,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 
     }
    
-    private void computeFracMandelbrotIslandLake1(int numIterations, int greyValueMax) {
+    private void computeFracMandelbrotIslandLake1(int numIterations, int greyMax) {
 	   //See Mandelbrot book page 121
     	
 //		numIterations = 10; // iteration
@@ -1853,7 +1873,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		for (int x = xMin ; x < xMax ; x++) {
 		for (int y = yMin ; y < yMax ; y++) {
-			ifsRaster.setSample(x, y, 0, greyValueMax);
+			ifsRaster.setSample(x, y, 0, greyMax);
 		}
 		}
 
@@ -1865,7 +1885,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		WritableRaster ifsR1 = null;
 
 		AffineTransformOp op;
-		int thres = greyValueMax/2;
+		int thres = greyMax/2;
 		int greyValue;
 		for (int i = 0; i < numIterations; i++) {
 		
@@ -1882,10 +1902,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				ifsRaster.setSample(tileSizeX*3 + x, tileSizeY   + y, 0, greyValue); //Island rechts oben			
 				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*3 + y, 0, greyValue); //Island unten rechts
 				
-				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY   + y, 0, greyValueMax - greyValue); //Lake oben rechts
-				ifsRaster.setSample(tileSizeX   + x, tileSizeY   + y, 0, greyValueMax - greyValue); //Lake links oben
-				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*2 + y, 0, greyValueMax - greyValue); //Lake rechts unten
-				ifsRaster.setSample(tileSizeX   + x, tileSizeY*2 + y, 0, greyValueMax - greyValue); //Lake unten links
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY   + y, 0, greyMax - greyValue); //Lake oben rechts
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY   + y, 0, greyMax - greyValue); //Lake links oben
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*2 + y, 0, greyMax - greyValue); //Lake rechts unten
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY*2 + y, 0, greyMax - greyValue); //Lake unten links
 			}
 			}
 			
@@ -1893,7 +1913,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 //	    	for (int x = 0; x < ifsWidth;  x++) {
 //			for (int y = 0; y < ifsHeight; y++) {	
 //				//greyValue = ifsRaster.getSample(x, y, 0);
-//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //				else ifsRaster.setSample(x,  y,  0,  0);
 //			}
 //	    	}
@@ -1915,7 +1935,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//binarize e.g for bilinear interpolation
     	for (int x = 0; x < width;  x++) {
 		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 			else ifsRaster.setSample(x,  y,  0,  0);
 		}
     	}
@@ -1937,7 +1957,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 
     }
 
-    private void computeFracMandelbrotIslandLake2(int numIterations, int greyValueMax) {
+    private void computeFracMandelbrotIslandLake2(int numIterations, int greyMax) {
 	   //See Mandelbrot book page 118 oder Seite 130
     	
 //		numIterations = 10; // iteration
@@ -1976,7 +1996,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		for (int x = xMin ; x < xMax ; x++) {
 		for (int y = yMin ; y < yMax ; y++) {
-			ifsRaster.setSample(x, y, 0, greyValueMax);
+			ifsRaster.setSample(x, y, 0, greyMax);
 		}
 		}
 
@@ -1992,7 +2012,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		AffineTransformOp op;
 		
-		int thres = greyValueMax/2;
+		int thres = greyMax/2;
 		int greyValue;
 	
 		for (int i = 0; i < numIterations; i++) {
@@ -2018,8 +2038,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				greyValue = ifsR1.getSample(x, y, 0);
 				ifsRaster.setSample(tileSizeX   + x, tileSizeY/2               + y, 0, greyValue); 				//Island oben links
 				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*6 + tileSizeY/2 + y, 0, greyValue); 				//Island unten rechts
-				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*2 + tileSizeY/2 + y, 0, greyValueMax-greyValue); //Lake   oben rechts
-				ifsRaster.setSample(tileSizeX   + x, tileSizeY*4 + tileSizeY/2 + y, 0, greyValueMax-greyValue); //Lake   unten links
+				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*2 + tileSizeY/2 + y, 0, greyMax-greyValue); //Lake   oben rechts
+				ifsRaster.setSample(tileSizeX   + x, tileSizeY*4 + tileSizeY/2 + y, 0, greyMax-greyValue); //Lake   unten links
 			}
 			}		
 				
@@ -2031,15 +2051,15 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				greyValue = ifsR2.getSample(x, y, 0);
 				ifsRaster.setSample(tileSizeX/2 +               x, tileSizeY*2 + y, 0, greyValue); 				//Island links unten
 				ifsRaster.setSample(tileSizeX*6 + tileSizeX/2 + x, tileSizeY   + y, 0, greyValue); 				//Island rechts oben
-				ifsRaster.setSample(tileSizeX*2 + tileSizeX/2 + x, tileSizeY   + y, 0, greyValueMax-greyValue); //Lake   links oben
-				ifsRaster.setSample(tileSizeX*4 + tileSizeX/2 + x, tileSizeY*2 + y, 0, greyValueMax-greyValue); //Lake   rechts unten
+				ifsRaster.setSample(tileSizeX*2 + tileSizeX/2 + x, tileSizeY   + y, 0, greyMax-greyValue); //Lake   links oben
+				ifsRaster.setSample(tileSizeX*4 + tileSizeX/2 + x, tileSizeY*2 + y, 0, greyMax-greyValue); //Lake   rechts unten
 			}
 			}		
 			//binarize if e.g. for bilinear interpolation
 //	    	for (int x = 0; x < ifsWidth;  x++) {
 //			for (int y = 0; y < ifsHeight; y++) {	
 //				//greyValue = ifsRaster.getSample(x, y, 0);
-//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //				else ifsRaster.setSample(x,  y,  0,  0);
 //			}
 //	    	}
@@ -2062,7 +2082,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//binarize e.g for bilinear interpolation
     	for (int x = 0; x < width;  x++) {
 		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 			else ifsRaster.setSample(x,  y,  0,  0);
 		}
     	}
@@ -2087,7 +2107,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 
     }
     
-    private void computeFracKochSnowflake(int numPolygons, int numIterations, int greyValueMax) {
+    private void computeFracKochSnowflake(int numPolygons, int numIterations, int greyMax) {
     	
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
@@ -2098,7 +2118,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		Graphics g = ifsBuffImg.getGraphics();
 		//g.setColor(Color.WHITE);
-		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
+		g.setColor(new Color(greyMax, greyMax, greyMax));
 		int mPoly = numPolygons; // Mehrseitiges Polygon als Inititator (von 3 bis-------)
 		if (mPoly < 3)
 			mPoly = 3;
@@ -2190,7 +2210,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		double betragNeu;
 		double alpha;
 
-		int thres = greyValueMax/2;
+		int thres = greyMax/2;
 		for (int i = 1; i <= numIterations; i++) {
 			//System.out.println("Iteration Nr.: " + i);
 
@@ -2282,7 +2302,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     	// binarize, if necessary
 //    	for (int x = 0; x < width;  x++) {
 //		for (int y = 0; y < height; y++) {	
-//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //			else ifsRaster.setSample(x,  y,  0,  0);
 //		}
 //    	}
@@ -2301,7 +2321,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     }
     
     
-  private void computeFracFern(int numIterations, int greyValueMax) {
+  private void computeFracFern(int numIterations, int greyMax) {
     	
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
@@ -2312,7 +2332,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		Graphics g = ifsBuffImg.getGraphics();
 		//g.setColor(Color.WHITE);
-		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
+		g.setColor(new Color(greyMax, greyMax, greyMax));
 
 		// adapted from THE NONLINEAR WORKBOOK
 		double mxx, myy, bxx, byy;
@@ -2378,7 +2398,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     	// binarize, if necessary
 //    	for (int x = 0; x < width;  x++) {
 //		for (int y = 0; y < height; y++) {	
-//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //			else ifsRaster.setSample(x,  y,  0,  0);
 //		}
 //    	}
@@ -2396,7 +2416,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		ifsRaster = null;
     }
     
-  private void computeFracHeighway(int numIterations, int greyValueMax) {
+  private void computeFracHeighway(int numIterations, int greyMax) {
   	
   	int width  = (int)datasetOut.dimension(0);
   	int height = (int)datasetOut.dimension(1);
@@ -2407,7 +2427,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		Graphics g = ifsBuffImg.getGraphics();
 		//g.setColor(Color.WHITE);
-		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
+		g.setColor(new Color(greyMax, greyMax, greyMax));
 
 		// Polygon polygon = new Polygon();
 		// polygon.addPoint(imgWidth/3, imgHeight/3);
@@ -2430,7 +2450,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
   	// binarize, if necessary
 //  	for (int x = 0; x < width;  x++) {
 //		for (int y = 0; y < height; y++) {	
-//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //			else ifsRaster.setSample(x,  y,  0,  0);
 //		}
 //  	}
@@ -2449,7 +2469,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
   }
   
 	
-  private void computeFracRandomShapes(int numShapes, int shapeSize, float shapeScaling, String shapeType, int greyValueMax) {
+  private void computeFracRandomShapes(int numShapes, int shapeSize, float shapeScaling, String shapeType, int greyMax) {
 		
 		//Random lines according to Mandelbrot Chapter 31 p285
 		//Direction is isotropic
@@ -2478,7 +2498,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 				
 		Graphics g = ifsBuffImg.getGraphics();
 		//g.setColor(Color.WHITE);
-		g.setColor(new Color(greyValueMax, greyValueMax, greyValueMax));
+		g.setColor(new Color(greyMax, greyMax, greyMax));
 
 		if (shapeType.equals("Lines"))          drawRandomLines(g, width, height, shapeSize, shapeScaling, numShapes);
 		if (shapeType.equals("Circles")) 	    drawRandomCircles(g, width, height, shapeSize, shapeScaling, numShapes);
@@ -2489,7 +2509,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		// binarize, if necessary
 //		for (int x = 0; x < width;  x++) {
 //			for (int y = 0; y < height; y++) {	
-//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyValueMax);
+//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
 //				else ifsRaster.setSample(x,  y,  0,  0);
 //			}
 //		}
@@ -2901,8 +2921,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
      */
     @Override
     public void run() {
-    	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Generating 2D image, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Generating 2D image, please wait... Open console window for further info.",
+    	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Generating 2D image(s), please wait...<br>Open console window for further info.</html>");
+		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Generating 2D image(s), please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 
 		dlgProgress.updatePercent("");

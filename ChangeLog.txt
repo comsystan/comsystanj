@@ -26,6 +26,7 @@ Signal - Lyapunov exponent
 Signal - Noise
 
 Bugfix
+2D Image - Image Generator - Resolved anisotropic fractal FFT surfaces
 Signal - FFT - Resolved plugin name conflict with Fiji FFT plugin
 
 Miscellaneous
