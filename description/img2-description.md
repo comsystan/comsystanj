@@ -30,6 +30,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - - The number of IFS iterations can be set
 - - The polygon number for the Koch snowflake can be set
 - - The number of iterates must be really high for the Fern 
+- Note: Fiji sometimes displays oversaturated grey values. Workaround: Image/Color/Edit LUT... and press 2x Invert
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
