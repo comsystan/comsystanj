@@ -3,10 +3,10 @@
 ### Image volume generator
 - Generates a single image volume
 - 8bit grey
-- Image size can be set
+- Volume size can be set
 - Maximal grey values can be set
 - Random, Gaussian, Constant
-- Fractal surface - Fourier (FFT) or Midpoint displacment (MPD) or Sum of sine method
+- Fractal surface - Fourier (FFT) or Midpoint displacment (MPD)
 - - Theoretical fractal dimension in the range of [3,4] can be set
 - Note: Fiji sometimes displays oversaturated grey values. Workaround: Image/Color/Edit LUT... and press 2x Invert
 
