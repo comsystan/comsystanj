@@ -20,7 +20,8 @@ New
 2D Image - Image Generator - Added Mandelbrot islands/lakes
 2D Image - Image Generator - Added Fractal random shapes (lines, circles, squares, filled circles, filled squares)
 
-3D Volume- Image volume generator
+3D Volume - Higuchi dimension 3D
+3D Volume - Image volume generator
 
 Signal - Lyapunov exponent
 Signal - Noise

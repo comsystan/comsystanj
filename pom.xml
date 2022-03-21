@@ -37,6 +37,7 @@
 		<module>img2d-opener</module>
 		<module>img2d-surrogate</module>
 		<!--3D plugins-->
+		<module>img3d-frac-dim-higuchi3d</module>
 		<module>img3d-generator</module>
 		<!--Signal plugins-->
 		<module>sig-allomscale</module>
