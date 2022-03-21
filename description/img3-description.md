@@ -12,7 +12,7 @@
 
 ### Higuchi dimension 3D
 - Fractal dimension is computed with Higuchi inspired 3D algorithms
-- This is an direct expansion of the 2D algorithms
+- This is a direct expansion of the 2D algorithms
 - 8-bit grey
 - Several options can be chosen
 - Linear regression parameters of the double log plot can be set
