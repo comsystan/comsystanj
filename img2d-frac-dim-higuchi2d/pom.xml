@@ -53,6 +53,16 @@
 			<url></url>
 			<properties><id></id></properties>
 		</contributor>
+		<contributor>
+		    <name>Martin Reiss</name>
+			<url></url>
+			<properties><id></id></properties>
+		</contributor>
+		<contributor>
+		    <name>Nikolaus Sabathiel</name>
+			<url></url>
+			<properties><id></id></properties>
+		</contributor>
 	</contributors>
 
 	<mailingLists>
