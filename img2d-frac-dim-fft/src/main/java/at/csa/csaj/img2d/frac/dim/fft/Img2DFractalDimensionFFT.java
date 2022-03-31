@@ -57,7 +57,10 @@ import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayCursor;
+import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.array.ArrayRandomAccess;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
@@ -99,7 +102,7 @@ import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
-import edu.emory.mathcs.jtransforms.fft.DoubleFFT_2D;
+import edu.emory.mathcs.jtransforms.fft.FloatFFT_2D;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -129,11 +132,11 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
-	private static double[][] imgA;
+	private static float[][] imgA;
 	private static Img<FloatType> imgFloat; 
 	private static Img<UnsignedByteType> imgUnsignedByte;
 	private static Img<UnsignedByteType> imgMirrored;
-	private static RandomAccessibleInterval<DoubleType>  raiWindowed; 
+	private static RandomAccessibleInterval<FloatType>  raiWindowed; 
 	private static RandomAccessibleInterval<?> rai;
 	private static RandomAccess<?> ra;
 	private static Cursor<?> cursor = null;
@@ -737,23 +740,17 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	/**
 	 * This method computes the maximal number of possible k's
 	 */
-	private int getMaxK(int width, int heigth) { //
+	private int getMaxK(int width, int height) { //
 
 		
 		if (choiceRadioButt_PowerSpecType != null) { //during startup it is null
 			//"Circular average", "Mean of line scans", "Integral of line scans"
 			if      (choiceRadioButt_PowerSpecType.equals("Circular average")) {
 	
-				int dftWidth = 2; 
-				int dftHeight = 2;
-				while (dftWidth < width) {
-					dftWidth = dftWidth * 2;
-				}
-				while (dftHeight < height) {
-					dftHeight = dftHeight * 2;
-				}
+				int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+				int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
 				
-				numOfK = dftWidth * dftHeight; //Will be lowered later, after averaging
+				numOfK = widthDFT * heightDFT; //Will be lowered later, after averaging
 			
 			}
 			else if ((choiceRadioButt_PowerSpecType.equals("Mean of line scans")) || (choiceRadioButt_PowerSpecType.equals("Integral of line scans"))) {
@@ -945,7 +942,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
-		IntColumn columnMaxMaxK            = new IntColumn("Max k");
+		IntColumn columnMaxK         	   = new IntColumn("Max k");
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnWindowingType  = new GenericColumn("Windowing type");
@@ -958,7 +955,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnSliceName);
-		tableOut.add(columnMaxMaxK);
+		tableOut.add(columnMaxK);
 		tableOut.add(columnRegMin);
 		tableOut.add(columnRegMax);
 		tableOut.add(columnWindowingType);
@@ -987,12 +984,12 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			//fill table with values
 			tableOut.appendRow();
 			tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) 	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("Max k",      	 tableOut.getRowCount()-1, numMaxK);	
+			if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("Max k",      	     tableOut.getRowCount()-1, numMaxK);	
 			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
 			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
-			tableOut.set("Windowing type",  tableOut.getRowCount()-1, windowingType);	
-			tableOut.set("PowerSpec type",  tableOut.getRowCount()-1, powerSpecType);	
+			tableOut.set("Windowing type",   tableOut.getRowCount()-1, windowingType);	
+			tableOut.set("PowerSpec type",   tableOut.getRowCount()-1, powerSpecType);	
 			//table.set("Add mirrors",  	 table.getRowCount()-1, addMirrors);	
 			tableOut.set("Df",          	 tableOut.getRowCount()-1, resultValuesTable[s][1]);
 			tableOut.set("R2",          	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
@@ -1051,8 +1048,8 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		
 		boolean optShowPlot    = booleanShowDoubleLogPlot;
 		
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
+		int width  = (int)rai.dimension(0);
+		int height = (int)rai.dimension(1);
 		
 		String imageType = "8-bit";  //  "RGB"....
 	
@@ -1122,40 +1119,44 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			//https://github.com/wendykierp/JTransforms
 			//https://wendykierp.github.io/JTransforms/apidocs/
 			//The sizes of both dimensions must be power of two.
-			int dftWidth = 2; 
-			int dftHeight = 2;
-			while (dftWidth < width) {
-				dftWidth = dftWidth * 2;
-			}
-			while (dftHeight < height) {
-				dftHeight = dftHeight * 2;
-			}
-					
+			// Round to next largest power of two. The resulting image will be cropped according to GUI input
+			int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+			int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+			
+			//All DFT axes must have the same size, otherwise lowest frequencies are not the same for anisotropic sizes
+			widthDFT  = (int)Math.max(widthDFT, heightDFT); 
+			heightDFT = widthDFT;
+						
 			//JTransform needs rows and columns swapped!!!!!
-			int rows    = dftHeight;
-			int columns = dftWidth;
+			int rows    = heightDFT;
+			int columns = widthDFT;
 			
 			//JTransform needs rows and columns swapped!!!!!
-			imgA = new double[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
+			imgA = new float[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
 			Cursor<?> cursor = Views.iterable(raiWindowed).localizingCursor();
 			long[] pos = new long[2];
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos); 
 				//JTransform needs rows and columns swapped!!!!!
-				imgA[(int)pos[1]][(int)pos[0]] = ((DoubleType) cursor.get()).get();
+//				//Use this with complexForward(imgA)
+//				imgA[(int)pos[1]][2*(int)pos[0]]   = ((FloatType) cursor.get()).get();
+//				imgA[(int)pos[1]][2*(int)pos[0]+1] = 0f;
+				//or to get exactly the same output
+				//use this with realForwardFull(imgA)
+				imgA[(int)pos[1]][(int)pos[0]]   = ((FloatType) cursor.get()).get();
 			}
 			
 			//JTransform needs rows and columns swapped!!!!!
-			DoubleFFT_2D FFT = new DoubleFFT_2D(rows, columns); //Here always the simple DFT width
-			//dFFT.realForward(imgArrD);   //The first two columns are not symmetric and seem to be not right
-			FFT.realForwardFull(imgA);   //The right part is not symmetric!!
+			FloatFFT_2D FFT = new FloatFFT_2D(rows, columns); //Here always the simple DFT width
+			//FFT.complexForward(imgA); 
+			//FFT.realForward(imgA);     //The first two columns are not exactly symmetric
+			FFT.realForwardFull(imgA);   //The right part is not exactly symmetric!!
 			//Power image constructed later is also not exactly symmetric!!!!!
-			
-			
+					
 			//Optionally show FFT Real Imag image
 			//************************************************************************************
-//			ArrayImg<FloatType, ?> imgFFT = new ArrayImgFactory<>(new FloatType()).create(2*dftWidth, dftHeight); //always single 2D
+//			ArrayImg<FloatType, ?> imgFFT = new ArrayImgFactory<>(new FloatType()).create(2*widthDFT, heightDFT); //always single 2D
 //			Cursor<FloatType> cursorF = imgFFT.localizingCursor();
 //			pos = new long[2];
 //			while (cursorF.hasNext()){
@@ -1186,102 +1187,156 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			//************************************************************************************
 			
 			//Get power values
-			final long[] origin1  = {0, 0};         	 //left top
-			final long[] origin2  = {0, rows-1};    	 //left bottom
-			final long[] origin3  = {columns-1, 0}; 	 //right top
-			final long[] origin4  = {columns-1, rows-1}; //right bottom
+			final long[] origin1  = {0,              0}; //left top
+			final long[] origin2  = {0,         rows-1}; //left bottom
+			
+		 	//Following origins are symmetric because sum of powers is zero with .realForward(volA); 
+			//final long[] origin3  = {columns-1,      0}; //right top     //symmetric to 2
+			//final long[] origin4  = {columns-1, rows-1}; //right bottom  //symmetric to 1
 			
 			long[] posFFT = new long[2];
 			long numOfK = rows * columns; 
 											
-			double[] powers       = new double[(int) numOfK];
-			double[] allKs        = new double[(int) numOfK];
-			double[] powersSorted = new double[(int) numOfK];
-			double[] allKsSorted  = new double[(int) numOfK];
-			double[] powersCircAverage = new double[(int) numOfK]; //will have some zeroes at the end
-			double[] allKsCircAverage  = new double[(int) numOfK]; //will have some zeroes at the end
+			float[] powers            = new float[(int)numOfK];
+			float[] allKs             = new float[(int)numOfK];
+			float[] powersSorted      = new float[(int)numOfK];
+			float[] allKsSorted       = new float[(int)numOfK];
+			float[] powersCircAverage = new float[(int)numOfK]; //will have some zeroes at the end
+			float[] allKsCircAverage  = new float[(int)numOfK]; //will have some zeroes at the end
 			
-			//Optionally prepare Power image
-//			ArrayImg<DoubleType, ?> imgPower = new ArrayImgFactory<>(new DoubleType()).create(dftWidth, dftHeight); //always single 2D
-//			ArrayRandomAccess<DoubleType> raPower = imgPower.randomAccess();
-//			pos = new long[2];
+			float dist  = 0;
+			
+//			//for debug control purposes only
+//			float sumDist1 = 0;
+//			float sumDist2 = 0;
+//			float sumDist3 = 0;
+//			float sumDist4 = 0;
+//			float sumPowers1 = 0;
+//			float sumPowers2 = 0;
+//			float sumPowers3 = 0;
+//			float sumPowers4 = 0;
+			
+			//Optionally prepare and show Power image
+			ArrayImg<FloatType, ?> imgPower = new ArrayImgFactory<>(new FloatType()).create(widthDFT, heightDFT); //always single 2D
+			ArrayRandomAccess<FloatType> raPower = imgPower.randomAccess();
+			pos = new long[2];
 
 			int p = 0;
 			for (int k1 = 0; k1 < rows/2; k1++) {
 				for (int k2 = 0; k2 < columns/2; k2++) {
 					posFFT[1] = k1;
 					posFFT[0] = k2;
-					allKs[p]  = Util.distance(origin1, posFFT); //Distance
+					dist = (float)Util.distance(origin1, posFFT); //Distance
+					allKs[p]  = dist;
 					powers[p] = imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]; //Power	//(2*x)...Real parts   (2*x+1).... Imaginary parts
-					p += 1;		
+					p += 1;	
+					
+//					//for debug control purposes only
+//					sumDist1   += dist;
+//					sumPowers1 += powers[p-1];
 			
 //					//write to imgPower
-//					pos = new long[] {posFFT[1], posFFT[0]};
+//					pos = new long[] {posFFT[0], posFFT[1]};
 //					raPower.setPosition(pos);
-//					raPower.get().set(Math.log(powers[p-1]));
+//					if (powers[p-1] <=0 ) raPower.get().set(powers[p-1]); 
+//					else raPower.get().set((float)Math.log(powers[p-1]));
+//					System.out.println("Q1: pos: " + pos[0] + "  " +pos[1] + "    powers: " + powers[p-1]);
 				}
 			}
 			for (int k1 = rows/2; k1 < rows; k1++) {
 				for (int k2 = 0; k2 < columns/2; k2++) {
 					posFFT[1] = k1;
 					posFFT[0] = k2;
-					allKs[p]  = Util.distance(origin2, posFFT); //Distance
+					dist = (float)Util.distance(origin2, posFFT); //Distance
+					allKs[p]  = dist;
 					powers[p] = imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]; //Power	//(2*x)...Real parts   (2*x+1).... Imaginary parts
 					p += 1;
 
+//					//for debug control purposes only
+//					sumDist2   += dist;
+//					sumPowers2 += powers[p-1];
+					
 //					//write to imgPower
-//					pos = new long[] {posFFT[1], posFFT[0]};
+//					pos = new long[] {posFFT[0], posFFT[1]};
 //					raPower.setPosition(pos);
-//					raPower.get().set(Math.log(powers[p-1]));
+//					if (powers[p-1] <=0 ) raPower.get().set(powers[p-1]); 
+//					else raPower.get().set((float)Math.log(powers[p-1]));
+//					System.out.println("Q2: pos: " + pos[0] + "  " +pos[1] + "    powers: " + powers[p-1]);
 				}
 			}	
-			for (int k1 = 0; k1 < rows/2; k1++) {
-				for (int k2 = columns/2; k2 < columns; k2++) {
-					posFFT[1] = k1;
-					posFFT[0] = k2;
-					allKs[p]  = Util.distance(origin3, posFFT); //Distance
-					powers[p] = imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]; //Power	//(2*x)...Real parts   (2*x+1).... Imaginary parts
-					p += 1;	
-
-//					//write to imgPower
-//					pos = new long[] {posFFT[1], posFFT[0]};
-//					raPower.setPosition(pos);
-//					raPower.get().set(Math.log(powers[p-1]));
-				}
-			}
-			for (int k1 = rows/2; k1 < rows; k1++) {
-				for (int k2 = columns/2; k2 < columns; k2++) {
-					posFFT[1] = k1;
-					posFFT[0] = k2;
-					allKs[p]  = Util.distance(origin4, posFFT); //Distance
-					powers[p] = imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]; //Power	//(2*x)...Real parts   (2*x+1).... Imaginary parts
-					p += 1;
-
-//					//write to imgPower
-//					pos = new long[] {posFFT[1], posFFT[0]};
-//					raPower.setPosition(pos);
-//					raPower.get().set(Math.log(powers[p-1]));
-				}
-			}
-				
-//			//imgPower
+//			for (int k1 = 0; k1 < rows/2; k1++) {
+//				for (int k2 = columns/2; k2 < columns; k2++) {
+//					posFFT[1] = k1;
+//					posFFT[0] = k2;
+//					dist = (float)Util.distance(origin3, posFFT); //Distance
+//					allKs[p]  = dist;
+//					powers[p] = imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]; //Power	//(2*x)...Real parts   (2*x+1).... Imaginary parts
+//					p += 1;	
+//
+////					//for debug control purposes only
+////					sumDist3   += dist;
+////					sumPowers3 += powers[p-1];
+//					
+////					//write to imgPower
+////					pos = new long[] {posFFT[0], posFFT[1]};
+////					raPower.setPosition(pos);
+////					if (powers[p-1] <=0 ) raPower.get().set(powers[p-1]); 
+////					else raPower.get().set((float)Math.log(powers[p-1]));
+////					System.out.println("Q3: pos: " + pos[0] + "  " +pos[1] + "    powers: " + powers[p-1]);
+//				}
+//			}
+//			for (int k1 = rows/2; k1 < rows; k1++) {
+//				for (int k2 = columns/2; k2 < columns; k2++) {
+//					posFFT[1] = k1;
+//					posFFT[0] = k2;
+//					dist = (float)Util.distance(origin4, posFFT); //Distance
+//					allKs[p]  = dist;
+//					powers[p] = imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]; //Power	//(2*x)...Real parts   (2*x+1).... Imaginary parts
+//					p += 1;
+//
+////					//for debug control purposes only
+////					sumDist4   += dist;
+////					sumPowers4 += powers[p-1];
+//					
+////					//write to imgPower
+////					pos = new long[] {posFFT[0], posFFT[1]};
+////					raPower.setPosition(pos);
+////					if (powers[p-1] <=0 ) raPower.get().set(powers[p-1]); 
+////					else raPower.get().set((float)Math.log(powers[p-1]));
+////					System.out.println("Q4: pos: " + pos[0] + "  " +pos[1] + "    powers: " + powers[p-1]);
+//				}
+//			}
+			
+//			//for debug control purposes only
+//			//sumDistances should all be equal
+//			//sumPowers should be symmetric
+//			System.out.println("sumDist1: " + sumDist1);
+//			System.out.println("sumDist2: " + sumDist2);
+//			System.out.println("sumDist3: " + sumDist3);
+//			System.out.println("sumDist4: " + sumDist4);
+//			System.out.println("sumPower1: " + sumPowers1);
+//			System.out.println("sumPower2: " + sumPowers2);
+//			System.out.println("sumPower3: " + sumPowers3);
+//			System.out.println("sumPower4: " + sumPowers4);
+			
+//			//Show imgPower
 //			//Get min max
-//			double min = Double.MAX_VALUE;
-//			double max = -Double.MAX_VALUE;
-//			double valD;
-//			ArrayCursor<DoubleType> cursorD = imgPower.cursor();
-//			while (cursorD.hasNext()) {
-//				cursorD.fwd();
-//				valD = cursorD.get().get();
-//				if (valD > max) max = valD;
-//				if (valD < min) min = valD;
+//			float min =  Float.MAX_VALUE;
+//			float max = -Float.MAX_VALUE;
+//			float valF;
+//			ArrayCursor<FloatType> cursorF = imgPower.cursor();
+//			while (cursorF.hasNext()) {
+//				cursorF.fwd();
+//				valF = cursorF.get().get();
+//				if (valF > max) max = valF;
+//				if (valF < min) min = valF;
 //			}	
 //			//Rescale to 0...255
-//			cursorD = imgPower.cursor();
-//			while (cursorD.hasNext()) {
-//				cursorD.fwd();
-//				cursorD.localize(pos);
-//				cursorD.get().set(255.0*(cursorD.get().get() - min)/(max - min));		
+//			cursorF = imgPower.cursor();
+//			while (cursorF.hasNext()) {
+//				cursorF.fwd();
+//				cursorF.localize(pos);
+//				cursorF.get().set(255f*(cursorF.get().get() - min)/(max - min));		
 //			}	
 //			uiService.show("Power", imgPower);
 			
@@ -1301,8 +1356,8 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			// for (int i = 0; i < idx.length; i++ ) System.out.println("idx: "+ idx[i]);
 
 			//Get sorted vectors
-			powersSorted = new double[powers.length];
-			allKsSorted  = new double[allKs.length];
+			powersSorted = new float[powers.length];
+			allKsSorted  = new float[allKs.length];
 			for (int i = 0; i < idx.length; i++) {
 				powersSorted[i] = powers[idx[i]];
 				allKsSorted[i]  = allKs[idx[i]]; // idx is sorted
@@ -1310,11 +1365,11 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		
 			//Go through and average power for same k values
 			//Then, number of data points will be lower
-			double powMean = 0;
+			float powMean = 0;
 			int numEqualK = 0; // number of equal k values
 			int i = 0; //index for new vector;
 			int ii = 0; //index for old vector
-			double kValue = allKsSorted[0];
+			float kValue = allKsSorted[0];
 			while (i < allKsSorted.length) { //will not be reached
 				while (allKsSorted[ii] == kValue) {
 					//if  (powersSorted[ii] != 0) {
@@ -1331,7 +1386,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 				if (ii < allKsSorted.length - 1) {	
 					numEqualK = 0;
 					kValue = allKsSorted[ii];
-					powMean = 0.0;
+					powMean = 0f;
 					i += 1; //index for next mean value
 				} else {
 					break;
@@ -1339,8 +1394,8 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			}
 			
 			//find largest k to be taken
-			double maxK =0;; //an actual maximal k value  // is not an integer number
-			int maxKIdx=0;
+			float maxK = 0; //an actual maximal k value  // is not an integer number
+			int maxKIdx = 0;
 		
 			for (int a = 0; a < allKsCircAverage.length; a++) {
 				if (allKsCircAverage[a] >= maxK) {
@@ -1366,12 +1421,19 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			
 		}
 		
-		if (powerSpecType.equals("Mean of line scans")) { //{"Circular average", "Mean of line scans", "Integral of line scans"},
+		else if (powerSpecType.equals("Mean of line scans")) { //{"Circular average", "Mean of line scans", "Integral of line scans"},
 		
 			ra = raiWindowed.randomAccess();
-			int maxK;
-			if (width < height) maxK = (int) (width/2);  //Take only half of the spectrum //Symmetric DFT  is half the input length
-			else maxK = (int) (height/2);
+			
+			// Round to next largest power of two. The resulting image will be cropped according to GUI input
+			int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+			int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+			
+			//All DFT axes must have the same size, otherwise lowest frequencies are not the same for anisotropic sizes
+			widthDFT  = (int)Math.max(widthDFT, heightDFT); 
+			heightDFT = widthDFT;
+			
+			int maxK = widthDFT/2;  //Take only half of the spectrum //Symmetric DFT  is half the input length
 			
 			double[] power;
 			double[] powerMean = new double[maxK]; //power has size ^2
@@ -1379,11 +1441,11 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			//all rows
 			for (int h = 0; h < height; h++) { 
 				//System.out.println("FFTDim h "  + h);
-				sequence = new double[(int) width];
+				sequence = new double[(int)widthDFT];
 				for (int w = 0; w < width; w++) { // one row
 					ra.setPosition(w, 0);
 					ra.setPosition(h, 1); //row at position h
-					sequence[w] = ((DoubleType) ra.get()).get();
+					sequence[w] = ((FloatType) ra.get()).get();
 				}
 				//power = calcDFTPower(); // very slow 
 				power = calcDFTPowerWithApache(); //of variable sequence
@@ -1395,11 +1457,11 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			//all columns
 			for (int w = 0; w < width; w++) {
 				//System.out.println("FFTDim w "  + w);
-				sequence = new double[(int) height];
+				sequence = new double[heightDFT];
 				for (int h = 0; h < height; h++) { // one row
 					ra.setPosition(w, 0); // column at position w
 					ra.setPosition(h, 1);
-					sequence[h] = ((DoubleType) ra.get()).get();
+					sequence[h] = ((FloatType) ra.get()).get();
 				}
 				//power = calcDFTPower(); //very slow //of variable sequence
 				power = calcDFTPowerWithApache(); //of variable sequence    /Symmetric DFT  is half the input length
@@ -1414,8 +1476,8 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			}
 
 			//fill up totals with powerMean values
-			totals = new double[powerMean.length - 1];  //-1 k=0 zero frequency is skipped, does not fit the linear regression 
-			eps    = new double[powerMean.length - 1];  //-1 k=0 zero frequency is skipped, does not fit the linear regression 
+			totals = new double[powerMean.length - 1];  //-1 k=0 zero frequency is skipped
+			eps    = new double[powerMean.length - 1];  //-1 k=0 zero frequency is skipped
 			for (int n = 0 ; n < totals.length; n++) {
 				totals[n] = powerMean[n+1]; //k=0 zero frequency is skipped, does not fit the linear regression 
 				eps[n]    = n + 1; 			//k=0 zero frequency is skipped, 
@@ -1427,9 +1489,16 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		//Just the same as "Mean of line scans", but additionally a final integration of the mean PS
 
 			ra = raiWindowed.randomAccess();
-			int maxK;
-			if (width < height) maxK = (int) (width/2);  //Take only half of the spectrum //Symmetric DFT  is half the input length
-			else maxK = (int) (height/2);
+			
+			// Round to next largest power of two. The resulting image will be cropped according to GUI input
+			int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+			int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+			
+			//All DFT axes must have the same size, otherwise lowest frequencies are not the same for anisotropic sizes
+			widthDFT  = (int)Math.max(widthDFT, heightDFT); 
+			heightDFT = widthDFT;
+			
+			int maxK = widthDFT/2;  //Take only half of the spectrum //Symmetric DFT  is half the input length
 			
 			double[] power;
 			double[] powerMean = new double[maxK]; //power has size
@@ -1438,11 +1507,11 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			//all rows
 			for (int h = 0; h < height; h++) { 
 				//System.out.println("FFTDim h "  + h);
-				sequence = new double[(int) width];
+				sequence = new double[widthDFT];
 				for (int w = 0; w < width; w++) { // one row
 					ra.setPosition(w, 0);
 					ra.setPosition(h, 1); //row at position h
-					sequence[w] = ((DoubleType) ra.get()).get();
+					sequence[w] = ((FloatType) ra.get()).get();
 				}
 				//power = calcDFTPower(); // very slow 
 				power = calcDFTPowerWithApache(); //of variable sequence
@@ -1453,11 +1522,11 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			//all columns
 			for (int w = 0; w < width; w++) {
 				//System.out.println("FFTDim w "  + w);
-				sequence = new double[(int) height];
+				sequence = new double[heightDFT];
 				for (int h = 0; h < height; h++) { // one row
 					ra.setPosition(w, 0); // column at position w
 					ra.setPosition(h, 1);
-					sequence[h] = ((DoubleType) ra.get()).get();
+					sequence[h] = ((FloatType) ra.get()).get();
 				}
 				//power = calcDFTPower(); //very slow //of variable sequence
 				power = calcDFTPowerWithApache(); //of variable sequence
@@ -1479,8 +1548,8 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			}
 			
 			//fill up totals with powerMean values
-			totals = new double[powerIntegrated.length - 1];  //-1 k=0 zero frequency is skipped, does not fit the linear regression 
-			eps    = new double[powerIntegrated.length - 1];  //-1 k=0 zero frequency is skipped, does not fit the linear regression 
+			totals = new double[powerIntegrated.length - 1];  //-1 k=0 zero frequency is skipped
+			eps    = new double[powerIntegrated.length - 1];  //-1 k=0 zero frequency is skipped
 			for (int n = 0 ; n < totals.length; n++) {
 				totals[n] = powerIntegrated[n+1]; //k=0 zero frequency is skipped, does not fit the linear regression 
 				eps[n]    = n + 1;                //k=0 zero frequency is skipped, 
@@ -1496,7 +1565,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		double[] lnEps    = new double[eps.length];
 		for (int n = 0; n < totals.length; n++) {
 			if (totals[n] <= 0) {
-				lnTotals[n] = -Double.MAX_VALUE;
+				lnTotals[n] = Double.NaN;
 			} else if (Double.isNaN(totals[n])) {
 				lnTotals[n] = Double.NaN;
 			} else {
@@ -1596,21 +1665,21 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingRectangular (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingRectangular (RandomAccessibleInterval<?> rai) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double weight = 1.0;
 	
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			cursorF.localize(pos);
 			ra.setPosition(pos);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight); //simply a copy
+			cursorF.get().setReal(ra.get().getRealFloat()*weight); //simply a copy
 		} 
 	    return raiWindowed; 
 	}
@@ -1621,11 +1690,11 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingBartlett (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingBartlett (RandomAccessibleInterval<?> rai) {
 		
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
@@ -1644,12 +1713,12 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 //			}
 //		}
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			cursorF.localize(pos);
 			ra.setPosition(pos);
 			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
 			r_v = 2.0*(pos[1]+0.5)/height-1.0;
@@ -1657,7 +1726,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 1 - r_uv;
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Bartlett windowing weight " + pos[0] +" "+pos[1]+"  "+ weight);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+			cursorF.get().setReal(ra.get().getRealFloat()*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1669,23 +1738,23 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingHamming (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingHamming (RandomAccessibleInterval<?> rai) {
 	
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			cursorF.localize(pos);
 			ra.setPosition(pos);
 			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
 			r_v = 2.0*(pos[1]+0.5)/height-1.0;
@@ -1693,7 +1762,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 0.54 + 0.46*Math.cos(Math.PI*(r_uv)); //== 0.54 - 0.46*Math.cos(Math.PI*(1.0-r_uv));
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Hamming windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+			cursorF.get().setReal(ra.get().getRealFloat()*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1705,23 +1774,23 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingHanning (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingHanning (RandomAccessibleInterval<?> rai) {
 		
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight = 0;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			cursorF.localize(pos);
 			ra.setPosition(pos);
 			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
 			r_v = 2.0*(pos[1]+0.5)/height-1.0;
@@ -1732,7 +1801,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			}
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Hanning windowing weight " + pos[0] +" "+pos[1]+"  " + weight);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+			cursorF.get().setReal(ra.get().getRealFloat()*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1744,22 +1813,22 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingBlackman (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingBlackman (RandomAccessibleInterval<?> rai) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			cursorF.localize(pos);
 			ra.setPosition(pos);
 			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
 			r_v = 2.0*(pos[1]+0.5)/height-1.0;
@@ -1768,7 +1837,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 0.42 - 0.5*Math.cos(Math.PI*(1.0-r_uv)) + 0.08*Math.cos(2.0*Math.PI*(1.0-r_uv));
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Blackman windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+			cursorF.get().setReal(ra.get().getRealFloat()*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1780,10 +1849,10 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingGaussian (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingGaussian (RandomAccessibleInterval<?> rai) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
@@ -1792,19 +1861,19 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		double sigma  = 0.3;
 		double sigma2 = sigma*sigma;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			cursorF.localize(pos);
 			ra.setPosition(pos);
 			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
 			r_v = 2.0*(pos[1]+0.5)/height-1.0;
 			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
 			weight = Math.exp(-(r_uv*r_uv)/(2.0*sigma2));
 			//if(pos[1] == 1) System.out.println("Gaussian windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+			cursorF.get().setReal(ra.get().getRealFloat()*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1816,23 +1885,23 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingParzen (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingParzen (RandomAccessibleInterval<?> rai) {
 	
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursorD.hasNext()){
-			cursorD.fwd();
-			cursorD.localize(pos);
+		while (cursorF.hasNext()){
+			cursorF.fwd();
+			cursorF.localize(pos);
 			ra.setPosition(pos);
 			r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
 			r_v = 2.0*(pos[1]+0.5)/height-1.0;
@@ -1842,7 +1911,7 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 			else if ((r_uv >= 0.5) && (r_uv <1)) weight = 2.0*Math.pow(1-r_uv, 3);
 			else    weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Parzen windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorD.get().setReal(ra.get().getRealDouble()*weight);
+			cursorF.get().setReal(ra.get().getRealFloat()*weight);
 		} 
 	    return raiWindowed; 
 	}
