@@ -94,14 +94,14 @@ import io.scif.MetaTable;
  */
 @Plugin(type = ContextCommand.class,
 headless = true,
-label = "Higuchi dimension 3D",
+label = "3D Higuchi dimension",
 initializer = "initialPluginLaunch",
 //iconPath = "/images/comsystan-??.png", //Menu entry icon
 menu = {
 @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 @Menu(label = "ComsystanJ"),
 @Menu(label = "Image (3D)"),
-@Menu(label = "Higuchi dimension 3D", weight = 50)})
+@Menu(label = "3D Higuchi dimension", weight = 50)})
 //public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
@@ -120,12 +120,12 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 	private static long numDimensions = 0;
 	private static long numSlices = 0;
 	private static int numVolumes = 0;
-	private static long compositeChannelCount =0;
+	private static long compositeChannelCount = 0;
 	private static String imageType = "";
 	private static int  numbKMax = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[] resultValuesTable; //the corresponding regression values
-	private static final String tableOutName = "Table - Higuchi3D dimension";
+	private static final String tableOutName = "Table - 3D Higuchi dimension";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -204,7 +204,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelInterpolation = METHODOPTIONS_LABEL;
+	private final String labelMethod = METHODOPTIONS_LABEL;
 
 	@Parameter(label = "Method", description = "Type of Higuchi 3D algorithm", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
 			   "Multiplicated differences",														   
@@ -705,7 +705,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 		//get rai
 		RandomAccessibleInterval<T> rai = null;	
 	
-		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==2 or 3
+		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
 
 		// Compute regression parameters
 		double[] regressionValues = process(rai); //rai is 3D
@@ -715,7 +715,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 			resultValuesTable[i] = regressionValues[i]; 
 		}
 		//Compute dimension
-		double dim = 0.0;	
+		double dim = Double.NaN;	
 		dim = -regressionValues[1];
 		if (choiceRadioButt_Method.equals("Multiplicated differences")) dim = dim + 2;
 		if (choiceRadioButt_Method.equals("Squared differences"))  		dim = dim + 2;
@@ -754,7 +754,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 		IntColumn columnRegMax           = new IntColumn("RegMax");
 		GenericColumn columnMethod       = new GenericColumn("Method");
 		BoolColumn columnSkipZeroes      = new BoolColumn("Skip zeroes");
-		DoubleColumn columnDh            = new DoubleColumn("Dh");
+		DoubleColumn columnDh            = new DoubleColumn("Dh-3D");
 		DoubleColumn columnR2            = new DoubleColumn("R2");
 		DoubleColumn columnStdErr        = new DoubleColumn("StdErr");
 
@@ -777,20 +777,20 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 	*/
 	private void writeSingleResultToTable() { 
 
-		int regMin = spinnerInteger_RegMin;
-		int regMax = spinnerInteger_RegMax;
+		int regMin  = spinnerInteger_RegMin;
+		int regMax  = spinnerInteger_RegMax;
 		int numKMax = spinnerInteger_KMax;
 
 		// 0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		// fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
+		tableOut.set("File name",   tableOut.getRowCount() - 1, datasetName);	
 		tableOut.set("k",           tableOut.getRowCount() - 1, numKMax);
 		tableOut.set("RegMin",      tableOut.getRowCount() - 1, regMin);
 		tableOut.set("RegMax",      tableOut.getRowCount() - 1, regMax);
 		tableOut.set("Method",      tableOut.getRowCount() - 1, choiceRadioButt_Method);
 		tableOut.set("Skip zeroes", tableOut.getRowCount() - 1, booleanSkipZeroes);
-		tableOut.set("Dh",          tableOut.getRowCount() - 1, resultValuesTable[1]);
+		tableOut.set("Dh-3D",       tableOut.getRowCount() - 1, resultValuesTable[1]);
 		tableOut.set("R2",          tableOut.getRowCount() - 1, resultValuesTable[4]);
 		tableOut.set("StdErr",      tableOut.getRowCount() - 1, resultValuesTable[3]);
 	}
@@ -817,7 +817,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 		
 		double[] regressionParams = null;
 	
-		String plot_method="Higuchi dimension 3D";
+		String plot_method = "Higuchi dimension 3D";
 		String xAxis = "ln(eps)";
 		String yAxis = "ln(Count)";
 		
