@@ -666,25 +666,17 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		//https://github.com/wendykierp/JTransforms
 		//https://wendykierp.github.io/JTransforms/apidocs/
 		//The sizes of both dimensions must be power of two.
-//		int dftWidth = 2; 
-//		int dftHeight = 2;
-//		while (dftWidth < width) {
-//			dftWidth = dftWidth * 2;
-//		}
-//		while (dftHeight < height) {
-//			dftHeight = dftHeight * 2;
-//		}
 		// Round to next largest power of two. The resulting volume will be later cropped according to GUI input
-		int dftWidth  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
-		int dftHeight = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+		int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+		int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
 		
 		//All DFT axes must have the same size, otherwise image will be anisotropic
-		dftWidth  = (int)Math.max(dftWidth, dftHeight); 
-		dftHeight = dftWidth;
+		widthDFT  = (int)Math.max(widthDFT, heightDFT); 
+		heightDFT = widthDFT;
 				
 		//JTransform needs rows and columns swapped!!!!!
-		int rows    = dftHeight;
-		int columns = dftWidth;
+		int rows    = heightDFT;
+		int columns = widthDFT;
 		
 		//JTransform needs rows and columns swapped!!!!!
 		double[][] imgA = new double[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
@@ -709,7 +701,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		
 		//Optionally show FFT Real Imag image
 		//************************************************************************************
-//		ArrayImg<FloatType, ?> imgFFT = new ArrayImgFactory<>(new FloatType()).create(2*dftWidth, dftHeight); //always single 2D
+//		ArrayImg<FloatType, ?> imgFFT = new ArrayImgFactory<>(new FloatType()).create(2*widthDFT, heightDFT); //always single 2D
 //		cursorF = imgFFT.localizingCursor();
 //		pos = new long[2];
 //		while (cursorF.hasNext()){
@@ -744,9 +736,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		long[] posFFT = new long[2];
 		
 		//Get power values
-		final long[] origin1 = {0, 0};         	 //left top
-		final long[] origin2 = {0, rows-1};    	 //left bottom
-		final long[] origin3 = {columns-1, 0}; 	 //right top
+		final long[] origin1 = {0, 0};         	    //left top
+		final long[] origin2 = {0, rows-1};    	    //left bottom
+		final long[] origin3 = {columns-1, 0}; 	    //right top
 		final long[] origin4 = {columns-1, rows-1}; //right bottom
 		
 		// generate random pixel values
@@ -843,10 +835,10 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			cursorF.fwd();
 			cursorF.localize(pos); 
 			//JTransform needs rows and columns swapped!!!!!
-			cursorF.get().set((float) imgA[(int)pos[1]][(int)(2*pos[0])]);
-			//real = imgA[(int)pos[1]][(int)(2*pos[0])];
-			//imag = imgA[(int)pos[1]][(int)(2*pos[0]+1)];
-			//cursorF.get().set((float)Math.sqrt(real*real + imag*imag));
+			//cursorF.get().set((float) imgA[(int)pos[1]][(int)(2*pos[0])]); //only Real part
+			real = imgA[(int)pos[1]][(int)(2*pos[0])];
+			imag = imgA[(int)pos[1]][(int)(2*pos[0]+1)];
+			cursorF.get().set((float)Math.sqrt(real*real + imag*imag));
 		}
 		
 		//uiService.show("imgFloat after Inverse FFT", imgFloat);	
