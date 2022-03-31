@@ -437,19 +437,19 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		//https://wendykierp.github.io/JTransforms/apidocs/
 		//The sizes of all dimensions must be power of two.	
 		// Round to next largest power of two. The resulting volume will be later cropped according to GUI input
-		int dftWidth  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
-		int dftHeight = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
-		int dftDepth  = depth  == 1 ? 1 : Integer.highestOneBit(depth  - 1) * 2;
+		int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+		int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+		int depthDFT  = depth  == 1 ? 1 : Integer.highestOneBit(depth  - 1) * 2;
 		
 		//All DFT axes must have the same size, otherwise image will be anisotropic
-		dftWidth  = (int)Math.max(Math.max(dftWidth, dftHeight), dftDepth); 
-		dftHeight = dftWidth;
-		dftDepth  = dftWidth;		
+		widthDFT  = (int)Math.max(Math.max(widthDFT, heightDFT), depthDFT); 
+		heightDFT = widthDFT;
+		depthDFT  = widthDFT;		
 		
 		//JTransform needs rows and columns swapped!!!!!
-		int slices  = dftDepth;
-		int rows    = dftHeight;
-		int columns = dftWidth;
+		int slices  = depthDFT;
+		int rows    = heightDFT;
+		int columns = widthDFT;
    
 		float[][][] volFFT = new float[slices][rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
 		
@@ -484,43 +484,34 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		// Hurst parameter
     	float b = 11.0f - (2.0f * fracDim); 
     	
+    	double dist = 0;
     	double g;
     	float u;
     	float n;
     	float m;
-    	double dist = 0;
-    	
-    	short k1;
-    	short k2;
-    	short k3;
+    	double real;
+		double imag;
+ 
 		long[] posFFT = new long[3];
 		
 		// Loop through all pixels.
-		for (k1 = 0; k1 < slices; k1++) {
-			for (k2 = 0; k2 < rows; k2++) {
-				for (k3 = 0; k3 < columns; k3++) {
+		for (int k1 = 0; k1 < slices; k1++) {
+			for (int k2 = 0; k2 < rows; k2++) {
+				for (int k3 = 0; k3 < columns; k3++) {
 						posFFT[2] = k1;
 						posFFT[1] = k2;
 						posFFT[0] = k3;
 						
 						// change origin depending on cursor position
-						if      (posFFT[0] <= fftHalfColumns && posFFT[1] <= fftHalfRows && posFFT[2] <= fftHalfSlices) {
-							dist = Util.distance(origin1, posFFT);}	
-						else if (posFFT[0] <= fftHalfColumns && posFFT[1] > fftHalfRows && posFFT[2] <= fftHalfSlices) {
-							dist = Util.distance(origin2, posFFT);}
-						else if (posFFT[0] <= fftHalfColumns && posFFT[1] <= fftHalfRows && posFFT[2] > fftHalfSlices) {
-							dist = Util.distance(origin3, posFFT);}
-						else if (posFFT[0] <= fftHalfColumns && posFFT[1] > fftHalfRows && posFFT[2] > fftHalfSlices) {
-							dist = Util.distance(origin4, posFFT);}
-						else if (posFFT[0] > fftHalfColumns && posFFT[1] <= fftHalfRows && posFFT[2] <= fftHalfSlices) {
-							dist = Util.distance(origin5, posFFT);}
-						else if (posFFT[0] > fftHalfColumns && posFFT[1] > fftHalfRows && posFFT[2] <= fftHalfSlices) {
-							dist = Util.distance(origin6, posFFT);}
-						else if (posFFT[0] > fftHalfColumns && posFFT[1] <= fftHalfRows && posFFT[2] > fftHalfSlices) {
-							dist = Util.distance(origin7, posFFT);}
-						else if (posFFT[0] > fftHalfColumns && posFFT[1] > fftHalfRows && posFFT[2] > fftHalfSlices) {
-							dist = Util.distance(origin8, posFFT);}
-						
+						if      (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin1, posFFT);
+						else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin2, posFFT);
+						else if (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin3, posFFT);
+						else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin4, posFFT);
+						else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin5, posFFT);
+						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin6, posFFT);
+						else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin7, posFFT);
+						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin8, posFFT);
+				
 						// generate random numbers
 						g = random.nextGaussian();
 						u = random.nextFloat();
@@ -531,7 +522,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 						n = (float) (n * Math.pow(dist+1, -b / 2));
 						m = (float) (m * Math.pow(dist+1, -b / 2));
 						
-						// write values to fft
+						// write values to FFT
 						volFFT[k1][k2][2*k3]	= n; //Real
 						volFFT[k1][k2][2*k3+1]	= m; //Imaginary							
 				}
@@ -553,7 +544,9 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 			cursorF.fwd();
 			cursorF.localize(pos); 
 			//JTransform needs rows and columns swapped!!!!!
-			value = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
+			real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
+			imag = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0]+1)];
+			value = (float)Math.sqrt(real*real + imag*imag);
 			cursorF.get().set(value);
 			if (value > max) {
 				max = value;
