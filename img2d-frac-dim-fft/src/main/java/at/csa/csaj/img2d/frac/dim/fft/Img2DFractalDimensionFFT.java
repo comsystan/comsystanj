@@ -1599,6 +1599,9 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 		
 		//Create double log plot
 		boolean isLineVisible = false; //?
+		String frameTitle = "Double Log Plot - FFT dimension";
+		String xAxisLabel = "ln(k)";
+		String yAxisLabel = "ln(Power)";
 		for (int b = 0; b < numBands; b++) { // mehrere Bands
 		
 			// System.out.println("FractalDimensionFFT: dataY: "+ dataY);
@@ -1608,8 +1611,8 @@ public class Img2DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 				if (numSlices > 1) {
 					preName = "Slice-"+String.format("%03d", plane) +"-";
 				}
-				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnEps, lnTotals, isLineVisible, "Double Log Plot - FFT Dimension", 
-						preName + datasetName, "ln(k)", "ln(Power)", "",
+				RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnEps, lnTotals, isLineVisible, frameTitle, 
+						preName + datasetName, xAxisLabel, yAxisLabel, "",
 						regMin, regMax);
 				doubleLogPlotList.add(doubleLogPlot);
 			}

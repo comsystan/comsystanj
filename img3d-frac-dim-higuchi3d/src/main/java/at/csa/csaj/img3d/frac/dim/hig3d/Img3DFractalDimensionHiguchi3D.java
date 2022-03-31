@@ -817,7 +817,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 		
 		double[] regressionParams = null;
 	
-		String plot_method = "Higuchi dimension 3D";
+		String plot_method = "3D Higuchi dimension";
 		String xAxis = "ln(eps)";
 		String yAxis = "ln(Count)";
 		
@@ -861,7 +861,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 		double[] lnEps    = new double[numKMax];
 		double[] lnTotals = new double[numKMax];
 	
-		logService.info(this.getClass().getName() + " Higuchi3D");
+		logService.info(this.getClass().getName() + " 3D Higuchi");
 		logService.info(this.getClass().getName() + " lnEps: \t  lnTotals:");	
 		for (int i = 0; i < eps.length; i++) {
 			lnEps[i]    = Math.log(eps[i]);
@@ -923,7 +923,7 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 			}
 			boolean isLineVisible = false; // ?
 			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-					"Double Log Plot - Higuchi Dimension", preName + datasetName, "ln(k)", "ln(L)", "", regMin, regMax);
+					"Double Log Plot - 3D Higuchi Dimension", preName + datasetName, "ln(k)", "ln(L)", "", regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
 		if (!imageType.equals("Grey")) {
