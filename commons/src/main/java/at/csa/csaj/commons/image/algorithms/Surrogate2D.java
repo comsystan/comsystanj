@@ -330,18 +330,13 @@ public class Surrogate2D {
 			//https://github.com/wendykierp/JTransforms
 			//https://wendykierp.github.io/JTransforms/apidocs/
 			//The sizes of both dimensions must be power of two.
-			int dftWidth = 2; 
-			int dftHeight = 2;
-			while (dftWidth < width) {
-				dftWidth = dftWidth * 2;
-			}
-			while (dftHeight < height) {
-				dftHeight = dftHeight * 2;
-			}
-					
+			// Round to next largest power of two. The resulting image will be cropped according to GUI input
+			int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+			int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+	
 			//JTransform needs rows and columns swapped!!!!!
-			int rows    = dftHeight;
-			int columns = dftWidth;
+			int rows    = heightDFT;
+			int columns = widthDFT;
 			
 			
 			//JTransform needs rows and columns swapped!!!!!
@@ -381,7 +376,7 @@ public class Surrogate2D {
 			
 			//Optionally show FFT Real Imag image
 			//************************************************************************************
-//			ArrayImg<FloatType, ?> imgFFT = new ArrayImgFactory<>(new FloatType()).create(2*dftWidth, dftHeight); //always single 2D
+//			ArrayImg<FloatType, ?> imgFFT = new ArrayImgFactory<>(new FloatType()).create(2*widthDFT, heightDFT); //always single 2D
 //			cursorF = imgFFT.localizingCursor();
 //			pos = new long[2];
 //			while (cursorF.hasNext()){
@@ -543,18 +538,12 @@ public class Surrogate2D {
 				//https://github.com/wendykierp/JTransforms
 				//https://wendykierp.github.io/JTransforms/apidocs/
 				//The sizes of both dimensions must be power of two.
-				int dftWidth = 2; 
-				int dftHeight = 2;
-				while (dftWidth < width) {
-					dftWidth = dftWidth * 2;
-				}
-				while (dftHeight < height) {
-					dftHeight = dftHeight * 2;
-				}
+				int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+				int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
 						
 				//JTransform needs rows and columns swapped!!!!!
-				int rows    = dftHeight;
-				int columns = dftWidth;
+				int rows    = heightDFT;
+				int columns = widthDFT;
 				
 				
 				//JTransform needs rows and columns swapped!!!!!
