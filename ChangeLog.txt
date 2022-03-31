@@ -3,14 +3,14 @@ ComsystanJ change log
 Version numbering
 1st digit: major release number
 2nd digit: pom-scijava change
-3rd digit: minor changes
+3rd digit: subsequent changes
 
 **************************************************************
 Version 2.0.1
 pom-scijava 31.1.0
 2022-??-?? not released yet
 
-Major changes:
+Major change:
 Signal - text columns allowed
 
 New
@@ -20,21 +20,22 @@ New
 2D Image - Image Generator - Added Mandelbrot islands/lakes
 2D Image - Image Generator - Added Fractal random shapes (lines, circles, squares, filled circles, filled squares)
 
-3D Volume - Higuchi dimension 3D
+3D Volume - 3D FFT dimension
+3D Volume - 3D Higuchi dimension
 3D Volume - Image volume generator
 
 Signal - Lyapunov exponent
 Signal - Noise
 
-Bugfix
+Bugfixes
 2D Image - Image Generator - Resolved anisotropic fractal FFT surfaces
 Signal - FFT - Resolved plugin name conflict with Fiji FFT plugin
 
 Miscellaneous
 
 
-Known issues
-ImageJ2/Fiji - Display bug: Oversaturated grey level images, red cast of RGB color images.
+Known issue
+ImageJ2/Fiji - Display bug: Oversaturated grey level images and red cast of RGB color images.
 
 
 **************************************************************
@@ -51,7 +52,7 @@ But unfortunately, interactivity of plugins is lost.
 New
 Signal - RSE dimension
 
-Bugfix
+Bugfixes
 2D Image - Pyramid dimension - Subsampling of images
 2D Image - Higuchi1D - Improved averaging for radial line extraction
 2D Image - Lacunarity - Eliminated unnecessary regression min max settings
@@ -60,7 +61,7 @@ Bugfix
 Miscellaneous
 Signal - Cut - Renamed to Cutout
 
-Known issues
+Known issue
 Fiji: Red cast of RGB color images
 
 **************************************************************
@@ -86,7 +87,7 @@ Signal - Petrosian dimension
 Signal - Sevcik dimension
 Signal - Signal generator - Added Weierstraß-Mandelbrot signals
 
-Bugfix
+Bugfixes
 2D Image - Kolmogorov complexcity - Did register as signal plugin
 2D Image - Higuchi1D - Roundig errors from rad to grad for lables, angles now in grad
 2D Image - Image opener - Did not open grey image stack correctly
