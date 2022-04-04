@@ -22,6 +22,7 @@ New
 
 3D Volume - 3D FFT dimension
 3D Volume - 3D Higuchi dimension
+3D Volume - 3D Tug of war dimension
 3D Volume - Image volume generator
 
 Signal - Lyapunov exponent
