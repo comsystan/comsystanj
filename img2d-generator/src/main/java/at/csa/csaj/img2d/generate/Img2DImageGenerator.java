@@ -128,8 +128,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	private Img<FloatType> mpdImg; //Midpoint displacement 
 	private Img<FloatType> sosImg; //sum of sine
 	private Img<UnsignedByteType> hrmImg; //HRM
-	BufferedImage  ifsBuffImg; //IFS  Menger,....
-	WritableRaster ifsRaster;
+	private BufferedImage  ifsBuffImg; //IFS  Menger,....
+	private WritableRaster ifsRaster;
     
 	//Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
@@ -398,7 +398,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 	}
 	
 	protected void initialNumIterations() {
-		spinnerInteger_NumIterations = 10;
+		spinnerInteger_NumIterations = 3;
 	}
 	
 	protected void initialRandomShapeSize() {
@@ -835,10 +835,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			cursorF.fwd();
 			cursorF.localize(pos); 
 			//JTransform needs rows and columns swapped!!!!!
-			//cursorF.get().set((float) imgA[(int)pos[1]][(int)(2*pos[0])]); //only Real part
-			real = imgA[(int)pos[1]][(int)(2*pos[0])];
-			imag = imgA[(int)pos[1]][(int)(2*pos[0]+1)];
-			cursorF.get().set((float)Math.sqrt(real*real + imag*imag));
+			cursorF.get().set((float) imgA[(int)pos[1]][(int)(2*pos[0])]); //only Real part for an image with real values
 		}
 		
 		//uiService.show("imgFloat after Inverse FFT", imgFloat);	
