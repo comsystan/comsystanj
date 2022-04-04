@@ -35,13 +35,10 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.interpolation.InterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.FloorInterpolatorFactory;
@@ -50,21 +47,13 @@ import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.realtransform.AffineGet;
 import net.imglib2.realtransform.AffineRandomAccessible;
-import net.imglib2.realtransform.AffineRealRandomAccessible;
-import net.imglib2.realtransform.AffineRealRandomAccessible.AffineRealRandomAccess;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.InverseRealTransform;
-import net.imglib2.realtransform.RealTransformRandomAccessible;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.AbstractIntegerType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 import net.imglib2.view.IntervalView;
-import net.imglib2.view.RandomAccessibleOnRealRandomAccessible;
 import net.imglib2.view.Views;
-
 import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -85,12 +74,7 @@ import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_3D;
 import io.scif.services.DatasetIOService;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
@@ -141,13 +125,19 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     @Parameter
     private OpService opService;
 
-	private Img<FloatType> volFloat;
-	private Img<UnsignedByteType> resultVolume;
-	private Img<FloatType> ifsVolume;
+	//private Img<FloatType> volFloat;
+	private float[][][] volMPD;
+	private float[][][] volFFT;
+	private Img<FloatType> volIFS;
+	private Img<FloatType> volIFS1;
+	private Img<FloatType> volIFS2;
+	private Img<FloatType> volIFS3;
 	private RandomAccess<FloatType> raF;
-	private RandomAccess<UnsignedByteType> ra;
-	private Cursor<UnsignedByteType> cursor;
-	private Cursor<FloatType> cursoF;
+	private RandomAccess<RealType<?>> ra;
+	private Cursor<RealType<?>> cursor;
+	private Cursor<FloatType> cursorF;
+	
+	private String colorModelType;
 	
 	//Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
@@ -204,7 +194,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     		   style = ChoiceWidget.LIST_BOX_STYLE,
     		   choices = {"Random", "Gaussian", "Constant", 
     				      "Fractal volume - FFT", "Fractal volume - MPD",
-    				      "Fractal IFS - Menger", //"Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
+    				      "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
     				     },
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialVolumeType",
@@ -331,15 +321,11 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 	
 	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
 	protected void callbackColorModelType() {
-		if      (choiceRadioButt_VolumeType.equals("Fractal volume - FFT"))  choiceRadioButt_ColorModelType = "Grey-8bit";
-		else if (choiceRadioButt_VolumeType.equals("Fractal volume - MPD"))  choiceRadioButt_ColorModelType = "Grey-8bit";
 		logService.info(this.getClass().getName() + " Color model set to " + choiceRadioButt_ColorModelType);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_VolumeType} parameter changes. */
 	protected void changedVolumeType() {
-		if      (choiceRadioButt_VolumeType.equals("Fractal volume - FFT"))  choiceRadioButt_ColorModelType = "Grey-8bit";
-		else if (choiceRadioButt_VolumeType.equals("Fractal volume - MPD"))  choiceRadioButt_ColorModelType = "Grey-8bit";
 		logService.info(this.getClass().getName() + " Volume type changed to " + choiceRadioButt_VolumeType);
 	}
 		
@@ -385,108 +371,91 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
  		logService.info(this.getClass().getName() + " Widget canceled");
  	}
  	
-    private void compute3DRandomGrey(int greyMax) {
-	
-		Random random = new Random();
-		random.setSeed(System.currentTimeMillis());
-		resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2));
-		Cursor<UnsignedByteType> cursor = resultVolume.cursor();
-		//final long[] pos = new long[dataset.numDimensions()];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			//cursor.localize(pos);
-			cursor.get().setReal((int)(random.nextFloat()*greyMax));
-		}  			
-	}
-    
-    private void compute3DRandomRGB(int greyMaxR, int greyMaxG, int greyMaxB) {
+    private void compute3DRandom(int greyMaxR, int greyMaxG, int greyMaxB) {
     	
 		Random random = new Random();
 		random.setSeed(System.currentTimeMillis());
-		resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2), datasetOut.dimension(3));
-		Cursor<UnsignedByteType> cursor = resultVolume.cursor();
-		long[] pos = new long[4];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-			if      (pos[3] == 0) cursor.get().setReal((int)(random.nextFloat()*greyMaxR));
-			else if (pos[3] == 1) cursor.get().setReal((int)(random.nextFloat()*greyMaxG));
-			else if (pos[3] == 2) cursor.get().setReal((int)(random.nextFloat()*greyMaxB));
-		}  			
+		cursor = datasetOut.cursor();
+		
+		if (colorModelType.equals("Grey-8bit")) {
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.get().setReal((int)(random.nextFloat()*greyMaxR));
+			} 
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+		 	long[] pos = new long[4];
+			while (cursor.hasNext()) {
+				cursor.fwd();	
+				cursor.localize(pos);
+				if      (pos[3] == 0) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxR));
+				else if (pos[3] == 1) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxG));
+				else if (pos[3] == 2) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxB));
+			} 	
+		}		
 	}
-
-	private void compute3DGaussianGrey(int greyMax) {
-        
-    	float mu = (float)greyMax/2f;
-    	float sigma = 30f;
-    	Random random = new Random();
-    	resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2));
-    	Cursor<UnsignedByteType> cursor = resultVolume.cursor();
-    	//final long[] pos = new long[dataset.numDimensions()];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			//cursor.localize(pos);
-			cursor.get().setReal((int)(random.nextGaussian()*sigma + mu));
-		}  			
-	}
-   
-	private void compute3DGaussianRGB(int greyMaxR, int greyMaxG, int greyMaxB) {
+    
+	private void compute3DGaussian(int greyMaxR, int greyMaxG, int greyMaxB) {
         
     	float muR = (float)greyMaxR/2f;
     	float muG = (float)greyMaxG/2f;
     	float muB = (float)greyMaxB/2f;
     	float sigma = 30f;
     	Random random = new Random();
-		resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2), datasetOut.dimension(3));
-		Cursor<UnsignedByteType> cursor = resultVolume.cursor();
-		long[] pos = new long[4];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);		
-			if      (pos[3] == 0) cursor.get().setReal((int)(random.nextGaussian()*sigma + muR));
-			else if (pos[3] == 1) cursor.get().setReal((int)(random.nextGaussian()*sigma + muG));
-			else if (pos[3] == 2) cursor.get().setReal((int)(random.nextGaussian()*sigma + muB));		
-		}  			
+    	random.setSeed(System.currentTimeMillis());
+
+    	cursor = datasetOut.cursor();
+		
+		if (colorModelType.equals("Grey-8bit")) {
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.get().setReal((int)(random.nextGaussian()*sigma + muR));
+			} 
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+		 	long[] pos = new long[4];
+			while (cursor.hasNext()) {
+				cursor.fwd();	
+				cursor.localize(pos);
+				if      (pos[3] == 0) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muR));
+				else if (pos[3] == 1) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muG));
+				else if (pos[3] == 2) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muB));
+			} 	
+		}			
 	}
 	
-    private void compute3DConstantGrey(int constant) {
+    private void compute3DConstant(int constR, int constG, int constB) {
         
-    	resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2));
-    	Cursor<UnsignedByteType> cursor = resultVolume.cursor();
-    	
-    	//final long[] pos = new long[dataset.numDimensions()];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			//cursor.localize(pos);
-			cursor.get().setReal(constant);
-		}  			
-	}
+    	cursor = datasetOut.cursor();
     
-    private void compute3DConstantRGB(int constR, int constG, int constB) {
-        
-		resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2), datasetOut.dimension(3));
-    	Cursor<UnsignedByteType> cursor = resultVolume.cursor();
-    	long[] pos = new long[4];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-			if      (pos[3] == 0) cursor.get().setReal(constR);
-			else if (pos[3] == 1) cursor.get().setReal(constG);
-			else if (pos[3] == 2) cursor.get().setReal(constB);
-		}  			
+    	if (colorModelType.equals("Grey-8bit")) {
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.get().setReal(constR);
+			} 
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+		 	long[] pos = new long[4];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				if      (pos[3] == 0) cursor.get().setReal(constR);
+				else if (pos[3] == 1) cursor.get().setReal(constG);
+				else if (pos[3] == 2) cursor.get().setReal(constB);
+			} 	
+		}				
 	}
     
     //@author Moritz Hackhofer
-    private void compute3DFracFFTGrey(float fracDim, int greyMax) {
+    private void compute3DFracFFT(float fracDim, int greyMaxR, int greyMaxG, int greyMaxB ) {
     	   
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	int depth  = (int)datasetOut.dimension(2);
-    	Cursor<FloatType> cursorF;
     	long[] pos;
     	
     	//create empty volume
-		volFloat = new ArrayImgFactory<>(new FloatType()).create(width, height, depth);
+		//volFloat = new ArrayImgFactory<>(new FloatType()).create(width, height, depth);
     	
 		//Using JTransform package
 		//https://github.com/wendykierp/JTransforms
@@ -507,7 +476,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		int rows    = heightDFT;
 		int columns = widthDFT;
    
-		float[][][] volFFT = new float[slices][rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
+		volFFT = new float[slices][rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
 		
 		FloatFFT_3D FFT = new FloatFFT_3D(slices, rows, columns); //Here always the simple DFT width
     	
@@ -537,6 +506,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		// generate random pixel values
 		Random random = new Random();
 		random.setSeed(System.currentTimeMillis());
+		
 		// Hurst parameter
     	float b = 11.0f - (2.0f * fracDim); 
     	
@@ -587,53 +557,63 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		//Inverse FFT		
 		//vol is now really complex, Real and Imaginary pairs
 		FFT.complexInverse(volFFT, false);
-		
-		//Write to volFloat
-		//Note that only the values inside the dimensions of volFloat are copied 
-		cursorF = volFloat.localizingCursor();
-		pos = new long[3];
-		float value;
+			
+		//Find min max;
 		float min = Float.MAX_VALUE;
-		float max = -Float.MAX_VALUE;
-		
-		while (cursorF.hasNext()) {
-			cursorF.fwd();
-			cursorF.localize(pos); 
-			//JTransform needs rows and columns swapped!!!!!
-			real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
-			//imag = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0]+1)];
-			//value = (float)Math.sqrt(real*real + imag*imag);
-			cursorF.get().set(real); //only Real part for an image volume with real values
-			if (real > max) {
-				max = real;
-			}
-			if (real < min) {
-				min = real;
+		float max = -Float.MAX_VALUE;	
+		// Loop through all pixels.
+		for (int k1 = 0; k1 < slices; k1++) {
+			for (int k2 = 0; k2 < rows; k2++) {
+				for (int k3 = 0; k3 < columns; k3++) {
+					real = volFFT[k1][k2][2*k3];
+					if (real > max) {
+						max = real;
+					}
+					if (real < min) {
+						min = real;
+					}
+				}
 			}
 		}
 		
-		resultVolume = opService.create().img(volFloat, new UnsignedByteType());
-		RandomAccess<UnsignedByteType> ra = resultVolume.randomAccess();	
-		cursorF = volFloat.cursor();
+		cursor = datasetOut.cursor();	
 		
-		//cursor = ifft.cursor();
-    	//final long[] pos = new long[resultVol.numDimensions()];
-    	float rf = (greyMax/(max-min)); //rescale factor
-		while (cursorF.hasNext()) {
-			cursorF.fwd();
-			cursorF.localize(pos);
-			value= cursorF.get().getRealFloat();
-			value = rf * (value -min); //Rescale to 0  - greyMax
-			ra.setPosition(pos);
-			//ra.get().set((int)(rf * (value -min)));
-			ra.get().set((int)(Math.round(value)));	
-		}		
-		//resultVolume;
+		if (colorModelType.equals("Grey-8bit")) {
+	    	pos = new long[3];
+	    	float rf = ((float)greyMaxR/(max-min)); //rescale factor
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
+				real = rf * (real - min); //Rescale to 0  - greyMax
+				cursor.get().setReal((int)(Math.round(real)));	
+			}		
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+			
+		 	pos = new long[4];
+		 	float rfR = ((float)greyMaxR/(max-min)); //rescale factor
+		 	float rfG = ((float)greyMaxG/(max-min)); //rescale factor
+		 	float rfB = ((float)greyMaxB/(max-min)); //rescale factor
+		 	float realR;
+		 	float realG;
+		 	float realB;
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
+				if      (pos[3] == 0) { realR = rfR * (real - min); cursor.get().setReal((int)(Math.round(realR))); }
+				else if (pos[3] == 1) { realG = rfG * (real - min); cursor.get().setReal((int)(Math.round(realG))); }
+				else if (pos[3] == 2) { realB = rfB * (real - min); cursor.get().setReal((int)(Math.round(realB))); }
+			} 	
+		}	
+		
+		volFFT = null;
 	}
     
     
     //@author Moritz Hackhofer
-    private void compute3DFracMPDGrey(float fracDim, int greyMax) {
+    private void compute3DFracMPD(float fracDim, int greyMaxR, int greyMaxG, int greyMaxB) {
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	int depth  = (int)datasetOut.dimension(2);
@@ -668,7 +648,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		int maxLevel = (int)(Math.log(N)/Math.log(2));
 		
 		// Create desired float array
-		float[][][] volMPD = new float[N+1][M+1][O+1];
+		volMPD = new float[N+1][M+1][O+1];
 			
 		// Start with random corner values at corners
 		volMPD[0][0][0]  = (float) (random.nextGaussian() * sigma + mu);
@@ -1081,36 +1061,59 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 			
 		} //stage
 		
-		// scale to int
+		//Write to output
 		float allMin = getMin(volMPD, N, M, O);
 		float allMax = getMax(volMPD, N, M, O);		
+				
+    	cursor = datasetOut.cursor();	
+		
+		if (colorModelType.equals("Grey-8bit")) {
+	 		
+			float scale = (float)greyMaxR / (allMax - allMin);	
+			ra = datasetOut.randomAccess();
 			
-		//int greyMax = 255;  		
-		float scale = greyMax / (allMax - allMin);
-		
-		//resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2));
-		resultVolume = opService.create().img(datasetOut, new UnsignedByteType());
-		RandomAccess<UnsignedByteType> ra = resultVolume.randomAccess();
-		
-		// write to randomAccess	
-		for (int k1 = 0; k1 < width; k1++) {
-			for (int k2 = 0; k2 < height; k2++) {
-				for (int k3 = 0; k3 < depth; k3++) {
-					//floatArr[k1 + k2*N + k3*N*N] = fBm[k1][k2][k3];		
-					ra.setPosition(k1, 0);
-					ra.setPosition(k2, 1);
-					ra.setPosition(k3, 2);
-					//int value = (int) ((fBm[k1][k2][k3] - allMin) * scale);	 
-					ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scale));
+			// write to Output	
+			for (int k1 = 0; k1 < width; k1++) {
+				for (int k2 = 0; k2 < height; k2++) {
+					for (int k3 = 0; k3 < depth; k3++) {
+						ra.setPosition(k1, 0);
+						ra.setPosition(k2, 1);
+						ra.setPosition(k3, 2);
+						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scale));
+					}
 				}
-			}
-		}  	
-    	//resultVolume
+			} 
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+			
+			float scaleR = (float)greyMaxR / (allMax - allMin);	
+			float scaleG = (float)greyMaxG / (allMax - allMin);	
+			float scaleB = (float)greyMaxB / (allMax - allMin);	
+			ra = datasetOut.randomAccess();
+			
+			// write to Output	
+			for (int k1 = 0; k1 < width; k1++) {
+				for (int k2 = 0; k2 < height; k2++) {
+					for (int k3 = 0; k3 < depth; k3++) {
+						ra.setPosition(k1, 0);
+						ra.setPosition(k2, 1);
+						ra.setPosition(k3, 2);
+						ra.setPosition(0, 3);
+						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scaleR));
+						ra.setPosition(1, 3);
+						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scaleG));
+						ra.setPosition(2, 3);
+						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scaleB));
+					}
+				}
+			} 
+		}	
+		
+		volFFT = null;  	
 	}
     
 	// Method for getting the maximum value
     public static float getMax(float[][][] inputArray, int N, int M, int O) { 
-    	//float maxValue = inputArray[0][0][0]; 
       	float maxValue = -Float.MAX_VALUE;
 		for (int k1 = 0; k1 < N; k1++) {
 			for (int k2 = 0; k2 < M; k2++) {
@@ -1126,7 +1129,6 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
    
     // Method for getting the minimum value
     public static float getMin(float[][][] inputArray, int N, int M, int O) { 
-    	//float minValue = inputArray[0][0][0]; 
     	float minValue = Float.MAX_VALUE; 
   		for (int k1 = 0; k1 < N; k1++) {
   			for (int k2 = 0; k2 < M; k2++) {
@@ -1140,36 +1142,17 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
   		return minValue; 
     } 
     
-    private void compute3DFracMengerGrey(int numIterations, int greyMax) {
-    	
-//		numIterations = 10; // iteration
+    //This methods computes a Menger volume
+    private void compute3DFracMenger(int numIterations, int greyMaxR, int greyMaxG, int greyMaxB) {
+	    	
 	 	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	int depth  = (int)datasetOut.dimension(2);
-		resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1), datasetOut.dimension(2));
 
+		volIFS = new ArrayImgFactory<>(new FloatType()).create(width, height, depth);	
+		raF = volIFS.randomAccess();
 	
-//		// this algorithm properly works only for image sizes
-//		// 2*3*3*3*3.......
-//		int ifsWidth  = 2;
-//		int ifsHeight = 2;
-//		int ifsDepth  = 2;
-//
-//		while ((width > ifsWidth) && (height > ifsHeight) && (depth > ifsDepth)){
-//			ifsWidth  = ifsWidth  * 3;
-//			ifsHeight = ifsHeight * 3;
-//			ifsDepth  = ifsDepth  * 3; 
-//		}
-		
-		ifsVolume = new ArrayImgFactory<>(new FloatType()).create(width, height, depth);	
-		raF = ifsVolume.randomAccess();
-
-		//System.out.println("ImageGenerator:     width:   " + width);
-		int tileSizeX = width/3;
-		int tileSizeY = height/3;
-		int tileSizeZ = depth/3;
-		
-		// set initial centered square
+		// set initial centered cube
 		int xMin = Math.round((float) width  / 3);
 		int xMax = Math.round((float) width  / 3 * 2);
 		int yMin = Math.round((float) height / 3);
@@ -1183,89 +1166,216 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 			raF.setPosition(x, 0);
 			raF.setPosition(y, 1);
 			raF.setPosition(z, 2);
-			raF.get().setReal(greyMax);
+			raF.get().setReal(255);
 		}
 		}
 		}
-		
-		int dummy = 0;
-
-//		// Affine transformation
-		
-		// declare how to interpolate the volume
+			
+		// Declare interpolation type
 		String interpolType = "Linear";
 		InterpolatorFactory factory = null;
-		if (interpolType.contentEquals("Linear") ) {
-			// create an InterpolatorFactory RealRandomAccessible using linear interpolation
-			factory = new NLinearInterpolatorFactory<FloatType>();
-		}
-		if (interpolType.contentEquals("Lanczos") ) {
-			// create an InterpolatorFactory RealRandomAccessible using lanczos interpolation
-			factory = new LanczosInterpolatorFactory<FloatType>();
-		}
-		if (interpolType.contentEquals("Floor") ) {
-			// create an InterpolatorFactory RealRandomAccessible using floor interpolation
-			factory = new FloorInterpolatorFactory<FloatType>();
-		}
-		if (interpolType.contentEquals("Nearest Neighbor") ) {
-		// create an InterpolatorFactory RealRandomAccessible using nearst neighbor interpolation
-		    factory = new NearestNeighborInterpolatorFactory<FloatType>();
-		}
-	
-		Img<FloatType> ifsVolume2 = ifsVolume;
-		for (int i = 0; i < numIterations; i++) {
-			ifsVolume2 = ifsVolume.copy();
-			RealRandomAccessible< FloatType > interpolant = Views.interpolate(Views.extendMirrorSingle(ifsVolume2), factory);
-						
+		if      (interpolType.contentEquals("Linear") )           factory = new NLinearInterpolatorFactory<FloatType>();
+		else if (interpolType.contentEquals("Lanczos") )          factory = new LanczosInterpolatorFactory<FloatType>();
+		else if (interpolType.contentEquals("Floor") )            factory = new FloorInterpolatorFactory<FloatType>();
+		else if (interpolType.contentEquals("Nearest Neighbor") ) factory = new NearestNeighborInterpolatorFactory<FloatType>();
+				
+		RealRandomAccessible<FloatType> interpolant;
+		AffineRandomAccessible<FloatType, AffineGet> transformed;
+		IntervalView<FloatType> bounded;	
+		AffineTransform3D at3D = new AffineTransform3D();
+		//at3D.setTranslation(0.0, 0.0, 0.0);
+		//at3D.set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23);
+		at3D.set(1.0/3.0,     0.0,     0.0,   0.0,
+				     0.0, 1.0/3.0,     0.0,   0.0,
+				     0.0,     0.0, 1.0/3.0,   0.0);
 		
-			AffineTransform3D at3D = new AffineTransform3D();
-			//at3D.setTranslation(0.0, 0.0, 0.0);
-			//at3D.set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23);
-			at3D.set(1.0/3.0,     0.0,     0.0,   0.0,
-					     0.0, 1.0/3.0,     0.0,   0.0,
-					     0.0,     0.0, 1.0/3.0,   0.0);
-			
-			//Transform the image
-			AffineRandomAccessible<FloatType, AffineGet> transformed = RealViews.affine(interpolant, at3D);
-			
+		// Affine transformations-----------------------------------------------------------------
+		for (int i = 0; i < numIterations; i++) {
+		
+			volIFS1 = volIFS.copy();
+			interpolant = Views.interpolate(Views.extendMirrorSingle(volIFS1), factory);				
+			//Transform the volume
+			transformed = RealViews.affine(interpolant, at3D);	
 			//Apply the original interval to the transformed image 
-			IntervalView<FloatType> bounded = Views.interval(transformed, ifsVolume);
+			bounded = Views.interval(transformed, volIFS); //ifsVolume 1 or ifsVolume2 does not matter, only size is taken
 //			Dataset dataset = datasetService.create(bounded);
-//			uiService.show("bounded", bounded);
-			
-			//Add together
-			Cursor<FloatType> cursorF = ifsVolume.cursor();
-			RandomAccess<FloatType> raB = bounded.randomAccess();
+//			uiService.show("bounded", bounded);		
+			//Adding together
+			cursorF = volIFS.cursor();
+			raF = bounded.randomAccess();
 	    	long[] pos = new long[3];
 			while (cursorF.hasNext()) {
 				cursorF.fwd();
 				cursorF.localize(pos);
-				raB.setPosition(pos);
-				if (cursorF.get().getRealFloat() == 0) { //do not overwrite white pixels
-					cursorF.get().set((int)Math.round(((FloatType)raB.get()).getRealFloat()));
+				raF.setPosition(pos);
+				if (cursorF.get().getRealFloat() == 0) { //do not overwrite already white pixels
+					cursorF.get().set((int)Math.round(((FloatType)raF.get()).getRealFloat()));
 				} 
-			}  	
-			
+			}  			
 		}
 			
-		// Convert---------------------------------------
-		cursor = resultVolume.cursor();
-		raF = ifsVolume.randomAccess();
-    	long[] pos = new long[3];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-			raF.setPosition(pos);
-			cursor.get().set((int)Math.round((raF.get()).getRealFloat()));
-		}  	
-			
-		ifsVolume = null;
-    }
+		// Convert and write to Output---------------------------------------
+		cursor = datasetOut.cursor();
+		raF = volIFS.randomAccess();
     
+		if (colorModelType.equals("Grey-8bit")) {
+			long[] pos = new long[3];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raF.setPosition(pos);
+				if (raF.get().getRealFloat() > 0) {
+					cursor.get().setReal(greyMaxR);
+				}			
+			}  	
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+			long[] pos = new long[4];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raF.setPosition(pos);
+				if (raF.get().getRealFloat() > 0) {
+					if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
+					else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
+					else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
+				}			
+			}  	
+		}	
+		
+		volIFS = null;
+		volIFS1 = null;
+	}
+    
+    //This methods computes a Sierpinski volume
+    private void compute3DFracSierpinski1(int numIterations, int greyMaxR, int greyMaxG, int greyMaxB) {
+	    	
+    	RealRandomAccessible<FloatType> interpolant;
+    	RealRandomAccess<FloatType> rraF;
+		AffineRandomAccessible<FloatType, AffineGet> transformed;
+		IntervalView<FloatType> bounded;	
+		AffineTransform3D at3D1 = new AffineTransform3D();
+		AffineTransform3D at3D2 = new AffineTransform3D();
+		AffineTransform3D at3D3 = new AffineTransform3D();
+    	
+	 	int width  = (int)datasetOut.dimension(0);
+    	int height = (int)datasetOut.dimension(1);
+    	int depth  = (int)datasetOut.dimension(2);
 
-  
+		volIFS = new ArrayImgFactory<>(new FloatType()).create(width, height, depth);	
+		//raF = volIFS.randomAccess();
+	
+		
+		// Declare interpolation type
+		String interpolType = "Linear";
+		InterpolatorFactory factory = null;
+		if      (interpolType.contentEquals("Linear") )           factory = new NLinearInterpolatorFactory<FloatType>();
+		else if (interpolType.contentEquals("Lanczos") )          factory = new LanczosInterpolatorFactory<FloatType>();
+		else if (interpolType.contentEquals("Floor") )            factory = new FloorInterpolatorFactory<FloatType>();
+		else if (interpolType.contentEquals("Nearest Neighbor") ) factory = new NearestNeighborInterpolatorFactory<FloatType>();
+				
+		interpolant = Views.interpolate(Views.extendMirrorSingle(volIFS1), factory);				
+		
+		rraF = interpolant.realRandomAccess();
+		// set initial centered cube
+		int xMin = 0;
+		int xMax = width-1;
+		int yMin = 0;
+		int yMax = height-1;
+		int zMin = 0;
+		int zMax = Math.round((float) depth  / 3 * 1);
+		
+		for (int x = xMin - 1; x < xMax - 1; x++) {
+		for (int y = yMin - 1; y < yMax - 1; y++) {
+		for (int z = zMin - 1; z < zMax - 1; z++) {
+			rraF.setPosition(x, 0);
+			rraF.setPosition(y, 1);
+			rraF.setPosition(z, 2);
+			rraF.get().setReal(255);
+		}
+		}
+		}
+		
+		//at3D.setTranslation(0.0, 0.0, 0.0);
+		//at3D.set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23);
+		at3D1.set(0.5, 0.0, 0.0,   1.0 / 4.0 * width,
+				  0.0, 0.5, 0.0,   1.0 / 4.0 * height,
+				  0.0, 0.0, 0.5,   Math.sqrt(3.0/4.0) * depth);
+		
+		at3D1.set(0.5, 0.0, 0.0,   0.5 * width,
+				  0.0, 0.5, 0.0,   0.5 * height,
+				  0.0, 0.0, 0.5,   0.0 * depth);
+		
+		at3D1.set(0.5, 0.0, 0.0,   0.0 * width,
+				  0.0, 0.5, 0.0,   0.0 * height,
+				  0.0, 0.0, 0.5,   0.0 * depth);
+		
+		// AffineTransform at = new AffineTransform(m00, m10, m01, m11, m02, m12);
+		AffineTransform at1 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,   1.0f / 4.0f * width, (float) (Math.sqrt(3) / 4.0f) * width);
+		AffineTransform at2 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,          0.5f * width,                          0.0f * width);
+		AffineTransform at3 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,                  0.0f,                                  0.0f);
+	
+		
+		// Affine transformations-----------------------------------------------------------------
+		for (int i = 0; i < numIterations; i++) {
+		
+			volIFS1 = volIFS.copy();
+			
+			interpolant = Views.interpolate(Views.extendMirrorSingle(volIFS1), factory);				
+			//Transform the volume
+			transformed = RealViews.affine(interpolant, at3D1);	
+			//Apply the original interval to the transformed image 
+			bounded = Views.interval(transformed, volIFS); //ifsVolume 1 or ifsVolume2 does not matter, only size is taken
+//			Dataset dataset = datasetService.create(bounded);
+//			uiService.show("bounded", bounded);		
+			//Adding together
+			cursorF = volIFS.cursor();
+			raF = bounded.randomAccess();
+	    	long[] pos = new long[3];
+			while (cursorF.hasNext()) {
+				cursorF.fwd();
+				cursorF.localize(pos);
+				raF.setPosition(pos);
+				if (cursorF.get().getRealFloat() == 0) { //do not overwrite already white pixels
+					cursorF.get().set((int)Math.round(((FloatType)raF.get()).getRealFloat()));
+				} 
+			}  			
+		}
+			
+		// Convert and write to Output---------------------------------------
+		cursor = datasetOut.cursor();
+		raF = volIFS.randomAccess();
     
-    /**
+		if (colorModelType.equals("Grey-8bit")) {
+			long[] pos = new long[3];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raF.setPosition(pos);
+				if (raF.get().getRealFloat() > 0) {
+					cursor.get().setReal(greyMaxR);
+				}			
+			}  	
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+			long[] pos = new long[4];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raF.setPosition(pos);
+				if (raF.get().getRealFloat() > 0) {
+					if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
+					else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
+					else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
+				}			
+			}  	
+		}	
+		
+		volIFS = null;
+		volIFS1 = null;
+	}
+
+	/**
      * @param 
      * @throws Exception
      */
@@ -1300,7 +1410,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		int width     			= spinnerInteger_Width;
 		int height    			= spinnerInteger_Height;
 		int depth    			= spinnerInteger_Depth;
-		String colorModelType   = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
+		colorModelType          = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
 		String volumeType		= choiceRadioButt_VolumeType;
 		int greyR   			= spinnerInteger_R;
 		int greyG   			= spinnerInteger_G;
@@ -1338,95 +1448,31 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
 					
-				RandomAccess<RealType<?>> ra;
-				Cursor<UnsignedByteType> cursor;
-				long[] pos3D; 
-				float value;
-				long startTime;
-				long duration;
-				dlgProgress.setBarIndeterminate(false);
-	
-				startTime = System.currentTimeMillis();
-				logService.info(this.getClass().getName() + " Generating image volume");
-				
-				if      (volumeType.equals("Random"))   					compute3DRandomGrey(greyR);
-				else if (volumeType.equals("Gaussian")) 					compute3DGaussianGrey(greyR);
-				else if (volumeType.equals("Constant")) 					compute3DConstantGrey(greyR);
-				else if (volumeType.equals("Fractal volume - FFT"))			compute3DFracFFTGrey(fracDim, greyR);
-				else if (volumeType.equals("Fractal volume - MPD")) 		compute3DFracMPDGrey(fracDim, greyR);
-				else if (volumeType.equals("Fractal IFS - Menger")) 		compute3DFracMengerGrey(numIterations, greyR);
-				else if (volumeType.equals("Fractal IFS - Sierpinski-1")) 	;//compute3DSierpinski1Grey(numIterations, greyR);
-				else if (volumeType.equals("Fractal IFS - Sierpinski-2")) 	;//compute3DSierpinski2Grey(numIterations, greyR);
-				
-									
-				ra = datasetOut.randomAccess();
-				cursor = resultVolume.cursor();
-				pos3D = new long[3];
-				
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos3D);
-					value= cursor.get().getRealFloat();
-					//value = rf * (value -min); //Rescale to 0  255
-					pos3D = new long[] {pos3D[0], pos3D[1], pos3D[2]};
-					ra.setPosition(pos3D);
-					ra.get().setReal(value);
-				}
-				duration = System.currentTimeMillis() - startTime;
-				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-				SimpleDateFormat sdf = new SimpleDateFormat();
-				sdf.applyPattern("HHH:mm:ss:SSS");
-				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-								
+		} else if (colorModelType.equals("Color-RGB")) {
+			
+			bitsPerPixel = 8;
+			dims = new long[]{width, height, depth, 3};
+			axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z, Axes.CHANNEL};
+			datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+			datasetOut.setCompositeChannelCount(3);
+			datasetOut.setRGBMerged(true);
 		}
-		else if (colorModelType.equals("Color-RGB")) {
-	
-				bitsPerPixel = 8;
-				dims = new long[]{width, height, depth, 3};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z, Axes.CHANNEL};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-				datasetOut.setCompositeChannelCount(3);
-				datasetOut.setRGBMerged(true);
-					
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
-				Cursor<UnsignedByteType> cursor;
-				long[] pos4D;
-				float value;
-				long startTime;
-				long duration;
-				dlgProgress.setBarIndeterminate(false);
+			
 
-				startTime = System.currentTimeMillis();
-				logService.info(this.getClass().getName() + " Generating image volume");
-				
+		dlgProgress.setBarIndeterminate(false);
+
+		long startTime = System.currentTimeMillis();
+		logService.info(this.getClass().getName() + " Generating image volume");
 		
-				if      (volumeType.equals("Random"))   					compute3DRandomRGB(greyR, greyG, greyB);
-				else if (volumeType.equals("Gaussian")) 					compute3DGaussianRGB(greyR, greyG, greyB);
-				else if (volumeType.equals("Constant")) 					compute3DConstantRGB(greyR, greyG, greyB);
-				else if (volumeType.equals("Fractal volume - FFT"))			;//compute3DFracFFTRGB(greyR, greyG, greyB); //not implemented yet
-				else if (volumeType.equals("Fractal volume - MPD")) 		;//compute3DFracMPDRGB(greyR, greyG, greyB); //not implemented yet
-				else if (volumeType.equals("Fractal IFS - Menger")) 		;//compute3DFracMengerRGB(numIterations, greyR);
-				else if (volumeType.equals("Fractal IFS - Sierpinski-1")) 	;//compute3DSierpinski1RGB(numIterations, greyR);
-				else if (volumeType.equals("Fractal IFS - Sierpinski-2")) 	;//compute3DSierpinski2RGB(numIterations, greyR);
+		if      (volumeType.equals("Random"))   					compute3DRandom(greyR, greyG, greyB);
+		else if (volumeType.equals("Gaussian")) 					compute3DGaussian(greyR, greyG, greyB);
+		else if (volumeType.equals("Constant")) 					compute3DConstant(greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal volume - FFT"))			compute3DFracFFT(fracDim, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal volume - MPD")) 		compute3DFracMPD(fracDim, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Menger")) 		compute3DFracMenger(numIterations, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Sierpinski-1")) 	compute3DFracSierpinski1(numIterations, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Sierpinski-2")) 	;//compute3DFracSierpinski2(numIterations, greyR, greyG, greyB);
 				
-				cursor = resultVolume.cursor();
-				pos4D = new long[4];		
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos4D);
-					value= cursor.get().getRealFloat();
-					//value = rf * (value -min); //Rescale to 0  255		
-					ra.setPosition(new long[] {pos4D[0], pos4D[1], pos4D[2], pos4D[3]});
-					ra.get().setReal(value);
-				}
-				
-				duration = System.currentTimeMillis() - startTime;
-				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-				SimpleDateFormat sdf = new SimpleDateFormat();
-				sdf.applyPattern("HHH:mm:ss:SSS");
-				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));		
-		}
-		
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
 		
