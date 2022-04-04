@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ2 plugin for computing fractal dimension with 3D FFT.
- * File: Img3DFractalDimensionFFT.java
+ * Project: ImageJ2 plugin for computing fractal dimension with 3D tug of war algorithm.
+ * File: Img3DFractalDimensionTugOfWar.java
  * 
  * $Id$
  * $HeadURL$
@@ -34,8 +34,6 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -53,16 +51,10 @@ import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.util.Util;
 import net.imglib2.view.Views;
-import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.transform.DftNormalization;
-import org.apache.commons.math3.transform.FastFourierTransformer;
-import org.apache.commons.math3.transform.TransformType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -85,7 +77,6 @@ import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
-import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
@@ -142,8 +133,7 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
-	
-	
+		
 	@Parameter
 	private ImageJ ij;
 
@@ -238,7 +228,7 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
      @Parameter(label = "Accuracy",
- 		        description = "Accuracy (default=90)",
+ 		        description = "Accuracy (default=30)",
 	       	    style = NumberWidget.SPINNER_STYLE,
 	            min = "1",
 	            max = "99999999999999",
@@ -249,7 +239,7 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
      private int spinnerInteger_NumAcurracy;
      
      @Parameter(label = "Confidence",
- 		        description = "Confidence (default=15)",
+ 		        description = "Confidence (default=5)",
 	       	    style = NumberWidget.SPINNER_STYLE,
 	            min = "1",
 	            max = "99999999999999",
@@ -881,14 +871,14 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 			do {
 				for(int x = 0; x < width; x++){	
 					for(int y = 0; y < height; y++){
-						for(int z = 0; z < height; z++){
+						for(int z = 0; z < depth; z++){
 							ra.setPosition(x, 0);
 							ra.setPosition(y, 1);
 							ra.setPosition(z, 2);
 							if (ra.get().getInteger() > 0 ){	
 								xCoordinate[k] = x;
 								yCoordinate[k] = y;
-								yCoordinate[k] = y;
+								zCoordinate[k] = z;
 								k++;
 							}
 						}
