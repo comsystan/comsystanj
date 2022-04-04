@@ -119,9 +119,9 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
-	RandomAccessibleInterval<?> raiBox;
+	private static  RandomAccessibleInterval<?> raiBox;
 	private static RandomAccess<UnsignedByteType> ra;
-	Cursor<?> cursor = null;
+	private static Cursor<?> cursor = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
 	private static long width  = 0;
@@ -238,8 +238,8 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	            callback    = "callbackNumAccuracy")
      private int spinnerInteger_NumAcurracy;
      
-     @Parameter(label = "Confidence (default=15)",
- 		        description = "Confidence",
+     @Parameter(label = "Confidence",
+ 		        description = "Confidence (default=15)",
 	       	    style = NumberWidget.SPINNER_STYLE,
 	            min = "1",
 	            max = "99999999999999",
@@ -1001,8 +1001,8 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 		int s1=accuracy; 	//accuracy parameter	//s1=30 (Paper)
 		int s2=confidence;	//confidence parameter	//s2=5 (Paper)
 				
-		double count[]  = new double[s1];
-		double meanS1[] = new double[s2];
+		double[] count  = new double[s1];
+		double[] meanS1 = new double[s2];
 		
 		long totalNumberOfPoints = 0;
 		
@@ -1047,29 +1047,36 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 				}
 			}
 		} while ( k < totalNumberOfPoints );
-
+	
+		int radius = 0;
+		int a_prim = 0;
+		int b_prim = 0;
+		int c_prim = 0;
+		int d_prim = 0;
+		
 		for (int n = 0; n < numBoxes; n++) {
 			
-			int radius = eps[n];		
+			radius = eps[n];		
 			double proz = (double) n / (double) numBoxes * 100;
 			//System.out.println("Loop progress: " + (int) proz + " %");
-			// STEP 1: PARTITION s1*s2 COUNTERS INTO s2 SETS OF s1 COUNTERS
+		
+			// STEP 1: PARTITION s1*s2 COUNTERS INTO s2 SETS OF s1 COUNTERS	
 			for(int s2_i = 0; s2_i < s2; s2_i++){
 				for(int s1_i = 0; s1_i < s1; s1_i++){	
-					int a_prim = getPrimeNumber();
-					int b_prim = getPrimeNumber();
-					int c_prim = getPrimeNumber();
-					int d_prim = getPrimeNumber();
+				
+					a_prim = getPrimeNumber();
+					b_prim = getPrimeNumber();
+					c_prim = getPrimeNumber();
+					d_prim = getPrimeNumber();
 
 					// sum over coordinates
 					for(int i = 0; i < totalNumberOfPoints; i++){	
 						xx=(int) Math.floor( xCoordinate[i]/radius); 
 						yy=(int) Math.floor( yCoordinate[i]/radius); 
 
-
 						// hash function in parts
-						x_part = a_prim*xx*xx*xx+b_prim*xx*xx+c_prim*xx+d_prim;
-						y_part = a_prim*a_prim*yy*yy*yy+b_prim*b_prim*yy*yy+c_prim*c_prim*yy+d_prim*d_prim;
+						x_part =        a_prim*xx*xx*xx +        b_prim*xx*xx +        c_prim*xx + d_prim;
+						y_part = a_prim*a_prim*yy*yy*yy + b_prim*b_prim*yy*yy + c_prim*c_prim*yy + d_prim*d_prim;
 
 						hash_function = (x_part+y_part)%q; // UPDATE 07.08.2013 
 
@@ -1103,9 +1110,11 @@ public class Img2DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 			}
 
 			// Set values equal to zero
-			for(int s2_i = 0; s2_i < s2; s2_i++){	
-			meanS1[s2_i] = 0;
-			}	
+//			for(int s2_i = 0; s2_i < s2; s2_i++){	
+//			meanS1[s2_i] = 0;
+//			}			
+			meanS1 = new double[s2];
+			
 		}// end boxsize loop	
 		
 		//Computing log values for plot 
