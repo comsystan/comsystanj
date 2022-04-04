@@ -1808,37 +1808,30 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	 */
 	private int getMaxK(int width, int height, int depth) { //
 
+		// Ensure that dft dimensions are the nearest power of two to actual dimension
+		int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
+		int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
+		int depthDFT  = depth  == 1 ? 1 : Integer.highestOneBit(depth  - 1) * 2;
+			
+		//All DFT axes must have the same size, otherwise lowest frequencies are not the same for anisotropic sizes
+		widthDFT  = (int)Math.max(Math.max(widthDFT, heightDFT), depthDFT); 
+		heightDFT = widthDFT;
+		depthDFT  = widthDFT;
 		
 		if (choiceRadioButt_PowerSpecType != null) { //during startup it is null
 			//"Spherical average", "Mean of line scans", "Integral of line scans"
 			if (choiceRadioButt_PowerSpecType.equals("Spherical average")) {
-	
-				// Ensure that dft dimensions are the nearest power of two to actual dimension
-				int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
-				int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
-				int depthDFT  = depth  == 1 ? 1 : Integer.highestOneBit(depth  - 1) * 2;
-				
+			
 				//Will be lowered later, after averaging
 				numOfK = widthDFT * heightDFT * depthDFT; 
 			}
 			// For the 1D projections max k is calculated differently
 			else if ((choiceRadioButt_PowerSpecType.equals("Mean of line scans")) || (choiceRadioButt_PowerSpecType.equals("Integral of line scans"))) {				
-				if (width > height & width > depth) {
-					numOfK = width/2 - 1; //-1 because f=0 is not taken
-				} else if (height > width & height > depth) {
-					numOfK = height/2-1;
-				} else if (depth > width & depth > height) {
-					numOfK = depth/2-1;					
-				}				
+				//Will be lowered later, after averaging
+				numOfK = widthDFT/2 -1; 			
 			}
 		} else { //during startup it is null
-			if (width > height & width > depth) {
-				numOfK = width/2 - 1; //-1 because f=0 is not taken
-			} else if (height > width & height > depth) {
-				numOfK = height/2-1;
-			} else if (depth > width & depth > height) {
-				numOfK = depth/2-1;					
-			}
+			numOfK = widthDFT * heightDFT * depthDFT;
 		}
 
 		return numOfK;
