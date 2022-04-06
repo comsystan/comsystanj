@@ -73,8 +73,6 @@ import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_3D;
 import io.scif.services.DatasetIOService;
-
-import java.awt.geom.AffineTransform;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
@@ -88,16 +86,16 @@ import javax.swing.UIManager;
  * @param <C>
  */
 @Plugin(type = ContextCommand.class,
-		label = "Image volume generator",
+		label = "3D Image volume generator",
 		//iconPath = "/images/comsystan-??.png", //Menu entry icon
 		menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "Image (3D)"),
-        @Menu(label = "Image volume generator", weight = 10)})
+        @Menu(label = "3D Image volume generator", weight = 10)})
 public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextCommand implements Previewable { //modal GUI with cancel
 		
-	private static final String PLUGIN_LABEL 			= "<html><b>Generates 3D image volums</b></html>";
+	private static final String PLUGIN_LABEL 			= "<html><b>Generates 3D image volumes</b></html>";
 	private static final String SPACE_LABEL 			= "";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
   
@@ -129,15 +127,16 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 	private float[][][] volMPD;
 	private float[][][] volFFT;
 	private Img<FloatType> volIFS;
-	private Img<FloatType> volIFS1;
-	private Img<FloatType> volIFS2;
-	private Img<FloatType> volIFS3;
-	private RandomAccess<FloatType> raF;
+	private Img<FloatType> volIFSTemp;
+	private Img<FloatType> volIFSCopy;
+	private RandomAccess<FloatType> raF = null;
 	private RandomAccess<RealType<?>> ra;
 	private Cursor<RealType<?>> cursor;
 	private Cursor<FloatType> cursorF;
 	
 	private String colorModelType;
+	
+	WaitingDialogWithProgressBar dlgProgress;
 	
 	//Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
@@ -194,7 +193,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     		   style = ChoiceWidget.LIST_BOX_STYLE,
     		   choices = {"Random", "Gaussian", "Constant", 
     				      "Fractal volume - FFT", "Fractal volume - MPD",
-    				      "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
+    				      "Fractal IFS - Menger", "Fractal IFS - Sierpinski",
     				     },
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialVolumeType",
@@ -252,7 +251,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     @Parameter(label = "(IFS) #",
 	   	       description = "Number of iteration for IFS algorithms",
 	  		   style = NumberWidget.SPINNER_STYLE,
-	  		   min = "1",
+	  		   min = "0",
 	  		   max = "999999999999999999999",
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
@@ -373,6 +372,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
  	
     private void compute3DRandom(int greyMaxR, int greyMaxG, int greyMaxB) {
     	
+    	dlgProgress.setBarIndeterminate(true);
 		Random random = new Random();
 		random.setSeed(System.currentTimeMillis());
 		cursor = datasetOut.cursor();
@@ -397,6 +397,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     
 	private void compute3DGaussian(int greyMaxR, int greyMaxG, int greyMaxB) {
         
+		dlgProgress.setBarIndeterminate(true);
     	float muR = (float)greyMaxR/2f;
     	float muG = (float)greyMaxG/2f;
     	float muB = (float)greyMaxB/2f;
@@ -426,6 +427,7 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 	
     private void compute3DConstant(int constR, int constG, int constB) {
         
+    	dlgProgress.setBarIndeterminate(true);
     	cursor = datasetOut.cursor();
     
     	if (colorModelType.equals("Grey-8bit")) {
@@ -448,7 +450,9 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     
     //@author Moritz Hackhofer
     private void compute3DFracFFT(float fracDim, int greyMaxR, int greyMaxG, int greyMaxB ) {
-    	   
+    	  
+    	dlgProgress.setBarIndeterminate(false);
+    	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	int depth  = (int)datasetOut.dimension(2);
@@ -520,37 +524,52 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
  
 		long[] posFFT = new long[3];
 		
+		percent = 1;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(percent, 100, "Initializing finished");
+		
 		// Loop through all pixels.
 		for (int k1 = 0; k1 < slices; k1++) {
+			
+			percent = (int)Math.max(Math.round((  ((float)k1)/((float)slices)   *100.f   )), percent);
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((k1+1), slices, "Processing " + (k1+1) + "/" + slices);
+			
 			for (int k2 = 0; k2 < rows; k2++) {
 				for (int k3 = 0; k3 < columns; k3++) {
-						posFFT[2] = k1;
-						posFFT[1] = k2;
-						posFFT[0] = k3;
-						
-						// change origin depending on cursor position
-						if      (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin1, posFFT);
-						else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin2, posFFT);
-						else if (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin3, posFFT);
-						else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin4, posFFT);
-						else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin5, posFFT);
-						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin6, posFFT);
-						else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin7, posFFT);
-						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin8, posFFT);
 				
-						// generate random numbers
-						g = random.nextGaussian();
-						u = random.nextFloat();
-						
-						// calculate real and imaginary parts
-						n = (float) (g * Math.cos(2 * Math.PI * u));
-						m = (float) (g * Math.sin(2 * Math.PI * u));
-						n = (float) (n * Math.pow(dist+1, -b / 2));
-						m = (float) (m * Math.pow(dist+1, -b / 2));
-						
-						// write values to FFT
-						volFFT[k1][k2][2*k3]	= n; //Real
-						volFFT[k1][k2][2*k3+1]	= m; //Imaginary							
+				
+					posFFT[2] = k1;
+					posFFT[1] = k2;
+					posFFT[0] = k3;
+					
+					// change origin depending on cursor position
+					if      (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin1, posFFT);
+					else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin2, posFFT);
+					else if (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin3, posFFT);
+					else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin4, posFFT);
+					else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin5, posFFT);
+					else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices)  dist = Util.distance(origin6, posFFT);
+					else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin7, posFFT);
+					else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices)  dist = Util.distance(origin8, posFFT);
+			
+					// generate random numbers
+					g = random.nextGaussian();
+					u = random.nextFloat();
+					
+					// calculate real and imaginary parts
+					n = (float) (g * Math.cos(2 * Math.PI * u));
+					m = (float) (g * Math.sin(2 * Math.PI * u));
+					n = (float) (n * Math.pow(dist+1, -b / 2));
+					m = (float) (m * Math.pow(dist+1, -b / 2));
+					
+					// write values to FFT
+					volFFT[k1][k2][2*k3]	= n; //Real
+					volFFT[k1][k2][2*k3+1]	= m; //Imaginary							
 				}
 			}
 		}	
@@ -563,6 +582,13 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		float max = -Float.MAX_VALUE;	
 		// Loop through all pixels.
 		for (int k1 = 0; k1 < slices; k1++) {
+			
+			percent = (int)Math.round((  ((float)k1)/((float)slices)   *100.f   ));
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((k1+1), slices, "Processing " + (k1+1) + "/" + slices); 
+			
 			for (int k2 = 0; k2 < rows; k2++) {
 				for (int k3 = 0; k3 < columns; k3++) {
 					real = volFFT[k1][k2][2*k3];
@@ -614,6 +640,9 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     
     //@author Moritz Hackhofer
     private void compute3DFracMPD(float fracDim, int greyMaxR, int greyMaxG, int greyMaxB) {
+    	
+    	dlgProgress.setBarIndeterminate(false);
+    	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	int depth  = (int)datasetOut.dimension(2);
@@ -668,9 +697,22 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		int x;
 		int y;
 		int z;
-			
+		
+		percent = 1;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(percent, 100, "Initializing finished");
+		
 		// Iterate until maxLevel is reached. After that every pixel has a value assigned
 		for (int stage = 0; stage < maxLevel; stage++) {
+			
+			percent = (int)Math.max(Math.round((  ((float)stage)/((float)maxLevel)   *100.f   )), percent);
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((stage+1), maxLevel, "Processing " + (stage+1) + "/" + maxLevel);
+			
 			// Flatten distribution for each step
 			sigma = (float) (sigma/Math.pow(2.0,H)); 	
 			
@@ -1143,8 +1185,11 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
     } 
     
     //This methods computes a Menger volume
+    //FD = log20/log3 = 2.7268
     private void compute3DFracMenger(int numIterations, int greyMaxR, int greyMaxG, int greyMaxB) {
 	    	
+    	dlgProgress.setBarIndeterminate(false);
+    	int percent;
 	 	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	int depth  = (int)datasetOut.dimension(2);
@@ -1189,11 +1234,28 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 				     0.0, 1.0/3.0,     0.0,   0.0,
 				     0.0,     0.0, 1.0/3.0,   0.0);
 		
+		percent = 10;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(percent, 100, "Initializing finished");
+		
 		// Affine transformations-----------------------------------------------------------------
 		for (int i = 0; i < numIterations; i++) {
 		
-			volIFS1 = volIFS.copy();
-			interpolant = Views.interpolate(Views.extendMirrorSingle(volIFS1), factory);				
+			percent = (int)Math.max(Math.round((  ((float)i)/((float)numIterations)   *100.f   )), percent);
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((i+1), numIterations, "Processing " + (i+1) + "/" + numIterations);
+			
+			volIFSCopy = volIFS.copy();
+			
+			//fast way with only one affine transformation!
+			interpolant = Views.interpolate(Views.extendMirrorSingle(volIFSCopy), factory); //and only one transformation
+			//or slow way wit hseveral transformations
+			//interpolant = Views.interpolate(Views.extendZero(volIFSTemp), factory);	//and several transformations and stiching together needed
+			
 			//Transform the volume
 			transformed = RealViews.affine(interpolant, at3D);	
 			//Apply the original interval to the transformed image 
@@ -1215,8 +1277,8 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		}
 			
 		// Convert and write to Output---------------------------------------
-		cursor = datasetOut.cursor();
-		raF = volIFS.randomAccess();
+		cursor = datasetOut.cursor(); //3D (Grey) or 4D (RGB)
+		raF = volIFS.randomAccess();  //raF always 3D
     
 		if (colorModelType.equals("Grey-8bit")) {
 			long[] pos = new long[3];
@@ -1235,7 +1297,8 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 				cursor.fwd();
 				cursor.localize(pos);
 				raF.setPosition(pos);
-				if (raF.get().getRealFloat() > 0) {
+				//raF always 3D but does not matter here, only the three first positions are taken
+				if (raF.get().getRealFloat() > 0) { //raF always 3D
 					if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
 					else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
 					else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
@@ -1243,24 +1306,51 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 			}  	
 		}	
 		
-		volIFS = null;
-		volIFS1 = null;
+		volIFS     = null;
+		volIFSCopy = null;
 	}
     
     //This methods computes a Sierpinski volume
-    private void compute3DFracSierpinski1(int numIterations, int greyMaxR, int greyMaxG, int greyMaxB) {
-	    	
+    // FD = log5/log2 = 2.3219
+    private void compute3DFracSierpinski(int numIterations, int greyMaxR, int greyMaxG, int greyMaxB) {
+		
+    	dlgProgress.setBarIndeterminate(false);
+    	int percent;
+    	long[] pos;
     	RealRandomAccessible<FloatType> interpolant;
     	RealRandomAccess<FloatType> rraF;
 		AffineRandomAccessible<FloatType, AffineGet> transformed;
 		IntervalView<FloatType> bounded;	
+		AffineTransform3D at3D  = new AffineTransform3D();
 		AffineTransform3D at3D1 = new AffineTransform3D();
 		AffineTransform3D at3D2 = new AffineTransform3D();
 		AffineTransform3D at3D3 = new AffineTransform3D();
+		AffineTransform3D at3D4 = new AffineTransform3D();
+		AffineTransform3D at3D5 = new AffineTransform3D();
     	
 	 	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
     	int depth  = (int)datasetOut.dimension(2);
+    	
+    	height = depth = width; //All sizes must be equal for quadratic pyramid
+    	double size = width;
+    	double hPyramid = size/Math.sqrt(2);  //Height of pyramid
+    	int offsetZ = (int)Math.round(((float)depth - (float)hPyramid)/2f);
+    	int numSlices = (int)Math.round(hPyramid);
+    	
+    	//Define the coner points of footprint
+    	double[] corner1 = new double[] {0, 0, 0};
+    	double[] corner2 = new double[] {size-1, 0, 0};
+    	double[] corner3 = new double[] {0, size-1, 0};
+    	double[] corner4 = new double[] {size-1, size-1, 0};
+    	
+    	//Define direction vectors from the corners to the tip of the pyramid
+    	//These follow the edges of the pyramid and are needed to define the intersection points with the subsequent volume slices
+    	//See intersections of a line with a plane
+    	double[] dir1 = new double[] { size/2.0,  size/2.0, size/Math.sqrt(2) }; 
+    	double[] dir2 = new double[] {-size/2.0,  size/2.0, size/Math.sqrt(2) }; 
+    	double[] dir3 = new double[] { size/2.0, -size/2.0, size/Math.sqrt(2) }; 
+    	double[] dir4 = new double[] {-size/2.0, -size/2.0, size/Math.sqrt(2) }; 
 
 		volIFS = new ArrayImgFactory<>(new FloatType()).create(width, height, depth);	
 		//raF = volIFS.randomAccess();
@@ -1274,115 +1364,183 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		else if (interpolType.contentEquals("Floor") )            factory = new FloorInterpolatorFactory<FloatType>();
 		else if (interpolType.contentEquals("Nearest Neighbor") ) factory = new NearestNeighborInterpolatorFactory<FloatType>();
 				
-		interpolant = Views.interpolate(Views.extendMirrorSingle(volIFS1), factory);				
+		//interpolant = Views.interpolate(Views.extendMirrorSingle(volIFS), factory);				
 		
-		rraF = interpolant.realRandomAccess();
-		// set initial centered cube
-		int xMin = 0;
-		int xMax = width-1;
-		int yMin = 0;
-		int yMax = height-1;
-		int zMin = 0;
-		int zMax = Math.round((float) depth  / 3 * 1);
+		raF = volIFS.randomAccess();
+
+		// set initial footprint of quadratic pyramid
+		double xMin = corner1[0];
+		double xMax = corner2[0];
+		double yMin = corner1[1];
+		double yMax = corner3[1];
+		double z = 0;
 		
-		for (int x = xMin - 1; x < xMax - 1; x++) {
-		for (int y = yMin - 1; y < yMax - 1; y++) {
-		for (int z = zMin - 1; z < zMax - 1; z++) {
-			rraF.setPosition(x, 0);
-			rraF.setPosition(y, 1);
-			rraF.setPosition(z, 2);
-			rraF.get().setReal(255);
-		}
+		for (double x = xMin; x <= xMax; x=x+0.5) { //some points may be written twice
+		for (double y = yMin; y <= yMax; y=y+0.5) {
+			raF.setPosition((int)Math.round(x), 0);
+			raF.setPosition((int)Math.round(y), 1);
+			raF.setPosition((int)Math.round(z), 2);
+			raF.get().setReal(255);
 		}
 		}
 		
-		//at3D.setTranslation(0.0, 0.0, 0.0);
-		//at3D.set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23);
-		at3D1.set(0.5, 0.0, 0.0,   1.0 / 4.0 * width,
+//		Dataset dataset = datasetService.create(volIFS);
+//		uiService.show("volIFS", dataset);	
+		
+		//set subsequent squares in the corresponding slices
+		//number of slices == size;
+		//k slope of line;
+		double k = 0;
+		for (int s = 1; s < numSlices; s++) {
+			k= Math.sqrt(2)*(double)s/size;   //distance is equal to slice number
+			xMin = corner1[0] + k * dir1[0];  //x minimal coordinate of two intersection point 
+			xMax = corner2[0] + k * dir2[0];  //x maximal coordinate of two intersection point
+			yMin = corner1[1] + k * dir1[1];
+			yMax = corner3[1] + k * dir3[1];
+			z = s;	
+			for (double x = xMin; x <= xMax; x=x+0.5) { //some points may be written twice
+			for (double y = yMin; y <= yMax; y=y+0.5) {
+				raF.setPosition((int)Math.round(x), 0);
+				raF.setPosition((int)Math.round(y), 1);
+				raF.setPosition((int)Math.round(z), 2);
+				raF.get().setReal(255);
+			}
+			}		
+		}
+		
+		//at3D1.scale(0.5);
+		//at3D1.setTranslation(0.0, 0.0, 0.0);
+		//at3D.set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23);	
+		
+		at3D1.set(0.5, 0.0, 0.0,   1.0 / 4.0 * width,  
 				  0.0, 0.5, 0.0,   1.0 / 4.0 * height,
-				  0.0, 0.0, 0.5,   Math.sqrt(3.0/4.0) * depth);
+				  0.0, 0.0, 0.5,   1.0/Math.sqrt(2) * depth /2.0); //Top pyramid
 		
-		at3D1.set(0.5, 0.0, 0.0,   0.5 * width,
+		at3D2.set(0.5, 0.0, 0.0,   0.5 * width,
 				  0.0, 0.5, 0.0,   0.5 * height,
 				  0.0, 0.0, 0.5,   0.0 * depth);
 		
-		at3D1.set(0.5, 0.0, 0.0,   0.0 * width,
+		at3D3.set(0.5, 0.0, 0.0,   0.0 * width,
 				  0.0, 0.5, 0.0,   0.0 * height,
 				  0.0, 0.0, 0.5,   0.0 * depth);
 		
-		// AffineTransform at = new AffineTransform(m00, m10, m01, m11, m02, m12);
-		AffineTransform at1 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,   1.0f / 4.0f * width, (float) (Math.sqrt(3) / 4.0f) * width);
-		AffineTransform at2 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,          0.5f * width,                          0.0f * width);
-		AffineTransform at3 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,                  0.0f,                                  0.0f);
-	
+		at3D4.set(0.5, 0.0, 0.0,   0.5 * width,
+				  0.0, 0.5, 0.0,   0.0 * height,
+				  0.0, 0.0, 0.5,   0.0 * depth);
+		
+		at3D5.set(0.5, 0.0, 0.0,   0.0 * width,
+				  0.0, 0.5, 0.0,   0.5 * height,
+				  0.0, 0.0, 0.5,   0.0 * depth);
+		
+		percent = 10;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(percent, 100, "Initializing finished");
 		
 		// Affine transformations-----------------------------------------------------------------
 		for (int i = 0; i < numIterations; i++) {
 		
-			volIFS1 = volIFS.copy();
+			percent = (int)Math.max(Math.round((  ((float)i)/((float)numIterations)   *100.f   )), percent);
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((i+1), numIterations, "Processing " + (i+1) + "/" + numIterations);
 			
-			interpolant = Views.interpolate(Views.extendMirrorSingle(volIFS1), factory);				
-			//Transform the volume
-			transformed = RealViews.affine(interpolant, at3D1);	
-			//Apply the original interval to the transformed image 
-			bounded = Views.interval(transformed, volIFS); //ifsVolume 1 or ifsVolume2 does not matter, only size is taken
-//			Dataset dataset = datasetService.create(bounded);
-//			uiService.show("bounded", bounded);		
-			//Adding together
-			cursorF = volIFS.cursor();
-			raF = bounded.randomAccess();
-	    	long[] pos = new long[3];
-			while (cursorF.hasNext()) {
-				cursorF.fwd();
-				cursorF.localize(pos);
-				raF.setPosition(pos);
-				if (cursorF.get().getRealFloat() == 0) { //do not overwrite already white pixels
-					cursorF.get().set((int)Math.round(((FloatType)raF.get()).getRealFloat()));
+			volIFSCopy = volIFS.copy();
+			
+			for (int a = 1; a <= 5; a++ ) {
+			
+				if      (a == 1) at3D = at3D1;
+				else if (a == 2) at3D = at3D2;
+				else if (a == 3) at3D = at3D3;
+				else if (a == 4) at3D = at3D4;
+				else if (a == 5) at3D = at3D5;
+			
+				volIFSTemp = volIFSCopy.copy();
+				
+				interpolant = Views.interpolate(Views.extendZero(volIFSTemp), factory);	
+				//Transform the volume
+				transformed = RealViews.affine(interpolant, at3D);	
+				//Apply the original interval to the transformed image 
+				bounded = Views.interval(transformed, volIFS); //volIFS does not matter, only size is taken
+//				Dataset dataset = datasetService.create(bounded);
+//				uiService.show("bounded", bounded);		
+				//Adding together
+				cursorF = volIFS.cursor();
+				raF = bounded.randomAccess();
+		    	pos = new long[3];
+				while (cursorF.hasNext()) {
+					cursorF.fwd();
+					cursorF.localize(pos);
+					raF.setPosition(pos);
+					if 	    (a == 1) cursorF.get().set((int)Math.round(((FloatType)raF.get()).getRealFloat())); //Overwrite all pixels
+					else {
+						if (cursorF.get().getRealFloat() == 0) { //do not overwrite already white pixels
+							cursorF.get().set((int)Math.round(((FloatType)raF.get()).getRealFloat()));
+						} 	
+					}				
 				} 
-			}  			
+			} //a		
 		}
 			
 		// Convert and write to Output---------------------------------------
-		cursor = datasetOut.cursor();
-		raF = volIFS.randomAccess();
+		cursor = datasetOut.cursor(); //3D (Grey) or 4D (RGB)
+		raF = volIFS.randomAccess();  //always 3D
+		long zz;
     
 		if (colorModelType.equals("Grey-8bit")) {
-			long[] pos = new long[3];
+			pos = new long[3];
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
-				raF.setPosition(pos);
-				if (raF.get().getRealFloat() > 0) {
-					cursor.get().setReal(greyMaxR);
-				}			
+				zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
+				if (zz > 0 && zz < depth) {
+					raF.setPosition(pos[0], 0);
+					raF.setPosition(pos[1], 1); 
+					raF.setPosition(zz, 2);
+					if (raF.get().getRealFloat() > 0) {
+						cursor.get().setReal(greyMaxR);
+					}
+				}
 			}  	
 					
 		} else if (colorModelType.equals("Color-RGB")) {
-			long[] pos = new long[4];
+			pos = new long[4];
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
-				raF.setPosition(pos);
-				if (raF.get().getRealFloat() > 0) {
-					if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
-					else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
-					else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
-				}			
-			}  	
-		}	
+				zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
+				if (zz > 0 && zz < depth) {
+					raF.setPosition(pos[0], 0);
+					raF.setPosition(pos[1], 1); 
+					raF.setPosition(zz, 2);
+					//raF always 3D
+					if (raF.get().getRealFloat() > 0) {
+						if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
+						else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
+						else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
+					}			
+				}
+					
+			}  		
 		
-		volIFS = null;
-		volIFS1 = null;
-	}
-
-	/**
+		} 
+	
+		volIFS     = null;
+		volIFSTemp = null;
+		volIFSCopy = null;
+    }
+    
+    
+    /**
      * @param 
      * @throws Exception
      */
     @Override
     public void run() {
-    	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Generating a 3D image volume, please wait...<br>Open console window for further info.</html>");
-		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Generating a 3D image volume, please wait... Open console window for further info.",
+    	//dlgProgress = new WaitingDialogWithProgressBar("<html>Generating a 3D image volume, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new WaitingDialogWithProgressBar("Generating a 3D image volume, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 
 		dlgProgress.updatePercent("");
@@ -1427,8 +1585,8 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		else if (volumeType.equals("Fractal volume - FFT"))						name = "Fractal volume - FFT";
 		else if (volumeType.equals("Fractal volume - MPD"))						name = "Fractal volume - MPD";
 		else if (volumeType.equals("Fractal IFS - Menger"))						name = "Fractal IFS - Menger";
-		else if (volumeType.equals("Fractal IFS - Sierpinski-1"))				name = "Fractal IFS - Sierpinski-1";
-		else if (volumeType.equals("Fractal IFS - Sierpinski-2"))				name = "Fractal IFS - Sierpinski-2";
+		else if (volumeType.equals("Fractal IFS - Sierpinski"))					name = "Fractal IFS - Sierpinski";
+	
 				
 		AxisType[] axes  = null;
 		long[] dims 	 = null;
@@ -1457,9 +1615,6 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 			datasetOut.setCompositeChannelCount(3);
 			datasetOut.setRGBMerged(true);
 		}
-			
-
-		dlgProgress.setBarIndeterminate(false);
 
 		long startTime = System.currentTimeMillis();
 		logService.info(this.getClass().getName() + " Generating image volume");
@@ -1470,18 +1625,17 @@ public class Img3DVolumeGenerator<T extends RealType<T>, C> extends ContextComma
 		else if (volumeType.equals("Fractal volume - FFT"))			compute3DFracFFT(fracDim, greyR, greyG, greyB);
 		else if (volumeType.equals("Fractal volume - MPD")) 		compute3DFracMPD(fracDim, greyR, greyG, greyB);
 		else if (volumeType.equals("Fractal IFS - Menger")) 		compute3DFracMenger(numIterations, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal IFS - Sierpinski-1")) 	compute3DFracSierpinski1(numIterations, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal IFS - Sierpinski-2")) 	;//compute3DFracSierpinski2(numIterations, greyR, greyG, greyB);
-				
+		else if (volumeType.equals("Fractal IFS - Sierpinski")) 	compute3DFracSierpinski(numIterations, greyR, greyG, greyB);
+			
+		int percent = 0;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
 		
 		dlgProgress.addMessage("Processing finished! Displaying image volume...");
 		//not necessary because datasetOut is an IO type
-		//ij.ui().show("Image", datasetOut);
-		//if (choiceRadioButt_VolumeType.equals("Random"))   uiService.show("Random",   datasetOut);
-		//if (choiceRadioButt_VolumeType.equals("Constant")) uiService.show("Constant", datasetOut);
-		uiService.show(datasetOut.getName(), datasetOut);
+		//uiService.show(datasetOut.getName(), datasetOut);
 		
 		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
