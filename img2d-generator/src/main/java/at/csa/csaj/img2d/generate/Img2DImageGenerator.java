@@ -270,7 +270,7 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     @Parameter(label = "(Sum of sine/Random shapes/IFS) #",
  	   	       description = "Number of iterations or Sum of sine, Random shapes and IFS algorithms",
 	  		   style = NumberWidget.SPINNER_STYLE,
-	  		   min = "1",
+	  		   min = "0",
 	  		   max = "999999999999999999999",
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
@@ -1374,7 +1374,135 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     }
 
     private void computeFracSierpinski1(int numIterations, int greyMax) {
-    	// Sierpinski Gasket Method 1
+	
+	    	int width  = (int)datasetOut.dimension(0);
+	    	int height = (int)datasetOut.dimension(1);
+	    	
+	    	height = width; //All sizes must be equal for Sierpinski triangle
+	    	
+	    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+	
+			ifsBuffImg = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+			ifsRaster  = ifsBuffImg.getRaster();
+			
+			Graphics g = ifsBuffImg.getGraphics();
+			//g.setColor(Color.WHITE);
+			g.setColor(new Color(greyMax, greyMax, greyMax));
+	
+			// length of initial triangle
+			int l = width / 10 * 10;
+			// imgHeight of initial triangle
+			int hTriangle = (int) (Math.sqrt(3.0d) / 2.0d * l);
+			// Offset of the lower left point
+			// int offSetX = imgWidth/2-l/2;
+			int offSetX = 0;
+			int offsetY = (int)Math.round(((float)height - (float)hTriangle)/2f);
+	
+			// initial triangle
+			Polygon polygon = new Polygon();
+			polygon.addPoint(offSetX - 1, 0);
+			polygon.addPoint(width/2 - 1, hTriangle - 1);
+			polygon.addPoint(width - offSetX - 1, 0);
+			// g.drawPolygon(polygon); result very bad (missing lines, scattered
+			// lines, very dependent on interpolation method
+			g.fillPolygon(polygon);
+	
+			//crop to height h
+	//		ParameterBlock pbCrop = new ParameterBlock();
+	//		pbCrop.addSource(pi);
+	//		pbCrop.add(0.0f); // ((float) offSetX);
+	//		pbCrop.add(0.0f); // ((float) offSetY);
+	//		pbCrop.add((float) width); // (float) newWidth);
+	//		pbCrop.add((float) h); // (float) newHeight);
+	//		pi = JAI.create("Crop", pbCrop, null);
+	//		piOut = pi;
+	
+			// Affine transformation
+			// AffineTransform at = new AffineTransform(m00, m10, m01, m11, m02, m12);
+			AffineTransform at1 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,   1.0f / 4.0f * width, (float) (Math.sqrt(3) / 4.0f) * width);
+			AffineTransform at2 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,          0.5f * width,                          0.0f * width);
+			AffineTransform at3 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,                  0.0f,                                  0.0f);
+			
+			BufferedImage ifsBI1 = null;
+			BufferedImage ifsBI2 = null;
+			BufferedImage ifsBI3 = null;
+			WritableRaster ifsR1 = null;
+			WritableRaster ifsR2 = null;
+			WritableRaster ifsR3 = null;
+	
+			AffineTransformOp op;
+			int thres = greyMax/2;
+			int greyValue;
+			for (int i = 0; i < numIterations; i++) {
+			
+				op = new AffineTransformOp(at1, AffineTransformOp.TYPE_BILINEAR);
+				ifsBI1 = op.filter(ifsBuffImg, null);
+				ifsR1 = ifsBI1.getRaster();
+				
+				op = new AffineTransformOp(at2, AffineTransformOp.TYPE_BILINEAR);
+				ifsBI2 = op.filter(ifsBuffImg, null);
+				ifsR2 = ifsBI2.getRaster();
+				
+				op = new AffineTransformOp(at3, AffineTransformOp.TYPE_BILINEAR);
+				ifsBI3 = op.filter(ifsBuffImg, null);
+				ifsR3 = ifsBI3.getRaster();
+				
+				//erase target image before rewriting it
+				for (int x = 0; x < ifsRaster.getWidth();  x++) { //
+				for (int y = 0; y < ifsRaster.getHeight(); y++) {
+					ifsRaster.setSample(x, y, 0, 0);
+				}
+				}
+				
+				//Stitch together, each Affine transformed image may have a different size
+				//Sequence is ESSENTIAL, because larger images may overwrite smaller ones
+				//Eventually overwrite only if (ifsR pixel == 255)
+				for (int x = 0; x < ifsR1.getWidth();  x++) { //
+				for (int y = 0; y < ifsR1.getHeight(); y++) {
+					greyValue = ifsR1.getSample(x, y, 0);
+					if (greyValue > 0) ifsRaster.setSample(x, y, 0, greyValue);
+				}
+				}
+				//Stitch together	
+				for (int x = 0; x < ifsR2.getWidth();  x++) { //
+				for (int y = 0; y < ifsR2.getHeight(); y++) {
+					greyValue = ifsR2.getSample(x, y, 0);
+					if (greyValue > 0) ifsRaster.setSample(x, y, 0, greyValue);
+				}
+				}
+				//Stitch together	
+				for (int x = 0; x < ifsR3.getWidth();  x++) { //
+				for (int y = 0; y < ifsR3.getHeight(); y++) {
+					greyValue = ifsR3.getSample(x, y, 0);
+					if (greyValue > 0) ifsRaster.setSample(x, y, 0, greyValue);
+				}
+				}	
+			}	
+			// binarize, da affine interpoliert
+	    	for (int x = 0; x < width;  x++) {
+			for (int y = 0; y < height; y++) {	
+				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
+				else ifsRaster.setSample(x,  y,  0,  0);
+			}
+	    	}
+	
+			// Convert---------------------------------------
+			Cursor<UnsignedByteType> cursor = resultImg.cursor();
+	    	long[] pos = new long[2];
+	    	int y = 0;
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);	
+				y = (height - 1) - (int)pos[1] - offsetY; // mirrored vertically and shifted to center  	
+				if (y > 0 && y < height) cursor.get().set(ifsRaster.getSample((int)pos[0], y, 0)); 	
+			}  	
+			g.dispose();	
+			ifsBuffImg = null;
+			ifsRaster = null;
+	  	}
+
+	private void computeFracSierpinski2(int numIterations, int greyMax) {
+    	// Sierpinski Gasket Method 2
 		// adapted from THE NONLINEAR WORKBOOK
 		// THE NONLINEAR WORKBOOK Chaos, Fractals, Cellular Automata, Neural Networks, Genetic Algorithms, Gene Expression Programming, Support Vector Machine, Wavelets,
 		// Hidden Markov Models, Fuzzy Logic with C++, Java and SymbolicC++  Programs(4th Edition)
@@ -1383,6 +1511,9 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
     	
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
+    	
+      	height = width; //All sizes must be equal for Sierpinski triangle
+      	
     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
 
 		ifsBuffImg = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
@@ -1437,129 +1568,6 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 		ifsBuffImg = null;
 		ifsRaster = null;
 	}
-    
-    private void computeFracSierpinski2(int numIterations, int greyMax) {
-
-    	int width  = (int)datasetOut.dimension(0);
-    	int height = (int)datasetOut.dimension(1);
-    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
-
-		ifsBuffImg = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-		ifsRaster  = ifsBuffImg.getRaster();
-		
-		Graphics g = ifsBuffImg.getGraphics();
-		//g.setColor(Color.WHITE);
-		g.setColor(new Color(greyMax, greyMax, greyMax));
-
-		// length of initial triangle
-		int l = width / 10 * 10;
-		// imgHeight of initial triangle
-		int h = (int) (Math.sqrt(3.0d) / 2.0d * l);
-		// Offset of the lower left point
-		// int offSetX = imgWidth/2-l/2;
-		int offSetX = 0;
-
-		// initial triangle
-		Polygon polygon = new Polygon();
-		polygon.addPoint(offSetX - 1, 0);
-		polygon.addPoint(width/2 - 1, h - 1);
-		polygon.addPoint(width - offSetX - 1, 0);
-		// g.drawPolygon(polygon); result very bad (missing lines, scattered
-		// lines, very dependent on interpolation method
-		g.fillPolygon(polygon);
-
-		//crop to height h
-//		ParameterBlock pbCrop = new ParameterBlock();
-//		pbCrop.addSource(pi);
-//		pbCrop.add(0.0f); // ((float) offSetX);
-//		pbCrop.add(0.0f); // ((float) offSetY);
-//		pbCrop.add((float) width); // (float) newWidth);
-//		pbCrop.add((float) h); // (float) newHeight);
-//		pi = JAI.create("Crop", pbCrop, null);
-//		piOut = pi;
-
-		// Affine transformation
-		// AffineTransform at = new AffineTransform(m00, m10, m01, m11, m02, m12);
-		AffineTransform at1 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,   1.0f / 4.0f * width, (float) (Math.sqrt(3) / 4.0f) * width);
-		AffineTransform at2 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,          0.5f * width,                          0.0f * width);
-		AffineTransform at3 = new AffineTransform(0.5f, 0.0f, 0.0f, 0.5f,                  0.0f,                                  0.0f);
-		
-		BufferedImage ifsBI1 = null;
-		BufferedImage ifsBI2 = null;
-		BufferedImage ifsBI3 = null;
-		WritableRaster ifsR1 = null;
-		WritableRaster ifsR2 = null;
-		WritableRaster ifsR3 = null;
-
-		AffineTransformOp op;
-		int thres = greyMax/2;
-		int greyValue;
-		for (int i = 0; i < numIterations; i++) {
-		
-			op = new AffineTransformOp(at1, AffineTransformOp.TYPE_BILINEAR);
-			ifsBI1 = op.filter(ifsBuffImg, null);
-			ifsR1 = ifsBI1.getRaster();
-			
-			op = new AffineTransformOp(at2, AffineTransformOp.TYPE_BILINEAR);
-			ifsBI2 = op.filter(ifsBuffImg, null);
-			ifsR2 = ifsBI2.getRaster();
-			
-			op = new AffineTransformOp(at3, AffineTransformOp.TYPE_BILINEAR);
-			ifsBI3 = op.filter(ifsBuffImg, null);
-			ifsR3 = ifsBI3.getRaster();
-			
-			//erase target image before rewriting it
-			for (int x = 0; x < ifsRaster.getWidth();  x++) { //
-			for (int y = 0; y < ifsRaster.getHeight(); y++) {
-				ifsRaster.setSample(x, y, 0, 0);
-			}
-			}
-			
-			//Stitch together, each Affine transformed image may have a different size
-			//Sequence is ESSENTIAL, because larger images may overwrite smaller ones
-			//Eventually overwrite only if (ifsR pixel == 255)
-			for (int x = 0; x < ifsR1.getWidth();  x++) { //
-			for (int y = 0; y < ifsR1.getHeight(); y++) {
-				greyValue = ifsR1.getSample(x, y, 0);
-				if (greyValue > 0) ifsRaster.setSample(x, y, 0, greyValue);
-			}
-			}
-			//Stitch together	
-			for (int x = 0; x < ifsR2.getWidth();  x++) { //
-			for (int y = 0; y < ifsR2.getHeight(); y++) {
-				greyValue = ifsR2.getSample(x, y, 0);
-				if (greyValue > 0) ifsRaster.setSample(x, y, 0, greyValue);
-			}
-			}
-			//Stitch together	
-			for (int x = 0; x < ifsR3.getWidth();  x++) { //
-			for (int y = 0; y < ifsR3.getHeight(); y++) {
-				greyValue = ifsR3.getSample(x, y, 0);
-				if (greyValue > 0) ifsRaster.setSample(x, y, 0, greyValue);
-			}
-			}	
-		}	
-		// binarize, da affine interpoliert
-    	for (int x = 0; x < width;  x++) {
-		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
-			else ifsRaster.setSample(x,  y,  0,  0);
-		}
-    	}
-
-		// Convert---------------------------------------
-		Cursor<UnsignedByteType> cursor = resultImg.cursor();
-    	long[] pos = new long[2];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-			cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
-		}  	
-		g.dispose();	
-		ifsBuffImg = null;
-		ifsRaster = null;
-  	}
-    
     
     private void computeFracMandelbrotIsland1(int numIterations, int greyMax) {
 	   //See Mandelbrot book page 118 oder Seite 130
