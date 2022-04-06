@@ -840,6 +840,9 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 	*/
 	private double[] process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
+		dlgProgress.setBarIndeterminate(false);
+		int percent;
+		
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
@@ -1005,9 +1008,22 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 //				float sumPowers6 = 0;
 //				float sumPowers7 = 0;
 //				float sumPowers8 = 0;
+				
+				percent = 1;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Initializing finished");
 								
 				// Loop through all pixels and write distances and powers to arrays
 				for (int k1 = 0; k1 < slices; k1++) {
+					
+					percent = (int)Math.max(Math.round((  ((float)k1)/((float)slices)   *100.f   )), percent);
+					dlgProgress.updatePercent(String.valueOf(percent+"%"));
+					dlgProgress.updateBar(percent);
+					//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+					statusService.showStatus((k1+1), slices, "Processing " + (k1+1) + "/" + slices);
+					
 					for (int k2 = 0; k2 < rows; k2++) {
 						for (int k3 = 0; k3 < columns/2; k3++) { //with 4 origins
 						//for (int k3 = 0; k3 < columns; k3++) { //with 8 origins
@@ -1152,6 +1168,12 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 				double[] power;
 				double[] powerMean = new double[maxK]; //power has size ^2
 			
+				percent = 1;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Initializing finished");
+				
 				//all pillars
 				for (int h = 0; h < height; h++) { 
 					//System.out.println("FFTDim h "  + h);			
@@ -1171,6 +1193,12 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 						}
 					}
 				}
+				
+				percent = 30;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Axis 1(3) finished");
 					
 				//all columns
 				for (int w = 0; w < width; w++) {
@@ -1191,6 +1219,12 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 						}
 					}
 				}
+				
+				percent = 60;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Axis2(3) finished");
 				//all rows
 				for (int h = 0; h < height; h++) {
 					for (int d = 0; d < depth; d++) {	
@@ -1211,6 +1245,11 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 					}
 				}
 					
+				percent = 90;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Axis 3(3) finished");
 				//mean power spectrum
 				for (int k = 0; k < powerMean.length; k++ ) {
 					powerMean [k] = powerMean[k]/(width+height+depth); 
@@ -1247,6 +1286,12 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 				double[] powerMean = new double[maxK]; //power has size
 				double[] powerIntegrated;
 				
+				percent = 1;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Initializing finished");
+				
 				//all rows
 				for (int h = 0; h < height; h++) { 
 					for (int d = 0; d < depth; d++) { 
@@ -1264,7 +1309,13 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 							powerMean[k] += power[k]; 
 						}
 					}
-				}	
+				}
+				percent = 30;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Axis 1(3) finished");
+				
 				//all columns
 				for (int w = 0; w < width; w++) {
 					for (int d = 0; d < depth; d++) { 
@@ -1283,6 +1334,12 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 						}	
 					}
 				}
+				percent = 60;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Axis 2(3) finished");
+				
 				//all slices
 				for (int w = 0; w < width; w++) {
 					for (int h = 0; h < height; h++) { 
@@ -1301,6 +1358,11 @@ public class Img3DFractalDimensionFFT<T extends RealType<T>> extends ContextComm
 						}	
 					}
 				}
+				percent = 90;
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus(percent, 100, "Axis 3(3) finished");
 							
 				//mean power spectrum
 				for (int k = 0; k < powerMean.length; k++ ) {

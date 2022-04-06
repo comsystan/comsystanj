@@ -312,11 +312,11 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
     }
  
     protected void initialNumAccuracy() {
-    	spinnerInteger_NumAcurracy = 90; //s1=30 Wang paper
+    	spinnerInteger_NumAcurracy = 30; //s1=30 Wang paper
     }
     
     protected void initialNumConfidence() {
-    	spinnerInteger_NumConfidence = 15; //s2=5 Wang paper
+    	spinnerInteger_NumConfidence = 5; //s2=5 Wang paper
     }
 
 	protected void initialShowDoubleLogPlots() {
@@ -691,7 +691,7 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	 *
 	 **/
 	private void processSingleInputVolume() {
-		
+
 		long startTime = System.currentTimeMillis();
 
 		resultValuesTable = new double[10];
@@ -792,6 +792,9 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	*/
 	private double[] process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
+		dlgProgress.setBarIndeterminate(false);
+		int percent;
+		
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
@@ -892,11 +895,21 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 			int c_prim = 0;
 			int d_prim = 0;
 	
+			percent = 5;
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus(percent, 100, "Initializing finished");
+			
 			for (int n = 0; n < numBoxes; n++) {			
 				
-				radius = eps[n];		
-				double proz = (double) n / (double) numBoxes * 100;
-				//System.out.println("Loop progress: " + (int) proz + " %");
+				percent = (int)Math.max(Math.round((  ((float)n)/((float)numBoxes)   *100.f   )), percent);
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus((n+1), numBoxes, "Processing " + (n+1) + "/" + numBoxes);
+				
+				radius = eps[n];
 				
 				// STEP 1: PARTITION s1*s2 COUNTERS INTO s2 SETS OF s1 COUNTERS
 				for(int s2_i = 0; s2_i < s2; s2_i++){
