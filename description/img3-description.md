@@ -8,7 +8,7 @@
 - Random, Gaussian, Constant
 - Fractal surface - Fourier (FFT) or Midpoint displacment (MPD)
   - Theoretical fractal dimension in the range of [3,4] can be set
-- Fractal Iterated function system (IFS) - Menger cube or Sierpinski pyramid
+- Fractal Iterated function system (IFS) - Menger cube, Sierpinski pyramid or Mandelbrot island
   - The number of IFS iterations can be set
   - Width is taken for the height and depth of the volume
 - Note: Image volumes can be visualized with Fiji's 3D viewer (Plugins/3D Viewer)
