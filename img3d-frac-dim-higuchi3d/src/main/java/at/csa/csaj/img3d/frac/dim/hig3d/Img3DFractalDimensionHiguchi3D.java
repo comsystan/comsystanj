@@ -826,21 +826,21 @@ public class Img3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Conte
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
 			if (choiceRadioButt_Method.equals("Multiplicated differences")) {
-				hig3Method = new Higuchi3D_Grey_MultDiff(rai, numKMax, skipZeroes);	
+				hig3Method = new Higuchi3D_Grey_MultDiff(rai, numKMax, skipZeroes, dlgProgress, statusService);	
 				plot_method="Higuchi 3D - Multiplicated differences";
 				xAxis = "ln(k^3)";
 				yAxis = "ln(V(k))";
 			}
 			//******************************************************************************************************************************************
 			if (choiceRadioButt_Method.equals("Squared differences")) {
-				hig3Method = new Higuchi3D_Grey_SqrDiff(rai, numKMax, skipZeroes);
+				hig3Method = new Higuchi3D_Grey_SqrDiff(rai, numKMax, skipZeroes, dlgProgress, statusService);
 				plot_method="Higuchi 3D - Squared differences";
 				xAxis = "ln(k^2)";
 				yAxis = "ln(A(k))";
 			}
 			//******************************************************************************************************************************************
 			if (choiceRadioButt_Method.equals("Direct differences")) {
-				hig3Method = new Higuchi3D_Grey_DirDiff(rai, numKMax, skipZeroes);
+				hig3Method = new Higuchi3D_Grey_DirDiff(rai, numKMax, skipZeroes, dlgProgress, statusService);
 				plot_method="Higuchi 3D - Direct differences";
 				xAxis = "ln(k)";
 				yAxis = "ln(L(k))";	

@@ -27,6 +27,9 @@
  */
 package at.csa.csaj.img3d.frac.dim.hig3d.util;
 
+import org.scijava.app.StatusService;
+
+import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.RealType;
@@ -47,6 +50,8 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 	private double[] totals = null;
 	private double[] eps = null;
 	private boolean skipZeroes;
+	private WaitingDialogWithProgressBar dlgProgress;
+	private StatusService statusService;
 	
 	@Override
 	public double[] getTotals() {
@@ -74,13 +79,15 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public Higuchi3D_Grey_MultDiff(RandomAccessibleInterval<?> rai, int numK, boolean skipZeroes) {
-		this.rai        = rai;
-		this.width      = rai.dimension(0);
-		this.height     = rai.dimension(1);
-		this.depth      = rai.dimension(2);
-		this.numK       = numK;
-		this.skipZeroes = skipZeroes;
+	public Higuchi3D_Grey_MultDiff(RandomAccessibleInterval<?> rai, int numK, boolean skipZeroes, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
+		this.rai           = rai;
+		this.width         = rai.dimension(0);
+		this.height        = rai.dimension(1);
+		this.depth         = rai.dimension(2);
+		this.numK          = numK;
+		this.skipZeroes    = skipZeroes;
+		this.dlgProgress   = dlgProgress;
+		this.statusService = statusService;
 	}
 
 	public Higuchi3D_Grey_MultDiff() {
@@ -93,6 +100,9 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 	@Override
 	public double[] calcTotals() {
 
+		dlgProgress.setBarIndeterminate(false);
+		int percent;
+		
 		if (eps == null) this.calcEps();
 			
 		double[] totals = new double[numK];
@@ -110,9 +120,21 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 		int    A1, C1, E1, Z1, A2, C2, E2, Z2;
 		int    i,j,l;
 		int    m1,m2,m3;
+		
+		percent = 1;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(percent, 100, "Initializing finished");
 					
 		for (int k = 1; k <= numK; k++) {			
-			//operator.fireProgressChanged((int) ((float)(k)/(float)numK*100.0f));
+
+			percent = (int)Math.max(Math.round((((float)k)/((float)numK)*100.f)), percent);
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((k+1), numK, "Processing " + (k+1) + "/" + numK);
+
 			double[] L_vec = new double[k*k*k];
 			int mm = 0;
 			for (m1 = 1; m1 <= k ; m1++) {

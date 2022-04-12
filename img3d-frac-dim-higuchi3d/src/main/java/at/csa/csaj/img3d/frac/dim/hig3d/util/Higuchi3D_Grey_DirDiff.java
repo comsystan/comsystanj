@@ -27,6 +27,9 @@
  */
 package at.csa.csaj.img3d.frac.dim.hig3d.util;
 
+import org.scijava.app.StatusService;
+
+import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.RealType;
@@ -47,7 +50,8 @@ public class Higuchi3D_Grey_DirDiff implements Higuchi3DMethods{
 	private double[] totals = null;
 	private double[] eps = null;
 	private boolean skipZeroes;
-	
+	private WaitingDialogWithProgressBar dlgProgress;
+	private StatusService statusService;
 	
 	@Override
 	public double[] getTotals() {
@@ -75,24 +79,29 @@ public class Higuchi3D_Grey_DirDiff implements Higuchi3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public Higuchi3D_Grey_DirDiff(RandomAccessibleInterval<?> rai, int numK, boolean skipZeroes) {
-		this.rai        = rai;
-		this.width      = rai.dimension(0);
-		this.height     = rai.dimension(1);
-		this.depth      = rai.dimension(2);
-		this.numK       = numK;
-		this.skipZeroes = skipZeroes;
+	public Higuchi3D_Grey_DirDiff(RandomAccessibleInterval<?> rai, int numK, boolean skipZeroes, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
+		this.rai           = rai;
+		this.width         = rai.dimension(0);
+		this.height        = rai.dimension(1);
+		this.depth         = rai.dimension(2);
+		this.numK          = numK;
+		this.skipZeroes    = skipZeroes;
+		this.dlgProgress   = dlgProgress;
+		this.statusService = statusService;
 	}
 
 	public Higuchi3D_Grey_DirDiff() {
 	}
 
 	/**
-	 * This method calculates the Higuchi dimension in 2D
+	 * This method calculates the Higuchi dimension in 3D
 	 * @return totals
 	 */
 	@Override
 	public double[] calcTotals() {
+		
+		dlgProgress.setBarIndeterminate(false);
+		int percent;
 
 		if (eps == null) this.calcEps();
 		
@@ -103,8 +112,6 @@ public class Higuchi3D_Grey_DirDiff implements Higuchi3DMethods{
 		//long height = raiVolume.dimension(1);
 		//long depth = raiVolume.dimension(2);
 		//RandomAccess<RealType<?>>ra = (RandomAccess<RealType<?>>) raiVolume.randomAccess();
-		
-
 			
 		double[] totals = new double[numK];
 		long N = width;
@@ -115,15 +122,27 @@ public class Higuchi3D_Grey_DirDiff implements Higuchi3DMethods{
 		
 		double flr1, flr2,flr3, norm;
 		long   numZeroesDetected;
-		int    x_a1, y_a1, z_a1, x_c1, y_c1, z_c1, x_e1, y_e1, z_e1;
-		int    x_a2, y_a2, z_a2;
+		int    x_a1, y_a1, z_a1, x_c1, y_c1, z_c1, x_e1, y_e1, z_e1; //coordinates first slice in z
+		int    x_a2, y_a2, z_a2;                                     //coordinates second slice in z
 		int    A1, C1, E1, A2;    	
 		int    k, i, j, l, m1, m2, m3;
 		
 		double normCorrection;
+		
+		percent = 1;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(percent, 100, "Initializing finished");
 			
 		for (k = 1; k <= numK; k++) {
-			//operator.fireProgressChanged((int) ((float)(k)/(float)numK*100.0f));
+
+			percent = (int)Math.max(Math.round((((float)k)/((float)numK)*100.f)), percent);
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((k+1), numK, "Processing " + (k+1) + "/" + numK);
+			
 			double[] L_vec = new double[k*k*k];
 			int mm = 0;
 			for (m1 = 1; m1 <= k ; m1++) {
@@ -136,23 +155,22 @@ public class Higuchi3D_Grey_DirDiff implements Higuchi3DMethods{
 					norm = ((double)N-1.0)/(flr1*(double)k) * ((double)M-1.0)/(flr2*(double)k) * ((double)O-1.0)/(flr3*(double)k);
 					
 					numZeroesDetected = 0;
-					for (i = 1; i < flr1; i++) { 
-						for (j = 1; j < flr2; j++) {
-							for (l = 1; l < flr3; l++) {
+					for (i = 1; i <= flr1; i++) { 
+						for (j = 1; j <= flr2; j++) {
+							for (l = 1; l <= flr3; l++) {
 							
 								x_a1=m1+i*k-1;      y_a1=m2+j*k-1;		z_a1=m3+l*k-1;
 								x_a2=m1+i*k-1; ;    y_a2=m2+j*k-1;		z_a2=m3+(l-1)*k-1;
 								
 								x_c1=m1+(i-1)*k-1;  y_c1=m2+j*k-1;		z_c1=m3+l*k-1;
-								
+						
 								x_e1=m1+i*k-1;      y_e1=m2+(j-1)*k-1;	z_e1=m3+l*k-1;
-								
+					
 								// Central Pixel: A1, A1,A2,C1,E1 are used
 								// Z0  E0  H0 		Z1  E1  H1 	 	 Z2  E2  H2
 								// C0  A0  B0		C1  A1  B1		 C2  A2  B2
 								// G0  D0  F0		G1  D1  F1		 G2  D2  F2		
-
-								
+				
 								pos[0] = x_a1;
 								pos[1] = y_a1;
 								pos[2] = z_a1;
@@ -170,24 +188,22 @@ public class Higuchi3D_Grey_DirDiff implements Higuchi3DMethods{
 								pos[2] = z_c1;
 								ra.setPosition(pos);
 								C1 = (int)ra.get().getRealFloat();
-														
-							
+																					
 								pos[0] = x_e1;
 								pos[1] = y_e1;
 								pos[2] = z_e1;
 								ra.setPosition(pos); 
 								E1 = (int)ra.get().getRealFloat();
-										
-			 
+										 
 							if (!skipZeroes) { //no skipping
-								L_vec[mm] += (Math.abs(A1 - A2) + Math.abs(A1 - C1) + Math.abs(A1 - E1))/3;
+								L_vec[mm] += (Math.abs(A1 - A2) + Math.abs(A1 - C1) + Math.abs(A1 - E1))/3-0;	
 								
 							} else { // check for zeroes
 								if ((A1 == 0) || (C1 == 0) || (E1 == 0) || (A2 == 0)) { //zero detected
 										//do not add to the sum but correct later on norm
 										numZeroesDetected += 1;
 								} else { //no zeroes detected
-									L_vec[mm] += (Math.abs(A1 - A2) + Math.abs(A1 - C1) + Math.abs(A1 - E1))/3;
+									L_vec[mm] += (Math.abs(A1 - A2) + Math.abs(A1 - C1) + Math.abs(A1 - E1))/3.0;
 								}
 							}			
 						} 
