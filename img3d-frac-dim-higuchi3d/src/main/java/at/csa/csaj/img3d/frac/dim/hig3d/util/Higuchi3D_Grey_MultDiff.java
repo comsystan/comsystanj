@@ -220,18 +220,22 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 								Z2 = (int)ra.get().getRealFloat();	
 		        
 												
-							if (!skipZeroes) { //no skipping														
-								L_vec[mm] += (Math.abs(C1-C2)*Math.abs(C1-A1)*Math.abs(C1-Z1)+
-											  Math.abs(E1-E2)*Math.abs(E1-A1)*Math.abs(E1-Z1)+
-											  Math.abs(A1-A2)*Math.abs(E2-A2)*Math.abs(C2-A2)/3);								
+							if (!skipZeroes) { //no skipping
+//								L_vec[mm] += (Math.abs(C1-C2)*Math.abs(C1-A1)*Math.abs(C1-Z1)+
+//										      Math.abs(E1-E2)*Math.abs(E1-A1)*Math.abs(E1-Z1)+
+//										      Math.abs(A1-A2)*Math.abs(E2-A2)*Math.abs(C2-A2))/3;///4.0; //Moritz
+								L_vec[mm] += (Math.abs(A1-A2)*Math.abs(A1-C1)*Math.abs(A1-E1)+
+											  Math.abs(Z1-Z2)*Math.abs(Z1-C1)*Math.abs(Z1-E1))/2.0; //Helmut								
 							} else { // check for zeroes
 								if ((A1 == 0) || (A2 == 0) || (C1 == 0) || (C2 == 0) || (E1 == 0) || (E2 == 0) || (Z1 == 0) || (Z2 == 0)) { //zero detected
 									//do not add to the sum but correct later on norm
 									numZeroesDetected += 1;
 								} else { //no zeroes detected
-									L_vec[mm] += (Math.abs(C1-C2)*Math.abs(C1-A1)*Math.abs(C1-Z1)+
-											  Math.abs(E1-E2)*Math.abs(E1-A1)*Math.abs(E1-Z1)+
-											  Math.abs(A1-A2)*Math.abs(E2-A2)*Math.abs(C2-A2)/3);///4.0;
+//									L_vec[mm] += (Math.abs(C1-C2)*Math.abs(C1-A1)*Math.abs(C1-Z1)+
+//											      Math.abs(E1-E2)*Math.abs(E1-A1)*Math.abs(E1-Z1)+
+//											      Math.abs(A1-A2)*Math.abs(E2-A2)*Math.abs(C2-A2))/3;///4.0; //Moritz
+									L_vec[mm] += (Math.abs(A1-A2)*Math.abs(A1-C1)*Math.abs(A1-E1)+
+											      Math.abs(Z1-Z2)*Math.abs(Z1-C1)*Math.abs(Z1-E1))/2.0;	//Helmut
 								}
 							}
 						 }//l
