@@ -1212,13 +1212,13 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		double[] lnEps    = new double[numKMax];
 		double[] lnTotals = new double[numKMax];
 	
-		logService.info(this.getClass().getName() + " Higuchi2D");
-		logService.info(this.getClass().getName() + " lnEps: \t  lnTotals:");	
-		for (int i = 0; i < eps.length; i++) {
-			lnEps[i]    = Math.log(eps[i]);
-			lnTotals[i] = Math.log(totals[i]);
-			logService.info(this.getClass().getName() + (String.valueOf(lnEps[i]) + "\t "   + String.valueOf(lnTotals[i])));
-		}
+//		logService.info(this.getClass().getName() + " Higuchi2D");
+//		logService.info(this.getClass().getName() + " lnEps: \t  lnTotals:");	
+//		for (int i = 0; i < eps.length; i++) {
+//			lnEps[i]    = Math.log(eps[i]);
+//			lnTotals[i] = Math.log(totals[i]);
+//			logService.info(this.getClass().getName() + (String.valueOf(lnEps[i]) + "\t "   + String.valueOf(lnTotals[i])));
+//		}
 		
 		
 		//Create double log plot
