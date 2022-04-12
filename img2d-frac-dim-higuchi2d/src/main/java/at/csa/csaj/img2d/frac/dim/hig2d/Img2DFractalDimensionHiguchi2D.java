@@ -1212,24 +1212,16 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		double[] lnEps    = new double[numKMax];
 		double[] lnTotals = new double[numKMax];
 	
-//		logService.info(this.getClass().getName() + " Higuchi2D");
-//		logService.info(this.getClass().getName() + " lnEps: \t  lnTotals:");	
-//		for (int i = 0; i < eps.length; i++) {
-//			lnEps[i]    = Math.log(eps[i]);
-//			lnTotals[i] = Math.log(totals[i]);
-//			logService.info(this.getClass().getName() + (String.valueOf(lnEps[i]) + "\t "   + String.valueOf(lnTotals[i])));
-//		}
+		//logService.info(this.getClass().getName() + " Higuchi2D");
+		//logService.info(this.getClass().getName() + " lnEps: \t  lnTotals:");	
+		for (int i = 0; i < eps.length; i++) {
+			lnEps[i]    = Math.log(eps[i]);
+			lnTotals[i] = Math.log(totals[i]);
+			//logService.info(this.getClass().getName() + (String.valueOf(lnEps[i]) + "\t "   + String.valueOf(lnTotals[i])));
+		}
 		
 		
 		//Create double log plot
-	
-//		Vector<Double> dataX = new Vector<Double>();
-//		Vector<Double> dataY = new Vector<Double>();		
-//		for (int n = 0; n < eps.length; n++) {	
-//			dataY.add(lnTotals[n]);
-//			dataX.add(lnEps[n]);
-//		}
-		
 		boolean isLineVisible = false; //?		
 		if (optShowPlot) {
 			if ((imageType.equals("Grey")) || (imageType.equals("RGB"))) { //both are OK
