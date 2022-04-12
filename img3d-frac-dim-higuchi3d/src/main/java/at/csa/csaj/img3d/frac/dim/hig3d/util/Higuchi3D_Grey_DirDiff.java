@@ -196,7 +196,7 @@ public class Higuchi3D_Grey_DirDiff implements Higuchi3DMethods{
 								E1 = (int)ra.get().getRealFloat();
 										 
 							if (!skipZeroes) { //no skipping
-								L_vec[mm] += (Math.abs(A1 - A2) + Math.abs(A1 - C1) + Math.abs(A1 - E1))/3-0;	
+								L_vec[mm] += (Math.abs(A1 - A2) + Math.abs(A1 - C1) + Math.abs(A1 - E1))/3.0;	
 								
 							} else { // check for zeroes
 								if ((A1 == 0) || (C1 == 0) || (E1 == 0) || (A2 == 0)) { //zero detected
