@@ -199,6 +199,27 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Higuchi, 1988, Physica D, [DOI 10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
 
+### Tug of war dimension
+- Computes Tug of war dimensions
+- Binary [0, >0] algorithm!
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set 
+- The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
+- In the original paper accuracy=30 and confidence=5  
+- But it is recommended to set accuracy and confidence as high as computation times allow
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Note for Entire signal:
+  - Number of Boxes should not be larger than 1/3 of the signal length
+- Notes for Subsequent/Gliding box:
+  - Number of boxes should not be larger than 1/3 of the box size
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+
 ### Katz dimension
 - Computes Katz dimensions
 - Signal lengths are computed by Euclidean distances 
