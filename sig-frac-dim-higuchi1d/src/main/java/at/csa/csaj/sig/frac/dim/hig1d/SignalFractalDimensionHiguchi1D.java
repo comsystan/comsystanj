@@ -556,7 +556,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Huguchi1D dimensions, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -577,7 +577,7 @@ public class SignalFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Huguchi1D dimensions, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSignalss(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
