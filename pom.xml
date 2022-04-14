@@ -58,6 +58,7 @@
 		<module>sig-frac-dim-petrosian</module>
 		<module>sig-frac-dim-rse</module>
 		<module>sig-frac-dim-sevcik</module>
+		<module>sig-frac-dim-tugofwar</module>
 		<module>sig-frac-hurst</module>
 		<module>sig-generator</module>
 		<module>sig-hrv</module>

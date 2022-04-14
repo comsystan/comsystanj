@@ -26,6 +26,7 @@ New
 3D Volume - 3D Tug of war dimension
 
 Signal - Lyapunov exponent
+Signal - Tug of war dimension
 Signal - Noise
 
 Bugfixes
