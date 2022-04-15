@@ -134,12 +134,11 @@ public class Higuchi2D_Grey_MultDiff implements Higuchi2DMethods{
 							x_a=m1+i*k-1;       y_a=m2+j*k-1;
 							x_c=m1+(i-1)*k-1;   y_c=m2+j*k-1;
 							x_e=m1+i*k-1;       y_e=m2+(j-1)*k-1;              
-							x_z=m1+(i-1)*k-1;   y_z=m2+(j-1)*k-1;
+							//x_z=m1+(i-1)*k-1;   y_z=m2+(j-1)*k-1;
 
-							//int A=array2D[x_a][y_a];    // Z  E  H
-							//int C=array2D[x_c][y_c];    // C  A  B
-							//int E=array2D[x_e][y_e];    // G  D  F
-							//int Z=array2D[x_z][y_z];  
+							// Z  E  H
+							// C  A  B
+							// G  D  F 
 								
 							pos[0] = x_a;
 							pos[1] = y_a;
@@ -156,10 +155,10 @@ public class Higuchi2D_Grey_MultDiff implements Higuchi2DMethods{
 							ra.setPosition(pos);
 							E= (int) ra.get().getRealFloat();	
 							
-							pos[0] = x_z;
-							pos[1] = y_z;
-							ra.setPosition(pos);
-							Z= (int) ra.get().getRealFloat();	
+//							pos[0] = x_z;
+//							pos[1] = y_z;
+//							ra.setPosition(pos);
+//							Z= (int) ra.get().getRealFloat();	
 							
 //							int x_b=m1+(i+1)*k-1;    int y_b=m2+j*k-1;
 //							int x_d=m1+i*k-1;        int y_d=m2+(j+1)*k-1;
@@ -175,16 +174,18 @@ public class Higuchi2D_Grey_MultDiff implements Higuchi2DMethods{
 		        
 												
 							if (!skipZeroes) { //no skipping						
-								L_vec[mm] += (Math.abs(A-C)*Math.abs(A-E)+
-										 Math.abs(Z-C)*Math.abs(Z-E))/2.0; // * norm;	
+//								L_vec[mm] += (Math.abs(A-C)*Math.abs(A-E)+
+//										      Math.abs(Z-C)*Math.abs(Z-E))/2.0; // * norm;	
+								L_vec[mm] += (Math.abs(A-C)*Math.abs(A-E));
 								
 							} else { // check for zeroes
-								if ((A == 0) || (C == 0) || (E == 0) || (Z == 0)) { //zero detected
+								if ((A == 0) || (C == 0) || (E == 0)) { //zero detected
 									//do not add to the sum but correct later on norm
 									numZeroesDetected += 1;
 								} else { //no zeroes detected
-										L_vec[mm] += (Math.abs(A-C)*Math.abs(A-E)+
-												 Math.abs(Z-C)*Math.abs(Z-E))/2.0; // * norm;	
+//										L_vec[mm] += (Math.abs(A-C)*Math.abs(A-E)+
+//												      Math.abs(Z-C)*Math.abs(Z-E))/2.0; // * norm;	
+										L_vec[mm] += (Math.abs(A-C)*Math.abs(A-E));
 								}
 							}			
 						} //j

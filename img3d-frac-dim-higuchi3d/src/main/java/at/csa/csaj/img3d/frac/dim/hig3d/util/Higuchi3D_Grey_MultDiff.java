@@ -115,9 +115,9 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 		
 		double flr1, flr2, flr3, norm;
 		long   numZeroesDetected;
-		int    x_a1, y_a1, z_a1, x_c1, y_c1, z_c1, x_e1, y_e1, z_e1, x_z1, y_z1, z_z1;
-		int    x_a2, y_a2, z_a2, x_c2, y_c2, z_c2, x_e2, y_e2, z_e2, x_z2, y_z2, z_z2;
-		int    A1, C1, E1, Z1, A2, C2, E2, Z2;
+		int    x_a1, y_a1, z_a1, x_c1, y_c1, z_c1, x_e1, y_e1, z_e1; //, x_z1, y_z1, z_z1;
+		int    x_a2, y_a2, z_a2; //, x_c2, y_c2, z_c2, x_e2, y_e2, z_e2, x_z2, y_z2, z_z2;
+		int    A1, A2, C1, E1; //, Z1, C2, E2, Z2;
 		int    i,j,l;
 		int    m1,m2,m3;
 		
@@ -155,13 +155,13 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 								x_a2=m1+i*k-1; ;    y_a2=m2+j*k-1;		z_a2=m3+(l-1)*k-1;
 								
 								x_c1=m1+(i-1)*k-1;  y_c1=m2+j*k-1;		z_c1=m3+l*k-1;
-								x_c2=m1+(i-1)*k-1;  y_c2=m2+j*k-1;		z_c2=m3+(l-1)*k-1;
+								//x_c2=m1+(i-1)*k-1;  y_c2=m2+j*k-1;		//z_c2=m3+(l-1)*k-1;
 								
 								x_e1=m1+i*k-1;      y_e1=m2+(j-1)*k-1;	z_e1=m3+l*k-1;
-								x_e2=m1+i*k-1;      y_e2=m2+(j-1)*k-1;	z_e2=m3+(l-1)*k-1;
+								//x_e2=m1+i*k-1;      y_e2=m2+(j-1)*k-1;	z_e2=m3+(l-1)*k-1;
 								
-								x_z1=m1+(i-1)*k-1;  y_z1=m2+(j-1)*k-1;	z_z1=m3+l*k-1;
-								x_z2=m1+(i-1)*k-1;  y_z2=m2+(j-1)*k-1;	z_z2=m3+(l-1)*k-1;
+								//x_z1=m1+(i-1)*k-1;  y_z1=m2+(j-1)*k-1;	z_z1=m3+l*k-1;
+								//x_z2=m1+(i-1)*k-1;  y_z2=m2+(j-1)*k-1;	z_z2=m3+(l-1)*k-1;
 								
 
 					 // Central Pixel: A1, ZECA 1,2 are used
@@ -188,11 +188,11 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 								C1 = (int)ra.get().getRealFloat();	
 								
 								
-								pos[0] = x_c2;
-								pos[1] = y_c2;
-								pos[2] = z_c2;
-								ra.setPosition(pos);
-								C2 = (int)ra.get().getRealFloat();	
+//								pos[0] = x_c2;
+//								pos[1] = y_c2;
+//								pos[2] = z_c2;
+//								ra.setPosition(pos);
+//								C2 = (int)ra.get().getRealFloat();	
 								
 								pos[0] = x_e1;
 								pos[1] = y_e1;
@@ -201,41 +201,39 @@ public class Higuchi3D_Grey_MultDiff implements Higuchi3DMethods{
 								E1 = (int)ra.get().getRealFloat();	
 								
 	
-								pos[0] = x_e2;
-								pos[1] = y_e2;
-								pos[2] = z_e2;
-								ra.setPosition(pos);
-								E2 = (int)ra.get().getRealFloat();	
+//								pos[0] = x_e2;
+//								pos[1] = y_e2;
+//								pos[2] = z_e2;
+//								ra.setPosition(pos);
+//								E2 = (int)ra.get().getRealFloat();	
 								
-								pos[0] = x_z1;
-								pos[1] = y_z1;
-								pos[2] = z_z1;
-								ra.setPosition(pos);
-								Z1 = (int)ra.get().getRealFloat();	
-								
-								pos[0] = x_z2;
-								pos[1] = y_z2;
-								pos[2] = z_z2;
-								ra.setPosition(pos);
-								Z2 = (int)ra.get().getRealFloat();	
+//								pos[0] = x_z1;
+//								pos[1] = y_z1;
+//								pos[2] = z_z1;
+//								ra.setPosition(pos);
+//								Z1 = (int)ra.get().getRealFloat();	
+//								
+//								pos[0] = x_z2;
+//								pos[1] = y_z2;
+//								pos[2] = z_z2;
+//								ra.setPosition(pos);
+//								Z2 = (int)ra.get().getRealFloat();	
 		        
 												
 							if (!skipZeroes) { //no skipping
 //								L_vec[mm] += (Math.abs(C1-C2)*Math.abs(C1-A1)*Math.abs(C1-Z1)+
 //										      Math.abs(E1-E2)*Math.abs(E1-A1)*Math.abs(E1-Z1)+
 //										      Math.abs(A1-A2)*Math.abs(E2-A2)*Math.abs(C2-A2))/3;///4.0; //Moritz
-								L_vec[mm] += (Math.abs(A1-A2)*Math.abs(A1-C1)*Math.abs(A1-E1)+
-											  Math.abs(Z1-Z2)*Math.abs(Z1-C1)*Math.abs(Z1-E1))/2.0; //Helmut								
+								L_vec[mm] += (Math.abs(A1-A2)*Math.abs(A1-C1)*Math.abs(A1-E1));//Helmut								
 							} else { // check for zeroes
-								if ((A1 == 0) || (A2 == 0) || (C1 == 0) || (C2 == 0) || (E1 == 0) || (E2 == 0) || (Z1 == 0) || (Z2 == 0)) { //zero detected
+								if ((A1 == 0) || (A2 == 0) || (C1 == 0) || (E1 == 0)) { //zero detected
 									//do not add to the sum but correct later on norm
 									numZeroesDetected += 1;
 								} else { //no zeroes detected
 //									L_vec[mm] += (Math.abs(C1-C2)*Math.abs(C1-A1)*Math.abs(C1-Z1)+
 //											      Math.abs(E1-E2)*Math.abs(E1-A1)*Math.abs(E1-Z1)+
 //											      Math.abs(A1-A2)*Math.abs(E2-A2)*Math.abs(C2-A2))/3;///4.0; //Moritz
-									L_vec[mm] += (Math.abs(A1-A2)*Math.abs(A1-C1)*Math.abs(A1-E1)+
-											      Math.abs(Z1-Z2)*Math.abs(Z1-C1)*Math.abs(Z1-E1))/2.0;	//Helmut
+									L_vec[mm] += (Math.abs(A1-A2)*Math.abs(A1-C1)*Math.abs(A1-E1));	//Helmut
 								}
 							}
 						 }//l
