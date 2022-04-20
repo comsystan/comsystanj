@@ -1080,6 +1080,9 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     
     /**
      * Generates BINARY Cantor set signals
+     * FD to gamma relation according to 
+     * Cherny, A. Y., E. M. Anitas, A. I. Kuklin, M. Balasoiu, und V. A. Osipov. „Scattering from Generalized Cantor Fractals“. Journal of Applied Crystallography 43, Nr. 4 (1. August 2010): 790–97. https://doi.org/10.1107/S0021889810014184.
+     *
      */
     private void computeCantorSignals() { 
     	
