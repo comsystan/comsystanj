@@ -102,6 +102,8 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     
     WaitingDialogWithProgressBar dlgProgress;
     
+    private double[] signalCantor;
+    
     
     //Widget elements------------------------------------------------------
   //-----------------------------------------------------------------------------------------------------
@@ -114,7 +116,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     @Parameter(label = "Method",
     		   description = "Type of signal, fGn..fractional Gaussian noise, fBm..fractional Brownian noise, W-M..Weierstraß-Mandelbrot signal",
  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
- 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm", "W-M"},
+ 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm", "W-M", "Cantor"},
  		       initializer = "initialMethod",
                callback = "changedMethod")
     private String choiceRadioButt_Method;
@@ -186,10 +188,19 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 		       style = NumberWidget.SPINNER_STYLE,
 		       min = "-2", //Values <1 would produce non-fractal <-> Euclidean shapes 
 		       max = "2",
-		       initializer = "initialFractalDim",
+		       initializer = "initialFractalDimWM",
 		       stepSize = "0.1",
-		       callback = "changedFractalDim")
-    private float spinnerFloat_FractalDim;
+		       callback = "changedFractalDimWM")
+    private float spinnerFloat_FractalDimWM;
+    
+    @Parameter(label = "(Cantor) Fractal dimension [0,1]",
+		       style = NumberWidget.SPINNER_STYLE,
+		       min = "0",
+		       max = "1",
+		       initializer = "initialFractalDimCantor",
+		       stepSize = "0.1",
+		       callback = "changedFractalDimCantor")
+ private float spinnerFloat_FractalDimCantor;
     //---------------------------------------------------------------------
     
     //The following initializer functions set initial values	
@@ -225,8 +236,12 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
     	spinnerFloat_Hurst = 0.5f;
     }
     
-    protected void initialFractalDim() {
-    	spinnerFloat_FractalDim = 1.5f;
+    protected void initialFractalDimWM() {
+    	spinnerFloat_FractalDimWM = 1.5f;
+    }
+    
+    protected void initialFractalDimCantor() {
+    	spinnerFloat_FractalDimCantor = (float)(Math.log(2f)/Math.log(3f)); //0.6309..... 1/3
     }
     
 	// ------------------------------------------------------------------------------
@@ -272,13 +287,13 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 	
 	/** Executed whenever the {@link #spinFloat_ParamA} parameter changes. */
 	protected void changedParamA() {
-		spinnerFloat_ParamA= Precision.round(spinnerFloat_ParamA, 2);
+		spinnerFloat_ParamA = Precision.round(spinnerFloat_ParamA, 2);
 		logService.info(this.getClass().getName() + " Parameter a changed to " + spinnerFloat_ParamA);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_ParamB} parameter changes. */
 	protected void changedParamB() {
-		spinnerFloat_ParamB= Precision.round(spinnerFloat_ParamB, 2);
+		spinnerFloat_ParamB = Precision.round(spinnerFloat_ParamB, 2);
 		logService.info(this.getClass().getName() + " Parameter b changed to " + spinnerFloat_ParamB);
 	}
 	
@@ -288,10 +303,16 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 		logService.info(this.getClass().getName() + " Hurst coefficient changed to " + spinnerFloat_Hurst);
 	}
 	
-	/** Executed whenever the {@link #spinFloat_FractalDim} parameter changes. */
-	protected void changedFractalDim() {
-		spinnerFloat_FractalDim= Precision.round(spinnerFloat_FractalDim, 2);
-		logService.info(this.getClass().getName() + " Fractal dimension changed to " + spinnerFloat_FractalDim);
+	/** Executed whenever the {@link #spinFloat_FractalDimWM} parameter changes. */
+	protected void changedFractalDimWM() {
+		spinnerFloat_FractalDimWM = Precision.round(spinnerFloat_FractalDimWM, 7);
+		logService.info(this.getClass().getName() + " W-M Fractal dimension changed to " + spinnerFloat_FractalDimWM);
+	}
+	
+	/** Executed whenever the {@link #spinFloat_FractalDimCantor} parameter changes. */
+	protected void changedFractalDimCantor() {
+		spinnerFloat_FractalDimCantor= Precision.round(spinnerFloat_FractalDimCantor, 7);
+		logService.info(this.getClass().getName() + " Cantor Fractal dimension changed to " + spinnerFloat_FractalDimCantor);
 	}
 	
 	//--------------------------------------------------------------------------------------------------------
@@ -989,7 +1010,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 	  	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
 	    double amplitude = 1.0;	
 	
-	    float fracDim = spinnerFloat_FractalDim;
+	    float fracDim = spinnerFloat_FractalDimWM;
     	Random generator = new Random();
     	generator.setSeed(System.currentTimeMillis());
     	int M = 50;
@@ -1057,8 +1078,75 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
  	  	}     
     }
     
+    /**
+     * Generates BINARY Cantor set signals
+     */
+    private void computeCantorSignals() { 
+    	
+	  	defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSignals, spinnerInteger_NumDataPoints);
+	    double amplitude = 1.0;	
+    	
+    	//double[] signal;
+	    
+	    float fracDim = spinnerFloat_FractalDimCantor;
+	    
+	    //DEBUG: Overwrite fracDim with standard value 
+	    //fracDim = (float)(Math.log(2f)/Math.log(3f)); //0.6309..... 1/3
+	    
+	    float gamma = -(2f*(float)Math.exp(-Math.log(2f)/fracDim) - 1f); //gamma = 1/3 for standard FD  0.6309..
+    	
+ 	  	for (int c = 0; c < spinnerInteger_NumSignals; c++) {    //columns
+
+ 	  		int percent = (int)Math.round((  ((float)c)/((float)spinnerInteger_NumSignals) * 100.f ));
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((c), (int)spinnerInteger_NumSignals, "Processing " + (c+1) + "/" + (int)spinnerInteger_NumSignals);
+			logService.info(this.getClass().getName() + " Processing " + (c+1) + "/" + spinnerInteger_NumSignals);
+ 
+			long startTime = System.currentTimeMillis();
+ 	  		defaultGenericTable.setColumnHeader(c, "Signal_" + (String.format("%03d",(c +1))));
+ 	  		 		
+ 	  		//computation	
+ 	  		signalCantor = new double[spinnerInteger_NumDataPoints];
+ 	  		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) signalCantor[r] = amplitude;	
+ 	  		deleteSegment(gamma, spinnerInteger_NumDataPoints, 0);	
+ 	  		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) defaultGenericTable.set(c, r, signalCantor[r]);
+	 	  		  	
+	 	  	long duration = System.currentTimeMillis() - startTime;
+			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			sdf.applyPattern("HHH:mm:ss:SSS");
+			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+ 	  	}     
+    }
+    
+   
+    /**
+     * This method eliminates recursively a segment in the middle of length
+     * The segment length is gamma*length
+     * 
+     * @param float gamma;
+     * @param in length;
+     * @param int start;
+     */   
+    private void deleteSegment(float gamma, int length, int start) {
+        //segment = 1/3 for FD=0.6309....
+    	int segment = (int)Math.round(gamma*length); //segment length in the middle
+    	if (segment == length) return; //segment too large
+    	if (segment == 0) return; //segment too small
+    	
+    	int indxStart = (length - segment)/2;
+    	int indxEnd   = (length - segment)/2 + segment;
+      
+        for (int i = start + indxStart; i < start + indxEnd; i++) signalCantor[i] = 0;
+             
+        deleteSegment(gamma, (length - segment)/2, start);
+        deleteSegment(gamma, (length - segment)/2, start + indxEnd);
+    }
+    
 	/**
-	 * this method generates an auto covariance function with defined length and Hurst coefficient
+	 * This method generates an auto covariance function with defined length and Hurst coefficient
 	 * 
 	 * @param M
 	 * @param hurst
@@ -1325,6 +1413,7 @@ public class SignalGenerator<T extends RealType<T>> extends ContextCommand imple
 		else if (choiceRadioButt_Method.equals("fGn"))      computefGnSignals();
 		else if (choiceRadioButt_Method.equals("fBm"))      computefBmSignals();
 		else if (choiceRadioButt_Method.equals("W-M"))      computeWMSignals();
+		else if (choiceRadioButt_Method.equals("Cantor"))   computeCantorSignals();
 	
 		int percent = (100);
 		dlgProgress.updatePercent(String.valueOf(percent+"%"));
