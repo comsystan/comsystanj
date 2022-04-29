@@ -105,7 +105,7 @@
 
 ### Event detection
 - Detects events such as peaks, valleys, slopes, or QRS peaks
-- Output can be the event time, event value, interval, heigth, energy, or delta height
+- Output can be the event time, event value, interval, height, energy, or delta height
 - Threshold or  Moving Average Curves (MACs)
 - QRS detection based on the Chen&Chen or OSEA algorithm
 - Optionally, the first data column may be the domain axis
