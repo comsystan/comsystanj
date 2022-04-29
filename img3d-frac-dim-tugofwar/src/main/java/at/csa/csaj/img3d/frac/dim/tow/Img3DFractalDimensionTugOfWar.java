@@ -129,7 +129,7 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	private static double[] sequence;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[] resultValuesTable; //the corresponding regression values
-	private static final String tableOutName = "Table - 3D FFT dimension";
+	private static final String tableOutName = "Table - 3D Tug of war dimension";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -564,7 +564,7 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing 3D FFT dimension, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing 3D Tug of war dimension, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -1044,7 +1044,7 @@ public class Img3DFractalDimensionTugOfWar<T extends RealType<T>> extends Contex
 			
 		return regressionParams;
 		// Output
-		// uiService.show("Table - 3D FFT dimension", table);
+		// uiService.show("Table - 3D Tug of war dimension", table);
 	}
 	
 private int getPrimeNumber(){
@@ -1283,7 +1283,7 @@ private int getPrimeNumber(){
 			}
 			boolean isLineVisible = false; // ?
 			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-					"Double Log Plot - 3D FFT dimension", preName + datasetName, "ln(k)", "ln(Power)", "", regMin, regMax);
+					"Double Log Plot - 3D Tug of war dimension", preName + datasetName, "ln(k)", "ln(Power)", "", regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
 		if (!imageType.equals("Grey")) {
