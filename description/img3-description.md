@@ -6,7 +6,7 @@
 - Volume size can be set
 - Maximal grey values can be set
 - Random, Gaussian, Constant
-- Fractal surface - Fourier (FFT) or Midpoint displacment (MPD)
+- Fractal surface - Fourier (FFT) or Midpoint displacement (MPD)
   - Theoretical fractal dimension in the range of [3,4] can be set
 - Fractal Iterated function system (IFS) - Menger cube, Sierpinski pyramid or Mandelbrot island
   - The number of IFS iterations can be set
