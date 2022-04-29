@@ -17,10 +17,10 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Maximal grey values can be set
 - Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
   - Frequency can be set for Sine
-- Fractal surface - Fourier (FFT) or Midpoint displacment (MPD) or Sum of sine method
+- Fractal surface - Fourier (FFT) or Midpoint displacement (MPD) or Sum of sine method
   - Theoretical fractal dimension in the range of [2,3] can be set
   - For Sum of sine the frequency, amplitude and number of iterations can be set
-- Hirarchical random maps
+- Hierarchical random maps
   - Three probabilities can be set
 - Fractal random shapes
   - The number of shapes can be set
