@@ -33,6 +33,10 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 - Ahammer et al., Front.Physiol., 2018, [https://doi.org/10.3389/fphys.2018.00546](https://doi.org/10.3389/fphys.2018.00546)
 
 ### Collaborations
+
+[<img src="images/iwf-logo.png" width=100 height=50/>](https://www.oeaw.ac.at/en/iwf)
+- [IWF](https://www.oeaw.ac.at/en/iwf) - The Space Research Institute IWF aims to study the physics of space plasmas and the atmospheres of planets inside and outside our solar system with advanced numerical models.
+
 [<img src="images/caimt-logo.png" width=57 height=55/>](https://caimt.ro)
 - [CAIMT](https://caimt.ro) - Research Center for Integrated Analysis and Territorial Management that aims to develop methods for advanced modeling of the complexity of territorial systems.
 
