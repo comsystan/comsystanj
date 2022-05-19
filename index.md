@@ -29,6 +29,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 - Kainz et.al., PLoS ONE, 2015, [https://doi.org/10.1371/journal.pone.0116329](https://doi.org/10.1371/journal.pone.0116329)
 
 ###### Time series
+- Müller et al., Scientific Reports, 2017, [https://doi.org/10.1038/s41598-017-02665-5](https://doi.org/10.1038/s41598-017-02665-5)
 - Ahammer et al., Front.Physiol., 2018, [https://doi.org/10.3389/fphys.2018.00546](https://doi.org/10.3389/fphys.2018.00546)
 
 ### Collaborations
