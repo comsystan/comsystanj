@@ -33,7 +33,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 - Ahammer et al., Front.Physiol., 2018, [https://doi.org/10.3389/fphys.2018.00546](https://doi.org/10.3389/fphys.2018.00546)
 
 ### Collaborations
-[<img src="images/caimt-logo.png" width=50 height=53/>](https://caimt.ro)
+[<img src="images/caimt-logo.png" width=52 height=55/>](https://caimt.ro)
 - [CAIMT](https://caimt.ro) - Research Center for Integrated Analysis and Territorial Management that aims to develop methods for advanced modeling of the complexity of territorial systems.
 
 [<img src="images/noologica-logo.png" width=240 height=40/>](https://noologica.com)
