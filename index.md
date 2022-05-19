@@ -39,7 +39,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 [<img src="images/noologica-logo.png" width=210 height=35/>](https://noologica.com)
 - [Noologica](https://noologica.com) - An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
 
-[<img src="images/mug-logo.png" width=62 height=50/>](https://medunigraz.at)
+[<img src="images/mug-logo.png" width=58 height=47/>](https://medunigraz.at)
 - [MUG](https://medunigraz.at) - Medical University of Graz, Division of Biophysics
 
 ### Notes for using ComsystanJ with Fiji
