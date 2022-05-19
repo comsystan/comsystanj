@@ -34,7 +34,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 
 ### Collaborations
 
-[<img src="images/iwf-logo.png" width=74 height=37/>](https://www.oeaw.ac.at/en/iwf)
+[<img src="images/iwf-logo.png" width=74 height=35/>](https://www.oeaw.ac.at/en/iwf)
 - [IWF](https://www.oeaw.ac.at/en/iwf) - The Space Research Institute IWF aims to study the physics of space plasmas and the atmospheres of planets inside and outside our solar system with advanced numerical models.
 
 [<img src="images/caimt-logo.png" width=58 height=56/>](https://caimt.ro)
