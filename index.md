@@ -36,6 +36,8 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 
 [<img src="images/noologica-logo.png" width=300 height=50/>](https://noologica.com) [Noologica](https://noologica.com) - An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
 
+[<img src="images/mug-logo.png" width=170 height=143/>](https://medunigraz.at) [MUG](https://medunigraz.at) - Medical University of Graz, Division of Biophysics
+
 ### Notes for using ComsystanJ with Fiji
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
