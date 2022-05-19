@@ -36,7 +36,7 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 [<img src="images/caimt-logo.png" width=52 height=55/>](https://caimt.ro)
 - [CAIMT](https://caimt.ro) - Research Center for Integrated Analysis and Territorial Management that aims to develop methods for advanced modeling of the complexity of territorial systems.
 
-[<img src="images/noologica-logo.png" width=240 height=40/>](https://noologica.com)
+[<img src="images/noologica-logo.png" width=210 height=35/>](https://noologica.com)
 - [Noologica](https://noologica.com) - An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
 
 [<img src="images/mug-logo.png" width=62 height=50/>](https://medunigraz.at)
