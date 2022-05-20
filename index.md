@@ -43,10 +43,10 @@ The Research Center for Integrated Analysis and Territorial Management aims to d
 [<img src="images/noologica-logo.png" width=210 height=35/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
 An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
 
-[<img src="images/iasms-logo.png" width=105 height=43/>](https://iasms.org) [iasms](https://iasms.org)<br/>
+[<img src="images/iasms-logo.png" width=105 height=43/>](https://iasms.org) [IASMS](https://iasms.org)<br/>
 The International Association of Sciences in Medicine and Sports is dedicated to scientific activities in all fields of medicine by maintaining health.
 
-[<img src="images/nisos-logo.png" width=79 height=43/>](https://nisos.at) [NISOS](https://nisos.at)<br/>
+[<img src="images/nisos-logo.png" width=75 height=41/>](https://nisos.at) [NISOS](https://nisos.at)<br/>
 Body composition analyses
 
 [<img src="images/mug-logo.png" width=58 height=47/>](https://medunigraz.at) [MUG](https://medunigraz.at)<br/>
