@@ -35,10 +35,13 @@ If you use ComsystanJ plugins and publish your work, please cite at least one of
 ### Collaborations
 
 [<img src="images/iwf-logo.png" width=79 height=37/>](https://www.oeaw.ac.at/en/iwf) [IWF](https://www.oeaw.ac.at/en/iwf)<br/>
-The Space Research Institute at the Austrian Academy of Science focuses on the physics of space plasmas and the atmospheres of planets inside and outside our solar system with advanced numerical models.
+The Space Research Institute at the Austrian Academy of Sciences focuses on the physics of space plasmas and the atmospheres of planets inside and outside our solar system with advanced numerical models.
 
 [<img src="images/caimt-logo.png" width=58 height=56/>](https://caimt.ro) [CAIMT](https://caimt.ro)<br/>
 The Research Center for Integrated Analysis and Territorial Management aims to develop methods for advanced modeling of the complexity of territorial systems.
+
+[<img src="images/iors-logo.png" width=57 height=57/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
+The Institute for Oncology and Radiology of Serbia is a cancer clinic integrated with the National Cancer Research Centre as a research unit.
 
 [<img src="images/noologica-logo.png" width=210 height=35/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
 An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
