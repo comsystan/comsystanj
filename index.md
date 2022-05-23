@@ -40,7 +40,7 @@ The Space Research Institute at the Austrian Academy of Sciences focuses on the 
 [<img src="images/caimt-logo.png" width=58 height=56/>](https://caimt.ro) [CAIMT](https://caimt.ro)<br/>
 The Research Center for Integrated Analysis and Territorial Management aims to develop methods for advanced modeling of the complexity of territorial systems.
 
-[<img src="images/iors-logo.png" width=57 height=57/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
+[<img src="images/iors-logo.png" width=55 height=55/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
 The Institute for Oncology and Radiology of Serbia is a cancer clinic integrated with the National Cancer Research Centre as a research unit.
 
 [<img src="images/noologica-logo.png" width=210 height=35/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
@@ -49,7 +49,7 @@ An open source initiative for the design, development, testing, validation and d
 [<img src="images/iasms-logo.png" width=105 height=43/>](https://iasms.org) [IASMS](https://iasms.org)<br/>
 The International Association of Sciences in Medicine and Sports is dedicated to scientific activities in all fields of medicine by maintaining health.
 
-[<img src="images/nisos-logo.png" width=75 height=41/>](https://nisos.at) [NISOS](https://nisos.at)<br/>
+[<img src="images/nisos-logo.png" width=73 height=40/>](https://nisos.at) [NISOS](https://nisos.at)<br/>
 Body composition analyses
 
 [<img src="images/mug-logo.png" width=58 height=47/>](https://medunigraz.at) [MUG](https://medunigraz.at)<br/>
