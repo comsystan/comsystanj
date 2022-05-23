@@ -1,7 +1,7 @@
 <link rel="shortcut icon" type="image/png" href="favicon.png">
 
 <!-- ![Image](comsystan-logo.png)-->
-[<img src="images/comsystan-longlogo-grey46.png" width=530 height=100/>](https://comsystan.github.io/comsystanj)
+[<img src="images/comsystan-longlogo-grey46.png" width=615 height=100/>](https://comsystan.github.io/comsystanj)
 
 **ComsystanJ** (Complex Systems Analysis for ImageJ) is a collection of ImageJ2/Fiji plugins to compute the complexity, fractal dimension, entropy and other nonlinear measures of images and signals. It is recommended to use it with Fiji. Copyright (c) Comsystan Software. Developed and maintained by Helmut Ahammer.
 
