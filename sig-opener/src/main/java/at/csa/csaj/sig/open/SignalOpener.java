@@ -173,7 +173,7 @@ public class SignalOpener<T extends RealType<T>> extends ContextCommand { //moda
 		if ((files.length == 1) && (files[0] != null)){
 			 //Img< T > image = ( Img< T > ) IO.open(files[i].getPath()); 
 			try {
-				defaultGenericTable = (DefaultGenericTable) ioService.open(files[0].getPath());	
+				defaultGenericTable = (DefaultGenericTable) ioService.open(files[0].getAbsolutePath());	
 			} catch (IOException e) {
 				logService.info(this.getClass().getName() + " WARNING #SO31: It was not possible to load the signal");
 				e.printStackTrace();

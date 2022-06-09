@@ -192,7 +192,7 @@ public class Img2DImageOpener<T extends RealType<T>> extends ContextCommand { //
 		if (files.length == 1) {
 			//Img< T > image = ( Img< T > ) IO.open(files[0].getPath());
 			try {
-				datasetOut = (Dataset) ioService.open(files[0].getPath());
+				datasetOut = (Dataset) ioService.open(files[0].getAbsolutePath());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				logService.info(this.getClass().getName() + " WARNING #IO21: It was not possible to load the image");
