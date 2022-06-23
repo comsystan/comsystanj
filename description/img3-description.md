@@ -1,4 +1,4 @@
-## Image(3D) - Short description of plugins
+## Image(3D) - Description of plugins
 
 ### 3D Image volume generator
 - Generates a single image volume
