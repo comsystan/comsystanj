@@ -1,4 +1,4 @@
-## Image(2D) - Short description of plugins
+## Image(2D) - Description of plugins
 
 For binary images black pixels are the background. White pixels are the foreground or the object. 
 
