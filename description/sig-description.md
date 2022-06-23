@@ -1,4 +1,4 @@
-## Signal - Short description of plugins
+## Signal - Description of plugins
 
 ### Signal opener
 - Opens signals or plots of floating values (dot decimal numbers)
