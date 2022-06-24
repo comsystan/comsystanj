@@ -16,10 +16,8 @@
 - Processing 2D images [- Description of plugins](description/img2-description.md) 
 - Processing 3D images(volumes) [- Description of plugins](description/img3-description.md) 
 
-
 ### Citing ComsystanJ 
-If you use ComsystanJ plugins and publish your work, please cite at least one of the following publications:
-
+A manuscript describing ComsystanJ has already been submitted. If you use ComsystanJ plugins in the meantime and publish your work, please cite at least one of the following publications:
 
 ###### Time series
 - Müller et al., Scientific Reports, 2017, [https://doi.org/10.1038/s41598-017-02665-5](https://doi.org/10.1038/s41598-017-02665-5)
