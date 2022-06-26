@@ -1061,7 +1061,8 @@ public class Img2DSuccolarity<T extends RealType<T>> extends ContextCommand impl
 		return succolarities;
 		//Output
 		//uiService.show(tableOutName, table);
-		//result = ops.create().img(image, new FloatType());
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
 	}
 

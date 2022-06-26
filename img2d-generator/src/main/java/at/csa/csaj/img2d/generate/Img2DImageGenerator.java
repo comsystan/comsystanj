@@ -853,7 +853,8 @@ public class Img2DImageGenerator<T extends RealType<T>, C> extends ContextComman
 			if (value < min) min = value;
 		}
 		
-		resultImg = opService.create().img(imgFloat, new UnsignedByteType());
+		//resultImg = opService.create().img(imgFloat, new UnsignedByteType());  may not work in older Fiji versions
+		resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
 		RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
 		cursorF = imgFloat.cursor();
     	pos = new long[resultImg.numDimensions()];

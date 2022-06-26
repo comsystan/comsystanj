@@ -1255,10 +1255,11 @@ public class Img2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Conte
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			
 		return regressionParams;
-		// Output
-		// uiService.show("Table - Higuchi dimension", table);
-		// result = ops.create().img(image, new FloatType());
-		// table
+		//Output
+		//uiService.show("Table - Higuchi dimension", table);
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
+		//table
 	}
 
 	// This method shows the double log plot

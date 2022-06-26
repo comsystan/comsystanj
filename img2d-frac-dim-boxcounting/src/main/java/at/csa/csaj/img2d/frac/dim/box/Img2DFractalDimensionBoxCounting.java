@@ -1174,7 +1174,8 @@ public class Img2DFractalDimensionBoxCounting<T extends RealType<T>> extends Con
 		return regressionParams;
 		//Output
 		//uiService.show(tableOutName, table);
-		//result = ops.create().img(image, new FloatType());
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
 	}
 

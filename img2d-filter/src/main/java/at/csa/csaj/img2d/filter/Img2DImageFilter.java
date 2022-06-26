@@ -53,6 +53,8 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.convolution.fast_gauss.FastGauss;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.outofbounds.OutOfBoundsBorderFactory;
 import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
@@ -954,13 +956,16 @@ public class Img2DImageFilter<T extends RealType<T>> extends ContextCommand impl
 			if (imageType.equals("Grey")) { //rai should have 2 dimensions
 					
 				//convolve does also work NOTE: ******Do not forget to divide the sampleF values by (kernelSize*kernelSize)*******
-//				kernelMean = opService.create().img(new int[] {kernelSize, kernelSize});
+//				//kernelMean = opService.create().img(new int[] {kernelSize, kernelSize}); may not work in older Fiji versions
+//				kernelMean = new ArrayImgFactory<>(new DoubleType()).create(kernelSize, kernelSize); 				
 //				for (DoubleType k : kernelMean) k.setReal(1.0);	
-//				intervalF = (IterableInterval<R>) opService.create().img(rai, new FloatType());
+//				//intervalF = (IterableInterval<R>) opService.create().img(rai, new FloatType()); may not work in older Fiji versions
+//				intervalF = (IterableInterval<R>) new ArrayImgFactory<>(new FloatType()).create(width, height);
 //				intervalF = (IterableInterval<R>) opService.filter().convolve(rai, kernelMean, new OutOfBoundsBorderFactory());	
 				
-				intervalF = (IterableInterval<R>) opService.create().img(rai, new FloatType());
-				intervalF = (IterableInterval<R>) opService.filter().mean(intervalF, rai, shape);
+				//intervalF = (IterableInterval<R>) opService.create().img(rai, new FloatType());  may not work in older Fiji versions
+				intervalF = (IterableInterval<R>) new ArrayImgFactory<>(new FloatType()).create(width, height);
+				intervalF = (IterableInterval<R>) opService.filter().mean(intervalF, rai, shape, new OutOfBoundsBorderFactory());
 				//Rewrite to UnsignedByte rai
 				ra = rai.randomAccess();
 				cursor = intervalF.localizingCursor();
@@ -981,12 +986,14 @@ public class Img2DImageFilter<T extends RealType<T>> extends ContextCommand impl
 					raiSlice = Views.hyperSlice(rai, 2, b);
 							
 					//convolve does also work NOTE: ******Do not forget to divide the sampleF values by (kernelSize*kernelSize)*******
-//					kernelMean = opService.create().img(new int[] {kernelSize, kernelSize});
+//					//kernelMean = opService.create().img(new int[] {kernelSize, kernelSize}); may not work in older Fiji versions
+//					kernelMean = new ArrayImgFactory<>(new DoubleType()).create(kernelSize, kernelSize); 	
 //					for (DoubleType k : kernelMean) k.setReal(1.0);	
 //					intervalF = (IterableInterval<R>) opService.filter().convolve(raiSlice, kernelMean, new OutOfBoundsBorderFactory());
 					
-					intervalF = (IterableInterval<R>) opService.create().img(raiSlice, new FloatType());
-					intervalF = (IterableInterval<R>) opService.filter().mean(intervalF, raiSlice, shape);			
+					//intervalF = (IterableInterval<R>) opService.create().img(rai, new FloatType());  may not work in older Fiji versions
+					intervalF = (IterableInterval<R>) new ArrayImgFactory<>(new FloatType()).create(width, height);
+					intervalF = (IterableInterval<R>) opService.filter().mean(intervalF, raiSlice, shape, new OutOfBoundsBorderFactory());			
 					//Rewrite to UnsignedByte rai
 					ra = (RandomAccess<R>) raiSlice.randomAccess();
 					cursor = intervalF.localizingCursor();
@@ -1012,8 +1019,9 @@ public class Img2DImageFilter<T extends RealType<T>> extends ContextCommand impl
 			
 			if (imageType.equals("Grey")) { //rai should have 2 dimensions
 							
-				intervalF = (IterableInterval<R>) opService.create().img(rai, new FloatType());
-				intervalF = (IterableInterval<R>) opService.filter().median(intervalF, rai, shape);				
+				//intervalF = (IterableInterval<R>) opService.create().img(rai, new FloatType());  may not work in older Fiji versions
+				intervalF = (IterableInterval<R>) new ArrayImgFactory<>(new FloatType()).create(width, height);
+				intervalF = (IterableInterval<R>) opService.filter().median(intervalF, rai, shape, new OutOfBoundsBorderFactory());				
 				//Rewrite to UnsignedByte rai
 				ra = rai.randomAccess();
 				cursor = intervalF.localizingCursor();
@@ -1033,8 +1041,9 @@ public class Img2DImageFilter<T extends RealType<T>> extends ContextCommand impl
 				
 					raiSlice = Views.hyperSlice(rai, 2, b);
 				
-					intervalF = (IterableInterval<R>) opService.create().img(raiSlice, new FloatType());
-					intervalF = (IterableInterval<R>) opService.filter().median(intervalF, raiSlice, shape);			
+					//intervalF = (IterableInterval<R>) opService.create().img(raiSlice, new FloatType());  may not work in older Fiji versions
+					intervalF = (IterableInterval<R>) new ArrayImgFactory<>(new FloatType()).create(width, height);		
+					intervalF = (IterableInterval<R>) opService.filter().median(intervalF, raiSlice, shape, new OutOfBoundsBorderFactory());			
 					//Rewrite to UnsignedByte rai
 					ra = (RandomAccess<R>) raiSlice.randomAccess();
 					cursor = intervalF.localizingCursor();

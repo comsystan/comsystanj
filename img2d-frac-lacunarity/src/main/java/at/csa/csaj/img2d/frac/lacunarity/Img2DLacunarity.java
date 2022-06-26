@@ -1238,6 +1238,7 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 			double var = 0.0;
 			int N = 0;
 			int epsWidth = 1;
+			Img<DoubleType> avgKernel;
 			//loop through box sizes, each box size gives a lacunarity
 			for (int l = 0; l < numBoxes; l++) {
 				
@@ -1248,7 +1249,9 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 	//			imgDil = (Img<UnsignedByteType>) Dilation.dilate(imgBin, kernel, numThreads);
 				
 				// create the averageing kernel
-				Img<DoubleType> avgKernel = opService.create().img(new int[] {kernelSize, kernelSize});
+				//avgKernel = opService.create().img(new int[] {kernelSize, kernelSize}); may not work in older Fiji versions
+				avgKernel = new ArrayImgFactory<>(new DoubleType()).create(kernelSize, kernelSize); 
+				
 				for (DoubleType k : avgKernel) {
 					k.setReal(1.0);
 				}
@@ -1492,7 +1495,8 @@ public class Img2DLacunarity<T extends RealType<T>> extends ContextCommand imple
 		return lacunarities;
 		//Output
 		//uiService.show(tableOutName, table);
-		//result = ops.create().img(image, new FloatType());
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
 	}//
 	//-------------------------------------------------------------------------------------------

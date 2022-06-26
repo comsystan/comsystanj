@@ -1281,7 +1281,8 @@ public class Img2DFractalDimensionDirectionalCorrelation<T extends RealType<T>> 
 		// Dim-row, R2-row, StdErr-row, Dim-col, R2-col, StdErr-col, Dim, R2, StdErr
 		// Output
 		// uiService.show(tableOutName, table);
-		// result = ops.create().img(image, new FloatType());
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		// table
 	}
 	
