@@ -56,6 +56,12 @@ Medical University of Graz, Division of Biophysics
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
   
+**If signal plugins do not work, check that the file scijava-plugins-io-table-x.x.x.jar in the jars folder is at least version 0.4.0.**
+
+**It is recommended to use the latest Fiji version from the download archive [https://downloads.imagej.net/fiji/archive](https://downloads.imagej.net/fiji/archive). Updating is not mandatory.**
+
+**Please note that updating an older Fiji version is sometimes not successful to get the latest version**
+
 It is recommended to use both ComsystanJ and Fiji with the same pom-scijava version number.
 The pom-scijava version number of ComsystanJ can be viewed directly on the download site [Downloads](https://github.com/comsystan/comsystanj/releases).
 To get the pom-scijava version number of your Fiji, simply start Fiji and execute following command in the search bar: `!ui.showDialog(app.getApp("Fiji").getPOM().getParentVersion())`
