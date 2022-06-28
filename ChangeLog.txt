@@ -4,6 +4,25 @@ Version numbering
 1st digit: major release number
 2nd digit: pom-scijava change
 3rd digit: subsequent changes
+**************************************************************
+Version 2.0.2
+pom-scijava 31.1.0
+2022-??????????????????????
+
+Major change:
+
+
+New
+
+
+Bugfixes
+
+
+Miscellaneous
+
+
+Known issue
+ImageJ2/Fiji - Display bug: Oversaturated grey level images and red cast of RGB color images.
 
 **************************************************************
 Version 2.0.1
@@ -38,7 +57,6 @@ Miscellaneous
 
 Known issue
 ImageJ2/Fiji - Display bug: Oversaturated grey level images and red cast of RGB color images.
-
 
 **************************************************************
 Version 2.0.0
