@@ -8,7 +8,7 @@ Version numbering
 **************************************************************
 Version 2.0.1
 pom-scijava 31.1.0
-2022-??-?? not released yet
+2022-06-28
 
 Major change:
 Signal - text columns allowed
