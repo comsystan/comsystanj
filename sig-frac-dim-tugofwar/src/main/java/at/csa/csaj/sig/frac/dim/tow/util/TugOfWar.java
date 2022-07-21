@@ -229,7 +229,7 @@ public class TugOfWar {
 	 * @param regEnd
 	 * @return double Dtow
 	 */
-	public double[] calcDimension(double[] totals, int regStart, int regEnd) {
+	public double[] calcRegressions(double[] totals, int regStart, int regEnd) {
 		lnDataY = new double[totals.length];
 		lnDataX = new double[totals.length]; //NumBoxes
 

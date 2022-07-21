@@ -974,7 +974,7 @@ public class SignalFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 			if (signal1D.length > (numBoxes * 2)) { // only data series which are large enough
 				tow = new TugOfWar();
 				totals = tow.calcTotals(signal1D, numBoxes, accuracy, confidence);
-				regressionValues = tow.calcDimension(totals, regMin, regMax);
+				regressionValues = tow.calcRegressions(totals, regMin, regMax);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 				if (optShowPlot) {
@@ -1003,7 +1003,7 @@ public class SignalFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 				
 						tow = new TugOfWar();
 						totals = tow.calcTotals(surrSignal1D, numBoxes, accuracy, confidence);
-						regressionValues = tow.calcDimension(totals, regMin, regMax);
+						regressionValues = tow.calcRegressions(totals, regMin, regMax);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						resultValues[lastMainResultsIndex + 4 + s]                   = regressionValues[1];
 						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionValues[4];
@@ -1036,7 +1036,7 @@ public class SignalFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 				if (subSignal1D.length > (numBoxes * 2)) { // only data series which are large enough
 					tow = new TugOfWar();
 					totals = tow.calcTotals(subSignal1D, numBoxes, accuracy, confidence);
-					regressionValues = tow.calcDimension(totals, regMin, regMax);
+					regressionValues = tow.calcRegressions(totals, regMin, regMax);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					//if (optShowPlot){ //show all plots
@@ -1068,7 +1068,7 @@ public class SignalFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 				if (subSignal1D.length > (numBoxes * 2)) { // only data series which are large enough
 					tow = new TugOfWar();
 					totals = tow.calcTotals(signal1D, numBoxes, accuracy, confidence);
-					regressionValues = tow.calcDimension(totals, regMin, regMax);
+					regressionValues = tow.calcRegressions(totals, regMin, regMax);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					//if (optShowPlot){ //show all plots
