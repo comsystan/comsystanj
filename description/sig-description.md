@@ -12,7 +12,7 @@
 - NaNs will be ignored by CSAJ signal plugins
 - Conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
 - Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
-- A sample file can be donwloaded [here](samples/SignalSample.txt)
+- A sample signal file can be donwloaded [here](samples/SignalSample.txt)
 
 ### Signal generator
 - Generates signals of floating values (dot decimal numbers)
