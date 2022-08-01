@@ -4,14 +4,15 @@
 - Opens signals or plots of floating values (dot decimal numbers)
 - For comma delimited text files
 - The first row must contain the column (signal) headers
+- Maximal row number is 2147483647 or 2^31-1
 - The first column must contain the row headers or just a subsequent numbering 
 - All columns MUST have the same number of rows
-- Maximal row number is 2147483647 or 2^31-1
 - Missing values MUST be filled up with NaN
 - NaNs will be ignored for plot charts
 - NaNs will be ignored by CSAJ signal plugins
 - Conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
 - Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
+- A sample file can be donwloaded [here](samples/SignalSample.txt)
 
 ### Signal generator
 - Generates signals of floating values (dot decimal numbers)
