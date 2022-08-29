@@ -1569,10 +1569,11 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		double genEntH1 = 0;
 		double genEntH2 = 0;
 		double genEntH3 = 0;	
+		double pHochp;
 		
 		for (int pp = 0; pp < probabilities.length; pp++) {
 			if (probabilities[pp] != 0) {
-					double pHochp = Math.pow(probabilities[pp], probabilities[pp]);
+					pHochp = Math.pow(probabilities[pp], probabilities[pp]);
 					genEntH1 = genEntH1 + (1.0 - pHochp);
 					genEntH2 = genEntH2 + Math.log(2.0-pHochp);
 					genEntH3 = genEntH3 + (probabilities[pp] + Math.log(2.0-pHochp));	
@@ -1756,12 +1757,16 @@ public class SignalGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		for (int n = 0; n < numEta; n++) {
 			double eta = minEta + n*stepEta; //SEta is equal to S_BGS (Bolzmann Gibbs Shannon entropy) for eta = 1 
 			double sum = 0.0f;
+			double gam1;
+			double gam2;
 			for (int pp = 0; pp < probabilities.length; pp++) {
 				if (probabilities[pp] != 0){
 
 					//compute incomplete Gamma function using Apache's classes
-					double gam1 = Gamma.regularizedGammaQ((eta+1.0)/eta, -Math.log(probabilities[pp])) * Math.exp(Gamma.logGamma((eta+1.0)/eta));
-					double gam2 = probabilities[pp]*Math.exp(Gamma.logGamma((eta+1.0f)/eta)); 
+					//gam1 = Gamma.regularizedGammaQ((eta+1.0)/eta, -Math.log(probabilities[pp])) * Math.exp(Gamma.logGamma((eta+1.0)/eta));
+					//gam2 = probabilities[pp]*Math.exp(Gamma.logGamma((eta+1.0f)/eta));
+					gam1 = Gamma.regularizedGammaQ((eta+1.0)/eta, -Math.log(probabilities[pp])) * Gamma.gamma((eta+1.0)/eta);
+					gam2 = probabilities[pp]*Gamma.gamma((eta+1.0f)/eta); 
 					sum = sum + gam1 - gam2;	
 				}
 			}	
