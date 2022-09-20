@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-sig-math</artifactId>
-	<version>2.0.2</version><!--ComsystanJ version-->
+	<version>2.1.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Mathematical functions</name>
 	<description>ImageJ2 signal plugin for mathematical functions</description>
@@ -94,12 +94,12 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-sig-opener</artifactId>
-			<version>2.0.2</version><!--ComsystanJ version-->
+			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-commons</artifactId>
-			<version>2.0.2</version><!--ComsystanJ version-->
+			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

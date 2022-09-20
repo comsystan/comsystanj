@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>comsystanj-img2d-frac-lacunarity</artifactId>
-	<version>2.0.2</version><!--ComsystanJ version-->
+	<version>2.1.0</version><!--ComsystanJ version-->
 
 	<name>Image(2D) - Lacunarity</name>
 	<description>ImageJ2 plugin for computing lacunarity.</description>
@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>comsystanj-commons</artifactId>
-			<version>2.0.2</version><!--ComsystanJ version-->
+			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
