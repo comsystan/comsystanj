@@ -5,12 +5,12 @@ Version numbering
 2nd digit: pom-scijava change
 3rd digit: subsequent changes
 **************************************************************
-Version 2.0.2
-pom-scijava 31.1.0
+Version 2.1.0
+pom-scijava 33.2.0
 2022-??????????????????????
 
 Major change:
-
+Changed plugin namess and paths to be consistent
 
 New
 
@@ -22,7 +22,7 @@ Miscellaneous
 
 
 Known issue
-ImageJ2/Fiji - Display bug: Oversaturated grey level images and red cast of RGB color images.
+ImageJ2/Fiji - Color image bug: 4-channel color images are not properly displayed.
 
 **************************************************************
 Version 2.0.1

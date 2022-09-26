@@ -34,7 +34,7 @@ import org.apache.commons.math3.stat.ranking.NaNStrategy;
 import org.apache.commons.math3.stat.ranking.NaturalRanking;
 import org.apache.commons.math3.stat.ranking.TiesStrategy;
 
-import at.csa.csaj.commons.signal.algorithms.Surrogate;
+import at.csa.csaj.commons.sequence.algorithms.Surrogate;
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_2D;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -640,7 +640,7 @@ public class Surrogate2D {
 	/**
 	/**
 	 * This method calculates a surrogate image using the AAFT (amplitude adjusted FT) method
-	 * A Gaussian signal y is constructed
+	 * A Gaussian sequence y is constructed
 	 * y is ranked according to the original image
 	 * then y is FFT converted, phase randomized and inverse FFT back converted yielding y'
 	 * the original image is ranked according to y'
@@ -685,11 +685,11 @@ public class Surrogate2D {
 				}
 			}
 					
-			//calculate rank of input signal
+			//calculate rank of input sequence
 			NaturalRanking ranking = new NaturalRanking(NaNStrategy.REMOVED, TiesStrategy.SEQUENTIAL);
-	        double[] rankOfSignal = ranking.rank(image1D);
+	        double[] rankOfSequence = ranking.rank(image1D);
 		
-	        //Calculate Gaussian signal
+	        //Calculate Gaussian sequence
 	    	Random random = new Random();
 			random.setSeed(System.currentTimeMillis());;
 			double[] gauss = new double[length1D];
@@ -697,22 +697,22 @@ public class Surrogate2D {
 				gauss[i] = random.nextGaussian();	
 			}
 			
-			//Rank Gaussian signal according to input signal
+			//Rank Gaussian sequence according to input sequence
 			double[] gaussRank = new double[length1D];
 			for (int i = 0; i < length1D; i++){
-				gaussRank[i] = gauss[(int) rankOfSignal[i]-1];
+				gaussRank[i] = gauss[(int) rankOfSequence[i]-1];
 			}
 			
-	        //calculate phase randomized signal of ranked Gaussian
+	        //calculate phase randomized sequence of ranked Gaussian
 			//this call fires also the progress bar events
-			surrogate = new Surrogate(); //Signal surrogate
+			surrogate = new Surrogate(); //Sequence surrogate
 	        double[] gaussPhaseRandom = surrogate.calcSurrogateRandomPhase(gaussRank, windowingType);
 		
 	        //calculate rank of Gaussian (Ranked) phase randomized
 			ranking = new NaturalRanking(NaNStrategy.REMOVED, TiesStrategy.SEQUENTIAL);
 	        double[] rankOfGaussPhaseRandom = ranking.rank(gaussPhaseRandom);
 		  
-	        //Rank input signal according to Gaussian (Ranked) phase randomized
+	        //Rank input sequence according to Gaussian (Ranked) phase randomized
 			for (int i = 0; i < length1D; i++){
 				surrogate1D[i] = image1D[(int)  rankOfGaussPhaseRandom[i]-1];
 			}
@@ -754,11 +754,11 @@ public class Surrogate2D {
 					}
 				}
 						
-				//calculate rank of input signal
+				//calculate rank of input sequence
 				NaturalRanking ranking = new NaturalRanking(NaNStrategy.REMOVED, TiesStrategy.SEQUENTIAL);
-		        double[] rankOfSignal = ranking.rank(image1D);
+		        double[] rankOfSequence = ranking.rank(image1D);
 			
-		        //Calculate Gaussian signal
+		        //Calculate Gaussian sequence
 		    	Random random = new Random();
 				random.setSeed(System.currentTimeMillis());;
 				double[] gauss = new double[length1D];
@@ -766,22 +766,22 @@ public class Surrogate2D {
 					gauss[i] = random.nextGaussian();	
 				}
 				
-				//Rank Gaussian signal according to input signal
+				//Rank Gaussian sequence according to input sequence
 				double[] gaussRank = new double[length1D];
 				for (int i = 0; i < length1D; i++){
-					gaussRank[i] = gauss[(int) rankOfSignal[i]-1];
+					gaussRank[i] = gauss[(int) rankOfSequence[i]-1];
 				}
 				
-		        //calculate phase randomized signal of ranked Gaussian
+		        //calculate phase randomized sequence of ranked Gaussian
 				//this call fires also the progress bar events
-				surrogate = new Surrogate(); //Signal surrogate
+				surrogate = new Surrogate(); //Sequence surrogate
 		        double[] gaussPhaseRandom = surrogate.calcSurrogateRandomPhase(gaussRank, windowingType);
 			
 		        //calculate rank of Gaussian (Ranked) phase randomized
 				ranking = new NaturalRanking(NaNStrategy.REMOVED, TiesStrategy.SEQUENTIAL);
 		        double[] rankOfGaussPhaseRandom = ranking.rank(gaussPhaseRandom);
 			  
-		        //Rank input signal according to Gaussian (Ranked) phase randomized
+		        //Rank input sequence according to Gaussian (Ranked) phase randomized
 				for (int i = 0; i < length1D; i++){
 					surrogate1D[i] = image1D[(int)  rankOfGaussPhaseRandom[i]-1];
 				}
@@ -822,23 +822,23 @@ public class Surrogate2D {
 	 }
 	
 	/**
-	 * This method increases the size of a signal to the next power of 2 
+	 * This method increases the size of a sequence to the next power of 2 
 	 * 
-	 * @param signal
+	 * @param sequence
 	 * @return
 	 */
-	public double[] addZerosUntilPowerOfTwo (double[] signal) {
+	public double[] addZerosUntilPowerOfTwo (double[] sequence) {
 		int p = 1;
-		double[] newSignal;
-		int oldLength = signal.length;
+		double[] newSequence;
+		int oldLength = sequence.length;
 		while (Math.pow(2, p) < oldLength) {
 			p = p +1;
 	    }
-		newSignal = new double[(int) Math.pow(2, p)];
+		newSequence = new double[(int) Math.pow(2, p)];
 		for (int i = 0; i < oldLength; i++) {
-			newSignal[i] = signal[i];
+			newSequence[i] = sequence[i];
 		}
-		return newSignal;
+		return newSequence;
 	}
 	
 	/**

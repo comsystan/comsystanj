@@ -14,64 +14,64 @@
 	No inheritance, no dependencies on parent etc. https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance
 	Projects are still independent and can be built independently-->
 	<modules>
-		<!--2D plugins-->
 		<module>commons</module>
-		<module>img2d-en-genen</module>
-		<module>img2d-filter</module>
-		<module>img2d-frac-dim-boxcounting</module>
-		<module>img2d-frac-dim-correlation-directional</module>
-		<module>img2d-frac-dim-ff</module>
-		<module>img2d-frac-dim-fft</module>
-		<module>img2d-frac-dim-generalized</module>
-		<module>img2d-frac-dim-correlation</module>
-		<module>img2d-frac-dim-higuchi1d</module>
-		<module>img2d-frac-dim-higuchi2d</module>
-		<module>img2d-frac-dim-minkowski</module>
-		<module>img2d-frac-dim-pyramid</module>
-		<module>img2d-frac-dim-tugofwar</module>
-		<module>img2d-frac-lacunarity</module>
-		<module>img2d-frac-succolarity</module>
-		<module>img2d-generator</module>
-		<module>img2d-kc</module>
-		<module>img2d-noise</module>
-		<module>img2d-opener</module>
-		<module>img2d-surrogate</module>
+		<!--1D plugins-->
+		<module>plugin1d-allomscale</module>
+		<module>plugin1d-autocorr</module>
+		<module>plugin1d-cutout</module>
+		<module>plugin1d-detect-events</module>
+		<module>plugin1d-detect-qrspeaks</module>
+		<module>plugin1d-dfa</module>
+		<module>plugin1d-en-genen</module>
+		<module>plugin1d-en-permen</module>
+		<module>plugin1d-en-sampen</module>
+		<module>plugin1d-fft</module>
+		<module>plugin1d-filter</module>
+		<module>plugin1d-frac-dim-Higuchi1d</module>
+		<module>plugin1d-frac-dim-katz</module>
+		<module>plugin1d-frac-dim-petrosian</module>
+		<module>plugin1d-frac-dim-rse</module>
+		<module>plugin1d-frac-dim-sevcik</module>
+		<module>plugin1d-frac-dim-tugofwar</module>
+		<module>plugin1d-frac-hurst</module>
+		<module>plugin1d-generator</module>
+		<module>plugin1d-hrv</module>
+		<module>plugin1d-kc</module>
+		<module>plugin1d-lyapunov</module>
+		<module>plugin1d-math</module>
+		<module>plugin1d-noise</module>
+		<module>plugin1d-opener</module>
+		<module>plugin1d-poincareplot</module>
+		<module>plugin1d-resampling</module>
+		<module>plugin1d-statistics</module>
+		<module>plugin1d-surrogate</module>
+		<module>plugin1d-symbolicaggregation</module>
+		<!--2D plugins-->
+		<module>plugin2d-en-genen</module>
+		<module>plugin2d-filter</module>
+		<module>plugin2d-frac-dim-boxcounting</module>
+		<module>plugin2d-frac-dim-correlation-directional</module>
+		<module>plugin2d-frac-dim-ff</module>
+		<module>plugin2d-frac-dim-fft</module>
+		<module>plugin2d-frac-dim-generalized</module>
+		<module>plugin2d-frac-dim-correlation</module>
+		<module>plugin2d-frac-dim-higuchi1d</module>
+		<module>plugin2d-frac-dim-higuchi2d</module>
+		<module>plugin2d-frac-dim-minkowski</module>
+		<module>plugin2d-frac-dim-pyramid</module>
+		<module>plugin2d-frac-dim-tugofwar</module>
+		<module>plugin2d-frac-lacunarity</module>
+		<module>plugin2d-frac-succolarity</module>
+		<module>plugin2d-generator</module>
+		<module>plugin2d-kc</module>
+		<module>plugin2d-noise</module>
+		<module>plugin2d-opener</module>
+		<module>plugin2d-surrogate</module>
 		<!--3D plugins-->
-		<module>img3d-frac-dim-fft</module>
-		<module>img3d-frac-dim-higuchi3d</module>
-		<module>img3d-frac-dim-tugofwar</module>
-		<module>img3d-generator</module>
-		<!--Signal plugins-->
-		<module>sig-allomscale</module>
-		<module>sig-autocorr</module>
-		<module>sig-cutout</module>
-		<module>sig-detect-events</module>
-		<module>sig-detect-qrspeaks</module>
-		<module>sig-dfa</module>
-		<module>sig-en-genen</module>
-		<module>sig-en-permen</module>
-		<module>sig-en-sampen</module>
-		<module>sig-fft</module>
-		<module>sig-filter</module>
-		<module>sig-frac-dim-Higuchi1d</module>
-		<module>sig-frac-dim-katz</module>
-		<module>sig-frac-dim-petrosian</module>
-		<module>sig-frac-dim-rse</module>
-		<module>sig-frac-dim-sevcik</module>
-		<module>sig-frac-dim-tugofwar</module>
-		<module>sig-frac-hurst</module>
-		<module>sig-generator</module>
-		<module>sig-hrv</module>
-		<module>sig-kc</module>
-		<module>sig-lyapunov</module>
-		<module>sig-math</module>
-		<module>sig-noise</module>
-		<module>sig-opener</module>
-		<module>sig-poincareplot</module>
-		<module>sig-resampling</module>
-		<module>sig-statistics</module>
-		<module>sig-surrogate</module>
-		<module>sig-symbolicaggregation</module>
+		<module>plugin3d-frac-dim-fft</module>
+		<module>plugin3d-frac-dim-higuchi3d</module>
+		<module>plugin3d-frac-dim-tugofwar</module>
+		<module>plugin3d-generator</module>
 	</modules>
 
 </project>
