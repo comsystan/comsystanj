@@ -88,7 +88,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
-	@Menu(label = "Signal"),
+	@Menu(label = "Signal (1D)"),
 	@Menu(label = "FFT ", weight = 80)}) //Space at the end of the label is necessary to avoid conflict with Fiji FFT plugin 
 //public class SignalFFT<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalFFT<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel

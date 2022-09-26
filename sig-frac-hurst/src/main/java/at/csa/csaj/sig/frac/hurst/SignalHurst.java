@@ -84,7 +84,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
-	@Menu(label = "Signal"),
+	@Menu(label = "Signal (1D)"),
 	@Menu(label = "Hurst coefficient ", weight = 160)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SignalHurst<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalHurst<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel

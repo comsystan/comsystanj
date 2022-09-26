@@ -81,7 +81,7 @@ import at.csa.csaj.sig.open.SignalOpener;
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
-	@Menu(label = "Signal"),
+	@Menu(label = "Signal (1D)"),
 	@Menu(label = "Resampling ", weight = 30)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SignalResampling<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class SignalResampling<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
