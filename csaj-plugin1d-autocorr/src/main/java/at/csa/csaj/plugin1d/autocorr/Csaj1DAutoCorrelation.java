@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing the Autocorrelation
- * File: Plugin1DAutoCorrelation.java
+ * File: Csaj1DAutoCorrelation.java
  * 
  * $Id$
  * $HeadURL$

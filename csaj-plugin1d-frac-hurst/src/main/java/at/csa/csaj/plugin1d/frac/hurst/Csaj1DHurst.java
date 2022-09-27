@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing the Hurst coefficient.
- * File: Plugin1DHurst.java
+ * File: Csaj1DHurst.java
  * 
  * $Id$
  * $HeadURL$

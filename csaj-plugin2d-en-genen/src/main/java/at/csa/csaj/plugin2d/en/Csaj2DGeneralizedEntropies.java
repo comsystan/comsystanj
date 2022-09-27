@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing the Generalized entropies
- * File: Plugin2DGeneralizedEntropies.java
+ * File: Csaj2DGeneralizedEntropies.java
  * 
  * $Id$
  * $HeadURL$

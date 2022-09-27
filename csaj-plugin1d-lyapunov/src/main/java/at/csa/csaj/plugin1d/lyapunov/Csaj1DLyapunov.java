@@ -1,7 +1,7 @@
 /*-
   * #%L
  * Project: ImageJ2 signal plugin for computing the Lyapunov exponent.
- * File: Plugin1DLyapunov.java
+ * File: Csaj1DLyapunov.java
  * 
  * $Id$
  * $HeadURL$

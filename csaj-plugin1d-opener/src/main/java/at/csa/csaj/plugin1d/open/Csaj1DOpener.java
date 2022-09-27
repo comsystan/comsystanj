@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin to open single or multiple signals.
- * File: Plugin1DOpener.java
+ * File: Csaj1DOpener.java
  * 
  * $Id$
  * $HeadURL$

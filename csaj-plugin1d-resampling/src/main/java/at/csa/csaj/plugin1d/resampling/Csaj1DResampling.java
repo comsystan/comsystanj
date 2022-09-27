@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for down- and upsampling
- * File: Plugin1DResampling.java
+ * File: Csaj1DResampling.java
  * 
  * $Id$
  * $HeadURL$

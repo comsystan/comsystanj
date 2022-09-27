@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for generating a Poincare plot
- * File: Plugin1DPoincarePlot.java
+ * File: Csaj1DPoincarePlot.java
  * 
  * $Id$
  * $HeadURL$

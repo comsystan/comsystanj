@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing fractal dimension with Petrosian algorithm.
- * File: Plugin1DFractalDimensionPetrosian.java
+ * File: Csaj1DFractalDimensionPetrosian.java
  * 
  * $Id$
  * $HeadURL$

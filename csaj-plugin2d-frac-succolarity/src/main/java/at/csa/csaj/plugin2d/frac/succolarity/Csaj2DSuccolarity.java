@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing succolarity.
- * File: Plugin2DSuccolarity.java
+ * File: Csaj2DSuccolarity.java
  * 
  * $Id$
  * $HeadURL$

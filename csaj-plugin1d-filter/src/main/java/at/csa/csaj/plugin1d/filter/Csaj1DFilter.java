@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for Filtering
- * File: Plugin1DFilter.java
+ * File: Csaj1DFilter.java
  * 
  * $Id$
  * $HeadURL$

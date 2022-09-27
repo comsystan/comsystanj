@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing fractal dimension with image pyramids.
- * File: Plugin2DFractalDimensionPyramid.java
+ * File: Csaj2DFractalDimensionPyramid.java
  * 
  * $Id$
  * $HeadURL$

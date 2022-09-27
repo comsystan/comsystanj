@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing the Generalized fractal dimensions
- * File: Plugin2DFractalDimensionGeneralized.java
+ * File: Csaj2DFractalDimensionGeneralized.java
  * 
  * $Id$
  * $HeadURL$

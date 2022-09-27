@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for detecting events
- * File: Plugin1DDetectEvents.java
+ * File: Csaj1DDetectEvents.java
  * 
  * $Id$
  * $HeadURL$

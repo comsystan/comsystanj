@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing statistics.
- * File: Plugin1DStatistics.java
+ * File: Csaj1DStatistics.java
  * 
  * $Id$
  * $HeadURL$

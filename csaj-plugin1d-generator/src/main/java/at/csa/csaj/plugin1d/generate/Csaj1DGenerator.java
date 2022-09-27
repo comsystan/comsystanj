@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin to generate signals.
- * File: Plugin1DGenerator.java
+ * File: Csaj1DGenerator.java
  * 
  * $Id$
  * $HeadURL$

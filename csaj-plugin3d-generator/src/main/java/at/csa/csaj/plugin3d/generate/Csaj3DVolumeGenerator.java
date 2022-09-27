@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin to generate 3D image volumes.
- * File: Plugin3DVolumeGenerator.java
+ * File: Csaj3DVolumeGenerator.java
  * 
  * $Id$
  * $HeadURL$

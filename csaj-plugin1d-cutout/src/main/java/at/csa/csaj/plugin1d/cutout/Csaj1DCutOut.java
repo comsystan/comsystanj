@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin to cut out (shorten) signals
- * File: Plugin1DCutOut.java
+ * File: Csaj1DCutOut.java
  * 
  * $Id$
  * $HeadURL$

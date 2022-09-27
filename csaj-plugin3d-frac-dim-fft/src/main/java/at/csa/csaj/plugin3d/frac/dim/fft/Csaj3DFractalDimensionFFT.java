@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing fractal dimension with 3D FFT.
- * File: Plugin3DFractalDimensionFFT.java
+ * File: Csaj3DFractalDimensionFFT.java
  * 
  * $Id$
  * $HeadURL$

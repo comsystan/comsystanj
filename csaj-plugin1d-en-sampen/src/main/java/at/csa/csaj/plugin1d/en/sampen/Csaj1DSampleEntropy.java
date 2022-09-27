@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing the Sample and Approximate entropy
- * File: Plugin1DSampleEntropy.java
+ * File: Csaj1DSampleEntropy.java
  * 
  * $Id$
  * $HeadURL$

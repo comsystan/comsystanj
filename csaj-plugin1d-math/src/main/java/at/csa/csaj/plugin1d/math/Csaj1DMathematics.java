@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for mathematical functions
- * File: Plugin1DMathematics.java
+ * File: Csaj1DMathematics.java
  * 
  * $Id$
  * $HeadURL$

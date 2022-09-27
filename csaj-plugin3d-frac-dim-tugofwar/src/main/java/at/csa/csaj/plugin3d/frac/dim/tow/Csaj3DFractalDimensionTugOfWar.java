@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing fractal dimension with 3D tug of war algorithm.
- * File: Plugin3DFractalDimensionTugOfWar.java
+ * File: Csaj3DFractalDimensionTugOfWar.java
  * 
  * $Id$
  * $HeadURL$

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing the Kolmogorov complexity and Logical depth
- * File: Plugin1DKolmogorovComplexity.java
+ * File: Csaj1DKolmogorovComplexity.java
  * 
  * $Id$
  * $HeadURL$

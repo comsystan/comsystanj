@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing Fast Fourier transformation
- * File: Plugin1DFFT.java
+ * File: Csaj1DFFT.java
  * 
  * $Id$
  * $HeadURL$

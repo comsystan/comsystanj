@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing surrogates
- * File: Plugin1DSurrogate.java
+ * File: Csaj1DSurrogate.java
  * 
  * $Id$
  * $HeadURL$

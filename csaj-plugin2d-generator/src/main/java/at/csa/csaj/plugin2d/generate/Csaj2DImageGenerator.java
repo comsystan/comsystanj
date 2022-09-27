@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin to generate 2D images.
- * File: Plugin2DImageGenerator.java
+ * File: Csaj2DImageGenerator.java
  * 
  * $Id$
  * $HeadURL$

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for constructing surrogate images.
- * File: Plugin2DImageSurrogate.java
+ * File: Csaj2DImageSurrogate.java
  * 
  * $Id$
  * $HeadURL$

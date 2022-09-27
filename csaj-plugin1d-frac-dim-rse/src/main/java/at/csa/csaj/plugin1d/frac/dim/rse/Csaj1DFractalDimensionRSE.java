@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing fractal dimension with roughness scaling extraction.
- * File: Plugin1DFractalDimensionRSE.java
+ * File: Csaj1DFractalDimensionRSE.java
  * 
  * $Id$
  * $HeadURL$

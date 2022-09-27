@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing the Correlation dimension.
- * File: Plugin2DFractalDimensionCorrelation.java
+ * File: Csaj2DFractalDimensionCorrelation.java
  * 
  * $Id$
  * $HeadURL$

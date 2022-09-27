@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing fractal Minkowski dimension
- * File: Plugin2DFractalDimensionMinkowski.java
+ * File: Csaj2DFractalDimensionMinkowski.java
  * 
  * $Id$
  * $HeadURL$

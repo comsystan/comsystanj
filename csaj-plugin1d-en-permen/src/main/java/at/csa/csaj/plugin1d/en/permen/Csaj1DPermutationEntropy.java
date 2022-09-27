@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing the Permutation entropy
- * File: Plugin1DPermutationEntropy.java
+ * File: Csaj1DPermutationEntropy.java
  * 
  * $Id$
  * $HeadURL$

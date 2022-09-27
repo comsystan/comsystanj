@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for adding noise.
- * File: Plugin2DImageNoise.java
+ * File: Csaj2DImageNoise.java
  * 
  * $Id$
  * $HeadURL$

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing fractal dimension with Sevcik algorithm.
- * File: Plugin1DFractalDimensionSevcik.java
+ * File: Csaj1DFractalDimensionSevcik.java
  * 
  * $Id$
  * $HeadURL$

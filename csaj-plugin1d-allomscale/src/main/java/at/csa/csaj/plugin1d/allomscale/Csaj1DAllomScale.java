@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for allometric scaling
- * File: Plugin1DAllomScale.java
+ * File: Csaj1DAllomScale.java
  * 
  * $Id$
  * $HeadURL$

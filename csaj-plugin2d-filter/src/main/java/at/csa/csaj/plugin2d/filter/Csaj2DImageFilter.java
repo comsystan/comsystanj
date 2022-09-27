@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for filtering.
- * File: Plugin2DImageFilter.java
+ * File: Csaj2DImageFilter.java
  * 
  * $Id$
  * $HeadURL$

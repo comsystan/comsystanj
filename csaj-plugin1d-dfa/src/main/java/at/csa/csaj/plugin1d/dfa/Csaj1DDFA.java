@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for computing DFA
- * File: Plugin1DDFA.java
+ * File: Csaj1DDFA.java
  * 
  * $Id$
  * $HeadURL$

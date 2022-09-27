@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing lacunarity.
- * File: Plugin2DLacunarity.java
+ * File: Csaj2DLacunarity.java
  * 
  * $Id$
  * $HeadURL$

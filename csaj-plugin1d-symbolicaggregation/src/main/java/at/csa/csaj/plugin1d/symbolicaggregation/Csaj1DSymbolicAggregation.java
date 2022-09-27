@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 signal plugin for symbolic aggregation
- * File: Plugin1DSymbolicAggregation.java
+ * File: Csaj1DSymbolicAggregation.java
  * 
  * $Id$
  * $HeadURL$
