@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-frac-dim-tugofwar</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Fractal dimension - Tug of war</name>
+	<name>1D Sequence - Fractal dimension - Tug of war</name>
 	<description>ImageJ2 signal plugin for computing fractal dimension with the Tug of war algorithm</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2022</inceptionYear>

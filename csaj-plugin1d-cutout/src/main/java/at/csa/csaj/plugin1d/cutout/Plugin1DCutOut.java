@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin to cut out (shorten) sequences
+ * Project: ImageJ2 signal plugin to cut out (shorten) signals
  * File: Plugin1DCutOut.java
  * 
  * $Id$

@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing fractal dimension with Petrosian algorithm.
+ * Project: ImageJ2 signal plugin for computing fractal dimension with Petrosian algorithm.
  * File: Petrosian.java
  * 
  * $Id$

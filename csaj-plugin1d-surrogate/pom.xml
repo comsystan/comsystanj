@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-surrogate</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Surrogate</name>
+	<name>1D Sequence - Surrogate</name>
 	<description>ImageJ2 signal plugin for computing surrogates</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

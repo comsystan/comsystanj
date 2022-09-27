@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-symbolicaggregation</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Symbolic aggregation</name>
+	<name>1D Sequence - Symbolic aggregation</name>
 	<description>ImageJ2 signal plugin for symbolic aggregation</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

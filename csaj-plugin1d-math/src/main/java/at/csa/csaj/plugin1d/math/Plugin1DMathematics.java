@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for mathematical functions
+ * Project: ImageJ2 signal plugin for mathematical functions
  * File: Plugin1DMathematics.java
  * 
  * $Id$

@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-frac-dim-petrosian</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Fractal dimension - Petrosian</name>
+	<name>1D Sequence - Fractal dimension - Petrosian</name>
 	<description>ImageJ2 signal plugin for computing fractal dimension with Petrosian algorithm.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

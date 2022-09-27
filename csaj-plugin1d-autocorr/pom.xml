@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-autocorr</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Autocorrelation</name>
+	<name>1D Sequence - Autocorrelation</name>
 	<description>ImageJ2 signal plugin for computing the Autocorrelation</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

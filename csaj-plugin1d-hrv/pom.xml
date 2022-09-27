@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-hrv</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Standard HRV measurements</name>
+	<name>1D Sequence - Standard HRV measurements</name>
 	<description>ImageJ2 signal plugin for computing standard HRV measurements</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

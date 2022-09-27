@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing the Autocorrelation
+ * Project: ImageJ2 signal plugin for computing the Autocorrelation
  * File: Plugin1DAutoCorrelation.java
  * 
  * $Id$

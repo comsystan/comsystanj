@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-frac-dim-higuchi1d</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Fractal dimension - Higuchi1D</name>
+	<name>1D Sequence - Fractal dimension - Higuchi1D</name>
 	<description>ImageJ2 signal plugin for computing fractal dimension with 1D Higuchi algorithm.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

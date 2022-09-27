@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-noise</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Noise</name>
+	<name>1D Sequence - Noise</name>
 	<description>ImageJ2 signal plugin for adding noise</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2022</inceptionYear>

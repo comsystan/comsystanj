@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin2d-noise</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Image(2D) - Noise</name>
+	<name>2D Image - Noise</name>
 	<description>ImageJ2 plugin for adding noise.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2022</inceptionYear>

@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 plugin to generate sequences.
+ * Project: ImageJ2 plugin to generate signals.
  * File: Plugin1DGenerator.java
  * 
  * $Id$

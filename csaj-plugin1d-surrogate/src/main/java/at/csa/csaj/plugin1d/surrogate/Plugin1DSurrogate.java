@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing surrogates
+ * Project: ImageJ2 signal plugin for computing surrogates
  * File: Plugin1DSurrogate.java
  * 
  * $Id$

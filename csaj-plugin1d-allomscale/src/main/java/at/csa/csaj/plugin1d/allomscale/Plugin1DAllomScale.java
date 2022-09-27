@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for allometric scaling
+ * Project: ImageJ2 signal plugin for allometric scaling
  * File: Plugin1DAllomScale.java
  * 
  * $Id$

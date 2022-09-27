@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-cutout</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Cut out</name>
+	<name>1D Sequence - Cut out</name>
 	<description>ImageJ2 signal plugin to cut out (shorten) signals</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-en-sampen</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Sample and Approximate entropy</name>
+	<name>1D Sequence - Sample and Approximate entropy</name>
 	<description>ImageJ2 signal plugin for computing the Sample and Approximate entropy</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

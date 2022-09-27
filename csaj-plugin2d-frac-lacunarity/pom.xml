@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin2d-frac-lacunarity</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Image(2D) - Lacunarity</name>
+	<name>2D Image - Lacunarity</name>
 	<description>ImageJ2 plugin for computing lacunarity.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-en-genen</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Generalised entropies</name>
+	<name>1D Sequence - Generalised entropies</name>
 	<description>ImageJ2 signal plugin for computing generalizeed entropies</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

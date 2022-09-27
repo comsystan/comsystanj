@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for detecting events
+ * Project: ImageJ2 signal plugin for detecting events
  * File: QRSDetector2.java
  * 
  * $Id$

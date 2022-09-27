@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-allomscale</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Allometric scaling</name>
+	<name>1D Sequence - Allometric scaling</name>
 	<description>ImageJ2 signal plugin for allometric scaling</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

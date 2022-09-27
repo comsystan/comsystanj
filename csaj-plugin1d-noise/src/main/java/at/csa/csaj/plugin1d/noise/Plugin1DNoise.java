@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for adding noise
+ * Project: ImageJ2 signal plugin for adding noise
  * File: Plugin1DNoise.java
  * 
  * $Id$

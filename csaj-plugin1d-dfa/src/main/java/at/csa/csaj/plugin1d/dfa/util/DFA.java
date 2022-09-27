@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing DFA
+ * Project: ImageJ2 signal plugin for computing DFA
  * File: DFA.java
  * 
  * $Id$

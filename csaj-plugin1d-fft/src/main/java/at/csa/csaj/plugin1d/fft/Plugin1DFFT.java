@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing Fast Fourier transformation
+ * Project: ImageJ2 signal plugin for computing Fast Fourier transformation
  * File: Plugin1DFFT.java
  * 
  * $Id$

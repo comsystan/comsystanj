@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin2d-surrogate</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Image(2D) - Surrogate</name>
+	<name>2D Image - Surrogate</name>
 	<description>ImageJ2 plugin for constructing surrogate images.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2022</inceptionYear>

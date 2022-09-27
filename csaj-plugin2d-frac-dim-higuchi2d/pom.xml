@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin2d-frac-dim-higuchi2d</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Image(2D) - Fractal dimension - Higuchi2D</name>
+	<name>2D Image - Fractal dimension - Higuchi2D</name>
 	<description>ImageJ2 plugin for computing fractal dimension with 2D Higuchi algorithms.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2020</inceptionYear>

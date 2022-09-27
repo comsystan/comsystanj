@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing the Permutation entropy
+ * Project: ImageJ2 signal plugin for computing the Permutation entropy
  * File: PermutationEntropy.java
  * 
  * $Id$

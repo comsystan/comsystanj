@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-lyapunov</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Lyapunov exponent</name>
+	<name>1D Sequence - Lyapunov exponent</name>
 	<description>ImageJ2 signal plugin for computing the Lyapunov exponent.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

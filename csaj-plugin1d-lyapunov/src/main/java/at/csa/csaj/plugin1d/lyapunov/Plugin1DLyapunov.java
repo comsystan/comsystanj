@@ -1,6 +1,6 @@
 /*-
   * #%L
- * Project: ImageJ2 sequence plugin for computing the Lyapunov exponent.
+ * Project: ImageJ2 signal plugin for computing the Lyapunov exponent.
  * File: Plugin1DLyapunov.java
  * 
  * $Id$

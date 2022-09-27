@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing the Hurst coefficient.
+ * Project: ImageJ2 signal plugin for computing the Hurst coefficient.
  * File: BetaPSD.java
  * 
  * $Id$

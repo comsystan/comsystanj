@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for Filtering
+ * Project: ImageJ2 signal plugin for Filtering
  * File: Plugin1DFilter.java
  * 
  * $Id$

@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-dfa</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Detrended fluctuation analysis</name>
+	<name>1D Sequence - Detrended fluctuation analysis</name>
 	<description>ImageJ2 signal plugin for computing DFA</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

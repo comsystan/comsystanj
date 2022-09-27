@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin1d-resampling</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>Signal - Resampling</name>
+	<name>1D Sequence - Resampling</name>
 	<description>ImageJ2 signal plugin for down- and upsampling</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>

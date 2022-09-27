@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 sequence plugin for computing the Sample and Approximate entropy
+ * Project: ImageJ2 signal plugin for computing the Sample and Approximate entropy
  * File: SampleEntropy.java
  * 
  * $Id$
