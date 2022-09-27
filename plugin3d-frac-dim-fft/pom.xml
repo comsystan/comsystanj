@@ -13,7 +13,7 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-plugin3d-frac-dim-fft</artifactId>
+	<artifactId>csaj-plugin3d-frac-dim-fft</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
 	<name>Image(3D) - Fractal dimension - FFT</name>
@@ -108,7 +108,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
-			<artifactId>comsystanj-commons</artifactId>
+			<artifactId>csaj-commons</artifactId>
 			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>

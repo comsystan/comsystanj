@@ -13,7 +13,7 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-plugin1d-noise</artifactId>
+	<artifactId>csaj-plugin1d-noise</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
 	<name>Signal - Noise</name>
@@ -93,12 +93,12 @@
 	<dependencies>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
-			<artifactId>comsystanj-plugin1d-opener</artifactId>
+			<artifactId>csaj-plugin1d-opener</artifactId>
 			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
-			<artifactId>comsystanj-commons</artifactId>
+			<artifactId>csaj-commons</artifactId>
 			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>

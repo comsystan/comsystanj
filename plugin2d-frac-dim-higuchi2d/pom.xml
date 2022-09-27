@@ -13,7 +13,7 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>comsystanj-plugin2d-frac-dim-higuchi2d</artifactId>
+	<artifactId>csaj-plugin2d-frac-dim-higuchi2d</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
 	<name>Image(2D) - Fractal dimension - Higuchi2D</name>
@@ -103,7 +103,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
-			<artifactId>comsystanj-commons</artifactId>
+			<artifactId>csaj-commons</artifactId>
 			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
