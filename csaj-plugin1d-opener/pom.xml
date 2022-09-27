@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.open</package-name>
-		<main-class>at.csa.csaj.plugin1d.open.Plugin1DOpener</main-class>
+		<main-class>at.csa.csaj.plugin1d.open.Csaj1DOpener</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

@@ -83,7 +83,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin2d.filter</package-name>
-		<main-class>at.csa.csaj.plugin2d.filter.Plugin2DFilter</main-class>
+		<main-class>at.csa.csaj.plugin2d.filter.Csaj2DFilter</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

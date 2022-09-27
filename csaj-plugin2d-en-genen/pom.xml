@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin2d.en.generalized</package-name>
-		<main-class>at.csa.csaj.plugin2d.en.Plugin2DGeneralizedEntropies</main-class>
+		<main-class>at.csa.csaj.plugin2d.en.Csaj2DGeneralizedEntropies</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

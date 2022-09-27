@@ -83,7 +83,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin2d.noise</package-name>
-		<main-class>at.csa.csaj.plugin2d.noise.Plugin2DNoise</main-class>
+		<main-class>at.csa.csaj.plugin2d.noise.Csaj2DNoise</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

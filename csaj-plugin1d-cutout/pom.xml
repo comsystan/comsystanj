@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.cutout</package-name>
-		<main-class>at.csa.csaj.plugin1d.cutout.Plugin1DCutOut</main-class>
+		<main-class>at.csa.csaj.plugin1d.cutout.Csaj1DCutOut</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

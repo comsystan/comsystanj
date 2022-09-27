@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin2d.frac.dim.fft</package-name>
-		<main-class>at.csa.csaj.plugin2d.frac.dim.fft.Plugin2DFractalDimensionFFT</main-class>
+		<main-class>at.csa.csaj.plugin2d.frac.dim.fft.Csaj2DFractalDimensionFFT</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

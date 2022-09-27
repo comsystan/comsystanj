@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.frac.dim.katz</package-name>
-		<main-class>at.csa.csaj.plugin1d.frac.dim.katz.Plugin1DFractalDimensionKatz</main-class>
+		<main-class>at.csa.csaj.plugin1d.frac.dim.katz.Csaj1DFractalDimensionKatz</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

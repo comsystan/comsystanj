@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.lyapunov</package-name>
-		<main-class>at.csa.csaj.plugin1d.lyapunov.Plugin1DLyapunov</main-class>
+		<main-class>at.csa.csaj.plugin1d.lyapunov.Csaj1DLyapunov</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

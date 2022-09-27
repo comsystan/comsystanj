@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.poincare</package-name>
-		<main-class>at.csa.csaj.plugin1d.poincare.Plugin1DPoincarePlot</main-class>
+		<main-class>at.csa.csaj.plugin1d.poincare.Csaj1DPoincarePlot</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.stat</package-name>
-		<main-class>at.csa.csaj.plugin1d.stat.Plugin1DStatistics</main-class>
+		<main-class>at.csa.csaj.plugin1d.stat.Csaj1DStatistics</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

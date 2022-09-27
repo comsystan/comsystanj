@@ -94,7 +94,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.frac.dim.tow</package-name>
-		<main-class>at.csa.csaj.plugin1d.frac.dim.tow.Plugin1DFractalDimensionTugOfWar</main-class>
+		<main-class>at.csa.csaj.plugin1d.frac.dim.tow.Csaj1DFractalDimensionTugOfWar</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

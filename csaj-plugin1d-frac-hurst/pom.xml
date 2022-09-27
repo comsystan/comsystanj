@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.frac.hurst</package-name>
-		<main-class>at.csa.csaj.plugin1d.frac.hurst.Plugin1DHurst</main-class>
+		<main-class>at.csa.csaj.plugin1d.frac.hurst.Csaj1DHurst</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

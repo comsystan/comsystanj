@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin1d.resampling</package-name>
-		<main-class>at.csa.csaj.plugin1d.resampling.Plugin1DResampling</main-class>
+		<main-class>at.csa.csaj.plugin1d.resampling.Csaj1DResampling</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>
