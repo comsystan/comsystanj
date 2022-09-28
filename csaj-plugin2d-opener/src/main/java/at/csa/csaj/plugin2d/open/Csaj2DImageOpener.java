@@ -132,11 +132,6 @@ public class Csaj2DImageOpener<T extends RealType<T>> extends ContextCommand { /
     @Override
     public void run() {
     	
-    	try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch(Throwable t) {
-		
-		}
     	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing 3D fractal, please wait...<br>Open console window for further info.</html>");
 		WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("Opening images, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 

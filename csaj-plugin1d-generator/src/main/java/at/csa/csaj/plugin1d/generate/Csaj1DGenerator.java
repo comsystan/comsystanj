@@ -1381,13 +1381,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
      */
     @Override
     public void run() {
-    	
-    	try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch(Throwable t) {
-		
-		}
-    		
+    	   		
     	long startTimeAll = System.currentTimeMillis();
    
     	//dlgProgress = new WaitingDialogWithProgressBar("<html>Sequence generation, please wait...<br>Open console window for further info.</html>");

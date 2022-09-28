@@ -21,8 +21,9 @@ Bugfixes
 Miscellaneous
 
 
-Known issue
-ImageJ2/Fiji - Color image bug: 4-channel color images are not properly displayed.
+Known issues
+ImageJ2/Fiji 2.7.0 - 2.9.0: 4-channel color images are not displayed correctly.
+ImageJ2/Fiji 2.7.0 - 2.9.0: Missing spinner buttons with FlatLaf Look & Feel
 
 **************************************************************
 Version 2.0.1
