@@ -31,12 +31,9 @@ A manuscript describing ComsystanJ has already been submitted. If you use Comsys
 
 ### Collaborations
 
-[<img src="images/nasa-logo.jpg" width=48 height=40/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=104 height=40/>](https://www.ccmc.gsfc.nasa.gov/) [CCMC](https://www.ccmc.gsfc.nasa.gov/)<br/>
+[<img src="images/nasa-logo.png" width=48 height=40/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=104 height=40/>](https://www.ccmc.gsfc.nasa.gov/) [CCMC](https://www.ccmc.gsfc.nasa.gov/)<br/>
 A multi-agency partnership enabling, supporting, and performing research and development for next-generation space science and space weather models.
 The CCMC is situated at NASA Goddard Space Flight Center [GSFC](https://www.nasa.gov/goddard)
-
-[<img src="images/iwf-logo.png" width=79 height=37/>](https://www.oeaw.ac.at/en/iwf) [IWF](https://www.oeaw.ac.at/en/iwf)<br/>
-The Space Research Institute at the Austrian Academy of Sciences focuses on the physics of space plasmas and the atmospheres of planets inside and outside our solar system with advanced numerical models.
 
 [<img src="images/caimt-logo.png" width=58 height=56/>](https://caimt.ro) [CAIMT](https://caimt.ro)<br/>
 The Research Center for Integrated Analysis and Territorial Management aims to develop methods for advanced modeling of the complexity of territorial systems.
