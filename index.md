@@ -38,7 +38,7 @@ The CCMC is situated at NASA Goddard Space Flight Center [GSFC](https://www.nasa
 [<img src="images/caimt-logo.png" width=60 height=58/>](https://caimt.ro) [CAIMT](https://caimt.ro)<br/>
 The Research Center for Integrated Analysis and Territorial Management aims to develop methods for advanced modeling of the complexity of territorial systems.
 
-[<img src="images/iors-logo.png" width=51 height=51/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
+[<img src="images/iors-logo.png" width=50 height=50/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
 The Institute for Oncology and Radiology of Serbia is a cancer clinic integrated with the National Cancer Research Centre as a research unit.
 
 [<img src="images/noologica-logo.png" width=222 height=37/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
