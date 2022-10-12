@@ -31,7 +31,7 @@ A manuscript describing ComsystanJ has already been submitted. If you use Comsys
 
 ### Collaborations
 
-[<img src="images/nasa-logo.png" width=60 height=50/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=130 height=50/>](https://www.ccmc.gsfc.nasa.gov/) [CCMC](https://www.ccmc.gsfc.nasa.gov/)<br/>
+[<img src="images/nasa-logo.png" width=60 height=50/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=117 height=45/>](https://ccmc.gsfc.nasa.gov/) [CCMC](https://ccmc.gsfc.nasa.gov/)<br/>
 A multi-agency partnership enabling, supporting, and performing research and development for next-generation space science and space weather models.
 The CCMC is situated at NASA Goddard Space Flight Center [GSFC](https://www.nasa.gov/goddard)
 
@@ -41,7 +41,7 @@ The Research Center for Integrated Analysis and Territorial Management aims to d
 [<img src="images/iors-logo.png" width=51 height=51/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
 The Institute for Oncology and Radiology of Serbia is a cancer clinic integrated with the National Cancer Research Centre as a research unit.
 
-[<img src="images/noologica-logo.png" width=210 height=35/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
+[<img src="images/noologica-logo.png" width=222 height=37/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
 An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
 
 [<img src="images/iasms-logo.png" width=105 height=43/>](https://iasms.org) [IASMS](https://iasms.org)<br/>
