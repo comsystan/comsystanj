@@ -31,7 +31,7 @@ A manuscript describing ComsystanJ has already been submitted. If you use Comsys
 
 ### Collaborations
 
-[<img src="images/nasa-logo.png" width=48 height=40/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=104 height=40/>](https://www.ccmc.gsfc.nasa.gov/) [CCMC](https://www.ccmc.gsfc.nasa.gov/)<br/>
+[<img src="images/nasa-logo.png" width=60 height=50/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=130 height=50/>](https://www.ccmc.gsfc.nasa.gov/) [CCMC](https://www.ccmc.gsfc.nasa.gov/)<br/>
 A multi-agency partnership enabling, supporting, and performing research and development for next-generation space science and space weather models.
 The CCMC is situated at NASA Goddard Space Flight Center [GSFC](https://www.nasa.gov/goddard)
 
@@ -51,7 +51,7 @@ The International Association of Sciences in Medicine and Sports is dedicated to
 Body composition analyses
 
 [<img src="images/mug-logo.png" width=58 height=47/>](https://medunigraz.at) [MUG](https://medunigraz.at)<br/>
-Medical University of Graz, Division of Biophysics
+Medical University of Graz, Division of Medical Physics & Biophysics
 
 ### Notes for using ComsystanJ with Fiji
 
