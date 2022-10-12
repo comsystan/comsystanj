@@ -35,7 +35,7 @@ A manuscript describing ComsystanJ has already been submitted. If you use Comsys
 A multi-agency partnership enabling, supporting, and performing research and development for next-generation space science and space weather models.
 The CCMC is situated at NASA Goddard Space Flight Center [GSFC](https://www.nasa.gov/goddard)
 
-[<img src="images/caimt-logo.png" width=58 height=56/>](https://caimt.ro) [CAIMT](https://caimt.ro)<br/>
+[<img src="images/caimt-logo.png" width=60 height=58/>](https://caimt.ro) [CAIMT](https://caimt.ro)<br/>
 The Research Center for Integrated Analysis and Territorial Management aims to develop methods for advanced modeling of the complexity of territorial systems.
 
 [<img src="images/iors-logo.png" width=51 height=51/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
