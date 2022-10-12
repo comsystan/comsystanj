@@ -44,13 +44,13 @@ The Institute for Oncology and Radiology of Serbia is a cancer clinic integrated
 [<img src="images/noologica-logo.png" width=222 height=37/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
 An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
 
-[<img src="images/iasms-logo.png" width=110 height=40/>](https://iasms.org) [IASMS](https://iasms.org)<br/>
+[<img src="images/iasms-logo.png" width=118 height=37/>](https://iasms.org) [IASMS](https://iasms.org)<br/>
 The International Association of Sciences in Medicine and Sports is dedicated to scientific activities in all fields of medicine by maintaining health.
 
 [<img src="images/nisos-logo.png" width=128 height=40/>](https://nisos.at) [NISOS](https://nisos.at)<br/>
 Body composition analyses
 
-[<img src="images/mug-logo.png" width=58 height=47/>](https://medunigraz.at) [MUG](https://medunigraz.at)<br/>
+[<img src="images/mug-logo.png" width=58 height=47/>](https://medunigraz.at/en) [MUG](https://medunigraz.at/en)<br/>
 Medical University of Graz, Division of Medical Physics & Biophysics
 
 ### Notes for using ComsystanJ with Fiji
