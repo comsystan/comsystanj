@@ -14,6 +14,14 @@
 - Note: Image volumes can be visualized with Fiji's 3D viewer (Plugins/3D Viewer)
 - Note: Fiji sometimes displays oversaturated grey values. Workaround: Image/Color/Edit LUT... and press 2x Invert
 
+### 3D Box counting dimension
+- Fractal dimension is computed with 3D box counting
+- This is a direct expansion of the 2D algorithm
+- 8-bit grey image volume
+- Binary [0, >0] algorithm
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set
+
 ### 3D Higuchi dimension
 - Fractal dimension is computed with Higuchi inspired 3D algorithms
 - This is a direct expansion of the 2D algorithms
@@ -24,7 +32,7 @@
 
 ### 3D FFT dimension
 - Fractal dimension is computed with a 3D FFT algorithm or subsequent 1D FFTs
-- 8-bit grey images
+- 8-bit grey image volume
 - Several windowing filters can be set
 - Spherical average of k values or
 - Mean of separate line scans (horizontal and verical) or
@@ -35,7 +43,7 @@
 
 ### 3D Tug of war dimension
 - Fractal dimension is computed by using the 3D tug of war algorithm
-- 8bit binary images
+- 8bit binary image volume
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set
