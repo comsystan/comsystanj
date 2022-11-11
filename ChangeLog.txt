@@ -13,7 +13,7 @@ Major change:
 Changed plugin names and paths
 
 New
-
+3D Volume - Box counting dimension
 
 Bugfixes
 
