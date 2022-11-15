@@ -745,8 +745,9 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 
 		//Compute regression parameters
 		double[] regressionValues = process(rai, s);	
-		//Mass      0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		//Perimeter 5 Intercept, 6 Slope, 7 InterceptStdErr, 8 SlopeStdErr, 9 RSquared
+		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
+		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
+		//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
 			
 		//set values for output table
 		for (int i = 0; i < regressionValues.length; i++ ) {
@@ -827,7 +828,9 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 				}
 				//Compute regression parameters
 				double[] regressionValues = process(rai, s);	
-					//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+				//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
+				//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
+				//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
 				
 				//set values for output table
 				for (int i = 0; i < regressionValues.length; i++ ) {
@@ -886,7 +889,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		//GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
-		DoubleColumn columnFFI            = new DoubleColumn("FFI");
+		DoubleColumn columnFFI             = new DoubleColumn("FFI");
 		DoubleColumn columnFFDI            = new DoubleColumn("FFDI");
 		DoubleColumn columnD1              = new DoubleColumn("D1");
 		DoubleColumn columnDmass           = new DoubleColumn("D-mass");
@@ -922,31 +925,31 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		int regMax             = spinnerInteger_RegMax;
 		int numImages          = spinnerInteger_NumBoxes;
 		//String fractalDimType  = choiceRadioButt_FractalDimType;
-		//String scanningType  = choiceRadioButt_ScanningType;	
+		//String scanningType    = choiceRadioButt_ScanningType;	
 		//String colorModelType  = choiceRadioButt_ColorModelType;	
 //		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
 //		}	
 	    int s = sliceNumber;	
-	    	//D1       0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-			//Mass     5 Intercept, 6 Dim, 7 InterceptStdErr, 8 SlopeStdErr, 9 RSquared
-		    //Boundary 10 Intercept, 11 Dim, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared		
+	    	//D1        0 Intercept,  1 Dim, 2  InterceptStdErr, 3  SlopeStdErr,  4 RSquared
+			//Mass      5 Intercept,  6 Dim, 7  InterceptStdErr, 8  SlopeStdErr,  9 RSquared
+		    //Boundary 10 Intercept, 11 Dim, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
 			//fill table with values
 			tableOut.appendRow();
 			tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) 	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numImages);	
+			if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",    	     tableOut.getRowCount()-1, numImages);	
 			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
 			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
 			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
 			tableOut.set("FFI",         	 tableOut.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
 			tableOut.set("FFDI",         	 tableOut.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
-			tableOut.set("D1",         	 tableOut.getRowCount()-1, resultValuesTable[s][1]); //D1
-			tableOut.set("D-mass",          tableOut.getRowCount()-1, resultValuesTable[s][6]); //Dmass
-			tableOut.set("D-boundary",      tableOut.getRowCount()-1, resultValuesTable[s][11]); //D-boundary
+			tableOut.set("D1",         	     tableOut.getRowCount()-1, resultValuesTable[s][1]); //D1
+			tableOut.set("D-mass",           tableOut.getRowCount()-1, resultValuesTable[s][6]); //Dmass
+			tableOut.set("D-boundary",       tableOut.getRowCount()-1, resultValuesTable[s][11]); //D-boundary
 			tableOut.set("R2-D1",         	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
-			tableOut.set("R2-mass",         tableOut.getRowCount()-1, resultValuesTable[s][9]);
-			tableOut.set("R2-boundary",     tableOut.getRowCount()-1, resultValuesTable[s][14]);
+			tableOut.set("R2-mass",          tableOut.getRowCount()-1, resultValuesTable[s][9]);
+			tableOut.set("R2-boundary",      tableOut.getRowCount()-1, resultValuesTable[s][14]);
 	}
 	
 	/** 
@@ -969,20 +972,20 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		    //Boundary 5 Intercept, 6 Dim, 7 InterceptStdErr, 8 SlopeStdErr, 9 RSquared		
 			//fill table with values
 			tableOut.appendRow();
-			tableOut.set("File name",	   	 tableOut.getRowCount() - 1, datasetName);	
+			tableOut.set("File name",	 tableOut.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null)	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numImages);	
-			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
-			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
+			tableOut.set("RegMin",       tableOut.getRowCount()-1, regMin);	
+			tableOut.set("RegMax",       tableOut.getRowCount()-1, regMax);	
 			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
-			tableOut.set("FFI",         	 tableOut.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
-			tableOut.set("FFDI",         	 tableOut.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
+			tableOut.set("FFI",          tableOut.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
+			tableOut.set("FFDI",         tableOut.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
 			tableOut.set("D1",         	 tableOut.getRowCount()-1, resultValuesTable[s][1]); //D1
-			tableOut.set("D-mass",          tableOut.getRowCount()-1, resultValuesTable[s][6]); //Dmass
-			tableOut.set("D-boundary",      tableOut.getRowCount()-1, resultValuesTable[s][11]); //D-boundary
-			tableOut.set("R2-D1",         	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
-			tableOut.set("R2-mass",         tableOut.getRowCount()-1, resultValuesTable[s][9]);
-			tableOut.set("R2-boundary",     tableOut.getRowCount()-1, resultValuesTable[s][14]);
+			tableOut.set("D-mass",       tableOut.getRowCount()-1, resultValuesTable[s][6]); //Dmass
+			tableOut.set("D-boundary",   tableOut.getRowCount()-1, resultValuesTable[s][11]); //D-boundary
+			tableOut.set("R2-D1",        tableOut.getRowCount()-1, resultValuesTable[s][4]);
+			tableOut.set("R2-mass",      tableOut.getRowCount()-1, resultValuesTable[s][9]);
+			tableOut.set("R2-boundary",  tableOut.getRowCount()-1, resultValuesTable[s][14]);
 		}
 	}
 							
@@ -995,11 +998,11 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		int regMin          = spinnerInteger_RegMin;
-		int regMax          = spinnerInteger_RegMax;
-		int numBoxes        = spinnerInteger_NumBoxes;
+		int regMin   = spinnerInteger_RegMin;
+		int regMax   = spinnerInteger_RegMax;
+		int numBoxes = spinnerInteger_NumBoxes;
 		
-		//String scanningType  = choiceRadioButt_ScanningType;	
+		//String scanningType    = choiceRadioButt_ScanningType;	
 		//String colorModelType  = choiceRadioButt_ColorModelType;	
 //		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
 //			regMin = 2; //regMin == 1 (single pixel box is not possible for DBC algorithms)
