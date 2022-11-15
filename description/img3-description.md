@@ -51,3 +51,19 @@
 - In the original paper accuracy=30 and confidence=5
 - But it is recommended to set accuracy and confidence as high as computation times allow
 - Ref.: Reiss et al., Chaos, 2016, DOI 10.1063/1.4966539
+
+### 3D Fractal fragmentation indices
+- Fractal fragmentation index FFI
+- Fractal fragmentation and disorder index FFDI
+- 8-bit binary image volume
+- Binary [0, >0] algorithm
+- FFI = FD of mass - FD of boundary
+- FFI is the fractal dimension of the image - Fractal dimension of the boundary image
+- Boundary volume = volume - Eroded volume (erosion by one pixel)
+- FFDI = D1(1-FFI)
+- D1 is the Information dimension
+- Fractal dimension computations with 3D Box counting (raster box scanning)
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set 
+- Ref: Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
+
