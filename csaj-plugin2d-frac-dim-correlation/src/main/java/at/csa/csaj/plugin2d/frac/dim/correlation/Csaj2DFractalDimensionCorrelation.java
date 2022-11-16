@@ -110,7 +110,7 @@ import io.scif.MetaTable;
 //public class Img2DFractalDimensionCorrelation<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
 public class Csaj2DFractalDimensionCorrelation<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal Correlation dimension</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes Correlation dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -321,11 +321,9 @@ public class Csaj2DFractalDimensionCorrelation<T extends RealType<T>> extends Co
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Sliding box";
     }
-  
     protected void initialColorModelType() {
     	choiceRadioButt_ColorModelType = "Binary";
-    }
-    
+    } 
     protected void initialPixelPercentage() {
       	spinnerInteger_PixelPercentage = 10;
     }
@@ -912,12 +910,12 @@ public class Csaj2DFractalDimensionCorrelation<T extends RealType<T>> extends Co
 			//fill table with values
 			tableOut.appendRow();
 			tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) 	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numBoxes);	
+			if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",    	     tableOut.getRowCount()-1, numBoxes);	
 			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
 			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
-			tableOut.set("Scanning type",   tableOut.getRowCount()-1, scanningType);
-			tableOut.set("Color model",     tableOut.getRowCount()-1, colorModelType);
+			tableOut.set("Scanning type",    tableOut.getRowCount()-1, scanningType);
+			tableOut.set("Color model",      tableOut.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
 			tableOut.set("Dc",          	 tableOut.getRowCount()-1, resultValuesTable[s][1]);
 			tableOut.set("R2",          	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
@@ -929,11 +927,11 @@ public class Csaj2DFractalDimensionCorrelation<T extends RealType<T>> extends Co
 	*/
 	private void writeAllResultsToTable() {
 	
-		int numBoxes         = spinnerInteger_NumBoxes;
-		int regMin           = spinnerInteger_RegMin;
-		int regMax           = spinnerInteger_RegMax;
-		int pixelPercentage  = spinnerInteger_PixelPercentage;
-		String scanningType  = choiceRadioButt_ScanningType;
+		int numBoxes           = spinnerInteger_NumBoxes;
+		int regMin             = spinnerInteger_RegMin;
+		int regMax             = spinnerInteger_RegMax;
+		int pixelPercentage    = spinnerInteger_PixelPercentage;
+		String scanningType    = choiceRadioButt_ScanningType;
 		String colorModelType  = choiceRadioButt_ColorModelType;	
 		
 		//loop over all slices
@@ -941,17 +939,17 @@ public class Csaj2DFractalDimensionCorrelation<T extends RealType<T>> extends Co
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
 			tableOut.appendRow();
-			tableOut.set("File name",	   	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null)	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numBoxes);	
-			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
-			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
+			tableOut.set("File name",	   	tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null)	    tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",    	    tableOut.getRowCount()-1, numBoxes);	
+			tableOut.set("RegMin",      	tableOut.getRowCount()-1, regMin);	
+			tableOut.set("RegMax",      	tableOut.getRowCount()-1, regMax);	
 			tableOut.set("Scanning type",   tableOut.getRowCount()-1, scanningType);
 			tableOut.set("Color model",     tableOut.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
-			tableOut.set("Dc",          	 tableOut.getRowCount()-1, resultValuesTable[s][1]);
-			tableOut.set("R2",          	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
-			tableOut.set("StdErr",      	 tableOut.getRowCount()-1, resultValuesTable[s][3]);		
+			tableOut.set("Dc",          	tableOut.getRowCount()-1, resultValuesTable[s][1]);
+			tableOut.set("R2",          	tableOut.getRowCount()-1, resultValuesTable[s][4]);
+			tableOut.set("StdErr",      	tableOut.getRowCount()-1, resultValuesTable[s][3]);		
 		}
 	}
 							
