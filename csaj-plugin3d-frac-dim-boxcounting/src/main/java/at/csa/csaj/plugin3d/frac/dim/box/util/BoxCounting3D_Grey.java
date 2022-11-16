@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing fractal dimension with 3D box counting.
- * File: BoxCounting3D_Grey_Binary.java
+ * File: BoxCounting3D_Grey.java
  * 
  * $Id$
  * $HeadURL$
