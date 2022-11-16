@@ -40,7 +40,7 @@ import net.imglib2.type.numeric.RealType;
  * @since 2022-11-11  
  */
 
-public class BoxCounting3D_Grey_Binary implements BoxCounting3DMethods{
+public class BoxCounting3D_Grey implements BoxCounting3DMethods{
 	
 	private RandomAccessibleInterval<?> rai = null;
 	private int numBoxes = 0;
@@ -49,6 +49,8 @@ public class BoxCounting3D_Grey_Binary implements BoxCounting3DMethods{
 	private long depth = 0;
 	private double[] totals = null;
 	private double[] eps = null;
+	private String scanningType;
+	private String colorModelType;
 	private WaitingDialogWithProgressBar dlgProgress;
 	private StatusService statusService;
 	
@@ -78,17 +80,19 @@ public class BoxCounting3D_Grey_Binary implements BoxCounting3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public BoxCounting3D_Grey_Binary(RandomAccessibleInterval<?> rai, int numBoxes, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
-		this.rai           = rai;
-		this.width         = rai.dimension(0);
-		this.height        = rai.dimension(1);
-		this.depth         = rai.dimension(2);
-		this.numBoxes      = numBoxes;
-		this.dlgProgress   = dlgProgress;
-		this.statusService = statusService;
+	public BoxCounting3D_Grey(RandomAccessibleInterval<?> rai, int numBoxes, String scanningType, String colorModelType, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
+		this.rai             = rai;
+		this.width           = rai.dimension(0);
+		this.height          = rai.dimension(1);
+		this.depth           = rai.dimension(2);
+		this.numBoxes        = numBoxes;
+		this.scanningType    = scanningType;
+		this.colorModelType  = colorModelType;
+		this.dlgProgress     = dlgProgress;
+		this.statusService   = statusService;
 	}
 
-	public BoxCounting3D_Grey_Binary() {
+	public BoxCounting3D_Grey() {
 	}
 
 	/**
@@ -113,6 +117,7 @@ public class BoxCounting3D_Grey_Binary implements BoxCounting3DMethods{
 		long L1 = width;
 	    long L2 = height;
 		long L3 = depth;
+		int delta = 0;
 		RandomAccess<RealType<?>>ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		long[] pos = new long[3];
 		int pixelValue;
@@ -133,17 +138,18 @@ public class BoxCounting3D_Grey_Binary implements BoxCounting3DMethods{
 			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
 			statusService.showStatus((b+1), numBoxes, "Processing " + (b+1) + "/" + numBoxes);
 			
-			int boxsize = (int)eps[b];
-		
-			for (int x = 0; x <= L1 - boxsize; x += boxsize) {
-				for (int y = 0; y <= L2 - boxsize; y += boxsize) {
-					for (int z = 0; z <= L3 - boxsize; z += boxsize) {
+			int boxSize = (int)eps[b];
+			if      (scanningType.equals("Raster box"))  delta = boxSize;
+			else if (scanningType.equals("Sliding box")) delta = 1;
+			for (int x = 0; x <= L1 - boxSize; x += delta) {
+				for (int y = 0; y <= L2 - boxSize; y += delta) {
+					for (int z = 0; z <= L3 - boxSize; z += delta) {
 			
 						pixelFound = false;
-						for (int xx = x; xx <= x + (boxsize - 1); xx++) {
-							for (int yy = y; yy <= y + (boxsize - 1); yy++) {
-								for (int zz = z; zz <= z + (boxsize - 1); zz++) {	
-									//if (boxsize == 256) System.out.println("pos  xx:" + xx + "  yy:" +yy + "  zz:"+zz ) ;
+						for (int xx = x; xx <= x + (boxSize - 1); xx++) {
+							for (int yy = y; yy <= y + (boxSize - 1); yy++) {
+								for (int zz = z; zz <= z + (boxSize - 1); zz++) {	
+									//if (boxSize == 256) System.out.println("pos  xx:" + xx + "  yy:" +yy + "  zz:"+zz ) ;
 									pos[0] = xx;
 									pos[1] = yy;
 									pos[2] = zz;

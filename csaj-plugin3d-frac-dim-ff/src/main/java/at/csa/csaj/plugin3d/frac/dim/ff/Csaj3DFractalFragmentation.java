@@ -87,7 +87,7 @@ import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3DMethods;
-import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3D_Grey_Binary;
+import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3D_Grey;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -896,58 +896,55 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
-			if (scanningType.equals("Raster box") && colorModelType.equals("Binary")) {
-				//cd3DMass  = new CorrelationDimension3D_Grey_Binary(rai, numBoxes, dlgProgress, statusService);
-				bc3DMass  = new BoxCounting3D_Grey_Binary(rai, numBoxes, dlgProgress, statusService);
-				
-				//*********create boundary image
-				//Compute erode image
-				RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
-				Runtime runtime  = Runtime.getRuntime();
-				long maxMemory   = runtime.maxMemory();
-				long totalMemory = runtime.totalMemory();
-				long freeMemory  = runtime.freeMemory();
-				int availableProcessors = runtime.availableProcessors();
-				//System.out.println("available processors: " + availableProcessors);
-				
-				int numThreads = 6; //For erosion //with 6 it was 3 times faster than only with one thread
-				if (numThreads > availableProcessors) numThreads = availableProcessors;
+			//cd3DMass  = new CorrelationDimension3D_Grey_Binary(rai, numBoxes, dlgProgress, statusService);
+			bc3DMass  = new BoxCounting3D_Grey(rai, numBoxes, scanningType, colorModelType, dlgProgress, statusService);
+			
+			//*********create boundary image
+			//Compute erode image
+			RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
+			Runtime runtime  = Runtime.getRuntime();
+			long maxMemory   = runtime.maxMemory();
+			long totalMemory = runtime.totalMemory();
+			long freeMemory  = runtime.freeMemory();
+			int availableProcessors = runtime.availableProcessors();
+			//System.out.println("available processors: " + availableProcessors);
+			
+			int numThreads = 6; //For erosion //with 6 it was 3 times faster than only with one thread
+			if (numThreads > availableProcessors) numThreads = availableProcessors;
 
-				long[] pos = new long[3];
-				int pixelValueImgOrig;
-				float pixelValueImgTemp;
-				
-				imgFloat = createImgFloat(rai);
-				imgTemp = Erosion.erode(imgFloat, kernel, numThreads); //eroded image
-				//uiService.show("Eroded image", imgTemp);
-				ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-				//subtraction ImgOrig - ImgErode
-				cursorF = imgTemp.localizingCursor();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					ra.setPosition(pos);
-					pixelValueImgTemp = ((FloatType) cursorF.get()).get();    //eroded image
-					pixelValueImgOrig = ((UnsignedByteType) ra.get()).getInteger(); //original image
-					// Binary Image: 0 and [1, 255]! and not: 0 and 255
-					if ((pixelValueImgOrig > 0) && (pixelValueImgTemp == 0)) {
-						((FloatType) cursorF.get()).set(255f);					
-					} else {
-						((FloatType) cursorF.get()).set(0f);		
-					}
+			long[] pos = new long[3];
+			int pixelValueImgOrig;
+			float pixelValueImgTemp;
+			
+			imgFloat = createImgFloat(rai);
+			imgTemp = Erosion.erode(imgFloat, kernel, numThreads); //eroded image
+			//uiService.show("Eroded image", imgTemp);
+			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+			//subtraction ImgOrig - ImgErode
+			cursorF = imgTemp.localizingCursor();
+			while (cursorF.hasNext()) {
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				pixelValueImgTemp = ((FloatType) cursorF.get()).get();    //eroded image
+				pixelValueImgOrig = ((UnsignedByteType) ra.get()).getInteger(); //original image
+				// Binary Image: 0 and [1, 255]! and not: 0 and 255
+				if ((pixelValueImgOrig > 0) && (pixelValueImgTemp == 0)) {
+					((FloatType) cursorF.get()).set(255f);					
+				} else {
+					((FloatType) cursorF.get()).set(0f);		
 				}
-				uiService.show("Boundary image", imgTemp);
-				
-				//Db boundary
-				bc3DPerim = new BoxCounting3D_Grey_Binary(imgFloat, numBoxes, dlgProgress, statusService);
-				plot_method="3D - Double Log Plots - FFI & FFDI";
-				xAxis = "ln(Box size)";
-				yAxis = "ln(Count)";
 			}
+			//uiService.show("Boundary image", imgTemp);
+			
+			//Db boundary
+			bc3DPerim = new BoxCounting3D_Grey(imgFloat, numBoxes, scanningType, colorModelType, dlgProgress, statusService);
+			plot_method="3D - Double Log Plots - FFI & FFDI";
+			xAxis = "ln(Box size)";
+			yAxis = "ln(Count)";
+			
 			//******************************************************************************************************************************************
-			//IF
-			//******************************************************************************************************************************************
-			//IF
+			
 			
 		} else if (imageType.equals("RGB")) { // RGB image  //additional check, is already checked during validation of active dataset
 		

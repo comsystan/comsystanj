@@ -81,7 +81,7 @@ import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3DMethods;
-import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3D_Grey_Binary;
+import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3D_Grey;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -102,7 +102,7 @@ menu = {
 //public class Csaj3DFractalDimensionBoxCounting<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class Csaj3DFractalDimensionBoxCounting<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
-	private static final String PLUGIN_LABEL            = "Computes fractal dimension with 3D box counting";
+	private static final String PLUGIN_LABEL            = "Computes 3D Box counting dimension";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method</b></html>";
@@ -223,7 +223,7 @@ public class Csaj3DFractalDimensionBoxCounting<T extends RealType<T>> extends Co
      @Parameter(label = "Scanning method",
     		    description = "Type of 3D box scanning",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-      		    choices = {"Raster box"}, //"Sliding box" 
+      		    choices = {"Raster box"}, //"Raster box", "Sliding box" //3D Sliding box is implemented but very long lasting
       		    persist = true,  //restore previous value default = true
     		    initializer = "initialScanningType",
                 callback = "callbackScanningType")
@@ -832,17 +832,11 @@ public class Csaj3DFractalDimensionBoxCounting<T extends RealType<T>> extends Co
 		
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
-			if (scanningType.equals("Raster box") && colorModelType.equals("Binary")) {
-				bc3D = new BoxCounting3D_Grey_Binary(rai, numBoxes, dlgProgress, statusService);	
+				bc3D = new BoxCounting3D_Grey(rai, numBoxes, scanningType, colorModelType, dlgProgress, statusService);	
 				plot_method="Box counting 3D - Raster box Binary";
 				xAxis = "ln(Box size)";
 				yAxis = "ln(Count)";
-			}
-			//******************************************************************************************************************************************
-			//IF
-			//******************************************************************************************************************************************
-			//IF
-			
+			//******************************************************************************************************************************************		
 		} else if (imageType.equals("RGB")) { // RGB image  //additional check, is already checked during validation of active dataset
 		
 			//no method implemented
