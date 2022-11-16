@@ -14,6 +14,7 @@ Changed plugin names and paths
 
 New
 3D Volume - Box counting dimension
+3D Volume - Correlation dimension
 3D Volume - FFI & FFDI
 
 Bugfixes
