@@ -19,13 +19,24 @@
 - This is a direct expansion of the 2D algorithm
 - 8-bit grey image volume
 - Binary [0, >0] algorithm
+- Raster box scanning
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set
+
+### 3D Correlation dimension
+- Fractal dimension is computed with 3D correlation
+- This is a direct expansion of the 2D algorithm
+- 8-bit grey image volume
+- Binary [0, >0] or grey value correlation
+- Fast Raster box scanning instead of slow sliding box scanning
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set
 
 ### 3D Higuchi dimension
 - Fractal dimension is computed with Higuchi inspired 3D algorithms
 - This is a direct expansion of the 2D algorithms
-- 8-bit grey images
+- 8-bit grey image volume
+- Grey value algorithm
 - Several options can be chosen
 - Linear regression parameters of the double log plot can be set
 - Ref.: Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
@@ -45,6 +56,7 @@
 - Fractal dimension is computed by using the 3D tug of war algorithm
 - 8bit binary image volume
 - Binary [0, >0] algorithm
+- Grey value algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set
 - The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
@@ -57,8 +69,9 @@
 - Fractal fragmentation and disorder index FFDI
 - 8-bit binary image volume
 - Binary [0, >0] algorithm
+- Raster box scanning
 - FFI = FD of mass - FD of boundary
-- FFI is the fractal dimension of the image - Fractal dimension of the boundary image
+- FFI is the Box counting dimension of the volume (mass) - Box counting dimension of the boundary volume
 - Boundary volume = volume - Eroded volume (erosion by one pixel)
 - FFDI = D1(1-FFI)
 - D1 is the Information dimension
