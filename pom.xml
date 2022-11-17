@@ -72,6 +72,7 @@
 		<module>csaj-plugin3d-frac-dim-correlation</module>
 		<module>csaj-plugin3d-frac-dim-ff</module>
 		<module>csaj-plugin3d-frac-dim-fft</module>
+		<module>csaj-plugin3d-frac-dim-generalized</module>
 		<module>csaj-plugin3d-frac-dim-higuchi3d</module>
 		<module>csaj-plugin3d-frac-dim-tugofwar</module>
 		<module>csaj-plugin3d-generator</module>
