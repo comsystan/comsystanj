@@ -83,8 +83,8 @@ import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
-import at.csa.csaj.plugin3d.frac.dim.correlation.util.Correlation3DMethods;
-import at.csa.csaj.plugin3d.frac.dim.correlation.util.Correlation3D_Grey;
+import at.csa.csaj.plugin3d.frac.dim.correlation.util.CorrelationDim3DMethods;
+import at.csa.csaj.plugin3d.frac.dim.correlation.util.CorrelationDim3D_Grey;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -855,16 +855,16 @@ public class Csaj3DFractalDimensionCorrelation<T extends RealType<T>> extends Co
 		
 		double[] regressionParams = null;
 	
-		String plot_method = "3D Box counting dimension";
+		String plot_method = "3D Correlation dimension";
 		String xAxis = "ln(eps)";
 		String yAxis = "ln(Count)";
 		
-		Correlation3DMethods cd3D = null;
+		CorrelationDim3DMethods cd3D = null;
 		
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
-			cd3D = new Correlation3D_Grey(rai, numBoxes, scanningType, colorModelType, pixelPercentage, dlgProgress, statusService);	
-			plot_method="3D Correlation";
+			cd3D = new CorrelationDim3D_Grey(rai, numBoxes, scanningType, colorModelType, pixelPercentage, dlgProgress, statusService);	
+			plot_method="3D Correlation dimension";
 			xAxis = "ln(Box size)";
 			yAxis = "ln(Count)";
 		

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing the 3D Correlation dimension.
- * File: Correlation3D_Grey.java
+ * File: CorrelationDim3D_Grey.java
  * 
  * $Id$
  * $HeadURL$
@@ -42,7 +42,7 @@ import net.imglib2.view.Views;
  * @since 2022-11-16  
  */
 
-public class Correlation3D_Grey implements Correlation3DMethods{
+public class CorrelationDim3D_Grey implements CorrelationDim3DMethods{
 	
 	private RandomAccessibleInterval<?> rai = null;
 	private static RandomAccessibleInterval<?> raiBox;
@@ -86,7 +86,7 @@ public class Correlation3D_Grey implements Correlation3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public Correlation3D_Grey(RandomAccessibleInterval<?> rai, int numBoxes, String scanningType, String colorModelType, int pixelPercentage, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
+	public CorrelationDim3D_Grey(RandomAccessibleInterval<?> rai, int numBoxes, String scanningType, String colorModelType, int pixelPercentage, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
 		this.rai             = rai;
 		this.width           = rai.dimension(0);
 		this.height          = rai.dimension(1);
@@ -99,11 +99,11 @@ public class Correlation3D_Grey implements Correlation3DMethods{
 		this.statusService   = statusService;
 	}
 
-	public Correlation3D_Grey() {
+	public CorrelationDim3D_Grey() {
 	}
 
 	/**
-	 * This method calculates the Higuchi dimension in 3D
+	 * This method calculates the 3D Correlation dimension
 	 * @return totals
 	 */
 	@Override

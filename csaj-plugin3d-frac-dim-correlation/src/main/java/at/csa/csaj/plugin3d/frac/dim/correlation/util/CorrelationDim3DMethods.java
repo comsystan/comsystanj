@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin for computing the 3D Correlation dimension.
- * File: Correlation3DMethods.java
+ * File: CorrelationDim3DMethods.java
  * 
  * $Id$
  * $HeadURL$
@@ -28,7 +28,7 @@
 
 package at.csa.csaj.plugin3d.frac.dim.correlation.util;
 
-public interface Correlation3DMethods{
+public interface CorrelationDim3DMethods{
 
 
 	int[] calcEps();
