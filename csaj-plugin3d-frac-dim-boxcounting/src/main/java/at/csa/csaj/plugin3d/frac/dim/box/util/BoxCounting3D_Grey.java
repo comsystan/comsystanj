@@ -96,7 +96,7 @@ public class BoxCounting3D_Grey implements BoxCounting3DMethods{
 	}
 
 	/**
-	 * This method calculates the Higuchi dimension in 3D
+	 * This method calculates the 3D Box counting dimension
 	 * @return totals
 	 */
 	@Override

@@ -868,9 +868,9 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		int regMax            = spinnerInteger_RegMax;
 		int numBoxes          = spinnerInteger_NumBoxes;
 		String fractalDimType = "Box counting"; // choiceRadioButt_FractalDimType;
-		//NOTE: IF numMinQ IS CHANGED, THE lnDatY[q] FOR THE REGRESSION MUST ALSO BE CHANGED***********************************************
-		int numMinQ            = 0; //NOTE!!!!  //spinnerInteger_NumMinQ;
-		int numMaxQ            = 2; //spinnerInteger_NumMaxQ;
+		//NOTE: IF minQ IS CHANGED, THE lnDatY[q] FOR THE REGRESSION MUST ALSO BE CHANGED***********************************************
+		int minQ            = 0; //NOTE!!!!  //spinnerInteger_MinQ;
+		int maxQ            = 2; //spinnerInteger_MaxQ;
 		String scanningType   = choiceRadioButt_ScanningType;    //Raster box     Sliding box
 		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
@@ -952,7 +952,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 
 		}
 			
-		int numQ = numMaxQ - numMinQ + 1;
+		int numQ = maxQ - minQ + 1;
 		double[][] totalsGen         = new double[numQ][numBoxes]; //several Generalized dims will be computed but only one will be taken in the end
 		double[]   totalsMass        = new double[numBoxes];
 		double[]   totalsBoundary    = new double[numBoxes];
@@ -985,9 +985,9 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 						lnTotalsGen[q][n] = Double.NaN;
 					} else {
 						//lnTotals[numBoxes - n - 1] = Math.log(totals[n]);//IQM
-						if ((q + numMinQ) != 1)
+						if ((q + minQ) != 1)
 							lnTotalsGen[q][n] = Math.log(totalsGen[q][n]);
-						if ((q + numMinQ) == 1) //D1
+						if ((q + minQ) == 1) //D1
 							lnTotalsGen[q][n] = totalsGen[q][n];
 					}
 				}
@@ -1030,7 +1030,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	
 		for (int n = 0; n < numBoxes; n++) {
 			//Take only one dimension out of the gneralized dimensions
-			lnDataY[0][n]  = lnTotalsGen[1][n];	 //Index 1 for D1 (BUT ONLY IF numMinQ = 0  !!!!!!!!!)
+			lnDataY[0][n]  = lnTotalsGen[1][n];	 //Index 1 for D1 (BUT ONLY IF minQ = 0  !!!!!!!!!)
 			lnDataY[1][n]  = lnTotalsMass[n];	
 			lnDataY[2][n]  = lnTotalsBoundary[n];	
 			lnDataX[n]     = lnEps[n];

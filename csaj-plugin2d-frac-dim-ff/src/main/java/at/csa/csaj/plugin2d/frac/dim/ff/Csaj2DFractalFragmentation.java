@@ -841,7 +841,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 				double dimMass  = Double.NaN;
 				double dimPerim = Double.NaN;	
 				dimD1    =  regressionValues[1]; //Slope for D1
-				//other wise dim = regressionValues[q][1]/(q + numMinQ - 1);
+				//other wise dim = regressionValues[q][1]/(q + minQ - 1);
 				dimMass  = -regressionValues[6];
 				dimPerim = -regressionValues[11];
 				
@@ -1009,9 +1009,9 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 //		}	
 		
 		String fractalDimType  = "Box counting"; //choiceRadioButt_FractalDimType;
-		//NOTE: IF numMinQ IS CHANGED, THE lnDatY[q] FOR THE REGRESSION MUST ALSO BE CHANGED***********************************************
-		int numMinQ            = 0; //NOTE!!!!  //spinnerInteger_NumMinQ;
-		int numMaxQ            = 2; //spinnerInteger_NumMaxQ;
+		//NOTE: IF minQ IS CHANGED, THE lnDatY[q] FOR THE REGRESSION MUST ALSO BE CHANGED***********************************************
+		int minQ            = 0; //NOTE!!!!  //spinnerInteger_MinQ;
+		int maxQ            = 2; //spinnerInteger_MaxQ;
 		String scanningType    = "Raster box";
 		int pixelPercentage    = 100;//spinnerInteger_PixelPercentage;
 		String colorModelType  = "Binary";	
@@ -1033,7 +1033,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//IterableInterval ii = dataset.getImgPlus();
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
 		
-		int numQ = numMaxQ - numMinQ + 1;
+		int numQ = maxQ - minQ + 1;
 		double[][][] totalsGen         = new double[numQ][numBoxes][numBands]; //several Generalized dims will be computed but only one will be taken in the end
 		double[][]   totalsGenMax      = new double[numBoxes][numBands];
 		double[][]   totalsMass        = new double[numBoxes][numBands];
@@ -1085,8 +1085,8 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 							// System.out.println("IqmOpFracGendim: b: "+b+ "   count: "+ count );
 							if (count > 0) {
 								for (int q = 0; q < numQ; q++) {
-									if ((q + numMinQ) == 1) totalsGen[q][n][b] = totalsGen[q][n][b] + count * Math.log(count); // D1
-									else                    totalsGen[q][n][b] = totalsGen[q][n][b] + Math.pow(count, (q + numMinQ)); // GenDim
+									if ((q + minQ) == 1) totalsGen[q][n][b] = totalsGen[q][n][b] + count * Math.log(count); // D1
+									else                    totalsGen[q][n][b] = totalsGen[q][n][b] + Math.pow(count, (q + minQ)); // GenDim
 								}
 							}
 						} //y	
@@ -1123,8 +1123,8 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 								// System.out.println("IqmOpFracGendim: b: "+b+ "   count: "+ count );
 								if (count > 0) {
 									for (int q = 0; q < numQ; q++) {
-										if ((q + numMinQ) == 1) totalsGen[q][n][b] = totalsGen[q][n][b] + count * Math.log(count); // D1
-										else                    totalsGen[q][n][b] = totalsGen[q][n][b] + Math.pow(count, (q + numMinQ)); // GenDim
+										if ((q + minQ) == 1) totalsGen[q][n][b] = totalsGen[q][n][b] + count * Math.log(count); // D1
+										else                    totalsGen[q][n][b] = totalsGen[q][n][b] + Math.pow(count, (q + minQ)); // GenDim
 									}
 								}
 							}
@@ -1391,9 +1391,9 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 						lnTotalsGen[q][n][b] = Double.NaN;
 					} else {
 						//lnTotals[numBoxes - n - 1][b] = Math.log(totals[n][b]);//IQM
-						if ((q + numMinQ) != 1)
+						if ((q + minQ) != 1)
 							lnTotalsGen[q][n][b] = Math.log(totalsGen[q][n][b]);
-						if ((q + numMinQ) == 1) //D1
+						if ((q + minQ) == 1) //D1
 							lnTotalsGen[q][n][b] = totalsGen[q][n][b];
 					}
 				}
@@ -1439,7 +1439,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//only first band!!!!!!!!!
 		for (int n = 0; n < numBoxes; n++) {
 			//Take only one dimension out of the gneralized dimensions
-			lnDataY[0][n]  = lnTotalsGen[1][n][0];	 //Index 1 for D1 (BUT ONLY IF numMinQ = 0  !!!!!!!!!)
+			lnDataY[0][n]  = lnTotalsGen[1][n][0];	 //Index 1 for D1 (BUT ONLY IF minQ = 0  !!!!!!!!!)
 			lnDataY[1][n]  = lnTotalsMass[n][0];	
 			lnDataY[2][n]  = lnTotalsBoundary[n][0];	
 			lnDataX[n]     = lnEps[n];

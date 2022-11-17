@@ -234,7 +234,7 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		       persist = false,   //restore previous value default = true
 		       initializer = "initialRegMax",
 		       callback = "callbackRegMax")
-     private int spinnerInteger_RegMax = 3;
+    private int spinnerInteger_RegMax = 3;
         
 //     @Parameter(label = "Box size distribution",
 //		    description = "linear or logarithm distribution of box sizes",
@@ -245,92 +245,92 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 //            callback = "callbackBoxSizeDistribution")
 //     private String choiceRadioButt_BoxSizeDistribution;
 	//-----------------------------------------------------------------------------------------------------
-     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-     private final String labelMethodOptions = METHODOPTIONS_LABEL;
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+    private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Min q",
-  		   description = "Number of minimal q",
+    @Parameter(label = "Min q",
+  		       description = "Number of minimal q",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "-32768",
 	           max = "32768",
 	           stepSize = "1",
 	           persist = true,  //restore previous value default = true
-	           initializer = "initialNumMinQ",
-	           callback = "callbackNumMinQ")
-     private int spinnerInteger_NumMinQ;
+	           initializer = "initialMinQ",
+	           callback = "callbackMinQ")
+    private int spinnerInteger_MinQ;
      
-     @Parameter(label = "Max q",
+    @Parameter(label = "Max q",
     		   description = "Number of maximal q",
   	       	   style = NumberWidget.SPINNER_STYLE,
   	           min = "-32768",
   	           max = "32768",
   	           stepSize = "1",
   	           persist = true,  //restore previous value default = true
-  	           initializer = "initialNumMaxQ",
-  	           callback = "callbackNumMaxQ")
-     private int spinnerInteger_NumMaxQ;
+  	           initializer = "initialMaxQ",
+  	           callback = "callbackMaxQ")
+    private int spinnerInteger_MaxQ;
      
-     @Parameter(label = "Scanning type",
- 		        description = "Fixed raster boxes or sliding boxes",
- 		        style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		        choices = {"Raster box", "Sliding box", "Fast sliding box (beta)"}, //Fast sliding box with image dilation does not work properly
-   		        persist = true,  //restore previous value default = true
- 		        initializer = "initialScanningType",
-                callback = "callbackScanningType")
-     private String choiceRadioButt_ScanningType;
+    @Parameter(label = "Scanning type",
+ 		       description = "Fixed raster boxes or sliding boxes",
+ 		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		       choices = {"Raster box", "Sliding box", "Fast sliding box (beta)"}, //Fast sliding box with image dilation does not work properly
+   		       persist = true,  //restore previous value default = true
+ 		       initializer = "initialScanningType",
+               callback = "callbackScanningType")
+    private String choiceRadioButt_ScanningType;
      
-     @Parameter(label = "Color model",
-  		        description = "Type of image and computation",
-  		        style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		    choices = {"Binary", "Grey"},
-    		    persist = true,  //restore previous value default = true
-  		        initializer = "initialColorModelType",
-                callback = "callbackColorModelType")
-     private String choiceRadioButt_ColorModelType;
+    @Parameter(label = "Color model",
+  		       description = "Type of image and computation",
+  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+    		   choices = {"Binary", "Grey"},
+    		   persist = true,  //restore previous value default = true
+  		       initializer = "initialColorModelType",
+               callback = "callbackColorModelType")
+    private String choiceRadioButt_ColorModelType;
      
-     @Parameter(label = "(Sliding box) Pixel %",
-  		        description = "% of image pixels to be taken - to lower computation times",
-	       	    style = NumberWidget.SPINNER_STYLE,
-	            min = "1",
-	            max = "100",
-	            stepSize = "1",
-	            persist = true,  //restore previous value default = true
-	            initializer = "initialPixelPercentage",
-	            callback    = "callbackPixelPercentage")
-     private int spinnerInteger_PixelPercentage;
+    @Parameter(label = "(Sliding box) Pixel %",
+  		       description = "% of image pixels to be taken - to lower computation times",
+	       	   style = NumberWidget.SPINNER_STYLE,
+	           min = "1",
+	           max = "100",
+	           stepSize = "1",
+	           persist = true,  //restore previous value default = true
+	           initializer = "initialPixelPercentage",
+	           callback    = "callbackPixelPercentage")
+    private int spinnerInteger_PixelPercentage;
      
  	//-----------------------------------------------------------------------------------------------------
-     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+    private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
-     @Parameter(label = "Show double log plot",
-    		    persist = true,  //restore previous value default = true
-  		        initializer = "initialShowDoubleLogPlots")
-	 private boolean booleanShowDoubleLogPlot;
+    @Parameter(label = "Show double log plot",
+    		   persist = true,  //restore previous value default = true
+  		       initializer = "initialShowDoubleLogPlots")
+	private boolean booleanShowDoubleLogPlot;
        
-     @Parameter(label = "Show Dq plot",
-  		        persist = true,  //restore previous value default = true
- 		        initializer = "initialShowDqPlot")
- 	 private boolean booleanShowDqPlot;
+    @Parameter(label = "Show Dq plot",
+  		       persist = true,  //restore previous value default = true
+ 		       initializer = "initialShowDqPlot")
+ 	private boolean booleanShowDqPlot;
       
-      @Parameter(label = "Show F spectrum",
-  		         persist = true,  //restore previous value default = true
- 		         initializer = "initialShowFSpectrum")
- 	 private boolean booleanShowFSpectrum;
+    @Parameter(label = "Show F spectrum",
+  		       persist = true,  //restore previous value default = true
+ 		       initializer = "initialShowFSpectrum")
+ 	private boolean booleanShowFSpectrum;
      
-     @Parameter(label = "Overwrite result display(s)",
-    	    	description = "Overwrite already existing result images, plots or tables",
-    	    	persist = true,  //restore previous value default = true
-    			initializer = "initialOverwriteDisplays")
-     private boolean booleanOverwriteDisplays;
+    @Parameter(label = "Overwrite result display(s)",
+    	       description = "Overwrite already existing result images, plots or tables",
+    	       persist = true,  //restore previous value default = true
+    		   initializer = "initialOverwriteDisplays")
+    private boolean booleanOverwriteDisplays;
      
- 	//-----------------------------------------------------------------------------------------------------
-     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
-     private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
+    //-----------------------------------------------------------------------------------------------------
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
+    private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
-     @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
-    	    	description = "Immediate processing of active image when a parameter is changed",
-    			callback = "callbackProcessImmediately")
+    @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+    	       description = "Immediate processing of active image when a parameter is changed",
+    		   callback = "callbackProcessImmediately")
     private boolean booleanProcessImmediately;
      
  	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
@@ -340,7 +340,7 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 	private int spinnerInteger_NumImageSlice;
 	
 	@Parameter(label   = "   Process single image #    ",
-		    	callback = "callbackProcessSingleImage")
+		       callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
@@ -374,11 +374,11 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 //    protected void initialBoxSizeDistribution() {
 //    	choiceRadioButt_BoxSizeDistribution = "Lin";
 //    }
-    protected void initialNumMinQ() {
-      	spinnerInteger_NumMinQ = -5;
+    protected void initialMinQ() {
+      	spinnerInteger_MinQ = -5;
     }
-    protected void initialNumMaxQ() {
-      	spinnerInteger_NumMaxQ = 5;
+    protected void initialMaxQ() {
+      	spinnerInteger_MaxQ = 5;
     }
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
@@ -455,20 +455,20 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 //		logService.info(this.getClass().getName() + " Box size distribution set to " + choiceRadioButt_BoxSizeDistribution);
 //		
 //	}
-	 /** Executed whenever the {@link #spinnerInteger_NumMinQ} parameter changes. */
-		protected void callbackNumMinQ() {
-			if (spinnerInteger_NumMinQ >= spinnerInteger_NumMaxQ) {
-				spinnerInteger_NumMinQ  = spinnerInteger_NumMaxQ - 1;
-			}
-			logService.info(this.getClass().getName() + " Minimal q set to " + spinnerInteger_NumMinQ);
+	/** Executed whenever the {@link #spinnerInteger_MinQ} parameter changes. */
+	protected void callbackMinQ() {
+		if (spinnerInteger_MinQ >= spinnerInteger_MaxQ) {
+			spinnerInteger_MinQ  = spinnerInteger_MaxQ - 1;
 		}
-		  /** Executed whenever the {@link #spinnerInteger_NumMaxQ} parameter changes. */
-			protected void callbackNumMaxQ() {
-				if (spinnerInteger_NumMaxQ <= spinnerInteger_NumMinQ) {
-					spinnerInteger_NumMaxQ  = spinnerInteger_NumMinQ + 1;
-				}
-				logService.info(this.getClass().getName() + " Minimal q set to " + spinnerInteger_NumMinQ);
-			}
+		logService.info(this.getClass().getName() + " Minimal q set to " + spinnerInteger_MinQ);
+	}
+	/** Executed whenever the {@link #spinnerInteger_MaxQ} parameter changes. */
+	protected void callbackMaxQ() {
+		if (spinnerInteger_MaxQ <= spinnerInteger_MinQ) {
+			spinnerInteger_MaxQ  = spinnerInteger_MinQ + 1;
+		}
+		logService.info(this.getClass().getName() + " Minimal q set to " + spinnerInteger_MinQ);
+	}
 	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
 	protected void callbackScanningType() {
 		logService.info(this.getClass().getName() + " Scanning method set to " + choiceRadioButt_ScanningType);
@@ -827,9 +827,9 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 	 */
 	private void processSingleInputImage(int s) {
 		long startTime = System.currentTimeMillis();
-		int numMinQ = this.spinnerInteger_NumMinQ;
-		int numMaxQ = this.spinnerInteger_NumMaxQ;
-		int numQ = numMaxQ - numMinQ + 1;
+		int minQ = this.spinnerInteger_MinQ;
+		int maxQ = this.spinnerInteger_MaxQ;
+		int numQ = maxQ - minQ + 1;
 		resultValuesTable = new double[numQ][(int) numSlices][10];
 		
 		//convert to float values
@@ -856,8 +856,8 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 			}
 			//Compute dimension
 			double dim = Double.NaN;
-			if ((q + numMinQ) == 1) dim = regressionValues[q][1]; //Slope
-			else                    dim = regressionValues[q][1]/(q + numMinQ - 1);
+			if ((q + minQ) == 1) dim = regressionValues[q][1]; //Slope
+			else                    dim = regressionValues[q][1]/(q + minQ - 1);
 			resultValuesTable[q][s][1] = dim;
 		} //q
 		
@@ -888,9 +888,9 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
-		int numMinQ = this.spinnerInteger_NumMinQ;
-		int numMaxQ = this.spinnerInteger_NumMaxQ;
-		int numQ = numMaxQ - numMinQ + 1;
+		int minQ = this.spinnerInteger_MinQ;
+		int maxQ = this.spinnerInteger_MaxQ;
+		int numQ = maxQ - minQ + 1;
 		resultValuesTable = new double[numQ][(int) numSlices][10];
 	
 		//convert to float values
@@ -937,8 +937,8 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 					}
 					//Compute dimension
 					double dim = Double.NaN;
-					if ((q + numMinQ) == 1) dim = regressionValues[q][1]; //Slope
-					else                    dim = regressionValues[q][1]/(q + numMinQ - 1);
+					if ((q + minQ) == 1) dim = regressionValues[q][1]; //Slope
+					else                    dim = regressionValues[q][1]/(q + minQ - 1);
 					resultValuesTable[q][s][1] = dim;
 				}//q
 				long duration = System.currentTimeMillis() - startTime;
@@ -980,8 +980,8 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
-		IntColumn columnNumMinQ            = new IntColumn("Min q");
-		IntColumn columnNumMaxQ            = new IntColumn("Max q");
+		IntColumn columnMinQ            = new IntColumn("Min q");
+		IntColumn columnMaxQ            = new IntColumn("Max q");
 		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		IntColumn columnPixelPercentage    = new IntColumn("(Sliding box) Pixel %");
@@ -992,17 +992,17 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		tableOut.add(columnMaxNumBoxes);
 		tableOut.add(columnRegMin);
 		tableOut.add(columnRegMax);
-		tableOut.add(columnNumMinQ);
-		tableOut.add(columnNumMaxQ);
+		tableOut.add(columnMinQ);
+		tableOut.add(columnMaxQ);
 		tableOut.add(columnScanningType);
 		tableOut.add(columnColorModelType);
 		tableOut.add(columnPixelPercentage);
 		
-		int numMinQ = spinnerInteger_NumMinQ;
-		int numMaxQ = spinnerInteger_NumMaxQ;
-		int numQ = numMaxQ - numMinQ + 1;
+		int minQ = spinnerInteger_MinQ;
+		int maxQ = spinnerInteger_MaxQ;
+		int numQ = maxQ - minQ + 1;
 		for (int q = 0; q < numQ; q++) {
-			tableOut.add(new GenericColumn("D" + (numMinQ + q)));
+			tableOut.add(new GenericColumn("D" + (minQ + q)));
 		}
 	}
 	
@@ -1015,8 +1015,8 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		int numBoxes          = spinnerInteger_NumBoxes;
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;
-		int numMinQ           = spinnerInteger_NumMinQ;
-		int numMaxQ           = spinnerInteger_NumMaxQ;
+		int minQ           = spinnerInteger_MinQ;
+		int maxQ           = spinnerInteger_MaxQ;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		String scanningType   = choiceRadioButt_ScanningType;
 		String colorModelType = choiceRadioButt_ColorModelType;	
@@ -1025,20 +1025,20 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 			//fill table with values
 			tableOut.appendRow();
-			tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null) 	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numBoxes);	
-			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);
-			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);
-			tableOut.set("Min q",      	 tableOut.getRowCount()-1, numMinQ);	
-			tableOut.set("Max q",      	 tableOut.getRowCount()-1, numMaxQ);	
-			tableOut.set("Scanning type",   tableOut.getRowCount()-1, scanningType);
-			tableOut.set("Color model",     tableOut.getRowCount()-1, colorModelType);
+			tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null) 	  tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",    	  tableOut.getRowCount()-1, numBoxes);	
+			tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);
+			tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+			tableOut.set("Min q",      	  tableOut.getRowCount()-1, minQ);	
+			tableOut.set("Max q",         tableOut.getRowCount()-1, maxQ);	
+			tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
+			tableOut.set("Color model",   tableOut.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) tableOut.set("(Sliding box) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
 			
-			int numQ = numMaxQ - numMinQ + 1;
+			int numQ = maxQ - minQ + 1;
 			for (int q = 0; q < numQ; q++) {
-				tableOut.set("D" + (numMinQ + q), tableOut.getRowCount()-1, resultValuesTable[q][s][1]);
+				tableOut.set("D" + (minQ + q), tableOut.getRowCount()-1, resultValuesTable[q][s][1]);
 			}	
 	}
 	
@@ -1050,8 +1050,8 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		int numBoxes          = spinnerInteger_NumBoxes;
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;
-		int numMinQ           = spinnerInteger_NumMinQ;
-		int numMaxQ           = spinnerInteger_NumMaxQ;
+		int minQ           = spinnerInteger_MinQ;
+		int maxQ           = spinnerInteger_MaxQ;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		String scanningType   = choiceRadioButt_ScanningType;	
 		String colorModelType = choiceRadioButt_ColorModelType;	
@@ -1066,15 +1066,15 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 			tableOut.set("# Boxes",    	 	 tableOut.getRowCount()-1, numBoxes);	
 			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
 			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
-			tableOut.set("Min q",      	 	 tableOut.getRowCount()-1, numMinQ);	
-			tableOut.set("Max q",      	 	 tableOut.getRowCount()-1, numMaxQ);	
+			tableOut.set("Min q",      	 	 tableOut.getRowCount()-1, minQ);	
+			tableOut.set("Max q",      	 	 tableOut.getRowCount()-1, maxQ);	
 			tableOut.set("Scanning type",    tableOut.getRowCount()-1, scanningType);
 			tableOut.set("Color model",      tableOut.getRowCount()-1, colorModelType);
 			if (scanningType.equals("Sliding box")) tableOut.set("(Sliding box) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
 			
-			int numQ = numMaxQ - numMinQ + 1;
+			int numQ = maxQ - minQ + 1;
 			for (int q = 0; q < numQ; q++) {
-				tableOut.set("D" + (numMinQ + q), tableOut.getRowCount()-1, resultValuesTable[q][s][1]);
+				tableOut.set("D" + (minQ + q), tableOut.getRowCount()-1, resultValuesTable[q][s][1]);
 			}			
 		}
 	}
@@ -1093,8 +1093,8 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		int regMin                   = spinnerInteger_RegMin;
 		int regMax                   = spinnerInteger_RegMax;
 		//String boxSizeDistribution = this.choiceRadioButt_BoxSizeDistribution;
-		int numMinQ                  = spinnerInteger_NumMinQ;
-		int numMaxQ                  = spinnerInteger_NumMaxQ;
+		int minQ                  = spinnerInteger_MinQ;
+		int maxQ                  = spinnerInteger_MaxQ;
 		String scanningType          = choiceRadioButt_ScanningType;	 
 		String colorModelType        = choiceRadioButt_ColorModelType;	
 		int pixelPercentage          = spinnerInteger_PixelPercentage;
@@ -1115,7 +1115,7 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		//IterableInterval ii = dataset.getImgPlus();
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
 		
-		int numQ = numMaxQ - numMinQ + 1;
+		int numQ = maxQ - minQ + 1;
 		double[][] regressionParams = new double[numQ][5];
 		double[][][] totals         = new double[numQ][numBoxes][numBands];
 		double[][] totalsMax        = new double[numBoxes][numBands]; //for binary images
@@ -1192,8 +1192,8 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 								// System.out.println("IqmOpFracGendim: b: "+b+ "   count: "+ count );
 								if (count > 0) {
 									for (int q = 0; q < numQ; q++) {
-										if ((q + numMinQ) == 1) totals[q][n][b] = totals[q][n][b] + count * Math.log(count); // GenDim
-										else                    totals[q][n][b] = totals[q][n][b] + Math.pow(count, (q + numMinQ)); // GenDim
+										if ((q + minQ) == 1) totals[q][n][b] = totals[q][n][b] + count * Math.log(count); // GenDim
+										else                    totals[q][n][b] = totals[q][n][b] + Math.pow(count, (q + minQ)); // GenDim
 									}
 								}
 							} //y	
@@ -1230,10 +1230,10 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 									// System.out.println("IqmOpFracGendim: b: "+b+ "   count: "+ count );
 									if (count > 0) {
 										for (int q = 0; q < numQ; q++) {
-											if ((q + numMinQ) == 1)
+											if ((q + minQ) == 1)
 												totals[q][n][b] = totals[q][n][b] + count * Math.log(count); // GenDim
 											else
-												totals[q][n][b] = totals[q][n][b] + Math.pow(count, (q + numMinQ)); // GenDim
+												totals[q][n][b] = totals[q][n][b] + Math.pow(count, (q + minQ)); // GenDim
 										}
 									}
 								}
@@ -1333,10 +1333,10 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 						// System.out.println("IqmOpFracGendim: b: "+b+ "   count: "+ count );
 						if (count > 0) {
 							for (int q = 0; q < numQ; q++) {
-								if ((q + numMinQ) == 1)
+								if ((q + minQ) == 1)
 									totals[q][n][b] = totals[q][n][b] + count * Math.log(count); // GenDim
 								else
-									totals[q][n][b] = totals[q][n][b] + Math.pow(count, (q + numMinQ)); // GenDim
+									totals[q][n][b] = totals[q][n][b] + Math.pow(count, (q + minQ)); // GenDim
 							}
 						}
 					}//bands
@@ -1364,12 +1364,12 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 			lnEps[n] = Math.log(eps[n]);
 			for (int b = 0; b < numBands; b++) {
 				for (int q = 0; q < numQ; q++) {
-					//logService.info(this.getClass().getName() +  "n: " + n + "  q: " + (q + numMinQ) + "    totals[q][n][0]: "+ totals[q][n][0]);
+					//logService.info(this.getClass().getName() +  "n: " + n + "  q: " + (q + minQ) + "    totals[q][n][0]: "+ totals[q][n][0]);
 					if (totals[q][n][b] == 0)
 						totals[q][n][b] = Double.MIN_VALUE; // damit logarithmus nicht undefiniert ist
-					if ((q + numMinQ) != 1)
+					if ((q + minQ) != 1)
 						lnTotals[q][n][b] = Math.log(totals[q][n][b]);
-					if ((q + numMinQ) == 1)
+					if ((q + minQ) == 1)
 						lnTotals[q][n][b] = totals[q][n][b];
 				}
 				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n][b]);
@@ -1416,7 +1416,7 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 				}
 				String[] legendLabels = new String[numQ];
 				for (int q = 0; q < numQ; q++) {
-					legendLabels[q] = "q=" + (q + numMinQ); 
+					legendLabels[q] = "q=" + (q + minQ); 
 				}
 				RegressionPlotFrame doubleLogPlot = DisplayMultipleRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plot - Generalized dimensions", 
 						preName + datasetName, axisNameX, axisNameY, legendLabels,
@@ -1435,7 +1435,7 @@ public class Csaj2DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 			double [] genDimList = new double[numQ];
 			double [] qList   = new double[numQ];
 			for (int q = 0; q < numQ; q++) {
-				qList[q] = q + numMinQ;
+				qList[q] = q + minQ;
 				if (qList[q] == 1) genDimList[q] = regressionParams[q][1]; //Slope
 				else               genDimList[q] = regressionParams[q][1]/(qList[q] - 1);
 			}
