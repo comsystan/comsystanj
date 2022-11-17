@@ -12,7 +12,7 @@
 - Unzip the ComsystanJ-x.x.x.zip file and copy the folder to the Fiji's plugins folder. Alternatively, the .jar files can be imported using the Fiji command Plugins/Install. 
 
 ### Project descriptions
-- Processing 1D signals [- Description of plugins](description/Description1Dsignal.md) 
+- Processing 1D signals [- Description of plugins](description/Description1DSignal.md) 
 - Processing 2D images [- Description of plugins](description/Description2DImage.md) 
 - Processing 3D image volumes [- Description of plugins](description/Description3DVolume.md) 
 
