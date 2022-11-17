@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 plugin for computing the FFI and FFDI
+ * Project: ImageJ2 plugin for computing the fractal fragmentation indices
  * File: Csaj2DFractalFragmentation.java
  * 
  * $Id$
@@ -96,12 +96,12 @@ import io.scif.MetaTable;
 
 /**
  * A {@link ContextCommand} plugin computing
- * <the fractal fragmentation index FFI an the fractal fragmentation and disorder index FFDI</a>
+ * <the fractal fragmentation indices</a>
  * of an image.
  */
 @Plugin(type = ContextCommand.class,
 	headless = true,
-	label = "FFI & FFDI",
+	label = "Fractal fragmentation indices",
 	initializer = "initialPluginLaunch",
 	//iconPath = "/images/comsystan-??.png", //Menu entry icon
 	menu = {
@@ -112,7 +112,7 @@ import io.scif.MetaTable;
 //public class Img2DFractalFragmentation<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
 public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes FFI and FFDI</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes Fractal fragmentation indices</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -138,7 +138,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	private static int  numBoxes = 0;
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
-	private static final String tableOutName = "Table - FFI & FFDI";
+	private static final String tableOutName = "Table - Fractal fragmentation indices";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -592,7 +592,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	*/
 	protected void startWorkflowForSingleImage() {
 
-		dlgProgress = new WaitingDialogWithProgressBar("Computing FFDI index, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing fractal fragmentation indices, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -615,7 +615,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	*/
 	protected void startWorkflowForAllImages() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing FFDI index, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing fractal fragmentation indices, please wait... Open console window for further info.",
 					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -1462,7 +1462,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			legendLabels[1] = "D Mass";
 			legendLabels[2] = "D Boundary";
 			
-			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - FFI & FFDI", 
+			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - Fractal fragmentation indices", 
 					preName + datasetName, xAxisLabel, yAxisLabel, legendLabels,
 					regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);

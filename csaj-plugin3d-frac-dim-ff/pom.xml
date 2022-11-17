@@ -17,7 +17,7 @@
 	<version>2.1.0</version><!--ComsystanJ version-->
 
 	<name>3D Volume - Fractal dimension - Fractal fragmentation indices</name>
-	<description>ImageJ2 plugin for computing the 3D FFI and FFDI.</description>
+	<description>ImageJ2 plugin for computing the 3D fractal fragmentation indices.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2022</inceptionYear>
 	<organization>
@@ -115,6 +115,11 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-plugin3d-frac-dim-boxcounting</artifactId>
+			<version>2.1.0</version><!--ComsystanJ version-->
+		</dependency>
+			<dependency>
+			<groupId>at.csa.csaj</groupId>
+			<artifactId>csaj-plugin3d-frac-dim-generalized</artifactId>
 			<version>2.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>

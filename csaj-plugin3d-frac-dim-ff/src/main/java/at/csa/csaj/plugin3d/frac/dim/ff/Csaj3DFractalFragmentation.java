@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 plugin for computing the 3D FFI and FFDI.
+ * Project: ImageJ2 plugin for computing the 3D fractal fragmentation indices.
  * File: Csaj3DFractalFragmentation.java
  * 
  * $Id$
@@ -88,6 +88,8 @@ import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3DMethods;
 import at.csa.csaj.plugin3d.frac.dim.box.util.BoxCounting3D_Grey;
+import at.csa.csaj.plugin3d.frac.dim.generalized.util.GeneralizedDim3DMethods;
+import at.csa.csaj.plugin3d.frac.dim.generalized.util.GeneralizedDim3D_Grey;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -108,7 +110,7 @@ menu = {
 //public class Csaj3DFractalFragmentation<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
-	private static final String PLUGIN_LABEL            = "Computes 3D FFI and FFDI";
+	private static final String PLUGIN_LABEL            = "Computes 3D Fractal fragmentation indices";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -582,7 +584,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing 3D FFI &FFDI, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Computing 3D fractal fragmentation indices, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -873,6 +875,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		int maxQ            = 2; //spinnerInteger_MaxQ;
 		String scanningType   = choiceRadioButt_ScanningType;    //Raster box     Sliding box
 		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
+		int pixelPercentage   = 100; //spinnerInteger_PixelPercentage;
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 
 
@@ -890,13 +893,17 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		String xAxis = "ln(eps)";
 		String yAxis = "ln(Count)";
 		
-		//CorrelationDimension3DMethods cd3DMass  = null;
-		BoxCounting3DMethods          bc3DMass  = null;
-		BoxCounting3DMethods          bc3DPerim = null;
+		GeneralizedDim3DMethods   gd3DMass  = null;
+		BoxCounting3DMethods      bc3DMass  = null;
+		BoxCounting3DMethods      bc3DPerim = null;
 		
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
-			//cd3DMass  = new CorrelationDimension3D_Grey_Binary(rai, numBoxes, dlgProgress, statusService);
+			
+			//D1
+			gd3DMass = new GeneralizedDim3D_Grey(rai, numBoxes, minQ, maxQ, scanningType, colorModelType, pixelPercentage, dlgProgress, statusService);	
+			
+			//Db mass
 			bc3DMass  = new BoxCounting3D_Grey(rai, numBoxes, scanningType, colorModelType, dlgProgress, statusService);
 			
 			//*********create boundary image
@@ -939,7 +946,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			
 			//Db boundary
 			bc3DPerim = new BoxCounting3D_Grey(imgFloat, numBoxes, scanningType, colorModelType, dlgProgress, statusService);
-			plot_method="3D - Double Log Plots - FFI & FFDI";
+			plot_method="3D - Double Log Plots - fractal fragmentation indices";
 			xAxis = "ln(Box size)";
 			yAxis = "ln(Count)";
 			
@@ -959,7 +966,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		double[]   eps               = new double[numBoxes];
 		
 		eps            = bc3DMass.calcEps();
-		//totalsGen      = cd3DMass.calcTotals();
+		totalsGen      = gd3DMass.calcTotals();
 		totalsMass     = bc3DMass.calcTotals();
 		totalsBoundary = bc3DPerim.calcTotals();
 		
@@ -1050,7 +1057,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			legendLabels[1] = "D Mass";
 			legendLabels[2] = "D Boundary";
 			
-			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - FFI & FFDI", 
+			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - fractal fragmentation indices", 
 					preName + datasetName, xAxisLabel, yAxisLabel, legendLabels,
 					regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
