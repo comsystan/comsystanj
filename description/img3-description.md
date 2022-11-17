@@ -1,4 +1,4 @@
-## Image(3D) - Description of plugins
+## 3D Volume - Description of plugins
 
 ### 3D Image volume generator
 - Generates a single image volume
@@ -31,6 +31,16 @@
 - Fast Raster box scanning instead of slow sliding box scanning
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set
+
+### 3D Generalized dimensions
+- 3D Generalized fractal dimensions are computed
+- 8-bit binary or grey images
+- Binary [0, >0] or grey value mass algorithm
+- Raster box scanning
+- Dq and f-spectrum plots can be shown
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set
+- Ref: Ahammer et al., Physica D, 2003, DOI 10.1016/S0167-2789(03)00099-X
 
 ### 3D Higuchi dimension
 - Fractal dimension is computed with Higuchi inspired 3D algorithms
