@@ -75,6 +75,7 @@
 		<module>csaj-plugin3d-frac-dim-generalized</module>
 		<module>csaj-plugin3d-frac-dim-higuchi3d</module>
 		<module>csaj-plugin3d-frac-dim-tugofwar</module>
+		<module>csaj-plugin3d-frac-lacunarity</module>
 		<module>csaj-plugin3d-generator</module>
 	</modules>
 
