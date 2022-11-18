@@ -101,7 +101,7 @@ menu = {
 @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 @Menu(label = "ComsystanJ"),
 @Menu(label = "3D Volume"),
-@Menu(label = "3D Lacunarity", weight = 30)})
+@Menu(label = "3D Lacunarity", weight = 70)})
 //public class Csaj3DLacunarity<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class Csaj3DLacunarity<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
