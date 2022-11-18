@@ -241,14 +241,14 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
     private final String labelMethodOptions = METHODOPTIONS_LABEL;
     
-    @Parameter(label = "Method",
-    		   description = "Type of analysis",
+    @Parameter(label = "Scanning method",
+    		   description = "Type of 3D box scanning",
    		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
      		   choices = {"Raster box", "Sliding box", "Tug of war"}, //"Fast Sliding box" is not reliable
      		   persist = true,  //restore previous value default = true
-   		       initializer = "initialMethodType",
-               callback = "callbackMethodType")
-    private String choiceRadioButt_MethodType;
+   		       initializer = "initialScannningType",
+               callback = "callbackScanningType")
+    private String choiceRadioButt_ScanningType;
     
     @Parameter(label = "Color model",
  		       description = "Type of image and computation",
@@ -353,8 +353,8 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 //    	spinnerInteger_RegMax =  numBoxes;
 //    }
     
-    protected void initialMethodType() {
-    	choiceRadioButt_MethodType = "Raster box";
+    protected void initialScanningType() {
+    	choiceRadioButt_ScanningType = "Raster box";
     }
     
     protected void initialColorModelType() {
@@ -424,20 +424,20 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 //		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_RegMax);
 //	}
 
-	/** Executed whenever the {@link #choiceRadioButt_MethodType} parameter changes. */
-	protected void callbackMethodType() {
-		if (choiceRadioButt_MethodType.equals("Tug of war")) {
+	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
+	protected void callbackScanningType() {
+		if (choiceRadioButt_ScanningType.equals("Tug of war")) {
 			if (choiceRadioButt_ColorModelType.equals("Grey")) {
 				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
 				choiceRadioButt_ColorModelType = "Binary";
 			}
 		}
-		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_MethodType);
+		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
 	protected void callbackColorModelType() {
-		if (choiceRadioButt_MethodType.equals("Tug of war")) {
+		if (choiceRadioButt_ScanningType.equals("Tug of war")) {
 			if (choiceRadioButt_ColorModelType.equals("Grey")) {
 				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
 				choiceRadioButt_ColorModelType = "Binary";
@@ -934,7 +934,7 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
 		//IntColumn columnRegMin             = new IntColumn("RegMin");
 		//IntColumn columnRegMax             = new IntColumn("RegMax");
-		GenericColumn columnMethodType     = new GenericColumn("Method type");
+		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		DoubleColumn columnL_RP            = new DoubleColumn("<L>-R&P"); //weighted mean L
 		DoubleColumn columnL_SV            = new DoubleColumn("<L>-S&V");   //mean L
@@ -945,7 +945,7 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 		tableOut.add(columnMaxNumBoxes);
 		//tableOut.add(columnRegMin);
 		//tableOut.add(columnRegMax);
-		tableOut.add(columnMethodType);
+		tableOut.add(columnScanningType);
 		tableOut.add(columnColorModelType);
 		tableOut.add(columnL_RP);
 		tableOut.add(columnL_SV);
@@ -966,10 +966,10 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 	*/
 	private void writeSingleResultToTable(int sliceNumber) { 
 	
-		//int numBoxes   = spinnerInteger_NumBoxes;
-		//int regMin     	      = spinnerInteger_RegMin;
-		//int regMax     	      = spinnerInteger_RegMax;
-		String methodType     = choiceRadioButt_MethodType;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		//int regMin     	  = spinnerInteger_RegMin;
+		//int regMax     	  = spinnerInteger_RegMax;
+		String scanningType   = choiceRadioButt_ScanningType;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		int accuracy 	      = spinnerInteger_NumAcurracy;
 		int confidence        = spinnerInteger_NumConfidence;
@@ -984,22 +984,22 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 		//fill table with values
 		tableOut.appendRow();
 		tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
-		if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		if (sliceLabels != null)      tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 		tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
 		//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
 		//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
-		if (choiceRadioButt_MethodType.equals("Tug of war")) {
-			tableOut.set("Method type",   tableOut.getRowCount()-1, "Tug of war Acc" + accuracy + " Conf" + confidence);
+		if (scanningType.equals("Tug of war")) {
+			tableOut.set("Scanning type",   tableOut.getRowCount()-1, "Tug of war Acc" + accuracy + " Conf" + confidence);
 		}
-		else if (choiceRadioButt_MethodType.equals("Sliding box")) {
-			tableOut.set("Method type",   tableOut.getRowCount()-1, "Sliding box "  +pixelPercentage + "%");
+		else if (scanningType.equals("Sliding box")) {
+			tableOut.set("Scanning type",   tableOut.getRowCount()-1, "Sliding box "  +pixelPercentage + "%");
 		}
 		else {
-			tableOut.set("Method type",   tableOut.getRowCount()-1, methodType);
+			tableOut.set("Scanning type",   tableOut.getRowCount()-1, scanningType);
 		}
 		tableOut.set("Color model",       tableOut.getRowCount()-1, colorModelType);
-		tableOut.set("<L>-R&P",   		   tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
-		tableOut.set("<L>-S&V",   		   tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
+		tableOut.set("<L>-R&P",   		  tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
+		tableOut.set("<L>-S&V",   		  tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 1]); //last entry	
 		tableColLast = 6;
 		
 		int numParameters = resultValuesTable[s].length - 2; 
@@ -1015,10 +1015,11 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 	*/
 	private void writeAllResultsToTable() {
 	
-		//int numBoxes       = spinnerInteger_NumBoxes;
-		//int regMin            = spinnerInteger_RegMin;
-		//int regMax            = spinnerInteger_RegMax;
-		String methodType     = choiceRadioButt_MethodType;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		//int regMin          = spinnerInteger_RegMin;
+		//int regMax          = spinnerInteger_RegMax;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
+		String scanningType   = choiceRadioButt_ScanningType;
 		int accuracy 	      = spinnerInteger_NumAcurracy;
 		int confidence        = spinnerInteger_NumConfidence;
 		String colorModelType = choiceRadioButt_ColorModelType;	
@@ -1037,10 +1038,14 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 			tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
 			//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
 			//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
-			if (choiceRadioButt_MethodType.equals("Tug of war")) {
-				tableOut.set("Method type",   tableOut.getRowCount()-1, "Tug of war Acc"+accuracy + " Conf"+confidence);
-			} else {
-				tableOut.set("Method type",   tableOut.getRowCount()-1, methodType);
+			if (scanningType.equals("Tug of war")) {
+				tableOut.set("Scanning type",   tableOut.getRowCount()-1, "Tug of war Acc" + accuracy + " Conf" + confidence);
+			}
+			else if (scanningType.equals("Sliding box")) {
+				tableOut.set("Scanning type",   tableOut.getRowCount()-1, "Sliding box "  +pixelPercentage + "%");
+			}
+			else {
+				tableOut.set("Scanning type",   tableOut.getRowCount()-1, scanningType);
 			}
 			tableOut.set("Color model",       tableOut.getRowCount()-1, colorModelType);	
 			tableOut.set("<L>-R&P",   		   tableOut.getRowCount()-1, resultValuesTable[s][resultValuesTable[s].length - 2]); //
@@ -1065,10 +1070,10 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		//int numBoxes        = spinnerInteger_NumBoxes;
+		int numBoxes          = spinnerInteger_NumBoxes;
 		//int regMin          = spinnerInteger_RegMin;
 		//int regMax          = spinnerInteger_RegMax;
-		String method         = choiceRadioButt_MethodType;
+		String scanningType   = choiceRadioButt_ScanningType;
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		String colorModelType = choiceRadioButt_ColorModelType;	 //"Binary"  "Grey"
 		int accuracy 	      = spinnerInteger_NumAcurracy;
@@ -1089,10 +1094,10 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 		
 		long number_of_points = 0;
 		int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
-		if (method.equals("Raster box")) max_random_number = 1; //take always all boxes 
+		if (scanningType.equals("Raster box")) max_random_number = 1; //take always all boxes 
 		int random_number = 0;
 		//------------------------------------------------------------------------------------------
-		if (method.equals("Raster box") || method.equals("Sliding box")) {	
+		if (scanningType.equals("Raster box") || scanningType.equals("Sliding box")) {	
 			double mean = 0.0;
 			double var = 0.0;
 			//int epsWidth = 1;
@@ -1110,8 +1115,8 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 					mean = 0.0;
 					var = 0.0;
 					sample = 0;
-					if      (method.equals("Raster box")) delta = boxSize;
-					else if (method.equals("Sliding box")) delta = 1;
+					if      (scanningType.equals("Raster box")) delta = boxSize;
+					else if (scanningType.equals("Sliding box")) delta = 1;
 					//Raster through image
 					for (int x = 0; x <= (width-boxSize); x = x+delta){
 						for (int y = 0;  y <= (height-boxSize); y = y+delta){		
@@ -1155,8 +1160,8 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 					mean = 0.0;
 					var = 0.0;
 					sample = 0;
-					if      (method.equals("Raster box")) delta = boxSize;
-					else if (method.equals("Sliding box")) delta = 1;
+					if      (scanningType.equals("Raster box")) delta = boxSize;
+					else if (scanningType.equals("Sliding box")) delta = 1;
 					//Raster through image
 					for (int x = 0; x <= (width-boxSize); x = x+delta){
 						for (int y = 0;  y <= (height-boxSize); y = y+delta){	
@@ -1200,7 +1205,7 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 		//------------------------------------------------------------------------------------------
 		//this seems to be not accurate as it should be
 		//maybe convolution of kernel at boundaries make problems
-		else if (method.equals("Fast Sliding box")) {
+		else if (scanningType.equals("Fast Sliding box")) {
 			RectangleShape kernel;
 			Runtime runtime = Runtime.getRuntime();
 			long maxMemory = runtime.maxMemory();
@@ -1299,7 +1304,7 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 			} // 0>=l<=numEps loop through eps
 		}	
 		//------------------------------------------------------------------------------------------
-		else if (method.equals("Tug of war")) {	
+		else if (scanningType.equals("Tug of war")) {	
 			/**
 			 * 
 			 * Martin Reiss
@@ -1378,6 +1383,12 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 			for (int s = 0; s < sum2.length; s++) sum2[s] = 0.0;
 			sum = 0.0;
 			//epsWidth = 1;
+			
+			int a_prim = 0;
+			int b_prim = 0;
+			int c_prim = 0;
+			int d_prim = 0;
+			
 			if (L > 0) {
 				for (int b = 0; b < numBoxes; b++) {	
 						boxSize = boxSizes[b];
@@ -1385,10 +1396,10 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 						for(int s2_i = 0; s2_i < s2; s2_i++){
 							for(int s1_i = 0; s1_i < s1; s1_i++){	
 								
-								int a_prim = getPrimeNumber();
-								int b_prim = getPrimeNumber();
-								int c_prim = getPrimeNumber();
-								int d_prim = getPrimeNumber();
+								a_prim = getPrimeNumber();
+								b_prim = getPrimeNumber();
+								c_prim = getPrimeNumber();
+								d_prim = getPrimeNumber();
 		
 								for(int i = 0; i < L; i++){	
 									xx = (int)Math.round(xCoordinate[i]/boxSize); 
