@@ -34,7 +34,7 @@
 
 ### 3D Generalized dimensions
 - 3D Generalized fractal dimensions are computed
-- 8-bit binary or grey images
+- 8-bit binary or grey image volume
 - Binary [0, >0] or grey value mass algorithm
 - Raster box scanning
 - Dq and f-spectrum plots can be shown
@@ -73,6 +73,18 @@
 - In the original paper accuracy=30 and confidence=5
 - But it is recommended to set accuracy and confidence as high as computation times allow
 - Ref.: Reiss et al., Chaos, 2016, DOI 10.1063/1.4966539
+
+### 3D Lacunarity
+- This is a direct expansion of the 2D algorithms
+- 8-bit binary or grey image volume
+- The number of boxes with distinct sizes can be set
+- Shows a double logarithmic plot of lacunarities
+- Raster/Sliding box scanning or Tug of war method
+- Binary [0, >0] or grey value algorithm
+- Raster box scanning
+- \<L\>-R&P... Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [DOI10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
+- \<L\>-S&V... Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [DOI 10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
+- Ref.: Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### 3D Fractal fragmentation indices
 - Fractal fragmentation index FFI
