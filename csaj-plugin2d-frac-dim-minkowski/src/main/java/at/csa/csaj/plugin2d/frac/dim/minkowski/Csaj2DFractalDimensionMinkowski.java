@@ -1065,6 +1065,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 			imgUplusOne  = imgFloat.copy();
 			imgBminusOne = imgFloat.copy();
 			imgV = imgFloat.copy();
+	
 			
 			List<Shape> strel = new ArrayList<Shape>();  
 			if      (shapeType.equals("Square"))  strel = StructuringElements.square(1, 2); //3x3kernel, 2 dimensions
