@@ -24,7 +24,7 @@ Bugfixes
 
 
 Miscellaneous
-
+2D Image - Minkowski dimension - Added Disk and Diamond shapes
 
 Known issues
 ImageJ2/Fiji 2.7.0 - 2.9.0: 4-channel color images are not displayed correctly.
