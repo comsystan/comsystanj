@@ -16,6 +16,7 @@ New
 3D Volume - Box counting dimension
 3D Volume - Correlation dimension
 3D Volume - Generalized dimensions
+3D Volume - Minkowski dimension
 3D Volume - Fractal fragmentation indices
 3D Volume - Lacunarity
 
