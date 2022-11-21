@@ -59,6 +59,7 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.morphology.Dilation;
 import net.imglib2.algorithm.morphology.Erosion;
+import net.imglib2.algorithm.morphology.StructuringElements;
 import net.imglib2.algorithm.neighborhood.HorizontalLineShape;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.algorithm.neighborhood.Shape;
@@ -252,7 +253,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
      @Parameter(label = "Kernel shape type",
   		    	description = "Shape of morphological structuring element",
   		    	style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		    choices = {"Square", "Horizontal", "Vertical"},
+    		    choices = {"Square", "Disk", "Diamond", "Horizontal", "Vertical"},
     		    persist = true,  //restore previous value default = true
     		    initializer = "initialShapeType",
     		    callback = "callbackShapeType")
@@ -1020,10 +1021,14 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 //				}
 //			}//b
 			imgUnsignedByte = createImgUnsignedByte(rai); //This copies the image, otherwise the original image would be dilated
-			Shape kernel = null;
-			if (shapeType.equals("Square"))          kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
-			else if (shapeType.equals("Horizontal")) kernel = new HorizontalLineShape(1, 0, false); //1,0 ..one step horizontal 1,1.. one step vertical
-			else if (shapeType.equals("Vertical"))   kernel = new HorizontalLineShape(1, 1, false); //1,0 ..one step horizontal 1,1.. one step vertical
+				
+			List<Shape> strel = new ArrayList<Shape>();  
+			if      (shapeType.equals("Square"))  strel = StructuringElements.square(1, 2); //3x3kernel, 2 dimensions
+			else if (shapeType.equals("Disk"))    strel = StructuringElements.disk(1, 2);
+			else if (shapeType.equals("Diamond")) strel = StructuringElements.diamond(1, 2);
+			else if (shapeType.equals("Horizontal")) strel.add(new HorizontalLineShape(1, 0, false)); //1,0 ..one step horizontal 1,1.. one step vertical
+			else if (shapeType.equals("Vertical"))   strel.add(new HorizontalLineShape(1, 1, false)); //1,0 ..one step horizontal 1,1.. one step vertical			
+
 			Runtime runtime  = Runtime.getRuntime();
 			long maxMemory   = runtime.maxMemory();
 			long totalMemory = runtime.totalMemory();
@@ -1039,7 +1044,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 			for (int b = 0; b < numBands; b++) {
 				for (int n = 0; n < numDilations; n++) { //	
 					//Compute dilated image
-					Dilation.dilateInPlace(imgUnsignedByte, interval, kernel, numThreads); //dilateds image
+					Dilation.dilateInPlace(imgUnsignedByte, interval, strel, numThreads); //dilateds image
 					//uiService.show("Dilated image", imgUnsignedByte);
 					if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUnsignedByte);
 					cursorUBT = imgUnsignedByte.localizingCursor();	
@@ -1061,10 +1066,13 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 			imgBminusOne = imgFloat.copy();
 			imgV = imgFloat.copy();
 			
-			Shape kernel = null;
-			if (shapeType.equals("Square"))          kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
-			else if (shapeType.equals("Horizontal")) kernel = new HorizontalLineShape(1, 0, false); //1,0 ..one step horizontal 1,1.. one step vertical
-			else if (shapeType.equals("Vertical"))   kernel = new HorizontalLineShape(1, 1, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			List<Shape> strel = new ArrayList<Shape>();  
+			if      (shapeType.equals("Square"))  strel = StructuringElements.square(1, 2); //3x3kernel, 2 dimensions
+			else if (shapeType.equals("Disk"))    strel = StructuringElements.disk(1, 2);
+			else if (shapeType.equals("Diamond")) strel = StructuringElements.diamond(1, 2);
+			else if (shapeType.equals("Horizontal")) strel.add(new HorizontalLineShape(1, 0, false)); //1,0 ..one step horizontal 1,1.. one step vertical
+			else if (shapeType.equals("Vertical"))   strel.add(new HorizontalLineShape(1, 1, false)); //1,0 ..one step horizontal 1,1.. one step vertical	
+			
 			Runtime runtime  = Runtime.getRuntime();
 			long maxMemory   = runtime.maxMemory();
 			long totalMemory = runtime.totalMemory();
@@ -1090,7 +1098,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 					raF1.get().set(cursorF.get().get() + 1f); 
 				}			
 				//Dilated imgU
-				imgUDil = Dilation.dilate(imgU, kernel, numThreads);
+				imgUDil = Dilation.dilate(imgU, strel, numThreads);
 				//uiService.show("Dilated image", imgUDil);
 				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUDil);
 				
@@ -1119,7 +1127,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 					raF1.get().set(cursorF.get().get() - 1f); 
 				}			
 				//Erode imgB
-				imgBErode = Erosion.erode(imgB, kernel, numThreads);
+				imgBErode = Erosion.erode(imgB, strel, numThreads);
 				//uiService.show("Eroded image", imgBErode);
 				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last eroded image", imgBErode);
 				
@@ -1180,10 +1188,13 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 			imgBminusOne = imgFloat.copy();
 			imgV = imgFloat.copy();
 			
-			Shape kernel = null;
-			if (shapeType.equals("Square"))          kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
-			else if (shapeType.equals("Horizontal")) kernel = new HorizontalLineShape(1, 0, false); //1,0 ..one step horizontal 1,1.. one step vertical
-			else if (shapeType.equals("Vertical"))   kernel = new HorizontalLineShape(1, 1, false); //1,0 ..one step horizontal 1,1.. one step vertical
+			List<Shape> strel = new ArrayList<Shape>();  
+			if      (shapeType.equals("Square"))  strel = StructuringElements.square(1, 2); //3x3kernel, 2 dimensions
+			else if (shapeType.equals("Disk"))    strel = StructuringElements.disk(1, 2);
+			else if (shapeType.equals("Diamond")) strel = StructuringElements.diamond(1, 2);
+			else if (shapeType.equals("Horizontal")) strel.add(new HorizontalLineShape(1, 0, false)); //1,0 ..one step horizontal 1,1.. one step vertical
+			else if (shapeType.equals("Vertical"))   strel.add(new HorizontalLineShape(1, 1, false)); //1,0 ..one step horizontal 1,1.. one step vertical	
+			
 			Runtime runtime  = Runtime.getRuntime();
 			long maxMemory   = runtime.maxMemory();
 			long totalMemory = runtime.totalMemory();
@@ -1200,7 +1211,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 			for (int n = 0; n < numDilations; n++) { //
 				
 				//Dilated imgU
-				imgUDil = Dilation.dilate(imgU, kernel, numThreads);
+				imgUDil = Dilation.dilate(imgU, strel, numThreads);
 				//uiService.show("Dilated image", imgUDil);
 				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUDil);
 				
@@ -1216,7 +1227,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 				}	
 							
 				//Erode imgB
-				imgBErode = Erosion.erode(imgB, kernel, numThreads);
+				imgBErode = Erosion.erode(imgB, strel, numThreads);
 				//uiService.show("Eroded image", imgBErode);
 				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last eroded image", imgBErode);
 				
