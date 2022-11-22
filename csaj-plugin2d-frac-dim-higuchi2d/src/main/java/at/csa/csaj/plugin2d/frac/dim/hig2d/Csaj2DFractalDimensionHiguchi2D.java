@@ -844,6 +844,8 @@ public class Csaj2DFractalDimensionHiguchi2D<T extends RealType<T>> extends Cont
 		if (choiceRadioButt_Method.equals("RGB Squared differences"))  				dim = dim + 1;
 		if (choiceRadioButt_Method.equals("RGB - color weighted (alpha)"));
 		if (choiceRadioButt_Method.equals("RGB - ROI color weighted (alpha)"));
+		
+		logService.info(this.getClass().getName() + " Higuchi2D dimension: " + dim);
 		resultValuesTable[s][1] = dim;
 	
 		//Set/Reset focus to DatasetIn display

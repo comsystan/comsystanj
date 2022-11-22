@@ -846,7 +846,8 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 		
 		// Compute result values
 		double[] resultValues = process(tableIn, c); 
-		// 0 Dh, 1 R2, 2 StdErr
+		// 0 D, 1 R2, 2 StdErr
+		logService.info(this.getClass().getName() + " psd H: " + resultValues[1]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, resultValues); //write always to the first row
 		

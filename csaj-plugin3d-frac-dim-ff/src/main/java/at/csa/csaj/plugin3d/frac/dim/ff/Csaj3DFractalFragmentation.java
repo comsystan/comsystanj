@@ -760,6 +760,8 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		resultValuesTable[1]  = dimD1;
 		resultValuesTable[6]  = dimMass;
 		resultValuesTable[11] = dimPerim;
+		
+		logService.info(this.getClass().getName() + " 3D D mass: " + dimMass);
 	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

@@ -754,6 +754,7 @@ public class Csaj2DFractalDimensionCorrelation<T extends RealType<T>> extends Co
 		double dim = Double.NaN;
 		
 		dim = regressionValues[1];
+		logService.info(this.getClass().getName() + " Correlation dimension: " + dim);
 		resultValuesTable[s][1] = dim;
 		
 		//Set/Reset focus to DatasetIn display

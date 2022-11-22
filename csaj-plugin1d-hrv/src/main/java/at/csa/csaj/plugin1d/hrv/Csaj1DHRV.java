@@ -857,7 +857,8 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 		
 		// Compute result values
 		double[] resultValues = process(tableIn, c); 
-		// 0 Entropy
+		// 
+		logService.info(this.getClass().getName() + " Mean nn: " + resultValues[2]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, resultValues); //write always to the first row
 		

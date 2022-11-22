@@ -680,7 +680,10 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends ContextCommand i
 		// Compute result values
 		double[] resultValues = process(tableIn, c); 
 		// 0 Entropy
+		if (choiceRadioButt_EntropyType.equals("Sample entropy"))      logService.info(this.getClass().getName() + " Sample entropy: "      + resultValues[0]);
+		if (choiceRadioButt_EntropyType.equals("Approximate entropy")) logService.info(this.getClass().getName() + " Approximate entropy: " + resultValues[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
+		
 		writeToTable(0, c, resultValues); //write always to the first row
 		
 		long duration = System.currentTimeMillis() - startTime;

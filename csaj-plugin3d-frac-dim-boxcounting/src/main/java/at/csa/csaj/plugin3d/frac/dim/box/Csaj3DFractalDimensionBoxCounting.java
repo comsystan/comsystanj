@@ -720,6 +720,7 @@ public class Csaj3DFractalDimensionBoxCounting<T extends RealType<T>> extends Co
 		//if ((choiceRadioButt_ScanningType.equals("Sliding box")) && (choiceRadioButt_ColorModelType.equals("Binary")));
 		//TO DO 
 		
+		logService.info(this.getClass().getName() + " 3D Box counting dimension: " + dim);
 		resultValuesTable[1] = dim;
 	
 		//Set/Reset focus to DatasetIn display

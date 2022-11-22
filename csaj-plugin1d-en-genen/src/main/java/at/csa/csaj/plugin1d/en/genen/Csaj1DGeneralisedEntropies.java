@@ -1066,6 +1066,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		// Compute result values
 		double[] resultValues = process(tableIn, c); 
 		// 0 Entropy
+		logService.info(this.getClass().getName() + " Gen entropy SE: " + resultValues[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, resultValues); //write always to the first row
 		

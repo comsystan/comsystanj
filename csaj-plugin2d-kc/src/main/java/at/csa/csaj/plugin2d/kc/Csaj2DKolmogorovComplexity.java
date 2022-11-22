@@ -48,11 +48,9 @@ import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.Inflater;
-
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
-
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
 import net.imagej.ImageJ;
@@ -98,7 +96,6 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
@@ -634,12 +631,14 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 
 		//Compute regression parameters
 		double[] resultValues = process(rai, s);	
-			//0 Image size, 1 , 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+			//0 Image size, 1 KC, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			
 		//set values for output table
 		for (int i = 0; i < resultValues.length; i++ ) {
 				resultValuesTable[s][i] = resultValues[i]; 
 		}
+		
+		logService.info(this.getClass().getName() + " KC: " + resultValues[1]);
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

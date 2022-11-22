@@ -620,6 +620,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 		//Compute result values
 		double[] resultValues = process(tableIn, c); 
 		// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
+		logService.info(this.getClass().getName() + " Mean: " + resultValues[5]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, resultValues); //write always to the first row
 			

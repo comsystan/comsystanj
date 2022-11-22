@@ -761,6 +761,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		dimMass  = -regressionValues[6];
 		dimPerim = -regressionValues[11];
 		
+		logService.info(this.getClass().getName() + " D mass: " + dimMass);
 		resultValuesTable[s][1]  = dimD1;
 		resultValuesTable[s][6]  = dimMass;
 		resultValuesTable[s][11] = dimPerim;

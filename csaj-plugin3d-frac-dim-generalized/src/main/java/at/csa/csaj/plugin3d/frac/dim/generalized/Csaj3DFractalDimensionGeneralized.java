@@ -821,7 +821,8 @@ public class Csaj3DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 			//Compute dimension
 			double dim = Double.NaN;
 			if ((q + minQ) == 1) dim = regressionValues[q][1]; //Slope
-			else                    dim = regressionValues[q][1]/(q + minQ - 1);
+			else                 dim = regressionValues[q][1]/(q + minQ - 1);
+			if ((q + minQ) == 2) logService.info(this.getClass().getName() + " 3D Dq=2: " + dim);
 			resultValuesTable[q][1] = dim;
 		} //q
 		

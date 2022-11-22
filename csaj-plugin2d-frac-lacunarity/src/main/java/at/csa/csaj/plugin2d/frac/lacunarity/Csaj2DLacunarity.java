@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -88,7 +87,6 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import io.scif.DefaultImageMetadata;
@@ -825,6 +823,8 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 		for (int i = 0; i < lacunarities.length; i++ ) {
 				resultValuesTable[s][i] = lacunarities[i]; 
 		}
+		
+		logService.info(this.getClass().getName() + " Lacunarities[0]: " + lacunarities[0]);
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

@@ -796,6 +796,8 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		double[] resultValues = process(rai, s); //rai is already 2D, s parameter only for display titles
 		// 0 Dh-row, 1 R2-row, 2 StdErr-row, 3 Dh-col, 4 R2-col, 5 StdErr-col, 6 Dh, 7 R2, 8 Stderr
 
+		logService.info(this.getClass().getName() + " Higuchi dimension: " + resultValues[6]);
+		
 		resultValuesTable[s][0] = resultValues[0]; // Dh-row
 		resultValuesTable[s][1] = resultValues[3]; // Dh-col
 		resultValuesTable[s][2] = resultValues[6]; // Dh

@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -85,7 +84,6 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
@@ -738,6 +736,8 @@ public class Csaj2DFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 		dim = regressionValues[1];
 		resultValuesTable[s][1] = dim;
 		
+		logService.info(this.getClass().getName() + " Tug of War dimension: " + dim);
+		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;
@@ -889,12 +889,12 @@ public class Csaj2DFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 		//fill table with values
 		tableOut.appendRow();
 		tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
-		if (sliceLabels != null) 	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-		tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numImages);	
+		if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		tableOut.set("# Boxes",    	     tableOut.getRowCount()-1, numImages);	
 		tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
 		tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);
 		tableOut.set("Accuracy",      	 tableOut.getRowCount()-1, accuracy);	
-		tableOut.set("Confidence",      tableOut.getRowCount()-1, confidence);	
+		tableOut.set("Confidence",       tableOut.getRowCount()-1, confidence);	
 		tableOut.set("Dtow",          	 tableOut.getRowCount()-1, resultValuesTable[s][1]);
 		tableOut.set("R2",          	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
 		tableOut.set("StdErr",      	 tableOut.getRowCount()-1, resultValuesTable[s][3]);		
@@ -917,12 +917,12 @@ public class Csaj2DFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 			//fill table with values
 			tableOut.appendRow();
 			tableOut.set("File name",	   	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null)	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numImages);	
+			if (sliceLabels != null)	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",    	     tableOut.getRowCount()-1, numImages);	
 			tableOut.set("RegMin",      	 tableOut.getRowCount()-1, regMin);	
 			tableOut.set("RegMax",      	 tableOut.getRowCount()-1, regMax);	
 			tableOut.set("Accuracy",      	 tableOut.getRowCount()-1, accuracy);	
-			tableOut.set("Confidence",      tableOut.getRowCount()-1, confidence);	
+			tableOut.set("Confidence",       tableOut.getRowCount()-1, confidence);	
 			tableOut.set("Dtow",          	 tableOut.getRowCount()-1, resultValuesTable[s][1]);
 			tableOut.set("R2",          	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
 			tableOut.set("StdErr",      	 tableOut.getRowCount()-1, resultValuesTable[s][3]);		

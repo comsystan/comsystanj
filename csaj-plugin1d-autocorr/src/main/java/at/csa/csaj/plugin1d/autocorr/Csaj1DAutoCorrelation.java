@@ -670,6 +670,7 @@ public class Csaj1DAutoCorrelation<T extends RealType<T>> extends ContextCommand
 		// Compute result values
 		double[] resultValues = process(tableIn, s); 
 		// 0 Entropy
+		logService.info(this.getClass().getName() + " resultValues[0]: " + resultValues[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(s, resultValues);
 		

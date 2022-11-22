@@ -808,6 +808,7 @@ public class Csaj2DFractalDimensionFFT<T extends RealType<T>> extends ContextCom
 			dim = (6.0 + regressionValues[1])/2.0;	
 		}
 	
+		logService.info(this.getClass().getName() + " FFT dimension: " + dim);
 		resultValuesTable[s][1] = dim;
 		
 		//Set/Reset focus to DatasetIn display

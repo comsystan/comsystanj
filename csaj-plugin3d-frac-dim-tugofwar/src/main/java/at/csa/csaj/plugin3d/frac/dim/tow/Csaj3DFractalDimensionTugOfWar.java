@@ -713,6 +713,8 @@ public class Csaj3DFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 		
 		dim = regressionValues[1];
 		resultValuesTable[1] = dim;
+		
+		logService.info(this.getClass().getName() + " 3D Tug of War dimension: " + dim);
 	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

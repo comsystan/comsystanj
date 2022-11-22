@@ -767,7 +767,7 @@ public class Csaj2DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 		else if (choiceRadioButt_MorphologicalOperator.equals("Variation dilation/erosion")) dim  =  -regressionValues[1];  //
 		
 		resultValuesTable[s][1] = dim;
-		
+		logService.info(this.getClass().getName() + " Minkowski dimension: " + dim);
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

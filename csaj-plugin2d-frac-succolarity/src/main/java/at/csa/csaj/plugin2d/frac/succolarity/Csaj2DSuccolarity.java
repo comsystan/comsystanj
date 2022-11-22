@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -88,7 +87,6 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import io.scif.DefaultImageMetadata;
@@ -745,6 +743,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		for (int i = 0; i < succolarities.length; i++ ) {
 				resultValuesTable[s][i] = succolarities[i]; 
 		}
+		logService.info(this.getClass().getName() + " Succolarities[0]: " + succolarities[0]);
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
@@ -892,10 +891,10 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//fill table with values
 		tableOut.appendRow();
 		tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
-		if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		if (sliceLabels != null)      tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 		tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
-		//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
-		//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+		//tableOut.set("RegMin",      tableOut.getRowCount()-1, regMin);	
+		//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 		tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
 		tableColLast = 4;
@@ -906,6 +905,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		for (int c = tableColStart; c < tableColEnd; c++ ) {
 			tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart]);
 		}	
+		
 	}
 	
 	/** 
@@ -930,10 +930,10 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			//fill table with values
 			tableOut.appendRow();
 			tableOut.set("File name",     tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null)   tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			if (sliceLabels != null)      tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 			tableOut.set("# Boxes",       tableOut.getRowCount()-1, numBoxes);	
-			//tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
-			//tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);
+			//tableOut.set("RegMin",      tableOut.getRowCount()-1, regMin);	
+			//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 			tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 			tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
 			tableColLast = 4;

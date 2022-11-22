@@ -917,8 +917,9 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 
 		//Compute generalized entropies
 		resultValues = process(rai, s);	
-		//Entropies H1, H2, H3, .....
+		//Gen entropies SE H1, H2, H3, .....
 			
+		logService.info(this.getClass().getName() + " Generalized entropy SE: " + resultValues[0]);
 		//set values for output table
 		for (int i = 0; i < resultValues.length; i++ ) {
 					resultValuesTable[s][i] = resultValues[i]; 

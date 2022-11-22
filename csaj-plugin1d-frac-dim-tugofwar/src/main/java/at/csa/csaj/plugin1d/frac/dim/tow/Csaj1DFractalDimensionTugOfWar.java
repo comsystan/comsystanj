@@ -777,6 +777,7 @@ public class Csaj1DFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 		// Compute result values
 		double[] resultValues = process(tableIn, c); 
 		// 0 Dtow, 1 R2, 2 StdErr
+		logService.info(this.getClass().getName() + " Tug of War dimension: " + resultValues[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, resultValues); //write always to the first row
 		

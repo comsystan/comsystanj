@@ -757,6 +757,8 @@ public class Csaj3DFractalDimensionFFT<T extends RealType<T>> extends ContextCom
 			dim = (9.0 + regressionValues[1])/2.0;	
 		}
 		resultValuesTable[1] = dim;
+		
+		logService.info(this.getClass().getName() + " 3D FFT dimension: " + dim);
 	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

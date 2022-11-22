@@ -790,6 +790,8 @@ public class Csaj3DLacunarity<T extends RealType<T>> extends ContextCommand impl
 		for (int i = 0; i < lacunarities.length; i++ ) {
 			resultValuesTable[i] = lacunarities[i]; 
 		}
+		
+		logService.info(this.getClass().getName() + " 3D Lacunarities[0]: " + lacunarities[0]);
 	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

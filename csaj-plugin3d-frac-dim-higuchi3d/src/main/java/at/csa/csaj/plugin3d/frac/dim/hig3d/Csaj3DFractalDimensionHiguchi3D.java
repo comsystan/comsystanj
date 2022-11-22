@@ -721,6 +721,8 @@ public class Csaj3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Cont
 		if (choiceRadioButt_Method.equals("Squared differences"))  		dim = dim + 2;
 		if (choiceRadioButt_Method.equals("Direct differences"));       //Do nothing, slope = dim	
 		resultValuesTable[1] = dim;
+		
+		logService.info(this.getClass().getName() + " 3D Higuchi dimension: " + dim);
 	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

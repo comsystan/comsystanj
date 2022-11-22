@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -72,7 +71,6 @@ import net.imglib2.view.Views;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
@@ -94,9 +92,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.fit.PolynomialFit2D;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
 import io.scif.DefaultImageMetadata;
@@ -748,6 +744,7 @@ public class Csaj2DFractalDimensionPyramid<T extends RealType<T>> extends Contex
 			dim = -regressionValues[1];
 			resultValuesTable[s][1] = dim;
 		}
+		logService.info(this.getClass().getName() + " Pyramid dimension: " + dim);
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems

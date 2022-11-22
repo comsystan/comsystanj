@@ -812,6 +812,8 @@ public class Csaj2DFractalDimensionDirectionalCorrelation<T extends RealType<T>>
 		double[] resultValues = process(rai, s); //rai is already 2D, s parameter only for display titles
 		// 0 Ds-row, 1 R2-row, 2 StdErr-row, 3 Ds-col, 4 R2-col, 5 StdErr-col, 6 Ds, 7 R2, 8 Stderr
 
+		logService.info(this.getClass().getName() + " Directional correlation dimension: " + resultValues[6]);
+		
 		resultValuesTable[s][0] = resultValues[0]; // Ds-row
 		resultValuesTable[s][1] = resultValues[3]; // Ds-col
 		resultValuesTable[s][2] = resultValues[6]; // Ds
