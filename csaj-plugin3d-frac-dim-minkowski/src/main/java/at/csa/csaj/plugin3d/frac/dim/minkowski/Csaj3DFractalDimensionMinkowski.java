@@ -233,7 +233,7 @@ public class Csaj3DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
      @Parameter(label = "Morphological operator",
     		 	description = "Type of image and according morphological operation",
     		 	style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		 	choices = {"Binary dilation"}, //"Blanket dilation/erosion", "Variation dilation/erosion"}, //Grey value algorithms not ready yet
+    		 	choices = {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}, //Grey value algorithms not ready yet
     		 	persist = true,  //restore previous value default = true
     		 	initializer = "initialMorphologicalOperator",
     		 	callback = "callbackMorphologicalOperator")
@@ -712,12 +712,12 @@ public class Csaj3DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 		double dim = Double.NaN;	
 		
 		if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))            dim  = 3-regressionValues[1]; //Standard Dm according to Peleg et al.
-		else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion"))   dim  =  -regressionValues[1];  //better for grey images "Dm" Dubuc etal..
-		else if (choiceRadioButt_MorphologicalOperator.equals("Variation dilation/erosion")) dim  =  -regressionValues[1];  //
+		else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion"))   dim  = 4-regressionValues[1]; //high FDs are too low;  better for grey images "Dm" Dubuc etal..
+		else if (choiceRadioButt_MorphologicalOperator.equals("Variation dilation/erosion")) dim  = 4-regressionValues[1]; //high FDs are too low
 	
-		
 		resultValuesTable[1] = dim;
-	
+		logService.info(this.getClass().getName() + " 3D Minkowski dimension: " + dim);
+		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;

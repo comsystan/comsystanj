@@ -209,7 +209,8 @@ public class Minkowski3D_Grey implements Minkowski3DMethods{
 				}		                      
 			} //n
 		}
-		//TO DO: Grey value algorithms not ready yet!!!!!
+		//NOTE: Grey value algorithms yield good estimates for low FD's e.g. 3D FFT FD = 3.1 
+		//But too low values for high FDs e.g. 3D FFT FD=3.9 --> only about 3.4
 		//*******************************Grey Value Image
 		else if (morphologicalType.equals("Blanket dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
 			imgFloat = createImgFloat(rai); //This copies the image, otherwise the original image would be dilated
@@ -329,11 +330,12 @@ public class Minkowski3D_Grey implements Minkowski3DMethods{
 				// totalAreas[n] / (2* (n+1)); //Peleg et al.
 				// better is following according to Dubuc et al. equation 9
 
-				totals[n] = totals[n] / ((n+ 1) * (n + 1) * (n + 1)); // eq.9 Dubuc et.al.
-						                      
+				//totals[n] = totals[n] / ((n+ 1) * (n + 1) * (n + 1)); // eq.9 Dubuc et.al. for surfaces
+				//Without this normalization Dim would be: Dim = 3-slope; for surfaces						                      
 			} //n
 		}
-		//TO DO: Grey value algorithms not ready yet!!!!!
+		//NOTE: Grey value algorithms yield good estimates for low FD's e.g. 3D FFT FD = 3.1 
+		//But too low values for high FDs e.g. 3D FFT FD=3.9 --> only about 3.4
 		else if (morphologicalType.equals("Variation dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
 			imgFloat = createImgFloat(rai); //This copies the image, otherwise the original image would be dilated
 			imgU         = imgFloat.copy();
@@ -425,10 +427,9 @@ public class Minkowski3D_Grey implements Minkowski3DMethods{
 					
 					totals[n] = totals[n] + cursorF.get().get(); //totalAreas
 					
-				}
-				
-				totals[n] = totals[n] / ((n+ 1) * (n + 1) * (n + 1)); // eq.17 Dubuc et.al.		
-				//Without this normalization Dim would be: Dim = 3-slope;
+				}	
+				//totals[n] = totals[n] / ((n+ 1) * (n + 1) * (n + 1)); // eq.17 Dubuc et.al.		
+				//Without this normalization Dim would be: Dim = 3-slope; for surfaces
 			} //n
 		}
 	
