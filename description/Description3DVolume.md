@@ -23,6 +23,16 @@
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set
 
+### 3D Minkowski dimension
+- Fractal dimension is computed with 3D morphological dilations and erosions
+- 8-bit binary or grey image volume
+- Binary [0, >0] dilation
+- Blanket or Variation method with grey value dilation/erosion
+- The number of dilation/erosion steps can be set
+- The shape of the morphological structuring element can be set
+- Linear regression parameters of the double log plot can be set 
+- Ref.: Peleg et al., IEEE-TPAMI, 1984, [DOI 10.1109/TPAMI.1984.4767557](https://doi.org/10.1109/TPAMI.1984.4767557)
+
 ### 3D Correlation dimension
 - Fractal dimension is computed with 3D correlation
 - This is a direct expansion of the 2D algorithm
