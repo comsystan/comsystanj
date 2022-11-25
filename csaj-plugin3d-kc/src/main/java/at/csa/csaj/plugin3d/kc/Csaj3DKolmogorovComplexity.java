@@ -87,7 +87,7 @@ import io.scif.MetaTable;
  */
 @Plugin(type = ContextCommand.class,
 headless = true,
-label = "Kolmogorov complexity",
+label = "3D Kolmogorov complexity",
 initializer = "initialPluginLaunch",
 //iconPath = "/images/comsystan-??.png", //Menu entry icon
 menu = {
@@ -185,7 +185,7 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
     @Parameter(label = "Compression",
 		    description = "Type of image compression",
 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-  		    choices = {"ZIP (lossless)", "ZLIB (lossless)", "GZIP (lossless)", "TIFF-LZW (lossless)"},  //"PNG (lossless)" "ZIP (lossless)" , "J2K (lossless)", "JPG (lossy)" 
+  		    choices = {"ZIP (lossless)", "ZLIB (lossless)", "GZIP (lossless)", "TIFF-LZW (lossless)"}, 
   		    persist = true,  //restore previous value default = true
 		    initializer = "initialCompression",
             callback = "callbackCompression")
