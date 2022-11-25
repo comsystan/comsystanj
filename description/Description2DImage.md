@@ -214,8 +214,9 @@ For binary images black pixels are the background. White pixels are the foregrou
 Statistical Mechanics, Springer, 2009
 
 ### Kolmogorov complexity and Logical depth
-- KC is estimated by the memory size of compressed images saved to disk (LZW, PNG, J2K, JPG)
-- KC is estiamted by compressing data bytes (ZLIB, GZIB)
+- KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB)
+- or
+- KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW, PNG, J2K, JPG) - slow!
 - 8-bit grey images
 - RGB color images may also work, but not tested
 - Lossless and lossy algorithms can be chosen
