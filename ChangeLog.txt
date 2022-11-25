@@ -19,12 +19,14 @@ New
 3D Volume - Minkowski dimension
 3D Volume - Fractal fragmentation indices
 3D Volume - Lacunarity
+3D Volume - Kolmogorov complexity
 
 Bugfixes
 
 
 Miscellaneous
 2D Image - Minkowski dimension - Added Disk and Diamond shapes
+2D Image - Kolmogorov complexity - Added zip compression
 
 Known issues
 ImageJ2/Fiji 2.7.0 - 2.9.0: 4-channel color images are not displayed correctly.

@@ -78,6 +78,7 @@
 		<module>csaj-plugin3d-frac-dim-tugofwar</module>
 		<module>csaj-plugin3d-frac-lacunarity</module>
 		<module>csaj-plugin3d-generator</module>
+		<module>csaj-plugin3d-kc</module>
 	</modules>
 
 </project>
