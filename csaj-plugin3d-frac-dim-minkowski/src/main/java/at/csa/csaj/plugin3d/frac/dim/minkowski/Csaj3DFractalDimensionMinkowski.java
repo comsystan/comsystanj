@@ -248,7 +248,7 @@ public class Csaj3DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 
-     @Parameter(label = "Show last dilated/eroded image volume",
+     @Parameter(label = "Show last dilated/eroded volume",
  		    	persist = true,  //restore previous value default = true
 		        initializer = "initialShowLastMorphImg")
 	 private boolean booleanShowLastMorphImg;
