@@ -48,6 +48,10 @@ import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.Inflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
@@ -205,7 +209,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
     @Parameter(label = "Compression",
 		    description = "Type of image compression",
 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-  		    choices = {"LZW (lossless)", "PNG (lossless)", "ZLIB (lossless)", "GZIB (lossless)", "J2K (lossless)", "JPG (lossy)"},  //"PNG (lossless)" "ZIP (lossless)" 
+  		    choices = {"ZIP (lossless)", "ZLIB (lossless)", "GZIP (lossless)", "TIFF-LZW (lossless)", "PNG (lossless)", "J2K (lossless)", "JPG (lossy)"},  //"PNG (lossless)" "ZIP (lossless)" 
   		    persist = true,  //restore previous value default = true
 		    initializer = "initialCompression",
             callback = "callbackCompression")
@@ -274,7 +278,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	}
 	
     protected void initialCompression() {
-    	choiceRadioButt_Compression = "LZW (lossless)";
+    	choiceRadioButt_Compression = "ZIP (lossless)";
     } 
      
     protected void initialNumIterations() {
@@ -294,7 +298,6 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	}
   
 	// ------------------------------------------------------------------------------
-	
 	
 	/** Executed whenever the {@link #choiceRadioButt_Interpolation} parameter changes. */
 	protected void callbackCompression() {
@@ -438,7 +441,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			return;
 		}
 		// get some info
-		width = datasetIn.dimension(0);
+		width  = datasetIn.dimension(0);
 		height = datasetIn.dimension(1);
 		//numSlices = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
 		
@@ -510,7 +513,6 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");		
 		generateTableHeader();
 		writeSingleResultToTable(sliceIndex);
-		deleteTempDirectory();
 	    dlgProgress.setVisible(false);
 	    dlgProgress.dispose();	
 		Toolkit.getDefaultToolkit().beep();     
@@ -531,7 +533,6 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");			
 	    generateTableHeader();
 	    writeAllResultsToTable();
-	    deleteTempDirectory();	
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();	
 	    Toolkit.getDefaultToolkit().beep();      
@@ -746,7 +747,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
-		IntColumn columnNumbIterations     = new IntColumn("Itereations [#]");
+		IntColumn columnNumbIterations     = new IntColumn("Iterations [#]");
 		GenericColumn columnComprType      = new GenericColumn("Compression");	
 		GenericColumn columnImgSz          = new GenericColumn("Image size [MB]");
 		GenericColumn columnKC             = new GenericColumn("KC [MB]");
@@ -773,7 +774,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	private void writeSingleResultToTable(int sliceNumber) {
 
 		String compressionType = choiceRadioButt_Compression;
-		int numIterations   = spinnerInteger_NumIterations;
+		int numIterations      = spinnerInteger_NumIterations;
 	
 	    int s = sliceNumber;	
 			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
@@ -781,17 +782,12 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			tableOut.appendRow();
 			tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-//			if (compressionType.equals("LZW (lossless)")) table.set("Compression", table.getRowCount()-1, "LZW (lossless)");
-//			if (compressionType.equals("PNG (lossless)")) table.set("Compression", table.getRowCount()-1, "PNG (lossless)");
-//			if (compressionType.equals("J2K (lossless)")) table.set("Compression", table.getRowCount()-1, "J2K (lossless)");	
-//			if (compressionType.equals("JPG (lossy)")) table.set("Compression", table.getRowCount()-1, "JPG (lossy)");	
-//			if (compressionType.equals("ZIP (lossless)")) table.set("Compression", table.getRowCount()-1, "ZIP (lossless)");
 			tableOut.set("Compression",           tableOut.getRowCount()-1, choiceRadioButt_Compression);
 			tableOut.set("Image size [MB]",       tableOut.getRowCount()-1, resultValuesTable[s][0]);
 			tableOut.set("KC [MB]",               tableOut.getRowCount()-1, resultValuesTable[s][1]);
 			tableOut.set("Image size - KC [MB]",  tableOut.getRowCount()-1, resultValuesTable[s][2]);
 			tableOut.set("KC/Imagesize",          tableOut.getRowCount()-1, resultValuesTable[s][3]);	
-			tableOut.set("Itereations [#]",       tableOut.getRowCount()-1, numIterations);	
+			tableOut.set("Iterations [#]",        tableOut.getRowCount()-1, numIterations);	
 			tableOut.set("LD [ns]",               tableOut.getRowCount()-1, resultValuesTable[s][4]);	
 	}
 	
@@ -809,17 +805,12 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			tableOut.appendRow();
 			tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-//			if (compressionType.equals("LZW (lossless)")) table.set("Compression", table.getRowCount()-1, "LZW (lossless)");
-//			if (compressionType.equals("PNG (lossless)")) table.set("Compression", table.getRowCount()-1, "PNG (lossless)");	
-//			if (compressionType.equals("J2K (lossless)")) table.set("Compression", table.getRowCount()-1, "J2K (lossless)");	
-//			if (compressionType.equals("JPG (lossy)")) table.set("Compression", table.getRowCount()-1, "JPG (lossy)");	
-//			if (compressionType.equals("ZIP (lossless)")) table.set("Compression", table.getRowCount()-1, "ZIP (lossless)");
 			tableOut.set("Compression",           tableOut.getRowCount()-1, choiceRadioButt_Compression);
 			tableOut.set("Image size [MB]",       tableOut.getRowCount()-1, resultValuesTable[s][0]);
 			tableOut.set("KC [MB]",               tableOut.getRowCount()-1, resultValuesTable[s][1]);
 			tableOut.set("Image size - KC [MB]",  tableOut.getRowCount()-1, resultValuesTable[s][2]);
 			tableOut.set("KC/Imagesize",          tableOut.getRowCount()-1, resultValuesTable[s][3]);		
-			tableOut.set("Itereations [#]",       tableOut.getRowCount()-1, numIterations);	
+			tableOut.set("Iterations [#]",        tableOut.getRowCount()-1, numIterations);	
 			tableOut.set("LD [ns]",               tableOut.getRowCount()-1, resultValuesTable[s][4]);	
 		}
 	}
@@ -840,22 +831,168 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			
 		String compressionType = choiceRadioButt_Compression;
 		int numIterations      = spinnerInteger_NumIterations;
-		double[] resultValues  = new double[5];
-		int numBands = 1;
+		double[] resultValues = new double[5];
+		for (int n = 0; n < resultValues.length; n++) resultValues[n] = Double.NaN;
 		
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		
-		String imageType = "Grey";  //"Grey"  "RGB"....
+		DescriptiveStatistics stats;
+	
+		//*******************************************************************************************************************
+		if(compressionType.equals("ZIP (lossless)")){	
+			int[] dims = new int[rai.numDimensions()];
+			int numOfBytes = 1;
+			for(int d = 0 ; d < dims.length; d++) {
+				numOfBytes *= rai.dimension(d); //8bit per pixel
+			}
+			double sequenceSize = numOfBytes; //Bytes
+		    double originalSize = sequenceSize/1024/1024;   //[MB]
+		    
+			byte[] compressedSequence = null;
+			compressedSequence = calcCompressedBytes_ZIP((RandomAccessibleInterval<?>) rai);
+			double kc = (double)compressedSequence.length/1024/1024; //[MB]	
+				
+			byte[] decompressedSequence;
+			stats = new DescriptiveStatistics();
+			dlgProgress.setBarIndeterminate(false);
 			
-//		//set default complexities
-//		double is         = Double.NaN;  //image size of uncopressed image in MB	
-//		double kc         = Double.NaN;  //Kolmogorov complexity (size of compressed image in MB)
-//		double ld         = Double.NaN;  //Logical depth
-//		double systemBias = Double.NaN;  //duration of system without compression
-//		double ldCorr     = Double.NaN;  //corrected logical depth = ld -systemBias
+			for (int it = 0; it < numIterations; it++){
+				long startTime = System.nanoTime();
+				decompressedSequence = calcDecompressedBytes_ZIP(compressedSequence);
+				long time = System.nanoTime();
+				stats.addValue((double)(time - startTime));
+			}
+			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
+			double ld = stats.getPercentile(50); //Median	; //[ns]	
+			//double is = megabytesReference;
+			//double is = originalSize;
+			double is = dataset.getBytesOfInfo()/1024.0/1024.0;
+			resultValues[0] = is;
+			resultValues[1] = kc;
+			resultValues[2] = is-kc;
+			resultValues[3] = kc/is;
+			resultValues[4] = ld; 
+		}
 		
-		//prepare destination for saving and reloading	
+		//*******************************************************************************************************************
+		if(compressionType.equals("ZLIB (lossless)")){
+			int[] dims = new int[rai.numDimensions()];
+			int numOfBytes = 1;
+			for(int d = 0 ; d < dims.length; d++) {
+				numOfBytes *= rai.dimension(d); //8bit per pixel
+			}
+			double sequenceSize = numOfBytes; //Bytes
+		    double originalSize = sequenceSize/1024/1024;   //[MB]
+		    
+			byte[] compressedSequence = null;
+			compressedSequence = calcCompressedBytes_ZLIB((RandomAccessibleInterval<?>) rai);
+			double kc =  (double)compressedSequence.length/1024/1024; //[MB]	
+				
+			byte[] decompressedSequence;
+			stats = new DescriptiveStatistics();		
+		
+			for (int it = 0; it < numIterations; it++){
+				statusService.showStatus((it+1), numIterations, "Processing " + (it+1) + "/" + numIterations);
+				long startTime = System.nanoTime();
+				decompressedSequence = calcDecompressedBytes_ZLIB(compressedSequence);
+				long time = System.nanoTime();
+				stats.addValue((double)(time - startTime));
+			}
+			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
+			double ld = stats.getPercentile(50); //Median	; //[ns]	
+			//double is = megabytesReference;
+			//double is = originalSize;
+			double is = dataset.getBytesOfInfo()/1024.0/1024.0;
+			resultValues[0] = is;
+			resultValues[1] = kc;
+			resultValues[2] = is-kc;
+			resultValues[3] = kc/is;
+			resultValues[4] = ld; 
+		}
+		
+		//*******************************************************************************************************************
+		if(compressionType.equals("GZIP (lossless)")){	
+			int[] dims = new int[rai.numDimensions()];
+			int numOfBytes = 1;
+			for(int d = 0 ; d < dims.length; d++) {
+				numOfBytes *= rai.dimension(d); //8bit per pixel
+			}
+			double sequenceSize = numOfBytes; //Bytes
+		    double originalSize = sequenceSize/1024/1024;   //[MB]
+		    
+			byte[] compressedSequence = null;
+			compressedSequence = calcCompressedBytes_GZIP((RandomAccessibleInterval<?>) rai);
+			double kc = (double)compressedSequence.length/1024/1024; //[MB]	
+				
+			byte[] decompressedSequence;
+			stats = new DescriptiveStatistics();
+			
+			for (int it = 0; it < numIterations; it++){
+				long startTime = System.nanoTime();
+				decompressedSequence = calcDecompressedBytes_GZIP(compressedSequence);
+				long time = System.nanoTime();
+				stats.addValue((double)(time - startTime));
+			}
+			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
+			double ld = stats.getPercentile(50); //Median	; //[ns]	
+			//double is = megabytesReference;
+			//double is = originalSize;
+			double is = dataset.getBytesOfInfo()/1024.0/1024.0;
+			resultValues[0] = is;
+			resultValues[1] = kc;
+			resultValues[2] = is-kc;
+			resultValues[3] = kc/is;
+			resultValues[4] = ld; 
+		}
+
+		File targetFile;
+		//*******************************************************************************************************************	
+		//Slow because tiff files are saved to disk
+		if(compressionType.equals("TIFF-LZW (lossless)")){
+	
+			createTempDirectory();
+			computeTiffReferenceValues();	
+			targetFile = saveTiffLZWfile();
+			resultValues = computeKCValues(targetFile);
+			deleteTempDirectory();
+		}	
+		
+		//*******************************************************************************************************************
+		if(compressionType.equals("PNG (lossless)")){
+
+			createTempDirectory();
+			computeTiffReferenceValues();	
+			targetFile = savePNGfile();
+			resultValues = computeKCValues(targetFile);
+			deleteTempDirectory();
+		}
+		
+		//*******************************************************************************************************************
+		if(compressionType.equals("J2K (lossless)")){
+		
+			createTempDirectory();
+			computeTiffReferenceValues();	
+			targetFile = saveJ2Kfile();
+			resultValues = computeKCValues(targetFile);
+			deleteTempDirectory();
+		}
+		//*******************************************************************************************************************
+		if(compressionType.equals("JPG (lossy)")){
+	
+			createTempDirectory();
+			computeTiffReferenceValues();	
+			targetFile = saveJPGfile();
+			resultValues = computeKCValues(targetFile);
+			deleteTempDirectory();
+		}
+		
+		return resultValues;
+	}
+	//*******************************************************************************************************************
+	/**
+	 * This method generates a temporary directory for saving temporary files
+	 * @param kolmogorovComplexityDir
+	 * @return
+	 */
+	private void createTempDirectory() {
 		File userTempDir = new File(System.getProperty("user.home"));
 		String tempFolder = userTempDir.toString() + File.separator + ".kolmogorovcomplexity";
 		
@@ -884,11 +1021,11 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 				logService.info(this.getClass().getName() + " Created directory: " + kolmogorovComplexityDir.toString());
 			} else {
 				logService.info(this.getClass().getName() + " Unable to create directory:  " + kolmogorovComplexityDir.toString());
-				return null;
+				return;
 			}
 
 		}
-		
+	
 		//Delete files already in the folder
 		files = new File(tempFolder).listFiles();
 
@@ -897,14 +1034,23 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].isFile()) {
 				success1 = files[i].delete();
-				if (success1)  logService.info(this.getClass().getName() + " Successfully deleted existing temp image " + files[i].getName());
+				if (success1) logService.info(this.getClass().getName() + " Successfully deleted existing temp image " + files[i].getName());
 				else {
 					logService.info(this.getClass().getName() + " Could not delete existing temp image " + files[i].getName());
-					return null;
+					return;
 				}
 			}		
 		}
+	}
+	//*******************************************************************************************************************
+	/**
+	 * This method computes reference values of uncompressed TIFF files
+	 * @param referenceFile
+	 * @return
+	 */
+	private void computeTiffReferenceValues() {
 	
+		int numIterations      = spinnerInteger_NumIterations;
 		//calculate Reference file if chosen
 		//double durationReference  = Double.NaN;
 		//double megabytesReference = Double.NaN;
@@ -927,7 +1073,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		
 		SCIFIO       scifio = new SCIFIO();
 		SCIFIOConfig config = new SCIFIOConfig();
-		config.writerSetCompression(CompressionType.UNCOMPRESSED.toString());
+		config.writerSetCompression(CompressionType.UNCOMPRESSED);
 		FileLocation loc = new FileLocation(referenceFile.toURI());
 		//final Context ctx = new Context();
 		//new ImgSaver(ctx).saveImg(loc, dataset, config);
@@ -947,8 +1093,11 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		}
 		
 		DescriptiveStatistics stats = new DescriptiveStatistics();
-
+		
 		for (int i = 0; i < numIterations; i++){
+			
+			statusService.showStatus((i+1), numIterations, "Processing " + (i+1) + "/" + numIterations);
+			
 			long startSavingToDiskTime = System.nanoTime();
 			//piReference = JAI.create("fileload", reference);
 			//piReference.getHeight(); //Essential for proper time stamps. Without this, duration times are almost identical for every image  and very small
@@ -958,7 +1107,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 				//uiService.show(referenceFile.getName(), dataset);
 				if (dataset == null) {
 					logService.info(this.getClass().getName() + " Something went wrong,  image " + referenceFile.getName() + " coud not be loaded!");
-					return null;
+					return;
 				}
 				//System.out.println("  ");
 			} catch (IOException e) {
@@ -984,261 +1133,227 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			if (!success2) logService.info(this.getClass().getName() + " Could not delete temp reference image "     + referenceFile.getName());
 		}
 		
-		//double durationTarget  = Double.NaN;
-		//double megabytesTarget = Double.NaN;
-		String targetPath      = null;
-		File   targetFile      = null;
-		
-		//*******************************************************************************************************************	
-		if(compressionType.equals("LZW (lossless)")){
-			
-			this.deleteTempFile("Temp_LZW.tif");
-			targetPath    = kolmogorovComplexityDir.toString() + File.separator + "Temp_LZW.tif";
-			targetFile = new File(targetPath);
-							
-//			// save image using SciJava IoService
-//			try {
-//				ioService.save(img, target);
-//			} catch (IOException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			}
-			
-			scifio = new SCIFIO();
-			config = new SCIFIOConfig();
-			config.writerSetCompression(CompressionType.LZW.toString());
-			loc = new FileLocation(targetFile.toURI());
-			//final Context ctx = new Context();
-			//new ImgSaver(ctx).saveImg(loc, dataset, config);
-			try {
-				scifio.datasetIO().save(dataset, loc, config);
-			} catch (IOException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			//scifio.getContext().dispose(); //NullPointerExeption when run as Plugin in Fiji
-			resultValues = computeKCandLDfromSavedFile(targetFile);
-		}
-		
-		//*******************************************************************************************************************
-		if(compressionType.equals("PNG (lossless)")){
-
-			this.deleteTempFile("Temp.png");
-			targetPath    = kolmogorovComplexityDir.toString() + File.separator + "Temp.png";
-			targetFile = new File(targetPath);
-					
-			BufferedImage bi = new BufferedImage((int)rai.dimension(0), (int)rai.dimension(1), 10); //TYPE_BYTE_GRAY = 10;  TYPE_INT_RGB = 1;
-    		WritableRaster raster = bi.getRaster();
-    		
-    		Cursor<RealType<?>> cursor = dataset.localizingCursor();
-    	 	final long[] pos = new long[dataset.numDimensions()];
-    		while (cursor.hasNext()) {
-    			cursor.fwd();
-    			cursor.localize(pos);
-    			raster.setPixel((int)pos[0], (int)pos[1], new int[]{Math.round(cursor.get().getRealFloat())});
-    		}  	
-	
-			// save image using ImageIO
-			try {
-				ImageIO.write(bi, "PNG", targetFile); //level of compression lower ~ zip tif compared to JAI
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-					
-//			//save image using SciJava IoService
-//			try {
-//				ioService.save(dataset, targetPath);  //does not work with png
-//			} catch (IOException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			}
-						
-//			scifio = new SCIFIO();
-//			config = new SCIFIOConfig();
-//			//config.writerSetCompression(compressionType.??????????.toString());
-//			loc = new FileLocation(targetFile.toURI());
-//			//final Context ctx = new Context();
-//			//new ImgSaver(ctx).saveImg(loc, dataset, config);
-//			try {
-//				scifio.datasetIO().save(dataset, loc, config);
-//			} catch (IOException e2) {
-//				// TODO Auto-generated catch block
-//				e2.printStackTrace();
-//			}
-//			scifio.getContext().dispose();
-			
-			
-//			final APNGFormat apngFormat = new APNGFormat();   
-//		    apngFormat.setContext(scifio.context()); 
-//		      
-//            // Get writer and set metadata
-//            io.scif.Writer writer = null;
-//            config = new SCIFIOConfig();
-//            config.writerSetCompression(CompressionType.UNCOMPRESSED.toString());
-//  
-//			try {
-//				writer = apngFormat.createWriter();
-//			} catch (FormatException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			}
-//            try {
-//            	io.scif.formats.APNGFormat.Metadata meta = new io.scif.formats.APNGFormat.Metadata();
-//            	meta.createImageMetadata(1);	
-//            	ImageMetadata imageMetadata = meta.get(0);
-//        	    imageMetadata.setBitsPerPixel(FormatTools.getBitsPerPixel(FormatTools.UINT8));
-//        	    imageMetadata.setFalseColor(true);
-//        	    imageMetadata.setPixelType(FormatTools.UINT8);
-//        	    imageMetadata.setPlanarAxisCount(2);
-//        	    imageMetadata.setLittleEndian(false);
-//        	    imageMetadata.setIndexed(false);
-//        	    imageMetadata.setInterleavedAxisCount(0);
-//        	    imageMetadata.setThumbnail(false);
-//        	    imageMetadata.setOrderCertain(true);
-//        	    imageMetadata.addAxis(Axes.X, dataset.dimension(0));
-//        	    imageMetadata.addAxis(Axes.Y, dataset.dimension(1));
-//        	   
-//				writer.setMetadata(meta);
-//			} catch (FormatException e2) {
-//				// TODO Auto-generated catch block
-//				e2.printStackTrace();
-//			}
-//            try {
-//				writer.setDest(loc);
-//			} catch (FormatException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			} catch (IOException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			}       
-//            //Check metadata.
-//            // Write the image
-//            ImgSaver save = new ImgSaver(scifio.getContext());
-//            save.saveImg(writer, dataset, config);	
-//    		
-//            DefaultImgUtilityService dius = new DefaultImgUtilityService();
-//    		SCIFIOImgPlus<T> scifioImgPlus = dius.makeSCIFIOImgPlus((Img<T>) rai);  	
-////            save.saveImg(writer, scifioImgPlus, config);	
-			
-			resultValues = computeKCandLDfromSavedFile(targetFile);
-		}
-		
-		//*******************************************************************************************************************
-		if(compressionType.equals("ZLIB (lossless)")){
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 0;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes += rai.dimension(d);
-			}
-			double sequenceSize   = 8.0 * numOfBytes; //Bytes
-		    double originalSize = sequenceSize/1024/1024;   //[MB]
-		    
-			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_ZLIB(rai);
-			double kc =  (double)compressedSequence.length/1024/1024; //[MB]	
-				
-			byte[] decompressedSequence;
-			stats = new DescriptiveStatistics();
-			for (int it = 0; it < numIterations; it++){
-				long startTime = System.nanoTime();
-				decompressedSequence = calcDecompressedBytes_ZLIB(compressedSequence);
-				long time = System.nanoTime();
-				stats.addValue((double)(time - startTime));
-			}
-			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
-			double ld = stats.getPercentile(50); //Median	; //[ns]	
-			double is = megabytesReference;
-			resultValues[0] = is;
-			resultValues[1] = kc;
-			resultValues[2] = is-kc;
-			resultValues[3] = kc/is;
-			resultValues[4] = ld; 
-		}
-		//*******************************************************************************************************************
-		if(compressionType.equals("GZIB (lossless)")){
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 0;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes += rai.dimension(d);
-			}
-			double sequenceSize   = 8.0 * numOfBytes; //Bytes
-		    double originalSize = sequenceSize/1024/1024;   //[MB]
-		    
-			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_GZIB(rai);
-			double kc = (double)compressedSequence.length/1024/1024; //[MB]	
-				
-			byte[] decompressedSequence;
-			stats = new DescriptiveStatistics();
-			for (int it = 0; it < numIterations; it++){
-				long startTime = System.nanoTime();
-				decompressedSequence = calcDecompressedBytes_GZIB(compressedSequence);
-				long time = System.nanoTime();
-				stats.addValue((double)(time - startTime));
-			}
-			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
-			double ld = stats.getPercentile(50); //Median	; //[ns]	
-			double is = megabytesReference;
-			resultValues[0] = is;
-			resultValues[1] = kc;
-			resultValues[2] = is-kc;
-			resultValues[3] = kc/is;
-			resultValues[4] = ld; 
-		}
-	
-		//*******************************************************************************************************************
-		if(compressionType.equals("J2K (lossless)")){
-			this.deleteTempFile("Temp.j2k");
-			targetPath    = kolmogorovComplexityDir.toString() + File.separator + "Temp.j2k";
-			targetFile = new File(targetPath);
-			
-			scifio = new SCIFIO();
-			config = new SCIFIOConfig();
-			config.writerSetCompression(CompressionType.J2K.toString());
-			loc = new FileLocation(targetFile.toURI());
-			//final Context ctx = new Context();
-			//new ImgSaver(ctx).saveImg(loc, dataset, config);
-			try {
-				scifio.datasetIO().save(dataset, loc, config);
-			} catch (IOException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			//scifio.getContext().dispose(); //NullPointerExeption when run as Plugin in Fiji 
-			resultValues = computeKCandLDfromSavedFile(targetFile);
-		}
-		//*******************************************************************************************************************
-		if(compressionType.equals("JPG (lossy)")){
-			this.deleteTempFile("Temp.jpg");
-			targetPath    = kolmogorovComplexityDir.toString() + File.separator + "Temp.jpg";
-			targetFile = new File(targetPath);
-							
-			scifio = new SCIFIO();
-			config = new SCIFIOConfig();
-			config.writerSetCompression(CompressionType.JPEG.toString());
-			loc = new FileLocation(targetFile.toURI());
-			//final Context ctx = new Context();
-			//new ImgSaver(ctx).saveImg(loc, dataset, config);
-			try {
-				scifio.datasetIO().save(dataset, loc, config);
-			} catch (IOException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-			//scifio.getContext().dispose(); //NullPointerExeption when run as Plugin in Fiji  
-			resultValues = computeKCandLDfromSavedFile(targetFile);
-		}
-		return resultValues;
+		//0 megabytesReference, 1 durationReference
 	}
-
+	//*******************************************************************************************************************
 	/**
-	 * This method computes KC and LD from an already saved file to disk
+	 * This method saves a compressed tiff file and computes KC and LD
 	 * @param targetFile
 	 * @return
 	 */
-	private double[] computeKCandLDfromSavedFile(File targetFile) {
+	private File saveTiffLZWfile() {
+			
+		this.deleteTempFile("Temp_LZW.tif");
+		
+		String targetPath = kolmogorovComplexityDir.toString() + File.separator + "Temp_LZW.tif";
+		File targetFile = new File(targetPath);
+						
+//		// save image using SciJava IoService
+//		try {
+//			ioService.save(img, target);
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+		
+		SCIFIO scifio = new SCIFIO();
+		SCIFIOConfig config = new SCIFIOConfig();
+		
+		config.writerSetCompression(CompressionType.LZW);
+	 
+		FileLocation loc = new FileLocation(targetFile.toURI());
+		//final Context ctx = new Context();
+		//new ImgSaver(ctx).saveImg(loc, dataset, config);
+		try {
+			scifio.datasetIO().save(dataset, loc, config);
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		//scifio.getContext().dispose(); //NullPointerExeption when run as Plugin in Fiji
+	
+		return targetFile;
+	
+	}
+
+	//***************************************************************************************************
+	/**
+	 * This method saves a compressed png file
+	 * @return
+	 */
+	private File savePNGfile() {
+		
+		this.deleteTempFile("Temp.png");
+		String targetPath = kolmogorovComplexityDir.toString() + File.separator + "Temp.png";
+		File targetFile = new File(targetPath);
+				
+		BufferedImage bi = new BufferedImage((int)dataset.dimension(0), (int)dataset.dimension(1), 10); //TYPE_BYTE_GRAY = 10;  TYPE_INT_RGB = 1;
+		WritableRaster raster = bi.getRaster();
+		
+		Cursor<RealType<?>> cursor = dataset.localizingCursor();
+	 	final long[] pos = new long[dataset.numDimensions()];
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			cursor.localize(pos);
+			raster.setPixel((int)pos[0], (int)pos[1], new int[]{Math.round(cursor.get().getRealFloat())});
+		}  	
+
+		// save image using ImageIO
+		try {
+			ImageIO.write(bi, "PNG", targetFile); //level of compression lower ~ zip tif compared to JAI
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+				
+//		//save image using SciJava IoService
+//		try {
+//			ioService.save(dataset, targetPath);  //does not work with png
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+					
+//		scifio = new SCIFIO();
+//		config = new SCIFIOConfig();
+//		//config.writerSetCompression(compressionType.??????????.toString());
+//		loc = new FileLocation(targetFile.toURI());
+//		//final Context ctx = new Context();
+//		//new ImgSaver(ctx).saveImg(loc, dataset, config);
+//		try {
+//			scifio.datasetIO().save(dataset, loc, config);
+//		} catch (IOException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+//		scifio.getContext().dispose();
+		
+		
+//		final APNGFormat apngFormat = new APNGFormat();   
+//	    apngFormat.setContext(scifio.context()); 
+//	      
+//        // Get writer and set metadata
+//        io.scif.Writer writer = null;
+//        config = new SCIFIOConfig();
+//        config.writerSetCompression(CompressionType.UNCOMPRESSED.toString());
+//
+//		try {
+//			writer = apngFormat.createWriter();
+//		} catch (FormatException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//        try {
+//        	io.scif.formats.APNGFormat.Metadata meta = new io.scif.formats.APNGFormat.Metadata();
+//        	meta.createImageMetadata(1);	
+//        	ImageMetadata imageMetadata = meta.get(0);
+//    	    imageMetadata.setBitsPerPixel(FormatTools.getBitsPerPixel(FormatTools.UINT8));
+//    	    imageMetadata.setFalseColor(true);
+//    	    imageMetadata.setPixelType(FormatTools.UINT8);
+//    	    imageMetadata.setPlanarAxisCount(2);
+//    	    imageMetadata.setLittleEndian(false);
+//    	    imageMetadata.setIndexed(false);
+//    	    imageMetadata.setInterleavedAxisCount(0);
+//    	    imageMetadata.setThumbnail(false);
+//    	    imageMetadata.setOrderCertain(true);
+//    	    imageMetadata.addAxis(Axes.X, dataset.dimension(0));
+//    	    imageMetadata.addAxis(Axes.Y, dataset.dimension(1));
+//    	   
+//			writer.setMetadata(meta);
+//		} catch (FormatException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+//        try {
+//			writer.setDest(loc);
+//		} catch (FormatException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}       
+//        //Check metadata.
+//        // Write the image
+//        ImgSaver save = new ImgSaver(scifio.getContext());
+//        save.saveImg(writer, dataset, config);	
+//		
+//        DefaultImgUtilityService dius = new DefaultImgUtilityService();
+//		SCIFIOImgPlus<T> scifioImgPlus = dius.makeSCIFIOImgPlus((Img<T>) rai);  	
+////        save.saveImg(writer, scifioImgPlus, config);	
+		
+		
+		
+		
+		//scifio.getContext().dispose(); //NullPointerExeption when run as Plugin in Fiji
+		
+		return targetFile;
+	}
+	
+	//***************************************************************************************************
+	/**
+	 * This method saves a compressed j2k file
+	 * @return
+	 */
+	private File saveJ2Kfile() {
+		
+		this.deleteTempFile("Temp.j2k");
+		String targetPath = kolmogorovComplexityDir.toString() + File.separator + "Temp.j2k";
+		File targetFile = new File(targetPath);
+		
+		SCIFIO scifio = new SCIFIO();
+		SCIFIOConfig config = new SCIFIOConfig();
+		config.writerSetCompression(CompressionType.J2K);
+		FileLocation loc = new FileLocation(targetFile.toURI());
+		//final Context ctx = new Context();
+		//new ImgSaver(ctx).saveImg(loc, dataset, config);
+		try {
+			scifio.datasetIO().save(dataset, loc, config);
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		//scifio.getContext().dispose(); //NullPointerExeption when run as Plugin in Fiji
+		return targetFile;
+	}
+	
+	//***************************************************************************************************
+	/**
+	 * This method saves a compressed jpg file
+	 * @return
+	 */
+	private File saveJPGfile() {
+		
+		this.deleteTempFile("Temp.jpg");
+		String targetPath = kolmogorovComplexityDir.toString() + File.separator + "Temp.jpg";
+		File targetFile = new File(targetPath);
+						
+		SCIFIO scifio = new SCIFIO();
+		SCIFIOConfig config = new SCIFIOConfig();
+		config.writerSetCompression(CompressionType.JPEG);
+		FileLocation loc = new FileLocation(targetFile.toURI());
+		//final Context ctx = new Context();
+		//new ImgSaver(ctx).saveImg(loc, dataset, config);
+		try {
+			scifio.datasetIO().save(dataset, loc, config);
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		//scifio.getContext().dispose(); //NullPointerExeption when run as Plugin in Fiji
+		return targetFile;
+	}
+	
+	//***************************************************************************************************************************
+	/*
+	 * This method computes the KC and LG values
+	 * @param targetFile
+	 * @return
+	 */
+	private double[] computeKCValues(File targetFile) {
+		
+		int numIterations = spinnerInteger_NumIterations;
 		//set default complexities
 		double is         = Double.NaN;  //image size of uncopressed image in MB	
 		double kc         = Double.NaN;  //Kolmogorov complexity (size of compressed image in MB)
@@ -1250,8 +1365,6 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		//double durationReference  = Double.NaN;
 		//double megabytesReference = Double.NaN;
 		
-		int numIterations   = spinnerInteger_NumIterations;
-		
 		double[] resultValues  = new double[5];
 		//Check if file exists
 		if (targetFile.exists()){
@@ -1259,16 +1372,18 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 
 		} else {
 			logService.info(this.getClass().getName() + " Something went wrong,  image " + targetFile.getName() + " coud not be loaded!");
-
+			return null;
 		}
+		
 		DescriptiveStatistics stats = new DescriptiveStatistics();
+		
 		for (int i = 0; i < numIterations; i++) { //
            
 			long startTimeOfIterations = System.nanoTime();
 			//piTarget = JAI.create("fileload", target);
 			//piTarget.getHeight(); //Essential for proper time stamps. Without this, duration times are almost identical for every image and very small
 			try {
-				//BufferedImage bi = ImageIO.read(targetFile);  //faster than JAI
+				//BufferedImage bi = ImageIO.read(targetFile);  //faster than JAI  //BufferedImage not for 3D
 				dataset = (Dataset) ioService.open(targetFile.getAbsolutePath());
 				//uiService.show(referenceFile.getName(), dataset);
 				if (dataset == null) {
@@ -1311,16 +1426,17 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		logService.info(this.getClass().getName() + " megabytesTarget: " +megabytesTarget + "     megabytesReference: " + megabytesReference);
 		kc = megabytesTarget;
 		is = megabytesReference;
+		//is = originalSize;
+		//is = dataset.getBytesOfInfo();
 		
 	    resultValues[0] = is;
 	    resultValues[1] = kc;
 	    resultValues[2] = is-kc;
 	    resultValues[3] = kc/is;
-	    if (choiceRadioButt_Compression.equals("LZW (lossless)"))  resultValues[4] = ldCorr; //target and reference files are tiff
-	    if (choiceRadioButt_Compression.equals("PNG (lossless)"))  resultValues[4] = ld;  //SCIFIO PNG algorithm (loading images including decompression) is far more faster than tiff algorithm (reference file) - ldCorr would yield negative values  
-	    if (choiceRadioButt_Compression.equals("J2K (lossless)"))  resultValues[4] = ld;
-	    if (choiceRadioButt_Compression.equals("JPG (lossy)"))     resultValues[4] = ld;
-	 
+	    resultValues[4] = ldCorr; //target and reference files are tiff
+	    //or
+	    //resultValues[4] = ld;  //no reference tif only target tiff
+	 	    
 		return resultValues;
 		//0 "Image size [MB]"  1 "KC [MB]" 2 "Image size - KC [MB]"  3 "KC/Imagesize [MB]" 4 "LD [ns]"	
 		
@@ -1328,11 +1444,10 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		//uiService.show("Table - ", table);
 		/////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
 		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
-		//table
+		//table;
 	}
 	
-	
-	
+	//*******************************************************************************************************************
 	/**
 	 * This method looks for the file (image) and deletes it
 	 * @param string
@@ -1350,7 +1465,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			}
 		}	
 	}
-	
+	//*******************************************************************************************************************
+
 	/**
 	 * This method deletes the temp directory
 	 */
@@ -1362,7 +1478,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		}
 		
 	}
-	
+	//*******************************************************************************************************************
+
 	//This methods reduces dimensionality to 2D just for the display 	
 	//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
 	//pushes a 3D array to the display and
@@ -1394,19 +1511,61 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		uiService.show(name, datasetDisplay);
 	}
 	
-	
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<T> rai
+	 * @param RandomAccessibleInterval<?> rai
 	 * @return byte[] compressed image
 	 */
-	private byte[] calcCompressedBytes_ZLIB(RandomAccessibleInterval<T> rai) {
+	private byte[] calcCompressedBytes_ZIP(RandomAccessibleInterval<?> rai) {
+		
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		byte[] data = new byte[(int)width * (int)height]; //????? * 8];?????
 		
 		// Loop through all pixels of this image
-		Cursor<T> cursor = Views.iterable(rai).localizingCursor();
+		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+		int i = 0;
+		while (cursor.hasNext()) { //Image
+			cursor.fwd();
+			data[i] = (byte) ((UnsignedByteType) cursor.get()).get();
+			i = i + 1;
+		}
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+	    	try{
+	            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
+	            ZipEntry ze = new ZipEntry("ZipEntry");
+	            zipOutputStream.putNextEntry(ze);
+	            //zipOutputStream.setMethod(0); ??
+	            zipOutputStream.setLevel(9); //0...9    9 highest compression
+	            zipOutputStream.write(data);
+	            zipOutputStream.close();
+	        } catch(IOException e){
+	            throw new RuntimeException(e);
+	        }
+	    byte[] output = outputStream.toByteArray(); 
+	    try {
+			outputStream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    //System.out.println(" Original: " + data.length  ); 
+	    //System.out.println(" ZIP Compressed: " + output.length ); 
+	    return output;
+	}
+	
+	/**
+	 * This method calculates and returns compressed bytes
+	 * @param RandomAccessibleInterval<?> rai
+	 * @return byte[] compressed image
+	 */
+	private byte[] calcCompressedBytes_ZLIB(RandomAccessibleInterval<?> rai) {
+		long width  = rai.dimension(0);
+		long height = rai.dimension(1);
+		byte[] data = new byte[(int)width * (int)height]; //????? * 8];?????
+		
+		// Loop through all pixels of this image
+		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
 		int i = 0;
 		while (cursor.hasNext()) { //Image
 			cursor.fwd();
@@ -1434,24 +1593,24 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		} 
 		byte[] output = outputStream.toByteArray(); 
 		deflater.end();
-		//System.out.println("PlotOpComplLogDepth Original: " + data.length  ); 
-		//System.out.println("PlotOpComplLogDepth ZLIB Compressed: " + output.length ); 
+		//System.out.println(" Original: " + data.length  ); 
+		//System.out.println(" ZLIB Compressed: " + output.length ); 
 		return output;
 	}
 	
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<T> rai
+	 * @param RandomAccessibleInterval<?> rai
 	 * @return byte[] compressed image
 	 */
-	private byte[] calcCompressedBytes_GZIB(RandomAccessibleInterval<T> rai) {
+	private byte[] calcCompressedBytes_GZIP(RandomAccessibleInterval<?> rai) {
 		
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		byte[] data = new byte[(int)width * (int)height]; //????? * 8];?????
 		
 		// Loop through all pixels of this image
-		Cursor<T> cursor = Views.iterable(rai).localizingCursor();
+		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
 		int i = 0;
 		while (cursor.hasNext()) { //Image
 			cursor.fwd();
@@ -1473,8 +1632,49 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    //System.out.println("PlotOpComplLogDepth Original: " + data.length  ); 
-	    //System.out.println("PlotOpComplLogDepth GZIB Compressed: " + output.length ); 
+	    //System.out.println(" Original: " + data.length  ); 
+	    //System.out.println(" GZIP Compressed: " + output.length ); 
+	    return output;
+	}
+	
+	/**
+	 * This method decompresses byte array
+	 * @param  byte[] array  compressed
+	 * @return byte[] array  decompressed
+	 */
+	private byte[] calcDecompressedBytes_ZIP(byte[] array) {
+		
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		ByteArrayInputStream inputStream = new ByteArrayInputStream(array);
+		InputStream in = null;
+		
+		in = new ZipInputStream(inputStream);
+	
+	    byte[] bbuf = new byte[256];
+	    while (true) {
+	        int r = 0;
+			try {
+				r = in.read(bbuf);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        if (r < 0) {
+	          break;
+	        }
+	        buffer.write(bbuf, 0, r);
+	    }
+		byte[] output = buffer.toByteArray();  		   
+		try {
+			buffer.close();
+			inputStream.close();
+			in.close();		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    //System.out.println(" ZIP Input: " + array.length  ); 
+	    //System.out.println(" Decompressed: " + output.length ); 
 	    return output;
 	}
 	
@@ -1507,8 +1707,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		}  
 		byte[] output = outputStream.toByteArray();  		   
 		inflater.end();	
-	    //System.out.println("PlotOpComplLogDepth ZLIB Input: " + array.length  ); 
-	    //System.out.println("PlotOpComplLogDepth Decompressed: " + output.length ); 
+	    //System.out.println(" ZLIB Input: " + array.length  ); 
+	    //System.out.println(" Decompressed: " + output.length ); 
 	    return output;
 	}
 	/**
@@ -1516,7 +1716,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	 * @param  byte[] array  compressed
 	 * @return byte[] array  decompressed
 	 */
-	private byte[] calcDecompressedBytes_GZIB(byte[] array) {
+	private byte[] calcDecompressedBytes_GZIP(byte[] array) {
 		
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(array);
@@ -1550,8 +1750,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    //System.out.println("PlotOpComplLogDepth GZIB Input: " + array.length  ); 
-	    //System.out.println("PlotOpComplLogDepth Decompressed: " + output.length ); 
+	    //System.out.println(" GZIP Input: " + array.length  ); 
+	    //System.out.println(" Decompressed: " + output.length ); 
 	    return output;
 	}
 
