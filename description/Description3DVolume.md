@@ -112,3 +112,15 @@
 - Linear regression parameters of the double log plot can be set 
 - Ref: Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
+### 3D Kolmogorov complexity and Logical depth
+- KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB)
+- or
+- KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW) - very slow!
+- 8-bit grey image volume
+- Lossless and lossy algorithms can be chosen
+- Lossless algorithms are recommended
+- LD is estimated by the decompression time of the compressed data bytes (ZLIB, GZIB)
+- LD is estimated by the opening time of the compressed image (LZW, PNG, J2K, JPG)
+- Iterations should be set to as high a value as possible
+- LD values should be taken with caution, as computers are not well suited to measure times
+- Ref.: Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
