@@ -1,5 +1,13 @@
 ## 3D Volume - Description of plugins
 
+
+### 3D Image volume opener
+- Opens an image stack treated as volume
+- 8bit grey or RGB color images
+- For a stack, all images must be of same size and type  
+- Includes a preview (thumbnail) panel
+- Note: Fiji displays RGB images as 3 channel color images. Workaround: Type Image/Type/RGB Color 
+
 ### 3D Image volume generator
 - Generates a single image volume
 - 8bit grey or RGB color
