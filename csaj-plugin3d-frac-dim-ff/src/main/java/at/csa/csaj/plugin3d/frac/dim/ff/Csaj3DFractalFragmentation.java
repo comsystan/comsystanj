@@ -796,14 +796,14 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		GenericColumn columnScanType       = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		//GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
-		DoubleColumn columnFFI             = new DoubleColumn("FFI-3D");
-		DoubleColumn columnFFDI            = new DoubleColumn("FFDI-3D");
-		DoubleColumn columnD1              = new DoubleColumn("D1-3D");
-		DoubleColumn columnDmass           = new DoubleColumn("D-mass-3D");
-		DoubleColumn columnDbound          = new DoubleColumn("D-boundary-3D");
-		DoubleColumn columnR2d1            = new DoubleColumn("R2_D1-3D");
-		DoubleColumn columnR2mass          = new DoubleColumn("R2_mass-3D");
-		DoubleColumn columnR2bound         = new DoubleColumn("R2_boundary-3D");
+		DoubleColumn columnFFI             = new DoubleColumn("3D FFI");
+		DoubleColumn columnFFDI            = new DoubleColumn("3D FFDI");
+		DoubleColumn columnD1              = new DoubleColumn("3D D1");
+		DoubleColumn columnDmass           = new DoubleColumn("3D Dmass");
+		DoubleColumn columnDbound          = new DoubleColumn("3D Dboundary");
+		DoubleColumn columnR2d1            = new DoubleColumn("R2 D1");
+		DoubleColumn columnR2mass          = new DoubleColumn("R2 Dmass");
+		DoubleColumn columnR2bound         = new DoubleColumn("R2 Dboundary");
 
 		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -848,14 +848,14 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		tableOut.set("Scanning type",	tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Color model",		tableOut.getRowCount()-1, colorModelType);
 		//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
-		tableOut.set("FFI-3D",         	tableOut.getRowCount()-1, resultValuesTable[6] - resultValuesTable[11]); //FFI
-		tableOut.set("FFDI-3D",         tableOut.getRowCount()-1, resultValuesTable[1]*(1.0-(resultValuesTable[6] - resultValuesTable[11]))); //FFDI = D1(1-FFI)
-		tableOut.set("D1-3D",         	tableOut.getRowCount()-1, resultValuesTable[1]); //D1
-		tableOut.set("D-mass-3D",       tableOut.getRowCount()-1, resultValuesTable[6]); //Dmass
-		tableOut.set("D-boundary-3D",   tableOut.getRowCount()-1, resultValuesTable[11]); //D-boundary
-		tableOut.set("R2_D1-3D",        tableOut.getRowCount()-1, resultValuesTable[4]);
-		tableOut.set("R2_mass-3D",         tableOut.getRowCount()-1, resultValuesTable[9]);
-		tableOut.set("R2_boundary-3D",     tableOut.getRowCount()-1, resultValuesTable[14]);
+		tableOut.set("3D FFI",         	tableOut.getRowCount()-1, resultValuesTable[6] - resultValuesTable[11]); //FFI
+		tableOut.set("3D FFDI",         tableOut.getRowCount()-1, resultValuesTable[1]*(1.0-(resultValuesTable[6] - resultValuesTable[11]))); //FFDI = D1(1-FFI)
+		tableOut.set("3D D1",         	tableOut.getRowCount()-1, resultValuesTable[1]); //D1
+		tableOut.set("3D Dmass",        tableOut.getRowCount()-1, resultValuesTable[6]); //Dmass
+		tableOut.set("3D Dboundary",    tableOut.getRowCount()-1, resultValuesTable[11]); //D-boundary
+		tableOut.set("R2 D1",           tableOut.getRowCount()-1, resultValuesTable[4]);
+		tableOut.set("R2 Dmass",        tableOut.getRowCount()-1, resultValuesTable[9]);
+		tableOut.set("R2 Dboundary",    tableOut.getRowCount()-1, resultValuesTable[14]);
 	}
 
 	/**

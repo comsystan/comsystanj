@@ -746,7 +746,7 @@ public class Csaj3DFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		IntColumn columnAccuracy           = new IntColumn("Accuracy");
 		IntColumn columnConfidence         = new IntColumn("Confidence");
-		DoubleColumn columnDp              = new DoubleColumn("Dtow");
+		DoubleColumn columnDp              = new DoubleColumn("3D Dtow");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 
@@ -783,7 +783,7 @@ public class Csaj3DFractalDimensionTugOfWar<T extends RealType<T>> extends Conte
 		tableOut.set("RegMax",       tableOut.getRowCount()-1, regMax);
 		tableOut.set("Accuracy",     tableOut.getRowCount()-1, accuracy);	
 		tableOut.set("Confidence",   tableOut.getRowCount()-1, confidence);	
-		tableOut.set("Dtow",         tableOut.getRowCount()-1, resultValuesTable[1]);
+		tableOut.set("3D Dtow",      tableOut.getRowCount()-1, resultValuesTable[1]);
 		tableOut.set("R2",           tableOut.getRowCount()-1, resultValuesTable[4]);
 		tableOut.set("StdErr",       tableOut.getRowCount()-1, resultValuesTable[3]);	
 	}

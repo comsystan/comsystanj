@@ -856,14 +856,11 @@ public class Csaj3DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");;
 		IntColumn columnRegMin             = new IntColumn("RegMin");
 		IntColumn columnRegMax             = new IntColumn("RegMax");
-		IntColumn columnMinQ            = new IntColumn("Min q");
-		IntColumn columnMaxQ            = new IntColumn("Max q");
+		IntColumn columnMinQ               = new IntColumn("Min q");
+		IntColumn columnMaxQ               = new IntColumn("Max q");
 		GenericColumn columnScanType       = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		//IntColumn columnPixelPercentage    = new IntColumn("(Sliding Box) Pixel %");
-		DoubleColumn columnDb              = new DoubleColumn("Dc-3D");
-		DoubleColumn columnR2              = new DoubleColumn("R2");
-		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 
 		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -880,7 +877,7 @@ public class Csaj3DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		int maxQ = spinnerInteger_MaxQ;
 		int numQ = maxQ - minQ + 1;
 		for (int q = 0; q < numQ; q++) {
-			tableOut.add(new GenericColumn("D" + (minQ + q)));
+			tableOut.add(new GenericColumn("3D D" + (minQ + q)));
 		}
 
 	}
@@ -913,7 +910,7 @@ public class Csaj3DFractalDimensionGeneralized<T extends RealType<T>> extends Co
 		//if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
 		int numQ = maxQ - minQ + 1;
 		for (int q = 0; q < numQ; q++) {
-			tableOut.set("D" + (minQ + q), tableOut.getRowCount()-1, resultValuesTable[q][1]);
+			tableOut.set("3D D" + (minQ + q), tableOut.getRowCount()-1, resultValuesTable[q][1]);
 		}	
 	}
 

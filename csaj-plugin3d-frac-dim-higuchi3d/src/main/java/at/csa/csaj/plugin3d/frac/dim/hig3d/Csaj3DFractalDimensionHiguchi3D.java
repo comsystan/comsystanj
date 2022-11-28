@@ -756,7 +756,7 @@ public class Csaj3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Cont
 		IntColumn columnRegMax           = new IntColumn("RegMax");
 		GenericColumn columnMethod       = new GenericColumn("Method");
 		BoolColumn columnSkipZeroes      = new BoolColumn("Skip zeroes");
-		DoubleColumn columnDh            = new DoubleColumn("Dh-3D");
+		DoubleColumn columnDh            = new DoubleColumn("3D Dh");
 		DoubleColumn columnR2            = new DoubleColumn("R2");
 		DoubleColumn columnStdErr        = new DoubleColumn("StdErr");
 
@@ -792,7 +792,7 @@ public class Csaj3DFractalDimensionHiguchi3D<T extends RealType<T>> extends Cont
 		tableOut.set("RegMax",      tableOut.getRowCount() - 1, regMax);
 		tableOut.set("Method",      tableOut.getRowCount() - 1, choiceRadioButt_Method);
 		tableOut.set("Skip zeroes", tableOut.getRowCount() - 1, booleanSkipZeroes);
-		tableOut.set("Dh-3D",       tableOut.getRowCount() - 1, resultValuesTable[1]);
+		tableOut.set("3D Dh",       tableOut.getRowCount() - 1, resultValuesTable[1]);
 		tableOut.set("R2",          tableOut.getRowCount() - 1, resultValuesTable[4]);
 		tableOut.set("StdErr",      tableOut.getRowCount() - 1, resultValuesTable[3]);
 	}

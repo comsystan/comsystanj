@@ -791,7 +791,7 @@ public class Csaj3DFractalDimensionFFT<T extends RealType<T>> extends ContextCom
 		GenericColumn columnWindowingType  = new GenericColumn("Windowing type");
 		GenericColumn columnPowerSpecType  = new GenericColumn("PowerSpec type");
 		//GenericColumn columnAddMirrors   = new GenericColumn("Add mirrors");
-		DoubleColumn columnDf              = new DoubleColumn("Df-3D");
+		DoubleColumn columnDf              = new DoubleColumn("3D Df");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 
@@ -831,7 +831,7 @@ public class Csaj3DFractalDimensionFFT<T extends RealType<T>> extends ContextCom
 		tableOut.set("Windowing type",  tableOut.getRowCount()-1, windowingType);	
 		tableOut.set("PowerSpec type",  tableOut.getRowCount()-1, powerSpecType);	
 		//tableOut.set("Add mirrors",  	tableOut.getRowCount()-1, addMirrors);	
-		tableOut.set("Df-3D",          	tableOut.getRowCount()-1, resultValuesTable[1]);
+		tableOut.set("3D Df",          	tableOut.getRowCount()-1, resultValuesTable[1]);
 		tableOut.set("R2",          	tableOut.getRowCount()-1, resultValuesTable[4]);
 		tableOut.set("StdErr",      	tableOut.getRowCount()-1, resultValuesTable[3]);	
 	}

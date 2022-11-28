@@ -755,7 +755,7 @@ public class Csaj3DFractalDimensionBoxCounting<T extends RealType<T>> extends Co
 		IntColumn columnRegMax             = new IntColumn("RegMax");
 		GenericColumn columnScanType       = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		DoubleColumn columnDb              = new DoubleColumn("Db-3D");
+		DoubleColumn columnDb              = new DoubleColumn("3D Db");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 
@@ -792,7 +792,7 @@ public class Csaj3DFractalDimensionBoxCounting<T extends RealType<T>> extends Co
 		tableOut.set("RegMax",			tableOut.getRowCount()-1, regMax);
 		tableOut.set("Scanning type",	tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Color model",		tableOut.getRowCount()-1, colorModelType);
-		tableOut.set("Db-3D",			tableOut.getRowCount()-1, resultValuesTable[1]);
+		tableOut.set("3D Db",			tableOut.getRowCount()-1, resultValuesTable[1]);
 		tableOut.set("R2",				tableOut.getRowCount()-1, resultValuesTable[4]);
 		tableOut.set("StdErr",			tableOut.getRowCount()-1, resultValuesTable[3]);
 	}

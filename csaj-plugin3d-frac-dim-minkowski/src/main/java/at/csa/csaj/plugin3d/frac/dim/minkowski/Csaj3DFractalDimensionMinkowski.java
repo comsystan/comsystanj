@@ -750,7 +750,7 @@ public class Csaj3DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 		IntColumn columnRegMax          = new IntColumn("RegMax");
 		GenericColumn columnShapeType   = new GenericColumn("Shape type");
 		GenericColumn columnMorphOp     = new GenericColumn("Morphological operator");
-		DoubleColumn columnDm           = new DoubleColumn("Dm-3D");
+		DoubleColumn columnDm           = new DoubleColumn("3D Dm");
 		DoubleColumn columnR2           = new DoubleColumn("R2");
 		DoubleColumn columnStdErr       = new DoubleColumn("StdErr");
 
@@ -786,7 +786,7 @@ public class Csaj3DFractalDimensionMinkowski<T extends RealType<T>> extends Cont
 		tableOut.set("RegMax",					tableOut.getRowCount()-1, regMax);
 		tableOut.set("Shape type",      		tableOut.getRowCount()-1, shapeType);	
 		tableOut.set("Morphological operator",  tableOut.getRowCount()-1, morphOp);	
-		tableOut.set("Dm-3D",					tableOut.getRowCount()-1, resultValuesTable[1]);
+		tableOut.set("3D Dm",					tableOut.getRowCount()-1, resultValuesTable[1]);
 		tableOut.set("R2",						tableOut.getRowCount()-1, resultValuesTable[4]);
 		tableOut.set("StdErr",					tableOut.getRowCount()-1, resultValuesTable[3]);
 	}

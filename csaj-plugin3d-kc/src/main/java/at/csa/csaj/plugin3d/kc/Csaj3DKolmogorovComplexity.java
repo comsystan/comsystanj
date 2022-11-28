@@ -636,10 +636,10 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		IntColumn columnNumbIterations     = new IntColumn("Iterations [#]");
 		GenericColumn columnComprType      = new GenericColumn("Compression");	
 		GenericColumn columnImgSz          = new GenericColumn("Volume size [MB]");
-		GenericColumn columnKC             = new GenericColumn("KC_3D [MB]");
-		GenericColumn columnImgSzMinusKC   = new GenericColumn("Volume size - KC_3D [MB]");
-		GenericColumn columnKCDivImgSz     = new GenericColumn("(KC_3D)/Volumesize");
-		GenericColumn columnLD             = new GenericColumn("LD_3D [ns]");
+		GenericColumn columnKC             = new GenericColumn("3D KC [MB]");
+		GenericColumn columnImgSzMinusKC   = new GenericColumn("Volume size - (3D KC) [MB]");
+		GenericColumn columnKCDivImgSz     = new GenericColumn("(3D KC)/Volumesize");
+		GenericColumn columnLD             = new GenericColumn("3D LD [ns]");
 
 		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -663,14 +663,14 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		
 		// fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",				 tableOut.getRowCount()-1, datasetName);	
-		tableOut.set("Compression",              tableOut.getRowCount()-1, choiceRadioButt_Compression);
-		tableOut.set("Volume size [MB]",         tableOut.getRowCount()-1, resultValuesTable[0]);
-		tableOut.set("KC_3D [MB]",               tableOut.getRowCount()-1, resultValuesTable[1]);
-		tableOut.set("Volume size - KC_3D [MB]", tableOut.getRowCount()-1, resultValuesTable[2]);
-		tableOut.set("(KC_3D)/Volumesize",       tableOut.getRowCount()-1, resultValuesTable[3]);	
-		tableOut.set("Iterations [#]",           tableOut.getRowCount()-1, numIterations);	
-		tableOut.set("LD_3D [ns]",               tableOut.getRowCount()-1, resultValuesTable[4]);	
+		tableOut.set("File name",				   tableOut.getRowCount()-1, datasetName);	
+		tableOut.set("Compression",                tableOut.getRowCount()-1, choiceRadioButt_Compression);
+		tableOut.set("Volume size [MB]",           tableOut.getRowCount()-1, resultValuesTable[0]);
+		tableOut.set("3D KC [MB]",                 tableOut.getRowCount()-1, resultValuesTable[1]);
+		tableOut.set("Volume size - (3D KC) [MB]", tableOut.getRowCount()-1, resultValuesTable[2]);
+		tableOut.set("(3D KC)/Volumesize",         tableOut.getRowCount()-1, resultValuesTable[3]);	
+		tableOut.set("Iterations [#]",             tableOut.getRowCount()-1, numIterations);	
+		tableOut.set("3D LD [ns]",                 tableOut.getRowCount()-1, resultValuesTable[4]);	
 	}
 
 	/**

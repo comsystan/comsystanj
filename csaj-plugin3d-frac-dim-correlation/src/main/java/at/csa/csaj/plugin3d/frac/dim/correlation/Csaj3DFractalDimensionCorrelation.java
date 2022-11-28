@@ -782,7 +782,7 @@ public class Csaj3DFractalDimensionCorrelation<T extends RealType<T>> extends Co
 		GenericColumn columnScanType       = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
 		//IntColumn columnPixelPercentage    = new IntColumn("(Sliding Box) Pixel %");
-		DoubleColumn columnDb              = new DoubleColumn("Dc-3D");
+		DoubleColumn columnDb              = new DoubleColumn("3D Dc");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 
@@ -822,7 +822,7 @@ public class Csaj3DFractalDimensionCorrelation<T extends RealType<T>> extends Co
 		tableOut.set("Scanning type",	tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Color model",		tableOut.getRowCount()-1, colorModelType);
 		//if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
-		tableOut.set("Dc-3D",			tableOut.getRowCount()-1, resultValuesTable[1]);
+		tableOut.set("3D Dc",			tableOut.getRowCount()-1, resultValuesTable[1]);
 		tableOut.set("R2",				tableOut.getRowCount()-1, resultValuesTable[4]);
 		tableOut.set("StdErr",			tableOut.getRowCount()-1, resultValuesTable[3]);
 	}
