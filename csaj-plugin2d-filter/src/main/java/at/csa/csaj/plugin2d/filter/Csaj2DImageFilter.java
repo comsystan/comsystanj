@@ -275,7 +275,7 @@ public class Csaj2DImageFilter<T extends RealType<T>> extends ContextCommand imp
 		checkItemIOIn();
 	}
 	protected void initialFilterType() {
-		choiceRadioButt_FilterType = "Low pass - FFT";
+		choiceRadioButt_FilterType = "Gaussian blur";
 	} 
 		
 	protected void initialSigma() {
@@ -572,7 +572,7 @@ public class Csaj2DImageFilter<T extends RealType<T>> extends ContextCommand imp
 	*/
 	protected void startWorkflowForSingleImage() {
 		
-		dlgProgress = new WaitingDialogWithProgressBar("Adding noise, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Filtering, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		
 		dlgProgress.updatePercent("");
@@ -595,7 +595,7 @@ public class Csaj2DImageFilter<T extends RealType<T>> extends ContextCommand imp
 	*/
 	protected void startWorkflowForAllImages() {
 
-		dlgProgress = new WaitingDialogWithProgressBar("Adding noise, please wait... Open console window for further info.",
+		dlgProgress = new WaitingDialogWithProgressBar("Filtering, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 	
