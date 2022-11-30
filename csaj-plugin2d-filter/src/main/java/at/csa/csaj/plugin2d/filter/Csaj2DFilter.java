@@ -104,7 +104,7 @@ import io.scif.MetaTable;
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Filter", weight = 15)})
 //public class Img2DImageFilter<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj2DImageFilter<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+public class Csaj2DFilter<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL          = "<html><b>Filter</b></html>";
 	private static final String SPACE_LABEL           = "";
@@ -1102,14 +1102,18 @@ public class Csaj2DImageFilter<T extends RealType<T>> extends ContextCommand imp
 		// Declare an array to hold the current position of the cursor.
 		final long[] pos = new long[fft.numDimensions()];
 
+		long rows   = fft.dimension(1);
 		// Define origin as 0,0.
-		final long[] origin = {0, 0};
+		final long[] origin1= {0, 0};
 
 		// Define a 2nd 'origin' at bottom left of image.
 		// This is a bit of a hack. We want to draw a circle around the origin,
 		// since the origin is at 0,0 - the circle will 'reflect' to the bottom.
-		final long[] origin2 = {0, fft.dimension(1)};
-
+		final long[] origin2 = {0, rows - 1};
+	
+    	double dist1;
+    	double dist2;
+		
 		// Loop through all pixels.
 		final Cursor<C> cursor = Views.iterable(fft).localizingCursor();
 		while (cursor.hasNext()) {
@@ -1118,12 +1122,12 @@ public class Csaj2DImageFilter<T extends RealType<T>> extends ContextCommand imp
 
 			// Calculate distance from 0,0 and bottom left corner
 			// (so we can form the reflected semi-circle).
-			final double dist = Util.distance(origin, pos);
-			final double dist2 = Util.distance(origin2, pos);
+			dist1 = Util.distance(origin1, pos);
+			dist2 = Util.distance(origin2, pos);
 
 			// If distance is above radius (cutoff frequency),
 			// set value of FFT to zero.
-			if (dist > radius && dist2 > radius)
+			if (dist1 > radius && dist2 > radius)
 				cursor.get().setZero();
 		}
 	}
@@ -1148,6 +1152,6 @@ public class Csaj2DImageFilter<T extends RealType<T>> extends ContextCommand imp
 		// execute the filter, waiting for the operation to finish.
 		// ij.command().run(FractalDimensionHiguchi1D.class,
 		// true).get().getOutput("image");
-		ij.command().run(Csaj2DImageFilter.class, true);
+		ij.command().run(Csaj2DFilter.class, true);
 	}
 }
