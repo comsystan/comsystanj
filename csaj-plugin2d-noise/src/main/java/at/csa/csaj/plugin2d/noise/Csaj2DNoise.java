@@ -98,7 +98,7 @@ import io.scif.MetaTable;
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Noise", weight = 20)})
 //public class Img2DImageNoise<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj2DImageNoise<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL          = "<html><b>Noise</b></html>";
 	private static final String SPACE_LABEL           = "";
@@ -1256,6 +1256,6 @@ public class Csaj2DImageNoise<T extends RealType<T>> extends ContextCommand impl
 		// execute the filter, waiting for the operation to finish.
 		// ij.command().run(FractalDimensionHiguchi1D.class,
 		// true).get().getOutput("image");
-		ij.command().run(Csaj2DImageNoise.class, true);
+		ij.command().run(Csaj2DNoise.class, true);
 	}
 }
