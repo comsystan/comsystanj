@@ -1019,15 +1019,11 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 				
 				for (int b = 0; b < numBands; b++) {
 				
-					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);			
-								
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);								
 					getWindowedVolume(raiSlice); //This methods computes the windowed rai raiWindowed 
-			
-					compute3DMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA
-											
+					compute3DMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA								
 					// Filter it.*********************************************************************************
-					lowPass((double)radius);
-										
+					lowPass((double)radius);							
 					// Reverse the FFT.******************************************************************************
 					//opService.filter().ifft(rai, fft);
 					FFT.complexInverse(volA, true); //true: values are back in the right range 
@@ -1122,8 +1118,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 //					((UnsignedByteType) cursor.get()).setReal((int)(Math.round(real)));	
 //				}		
 							
-				
-				
+							
 			} else if (imageType.equals("RGB")) {
 			
 				int numBands = 3;
@@ -1163,10 +1158,10 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 		} //"High pass - FFT"
 		
 		
-		return rai;
-		
+		return rai;	
 	}
 	
+	//*************************************************************************************************
 	/**
 	 * Performs an inplace low-pass filter on the volA
 	 * This method is quite identical to the high-pass method, only one line is different
@@ -1203,8 +1198,8 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 		// Loop through all pixels and check radious
 		for (int k1 = 0; k1 < slices; k1++) {	
 			for (int k2 = 0; k2 < rows; k2++) {
-				for (int k3 = 0; k3 < columns; k3++) { //with 4 origins
-				//for (int k3 = 0; k3 < columns; k3++) { //with 8 origins
+				//for (int k3 = 0; k3 < columns/2; k3++) { //with 4 origins
+				for (int k3 = 0; k3 < columns; k3++) { //with 8 origins
 						posFFT[2] = k1;
 						posFFT[1] = k2;
 						posFFT[0] = k3;
@@ -1218,8 +1213,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices) dist = (float)Util.distance(origin6, posFFT);
 						else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices) dist = (float)Util.distance(origin7, posFFT);
 						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices) dist = (float)Util.distance(origin8, posFFT);
-						
-						
+										
 						//set value of FFT to zero.
 						if (dist > radius) { //LOW PASS 
 							//System.out.println("dist > radius, dist:" + dist  + " radius:" + radius);
@@ -1277,8 +1271,8 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 		// Loop through all pixels and check radious
 		for (int k1 = 0; k1 < slices; k1++) {	
 			for (int k2 = 0; k2 < rows; k2++) {
-				for (int k3 = 0; k3 < columns; k3++) { //with 4 origins
-				//for (int k3 = 0; k3 < columns; k3++) { //with 8 origins
+				//for (int k3 = 0; k3 < columns/2; k3++) { //with 4 origins
+				for (int k3 = 0; k3 < columns; k3++) { //with 8 origins
 						posFFT[2] = k1;
 						posFFT[1] = k2;
 						posFFT[0] = k3;
@@ -1292,7 +1286,6 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] <  fftHalfSlices) dist = (float)Util.distance(origin6, posFFT);
 						else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows && posFFT[2] >= fftHalfSlices) dist = (float)Util.distance(origin7, posFFT);
 						else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows && posFFT[2] >= fftHalfSlices) dist = (float)Util.distance(origin8, posFFT);
-						
 						
 						//set value of FFT to zero.
 						if (dist < radius) { //HIGH PASS
