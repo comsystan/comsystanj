@@ -956,7 +956,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 				//https://wendykierp.github.io/JTransforms/apidocs/
 				//The sizes of both dimensions must be power of two.
 				//Round to next largest power of two. The resulting image will be cropped according to GUI input			
-				compute3DMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA
+				compute3DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA
 										
 				// Filter it.*********************************************************************************
 				lowPass((double)radius);
@@ -1021,7 +1021,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 				
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);								
 					getWindowedVolume(raiSlice); //This methods computes the windowed rai raiWindowed 
-					compute3DMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA								
+					compute3DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA								
 					// Filter it.*********************************************************************************
 					lowPass((double)radius);							
 					// Reverse the FFT.******************************************************************************
@@ -1064,7 +1064,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 				//https://wendykierp.github.io/JTransforms/apidocs/
 				//The sizes of both dimensions must be power of two.
 				//Round to next largest power of two. The resulting image will be cropped according to GUI input			
-				compute3DMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA
+				compute3DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA
 										
 				// Filter it.*********************************************************************************
 				highPass((double)radius);
@@ -1073,50 +1073,53 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 				//opService.filter().ifft(rai, fft);
 				FFT.complexInverse(volA, true); //true: values are back in the right range 
 				
-				cursor = Views.iterable(rai).localizingCursor();
-				long[] pos = new long[3];
-				float real = 0f;
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos); 
-					//JTransform needs rows and columns swapped!!!!!			
-					real = volA[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
-				    ((UnsignedByteType) cursor.get()).setReal((int)Math.round(real)); 
-				}	
-				
-				//Normalize if necessary
-//				//Find min max;
-//				float real = 0;
-//				float min = Float.MAX_VALUE;
-//				float max = -Float.MAX_VALUE;	
-//				float greyMax = 255f;
-//				// Loop through all pixels.
-//				for (int k1 = 0; k1 < slices; k1++) {			
-//					for (int k2 = 0; k2 < rows; k2++) {
-//						for (int k3 = 0; k3 < columns; k3++) {
-//							real = volA[k1][k2][2*k3];
-//							if (real > max) {
-//								max = real;
-//							}
-//							if (real < min) {
-//								min = real;
-//							}
-//						}
-//					}
-//				}
-//							
 //				cursor = Views.iterable(rai).localizingCursor();
-//				//cursor = datasetOut.cursor();	
-//		
-//		    	pos = new long[3];
-//		    	float rf = ((float)greyMax/(max-min)); //rescale factor
+//				long[] pos = new long[3];
+//				float real = 0f;
 //				while (cursor.hasNext()) {
 //					cursor.fwd();
-//					cursor.localize(pos);
+//					cursor.localize(pos); 
+//					//JTransform needs rows and columns swapped!!!!!			
 //					real = volA[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
-//					real = rf * (real - min); //Rescale to 0  - greyMax
-//					((UnsignedByteType) cursor.get()).setReal((int)(Math.round(real)));	
-//				}		
+//				    ((UnsignedByteType) cursor.get()).setReal((int)Math.round(real)); 
+//				}	
+				
+				//Normalize is necessary
+				//Find min max;
+				float real = 0;
+				float min = Float.MAX_VALUE;
+				float max = -Float.MAX_VALUE;	
+				float greyMax = 255f;
+				int slices = volA.length;
+				int rows = volA[0].length;
+				int columns = volA[0][0].length/2;
+				// Loop through all pixels.
+				for (int k1 = 0; k1 < slices; k1++) {			
+					for (int k2 = 0; k2 < rows; k2++) {
+						for (int k3 = 0; k3 < columns; k3++) {
+							real = volA[k1][k2][2*k3];
+							if (real > max) {
+								max = real;
+							}
+							if (real < min) {
+								min = real;
+							}
+						}
+					}
+				}
+							
+				cursor = Views.iterable(rai).localizingCursor();
+				//cursor = datasetOut.cursor();	
+		
+		    	long[] pos = new long[3];
+		    	float rf = ((float)greyMax/(max-min)); //rescale factor
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					real = volA[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
+					real = rf * (real - min); //Rescale to 0  - greyMax
+					((UnsignedByteType) cursor.get()).setReal((int)(Math.round(real)));	
+				}		
 							
 							
 			} else if (imageType.equals("RGB")) {
@@ -1130,7 +1133,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 								
 					getWindowedVolume(raiSlice); //This methods computes the windowed rai raiWindowed 
 			
-					compute3DMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA
+					compute3DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix volA
 											
 					// Filter it.*********************************************************************************
 					highPass((double)radius);
@@ -1139,15 +1142,41 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 					//opService.filter().ifft(rai, fft);
 					FFT.complexInverse(volA, true); //true: values are back in the right range 
 					
+					//Normalize is necessary
+					//Find min max;
+					float real = 0;
+					float min = Float.MAX_VALUE;
+					float max = -Float.MAX_VALUE;	
+					float greyMax = 255f;
+					int slices = volA.length;
+					int rows = volA[0].length;
+					int columns = volA[0][0].length/2;
+					// Loop through all pixels.
+					for (int k1 = 0; k1 < slices; k1++) {			
+						for (int k2 = 0; k2 < rows; k2++) {
+							for (int k3 = 0; k3 < columns; k3++) {
+								real = volA[k1][k2][2*k3];
+								if (real > max) {
+									max = real;
+								}
+								if (real < min) {
+									min = real;
+								}
+							}
+						}
+					}
+								
 					cursor = Views.iterable(raiSlice).localizingCursor();
-					long[] pos = new long[3];
-					float real = 0f;
+					//cursor = datasetOut.cursor();	
+			
+			    	long[] pos = new long[3];
+			    	float rf = ((float)greyMax/(max-min)); //rescale factor
 					while (cursor.hasNext()) {
 						cursor.fwd();
-						cursor.localize(pos); 
-						//JTransform needs rows and columns swapped!!!!!			
+						cursor.localize(pos);
 						real = volA[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
-					    ((UnsignedByteType) cursor.get()).setReal((int)Math.round(real)); 
+						real = rf * (real - min); //Rescale to 0  - greyMax
+						((UnsignedByteType) cursor.get()).setReal((int)(Math.round(real)));	
 					}						
 				} //b
 			} //RGB	
@@ -1156,8 +1185,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 			volA = null;
 					
 		} //"High pass - FFT"
-		
-		
+			
 		return rai;	
 	}
 	
@@ -1313,7 +1341,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 	 * @param  rai
 	 * @return FloatFFT_3D FFT
 	 */
-	private FloatFFT_3D compute3DMatrix (RandomAccessibleInterval<?> rai) {
+	private FloatFFT_3D compute3DFFTMatrix (RandomAccessibleInterval<?> rai) {
 		int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit((int)width  - 1) * 2;
 		int heightDFT = height == 1 ? 1 : Integer.highestOneBit((int)height - 1) * 2;
 		int depthDFT  = depth  == 1 ? 1 : Integer.highestOneBit((int)depth  - 1) * 2;
