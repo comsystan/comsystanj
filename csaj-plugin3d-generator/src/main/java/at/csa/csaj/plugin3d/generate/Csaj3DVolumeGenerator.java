@@ -36,6 +36,7 @@ import net.imagej.axis.AxisType;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.img.Img;
@@ -389,9 +390,9 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			while (cursor.hasNext()) {
 				cursor.fwd();	
 				cursor.localize(pos);
-				if      (pos[3] == 0) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxR));
-				else if (pos[3] == 1) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxG));
-				else if (pos[3] == 2) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxB));
+				if      (pos[2] == 0) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxR));
+				else if (pos[2] == 1) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxG));
+				else if (pos[2] == 2) cursor.get().setReal((int)Math.round(random.nextFloat()*greyMaxB));
 			} 	
 		}		
 	}
@@ -419,9 +420,9 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			while (cursor.hasNext()) {
 				cursor.fwd();	
 				cursor.localize(pos);
-				if      (pos[3] == 0) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muR));
-				else if (pos[3] == 1) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muG));
-				else if (pos[3] == 2) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muB));
+				if      (pos[2] == 0) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muR));
+				else if (pos[2] == 1) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muG));
+				else if (pos[2] == 2) cursor.get().setReal((int)Math.round(random.nextGaussian()*sigma + muB));
 			} 	
 		}			
 	}
@@ -442,9 +443,9 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
-				if      (pos[3] == 0) cursor.get().setReal(constR);
-				else if (pos[3] == 1) cursor.get().setReal(constG);
-				else if (pos[3] == 2) cursor.get().setReal(constB);
+				if      (pos[2] == 0) cursor.get().setReal(constR);
+				else if (pos[2] == 1) cursor.get().setReal(constG);
+				else if (pos[2] == 2) cursor.get().setReal(constB);
 			} 	
 		}				
 	}
@@ -452,11 +453,127 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     //@author Moritz Hackhofer
     private void compute3DFracFFT(float fracDim, int greyMaxR, int greyMaxG, int greyMaxB ) {
     	  
-    	dlgProgress.setBarIndeterminate(false);
+		long[] pos;
+		if (colorModelType.equals("Grey-8bit")) {
+			
+			computeNewFFTVolume(fracDim); //computes a new volFFT;
+			
+			//Find min max;
+			float min   = Float.MAX_VALUE;
+			float max   = -Float.MAX_VALUE;	
+			float real  = 0;
+			int slices  = volFFT.length;
+			int rows    = volFFT[0].length;
+			int columns = volFFT[0][0].length/2;
+			int percent;
+			// Loop through all pixels.
+			for (int k1 = 0; k1 < slices; k1++) {
+				
+				percent = (int)Math.round((  ((float)k1)/((float)slices)   *100.f   ));
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus((k1+1), slices, "Processing " + (k1+1) + "/" + slices); 
+				
+				for (int k2 = 0; k2 < rows; k2++) {
+					for (int k3 = 0; k3 < columns; k3++) {
+						real = volFFT[k1][k2][2*k3];
+						if (real > max) {
+							max = real;
+						}
+						if (real < min) {
+							min = real;
+						}
+					}
+				}
+			}
+			
+			cursor = datasetOut.cursor();	
+	    	pos = new long[3];
+	    	float rf = ((float)greyMaxR/(max-min)); //rescale factor
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
+				real = rf * (real - min); //Rescale to 0  - greyMax
+				cursor.get().setReal((int)(Math.round(real)));	
+			}		
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+			
+			int numBands = 3;
+			int percent;
+			RandomAccessibleInterval<T> raiSlice = null;	
+		 	
+			for (int b = 0; b < numBands; b++) {
+				percent = (int)Math.round((  ((float)b)/((float)b)   *100.f   ));
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus((b+1), numBands, "Processing " + (b+1) + "/" + numBands); 
+				
+				computeNewFFTVolume(fracDim); //computes a new volFFT;
+				
+				//Find min max;
+				float min   = Float.MAX_VALUE;
+				float max   = -Float.MAX_VALUE;	
+				float real  = 0;
+				int slices  = volFFT.length;
+				int rows    = volFFT[0].length;
+				int columns = volFFT[0][0].length/2;
+				
+				// Loop through all pixels.
+				for (int k1 = 0; k1 < slices; k1++) {		
+					for (int k2 = 0; k2 < rows; k2++) {
+						for (int k3 = 0; k3 < columns; k3++) {
+							real = volFFT[k1][k2][2*k3];
+							if (real > max) {
+								max = real;
+							}
+							if (real < min) {
+								min = real;
+							}
+						}//k3
+					}//k2
+				}//k1
+				
+				raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+		    	pos = new long[3];
+		    	
+		    	float rf = 0;
+		    	if      (b == 0) rf = ((float)greyMaxR/(max-min)); //rescale factor
+		    	else if (b == 1) rf = ((float)greyMaxG/(max-min)); //rescale factor
+		    	else if (b == 2) rf = ((float)greyMaxB/(max-min)); //rescale factor
+		    	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
+					real = rf * (real - min); //Rescale to 0  - greyMax
+					cursor.get().setReal((int)(Math.round(real)));	
+				}	
+				
+			}//b 	
+		}//RGB	
+		
+		volFFT = null;
+	}
+    
+    
+    /**
+     * This method computes a new fractal volume using FFT
+     * @param fracDim
+     * @return float volFFT[][][]
+     */
+    private void computeNewFFTVolume(float fracDim) {
+    
+     	dlgProgress.setBarIndeterminate(false);
     	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	int depth  = (int)datasetOut.dimension(2);
+    	//datasetOut.dimension(2) is three for RGB
+    	int depth  = (int)datasetOut.dimension(3);
     	long[] pos;
     	
     	//create empty volume
@@ -542,8 +659,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			
 			for (int k2 = 0; k2 < rows; k2++) {
 				for (int k3 = 0; k3 < columns; k3++) {
-				
-				
+						
 					posFFT[2] = k1;
 					posFFT[1] = k2;
 					posFFT[0] = k3;
@@ -577,76 +693,96 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		//Inverse FFT		
 		//vol is now really complex, Real and Imaginary pairs
 		FFT.complexInverse(volFFT, false);
-			
-		//Find min max;
-		float min = Float.MAX_VALUE;
-		float max = -Float.MAX_VALUE;	
-		// Loop through all pixels.
-		for (int k1 = 0; k1 < slices; k1++) {
-			
-			percent = (int)Math.round((  ((float)k1)/((float)slices)   *100.f   ));
-			dlgProgress.updatePercent(String.valueOf(percent+"%"));
-			dlgProgress.updateBar(percent);
-			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
-			statusService.showStatus((k1+1), slices, "Processing " + (k1+1) + "/" + slices); 
-			
-			for (int k2 = 0; k2 < rows; k2++) {
-				for (int k3 = 0; k3 < columns; k3++) {
-					real = volFFT[k1][k2][2*k3];
-					if (real > max) {
-						max = real;
-					}
-					if (real < min) {
-						min = real;
-					}
-				}
-			}
-		}
 		
-		cursor = datasetOut.cursor();	
-		
-		if (colorModelType.equals("Grey-8bit")) {
-	    	pos = new long[3];
-	    	float rf = ((float)greyMaxR/(max-min)); //rescale factor
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
-				real = rf * (real - min); //Rescale to 0  - greyMax
-				cursor.get().setReal((int)(Math.round(real)));	
-			}		
-					
-		} else if (colorModelType.equals("Color-RGB")) {
-			
-		 	pos = new long[4];
-		 	float rfR = ((float)greyMaxR/(max-min)); //rescale factor
-		 	float rfG = ((float)greyMaxG/(max-min)); //rescale factor
-		 	float rfB = ((float)greyMaxB/(max-min)); //rescale factor
-		 	float realR;
-		 	float realG;
-		 	float realB;
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
-				if      (pos[3] == 0) { realR = rfR * (real - min); cursor.get().setReal((int)(Math.round(realR))); }
-				else if (pos[3] == 1) { realG = rfG * (real - min); cursor.get().setReal((int)(Math.round(realG))); }
-				else if (pos[3] == 2) { realB = rfB * (real - min); cursor.get().setReal((int)(Math.round(realB))); }
-			} 	
-		}	
-		
-		volFFT = null;
-	}
+    }
     
     
     //@author Moritz Hackhofer
     private void compute3DFracMPD(float fracDim, int greyMaxR, int greyMaxG, int greyMaxB) {
     	
-    	dlgProgress.setBarIndeterminate(false);
-    	int percent;
+    	long[] pos;
+		if (colorModelType.equals("Grey-8bit")) {
+	 		
+			computeNewMPDVolume(fracDim);
+			
+			int N = volMPD.length - 1;
+			int M = volMPD[0].length - 1;
+			int O = volMPD[0][0].length - 1;
+			
+			//Write to output
+			float allMin = getMin(volMPD, N, M, O);
+			float allMax = getMax(volMPD, N, M, O);		
+					
+			float scale = (float)greyMaxR / (allMax - allMin);	
+	    
+			cursor = datasetOut.cursor();	
+			pos = new long[3];
+	    	while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				cursor.get().setReal((int) Math.round((volMPD[(int)pos[0]][(int)pos[1]][(int)(pos[2])] - allMin) * scale));	
+	    	}
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+			
+			int numBands = 3;
+			int percent;
+			RandomAccessibleInterval<T> raiSlice = null;	
+			float scale = 0;	
+			int N;
+			int M;
+			int O;
+			
+			float allMin;
+			float allMax;		
+			
+			for (int b = 0; b < numBands; b++) {
+				percent = (int)Math.round((  ((float)b)/((float)b)   *100.f   ));
+				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+				dlgProgress.updateBar(percent);
+				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+				statusService.showStatus((b+1), numBands, "Processing " + (b+1) + "/" + numBands); 
+				
+				computeNewMPDVolume(fracDim); //computes a new volMPD;
+	
+				N = volMPD.length - 1;
+				M = volMPD[0].length - 1;
+				O = volMPD[0][0].length - 1;
+				
+				allMin = getMin(volMPD, N, M, O);
+				allMax = getMax(volMPD, N, M, O);		
+		    	
+		    	if      (b == 0) scale = (float)greyMaxR / (allMax - allMin);	
+		    	else if (b == 1) scale = (float)greyMaxG / (allMax - allMin);	
+		    	else if (b == 2) scale = (float)greyMaxB / (allMax - allMin);	
+			
+		    	raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+		    	pos = new long[3];	
+		    	while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					cursor.get().setReal((int) Math.round((volMPD[(int)pos[0]][(int)pos[1]][(int)(pos[2])] - allMin) * scale));	
+		    	}
+			}
+		}	
+		
+		volMPD = null;  	
+	}
+    
+	/**
+	 * This method computes a new fractal volume using MPD
+	 * @param fracDim
+	 * @return float volMPD[][][]
+	 */
+	private void computeNewMPDVolume(float fracDim) {
+	
+	 	dlgProgress.setBarIndeterminate(false);
+	   	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	int depth  = (int)datasetOut.dimension(2);
+    	//datasetOut.dimension(2)  = 3 for RGB
+    	int depth  = (int)datasetOut.dimension(3);
     	//resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth);
     
     	//Hurst exponent
@@ -1104,57 +1240,8 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			
 		} //stage
 		
-		//Write to output
-		float allMin = getMin(volMPD, N, M, O);
-		float allMax = getMax(volMPD, N, M, O);		
-				
-    	cursor = datasetOut.cursor();	
-		
-		if (colorModelType.equals("Grey-8bit")) {
-	 		
-			float scale = (float)greyMaxR / (allMax - allMin);	
-			ra = datasetOut.randomAccess();
-			
-			// write to Output	
-			for (int k1 = 0; k1 < width; k1++) {
-				for (int k2 = 0; k2 < height; k2++) {
-					for (int k3 = 0; k3 < depth; k3++) {
-						ra.setPosition(k1, 0);
-						ra.setPosition(k2, 1);
-						ra.setPosition(k3, 2);
-						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scale));
-					}
-				}
-			} 
-					
-		} else if (colorModelType.equals("Color-RGB")) {
-			
-			float scaleR = (float)greyMaxR / (allMax - allMin);	
-			float scaleG = (float)greyMaxG / (allMax - allMin);	
-			float scaleB = (float)greyMaxB / (allMax - allMin);	
-			ra = datasetOut.randomAccess();
-			
-			// write to Output	
-			for (int k1 = 0; k1 < width; k1++) {
-				for (int k2 = 0; k2 < height; k2++) {
-					for (int k3 = 0; k3 < depth; k3++) {
-						ra.setPosition(k1, 0);
-						ra.setPosition(k2, 1);
-						ra.setPosition(k3, 2);
-						ra.setPosition(0, 3);
-						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scaleR));
-						ra.setPosition(1, 3);
-						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scaleG));
-						ra.setPosition(2, 3);
-						ra.get().setReal((int) Math.round((volMPD[k1][k2][k3] - allMin) * scaleB));
-					}
-				}
-			} 
-		}	
-		
-		volFFT = null;  	
-	}
-    
+	} //compute VolMPD
+
 	// Method for getting the maximum value
     public static float getMax(float[][][] inputArray, int N, int M, int O) { 
       	float maxValue = -Float.MAX_VALUE;
@@ -1191,9 +1278,10 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	    	
     	dlgProgress.setBarIndeterminate(false);
     	int percent;
-	 	int width  = (int)datasetOut.dimension(0);
+    	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	int depth  = (int)datasetOut.dimension(2);
+    	//datasetOut.dimension(2) is three for RGB
+    	int depth  = (int)datasetOut.dimension(3);
 
        	height = depth = width; //All sizes must be equal
     	
@@ -1280,11 +1368,13 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		}
 			
 		// Convert and write to Output---------------------------------------
-		cursor = datasetOut.cursor(); //3D (Grey) or 4D (RGB)
-		raF = volIFS.randomAccess();  //raF always 3D
-    
+		
 		if (colorModelType.equals("Grey-8bit")) {
+			
+			cursor = datasetOut.cursor(); //3D (Grey)
+			raF = volIFS.randomAccess();  //raF always 3D
 			long[] pos = new long[3];
+		
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1295,19 +1385,28 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			}  	
 					
 		} else if (colorModelType.equals("Color-RGB")) {
-			long[] pos = new long[4];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raF.setPosition(pos);
-				//raF always 3D but does not matter here, only the three first positions are taken
-				if (raF.get().getRealFloat() > 0) { //raF always 3D
-					if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
-					else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
-					else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
-				}			
-			}  	
-		}	
+			
+			raF = volIFS.randomAccess();  //always 3D
+			int numBands = 3;
+			int greyMax = 0;
+			long[] pos;
+			for (int b = 0; b < numBands; b++) {//RGB
+				
+				if      (b == 0) greyMax = greyMaxR;
+				else if (b == 1) greyMax = greyMaxG;
+				else if (b == 2) greyMax = greyMaxB;
+			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				pos = new long[3];	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					raF.setPosition(pos);
+					//raF always 3D but does not matter here, only the three first positions are taken
+					if (raF.get().getRealFloat() > 0) cursor.get().setReal(greyMax);			
+				}  
+			}//b
+		}//RGB
 		
 		volIFS     = null;
 		volIFSCopy = null;
@@ -1331,9 +1430,10 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		AffineTransform3D at3D4 = new AffineTransform3D();
 		AffineTransform3D at3D5 = new AffineTransform3D();
     	
-	 	int width  = (int)datasetOut.dimension(0);
+		int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	int depth  = (int)datasetOut.dimension(2);
+    	//datasetOut.dimension(2) is three for RGB
+    	int depth  = (int)datasetOut.dimension(3);
     	
     	height = depth = width; //All sizes must be equal for quadratic pyramid
     	double size = width;
@@ -1488,12 +1588,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		}
 			
 		// Convert and write to Output---------------------------------------
-		cursor = datasetOut.cursor(); //3D (Grey) or 4D (RGB)
-		raF = volIFS.randomAccess();  //always 3D
-		long zz;
-    
+	
 		if (colorModelType.equals("Grey-8bit")) {
+		
+			cursor = datasetOut.cursor(); //3D (Grey)
+			raF = volIFS.randomAccess();  //always 3D
+			long zz;
 			pos = new long[3];
+		
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1509,24 +1611,36 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			}  	
 					
 		} else if (colorModelType.equals("Color-RGB")) {
-			pos = new long[4];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
-				if (zz > 0 && zz < depth) {
-					raF.setPosition(pos[0], 0);
-					raF.setPosition(pos[1], 1); 
-					raF.setPosition(zz, 2);
-					//raF always 3D
-					if (raF.get().getRealFloat() > 0) {
-						if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
-						else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
-						else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
-					}			
-				}				
-			}  			
-		} 
+					
+			raF = volIFS.randomAccess();  //always 3D
+			int numBands = 3;
+			int greyMax = 0;
+			pos = new long[3];
+			long zz;
+			
+			for (int b = 0; b < numBands; b++) {//RGB
+				
+				if      (b == 0) greyMax = greyMaxR;
+				else if (b == 1) greyMax = greyMaxG;
+				else if (b == 2) greyMax = greyMaxB;
+				
+			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+							
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
+					if (zz > 0 && zz < depth) {
+						raF.setPosition(pos[0], 0);
+						raF.setPosition(pos[1], 1); 
+						raF.setPosition(zz, 2);
+						//raF always 3D
+						if (raF.get().getRealFloat() > 0) cursor.get().setReal(greyMax);				
+					}				
+				} 
+			}
+		} //RGB
 	
 		volIFS     = null;
 		volIFSTemp = null;
@@ -1551,9 +1665,10 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		AffineTransform3D at3D5 = new AffineTransform3D();
 		AffineTransform3D at3D6 = new AffineTransform3D(); //Additional transformation top pyramid mirrored down vertically
     	
-	 	int width  = (int)datasetOut.dimension(0);
+		int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	int depth  = (int)datasetOut.dimension(2);
+    	//datasetOut.dimension(2) is three for RGB
+    	int depth  = (int)datasetOut.dimension(3);
     	
     	height = depth = width; //All sizes must be equal for quadratic pyramid
     	double size = width;
@@ -1713,12 +1828,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		}
 			
 		// Convert and write to Output---------------------------------------
-		cursor = datasetOut.cursor(); //3D (Grey) or 4D (RGB)
-		raF = volIFS.randomAccess();  //always 3D
-		long zz;
-    
+	
 		if (colorModelType.equals("Grey-8bit")) {
+			
+			cursor = datasetOut.cursor(); //3D (Grey)
+			raF = volIFS.randomAccess();  //always 3D
+			long zz;
 			pos = new long[3];
+		
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1734,23 +1851,35 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			}  	
 					
 		} else if (colorModelType.equals("Color-RGB")) {
-			pos = new long[4];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
-				if (zz > 0 && zz < depth) {
-					raF.setPosition(pos[0], 0);
-					raF.setPosition(pos[1], 1); 
-					raF.setPosition(zz, 2);
-					//raF always 3D
-					if (raF.get().getRealFloat() > 0) {
-						if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
-						else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
-						else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
-					}			
-				}		
-			}  		
+			
+			raF = volIFS.randomAccess();  //always 3D
+			int numBands = 3;
+			int greyMax = 0;
+			pos = new long[3];
+			long zz;
+			
+			for (int b = 0; b < numBands; b++) {//RGB
+				
+				if      (b == 0) greyMax = greyMaxR;
+				else if (b == 1) greyMax = greyMaxG;
+				else if (b == 2) greyMax = greyMaxB;
+				
+			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+		
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
+					if (zz > 0 && zz < depth) {
+						raF.setPosition(pos[0], 0);
+						raF.setPosition(pos[1], 1); 
+						raF.setPosition(zz, 2);
+						//raF always 3D
+						if (raF.get().getRealFloat() > 0) cursor.get().setReal(greyMax);	
+					}		
+				}  
+			}//RGB
 		} 
 	
 		volIFS     = null;
@@ -1775,9 +1904,10 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		AffineTransform3D at3D4 = new AffineTransform3D();
 		AffineTransform3D at3D5 = new AffineTransform3D();
     	
-	 	int width  = (int)datasetOut.dimension(0);
+		int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	int depth  = (int)datasetOut.dimension(2);
+    	//datasetOut.dimension(2) is three for RGB
+    	int depth  = (int)datasetOut.dimension(3);
     	
     	height = depth = width; //All sizes must be equal for quadratic pyramid
     	double size = width;
@@ -1934,13 +2064,16 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		}
 			
 		// Convert and write to Output---------------------------------------
-		cursor = datasetOut.cursor(); //3D (Grey) or 4D (RGB)
-		raF = volIFS.randomAccess();  //always 3D
-		RandomAccess<FloatType> raInitial = volInitialPyramid.randomAccess();
-		long zz;
+	
     
 		if (colorModelType.equals("Grey-8bit")) {
+		
+			cursor = datasetOut.cursor(); //3D (Grey)
+			raF = volIFS.randomAccess();  //always 3D
+			RandomAccess<FloatType> raInitial = volInitialPyramid.randomAccess();
+			long zz;
 			pos = new long[3];
+		
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1959,26 +2092,41 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			}  	
 					
 		} else if (colorModelType.equals("Color-RGB")) {
-			pos = new long[4];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
-				if (zz > 0 && zz < depth) {
-					raF.setPosition(pos[0], 0);
-					raF.setPosition(pos[1], 1); 
-					raF.setPosition(zz, 2);
-					raInitial.setPosition(pos[0], 0);
-					raInitial.setPosition(pos[1], 1); 
-					raInitial.setPosition(zz, 2);
-					//raF always 3D
-					if (raF.get().getRealFloat() == 0 && raInitial.get().getRealFloat() > 0)  { //complement, but restricted to original pyramid
-						if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
-						else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
-						else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
-					}			
-				}				
-			}  			
+			
+			raF = volIFS.randomAccess();  //always 3D
+			RandomAccess<FloatType> raInitial = volInitialPyramid.randomAccess();
+			int numBands = 3;
+			int greyMax = 0;
+			pos = new long[3];
+			long zz;
+			
+			for (int b = 0; b < numBands; b++) {//RGB
+				
+				if      (b == 0) greyMax = greyMaxR;
+				else if (b == 1) greyMax = greyMaxG;
+				else if (b == 2) greyMax = greyMaxB;
+				
+			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+			
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					zz = (depth - 1) - pos[2] - offsetZ; // mirrored vertically and shifted to center  	
+					if (zz > 0 && zz < depth) {
+						raF.setPosition(pos[0], 0);
+						raF.setPosition(pos[1], 1); 
+						raF.setPosition(zz, 2);
+						raInitial.setPosition(pos[0], 0);
+						raInitial.setPosition(pos[1], 1); 
+						raInitial.setPosition(zz, 2);
+						//raF always 3D
+						if (raF.get().getRealFloat() == 0 && raInitial.get().getRealFloat() > 0)  { //complement, but restricted to original pyramid
+							cursor.get().setReal(greyMax);
+						}			
+					}				
+				} 
+			}//RGB
 		} 
 	
 		volIFS     = null;
@@ -1993,9 +2141,10 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	    	
     	dlgProgress.setBarIndeterminate(false);
     	int percent;
-	 	int width  = (int)datasetOut.dimension(0);
+    	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	int depth  = (int)datasetOut.dimension(2);
+    	//datasetOut.dimension(2) is three for RGB
+    	int depth  = (int)datasetOut.dimension(3);
     	
        	height = depth = width; //All sizes must be equal for quadratic pyramid
 
@@ -2082,11 +2231,13 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		}
 			
 		// Convert and write to Output---------------------------------------
-		cursor = datasetOut.cursor(); //3D (Grey) or 4D (RGB)
-		raF = volIFS.randomAccess();  //raF always 3D
-    
+		
 		if (colorModelType.equals("Grey-8bit")) {
+		
+			cursor = datasetOut.cursor(); //3D (Grey)
+			raF = volIFS.randomAccess();  //raF always 3D
 			long[] pos = new long[3];
+		
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -2097,18 +2248,29 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 			}  	
 					
 		} else if (colorModelType.equals("Color-RGB")) {
-			long[] pos = new long[4];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raF.setPosition(pos);
-				//raF always 3D but does not matter here, only the three first positions are taken
-				if (raF.get().getRealFloat() > 0) { //raF always 3D
-					if      (pos[3] == 0) cursor.get().setReal(greyMaxR);
-					else if (pos[3] == 1) cursor.get().setReal(greyMaxG);
-					else if (pos[3] == 2) cursor.get().setReal(greyMaxB);
-				}			
-			}  	
+	
+			raF = volIFS.randomAccess();  //always 3D
+			int numBands = 3;
+			int greyMax = 0;
+			long[] pos = new long[3];
+			
+			for (int b = 0; b < numBands; b++) {//RGB
+				
+				if      (b == 0) greyMax = greyMaxR;
+				else if (b == 1) greyMax = greyMaxG;
+				else if (b == 2) greyMax = greyMaxB;
+				
+			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+			
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					raF.setPosition(pos);
+					//raF always 3D but does not matter here, only the three first positions are taken
+					if (raF.get().getRealFloat() > 0) cursor.get().setReal(greyMax);		
+				}  	
+			}//RGB
 		}	
 		
 		volIFS     = null;
@@ -2161,17 +2323,17 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	
 		// Create an image.
 		
-		String name = "3D image stack";
-		if 		(volumeType.equals("Random"))   								name = "Random image stack";
-		else if (volumeType.equals("Gaussian")) 								name = "Gaussian image stack";
-		else if (volumeType.equals("Constant")) 								name = "Constant image stack";
-		else if (volumeType.equals("Fractal volume - FFT"))						name = "Fractal volume - FFT";
-		else if (volumeType.equals("Fractal volume - MPD"))						name = "Fractal volume - MPD";
-		else if (volumeType.equals("Fractal IFS - Menger"))						name = "Fractal IFS - Menger";
-		else if (volumeType.equals("Fractal IFS - Sierpinski1"))				name = "Fractal IFS - Sierpinski1";
-		else if (volumeType.equals("Fractal IFS - Sierpinski2"))				name = "Fractal IFS - Sierpinski2";
-		else if (volumeType.equals("Fractal IFS - Sierpinski3"))				name = "Fractal IFS - Sierpinski3";
-		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))			name = "Fractal IFS - Mandelbrot island";
+		String name = "3D image volume";
+		if 		(volumeType.equals("Random"))   								name = "3D Random image volume";
+		else if (volumeType.equals("Gaussian")) 								name = "3D Gaussian image volume";
+		else if (volumeType.equals("Constant")) 								name = "3D Constant image volume";
+		else if (volumeType.equals("Fractal volume - FFT"))						name = "3D Fractal volume - FFT";
+		else if (volumeType.equals("Fractal volume - MPD"))						name = "3D Fractal volume - MPD";
+		else if (volumeType.equals("Fractal IFS - Menger"))						name = "3D Fractal IFS - Menger";
+		else if (volumeType.equals("Fractal IFS - Sierpinski1"))				name = "3D Fractal IFS - Sierpinski1";
+		else if (volumeType.equals("Fractal IFS - Sierpinski2"))				name = "3D Fractal IFS - Sierpinski2";
+		else if (volumeType.equals("Fractal IFS - Sierpinski3"))				name = "3D Fractal IFS - Sierpinski3";
+		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))			name = "3D Fractal IFS - Mandelbrot island";
 				
 		AxisType[] axes  = null;
 		long[] dims 	 = null;
@@ -2194,8 +2356,8 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		} else if (colorModelType.equals("Color-RGB")) {
 			
 			bitsPerPixel = 8;
-			dims = new long[]{width, height, depth, 3};
-			axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z, Axes.CHANNEL};
+			dims = new long[]{width, height, 3, depth};
+			axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
 			datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
 			datasetOut.setCompositeChannelCount(3);
 			datasetOut.setRGBMerged(true);
