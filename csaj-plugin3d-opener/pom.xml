@@ -16,7 +16,7 @@
 	<artifactId>csaj-plugin3d-opener</artifactId>
 	<version>2.1.0</version><!--ComsystanJ version-->
 
-	<name>3D Image - Image opener</name>
+	<name>3D Volume - Image opener</name>
 	<description>ImageJ2 plugin to open multiple images as a volume.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2022</inceptionYear>

@@ -908,10 +908,10 @@ public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implement
 						
 			} else if (imageType.equals("RGB")) {
 			
-				int numDim = rai.numDimensions();
+				int numBand = 3;
 				RandomAccessibleInterval<T> raiSlice = null;	
 				
-				for (int b = 0; b < numDim; b++) {
+				for (int b = 0; b < numBand; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);
 					
 					//The percentage of all pixels are changed 
@@ -971,10 +971,10 @@ public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implement
 						
 			} else if (imageType.equals("RGB")) {
 				
-				int numDim = rai.numDimensions();
+				int numBand = 3;
 				RandomAccessibleInterval<T> raiSlice = null;	
 				
-				for (int b = 0; b < numDim; b++) {
+				for (int b = 0; b < numBand; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);			
 					//The percentage of all pixels are changed 
 					int max = -Integer.MAX_VALUE;
@@ -1032,10 +1032,10 @@ public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implement
 						
 			} else if (imageType.equals("RGB")) {
 			
-				int numDim = rai.numDimensions();
+				int numBands = 3;
 				RandomAccessibleInterval<T> raiSlice = null;	
 				
-				for (int b = 0; b < numDim; b++) {
+				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
 					cursor = Views.iterable(raiSlice).localizingCursor();			
 					while (cursor.hasNext()) {
@@ -1089,10 +1089,10 @@ public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implement
 						
 			} else if (imageType.equals("RGB")) {
 			
-				int numDim = rai.numDimensions();
+				int numBands = 3; //RGB
 				RandomAccessibleInterval<T> raiSlice = null;	
 				
-				for (int b = 0; b < numDim; b++) {
+				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
 					cursor = Views.iterable(raiSlice).localizingCursor();			
 					while (cursor.hasNext()) {
@@ -1147,10 +1147,10 @@ public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implement
 						
 			} else if (imageType.equals("RGB")) {
 			
-				int numDim = rai.numDimensions();
+				int numBands = 3; //RGB
 				RandomAccessibleInterval<T> raiSlice = null;	
 				
-				for (int b = 0; b < numDim; b++) {
+				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
 					cursor = Views.iterable(raiSlice).localizingCursor();			
 					while (cursor.hasNext()) {
@@ -1204,10 +1204,10 @@ public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implement
 						
 			} else if (imageType.equals("RGB")) {
 			
-				int numDim = rai.numDimensions();
+				int numBands = 3; //RGB
 				RandomAccessibleInterval<T> raiSlice = null;	
 				
-				for (int b = 0; b < numDim; b++) {
+				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
 					cursor = Views.iterable(raiSlice).localizingCursor();			
 					while (cursor.hasNext()) {

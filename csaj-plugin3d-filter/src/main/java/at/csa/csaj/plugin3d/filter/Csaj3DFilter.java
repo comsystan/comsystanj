@@ -116,7 +116,6 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 	private static float[][][] volA;
 	private static RandomAccessibleInterval<FloatType>  raiWindowed; 
 	Cursor<?> cursor = null;
-	private static Dataset dataset;
 	private static String datasetName;
 	private static long width  = 0;
 	private static long height = 0;
@@ -124,12 +123,11 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 	private static long numDimensions = 0;
 	private static double numBytes = 0;
 	private static long numSlices = 0;
-	private static int numVolumes = 0;
 	private static long compositeChannelCount = 0;
 	private static String imageType = "";
 	
-	private static final String imageOutName = "Filtered volume";
-	private static final String imagePreviewName = "Preview volume";
+	private static final String volumeOutName = "Filtered volume";
+	private static final String volumePreviewName = "Preview volume";
 	private static Dataset datasetPreview;
 	
 	private WaitingDialogWithProgressBar dlgProgress;
@@ -175,7 +173,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 	@Parameter
 	private IOService ioService;
 
-	@Parameter(label = imageOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = volumeOutName, type = ItemIO.OUTPUT)
 	private Dataset datasetOut;
 
 	// Widget elements------------------------------------------------------
@@ -345,7 +343,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleVolume();
-	    	   	uiService.show(imageOutName, datasetOut);
+	    	   	uiService.show(volumeOutName, datasetOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -369,7 +367,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForSingleVolume();
-	    	   	uiService.show(imageOutName, datasetOut);
+	    	   	uiService.show(volumeOutName, datasetOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -390,7 +388,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleVolume();
-		    	   	uiService.show(imageOutName, datasetOut);   //Show volume because it did not go over the run() method
+		    	   	uiService.show(volumeOutName, datasetOut);   //Show volume because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -512,7 +510,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 			int bitsPerPixel = 8;
 			long[] dims = new long[]{width, height, depth};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-			datasetPreview = datasetService.create(dims, imagePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetPreview = datasetService.create(dims, volumePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
 			
 			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
@@ -532,7 +530,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 			int bitsPerPixel = 8;
 			long[] dims = new long[]{width, height, 3, depth};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-			datasetPreview = datasetService.create(dims, imagePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetPreview = datasetService.create(dims, volumePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
 			datasetPreview.setCompositeChannelCount(3);
 			datasetPreview.setRGBMerged(true);
 //			datasetPreview.setChannelMinimum(0, 0);
@@ -648,7 +646,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 				frame = listFrames[i];
 				//System.out.println("frame name: " + frame.getTitle());
-				if (frame.getTitle().contains("Preview volume") || frame.getTitle().contains("Filtered volume")) {
+				if (frame.getTitle().contains(volumePreviewName) || frame.getTitle().contains(volumeOutName)) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 				}
@@ -699,7 +697,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 		//copy metadata
 		(datasetOut.getProperties()).putAll(datasetIn.getProperties());
 		//Map<String, Object> map = datasetOut.getProperties();
-		datasetOut.setName(imageOutName);
+		datasetOut.setName(volumeOutName);
 		
 		if (imageType.equals("Grey")) {
 			//do nothing
@@ -795,7 +793,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 
 		//long width  = rai.dimension(0);
 		//long height = rai.dimension(1);
-		//long depth  = rai.dimension(2); //only for grey image
+		//long depth  = rai.getDepth();
 		
 		//"Gaussian Blur", "Mean" "Median" "Low pass - FFT" "High pass - FFT"
 		if (filterType.equals("Gaussian blur")) {
