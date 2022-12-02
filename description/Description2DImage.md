@@ -36,7 +36,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Filter
 - Image filtering
-- 8bit grey or RGB color images
+- 8-bit grey or RGB color images
 - Gaussian blur
   - Sigma can be set
 - Mean, Median
