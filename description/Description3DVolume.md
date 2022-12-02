@@ -25,7 +25,7 @@
 
 ### 3D Filter
 - Image volume filtering
-- 8bit grey or RGB color image volume
+- 8-bit grey or RGB color image volume
 - Gaussian blur
   - Sigma can be set
 - Mean, Median
@@ -93,7 +93,7 @@
 
 ### 3D Tug of war dimension
 - Fractal dimension is computed by using the 3D tug of war algorithm
-- 8bit binary image volume
+- 8-bit binary image volume
 - Binary [0, >0] algorithm
 - Grey value algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
