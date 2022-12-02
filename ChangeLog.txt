@@ -15,6 +15,7 @@ Changed plugin names and paths
 New
 3D Volume - Image volume opener
 3D Volume - Filter
+3D Volume - Noise
 3D Volume - Box counting dimension
 3D Volume - Correlation dimension
 3D Volume - Generalized dimensions
