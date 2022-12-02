@@ -4,7 +4,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Image opener
 - Opens a single image or an image stack
-- 8bit grey or RGB color images
+- 8-bit grey or RGB color images
 - For a stack, all images must be of same size and type  
 - Includes a preview (thumbnail) panel
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Type Image/Type/RGB Color 
@@ -12,7 +12,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Image generator
 - Generates a single image or an image stack
-- 8bit grey or RGB color images
+- 8-bit grey or RGB color images
 - Image size can be set
 - Maximal grey values can be set
 - Random, Gaussian, Sine - radial, Sine - horizontal, Sine - vertical,  Constant
@@ -46,7 +46,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Noise
 - Adding noise
-- 8bit grey or RGB color images
+- 8-bit grey or RGB color images
 - Shot, Salt&Pepper
   - Percentage of pixels that will be changed can be set
 - Uniform
@@ -56,7 +56,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Surrogates
 - Computes surrogate images
-- 8bit grey or RGB color images
+- 8-bit grey or RGB color images
 - Shuffle, Gaussian, Random phase, AAFT
 - FFT windowing can be set
 
@@ -153,7 +153,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Tug of war dimension
 - Fractal dimension is computed by using a tug of war algorithm
-- 8bit binary images
+- 8-bit binary images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
