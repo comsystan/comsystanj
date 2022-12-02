@@ -86,6 +86,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
+import edu.emory.mathcs.jtransforms.fft.FloatFFT_2D;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -112,6 +113,9 @@ public class Csaj2DFilter<T extends RealType<T>> extends ContextCommand implemen
 	private static final String DISPLAYOPTIONS_LABEL  = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL  = "<html><b>Process options</b></html>";
 
+	FloatFFT_2D FFT;
+	private static float[][] matrixA;
+	private static RandomAccessibleInterval<FloatType>  raiWindowed; 
 	Cursor<?> cursor = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
@@ -189,7 +193,7 @@ public class Csaj2DFilter<T extends RealType<T>> extends ContextCommand implemen
 	@Parameter(label = "Filter",
 			   description = "Filter type",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"Gaussian blur", "Mean", "Median", "Low pass - FFT"}, //
+			   choices = {"Gaussian blur", "Mean", "Median", "Low pass - FFT", "High pass - FFT"}, //
 			   persist = true,  //restore previous value default = true
 			   initializer = "initialFilterType",
 			   callback = "callbackFilterType")
@@ -1059,78 +1063,687 @@ public class Csaj2DFilter<T extends RealType<T>> extends ContextCommand implemen
 		} //Median
 	
 		else if (filterType.equals("Low pass - FFT")) {
-			//The Radius of all pixels are changed
-			if (imageType.equals("Grey")) { //rai should have 2 dimensions
 			
-				RandomAccessibleInterval<C> fft = opService.filter().fft(rai);
-				// Filter it.
-				lowPass(fft, (double)radius);
-				// Reverse the FFT.
-				opService.filter().ifft(rai, fft);
-						
+			//The Radius defines which pixels are changed
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+
+				getWindowedVolume(rai); //This methods computes the windowed rai raiWindowed 
+				
+//				Short algorithm:
+//				ops filter fft seems to be a Hadamard transform rather than a true FFT
+//				output size is automatically padded, so has rather strange dimensions.
+//				output is vertically symmetric 
+				//RandomAccessibleInterval<C> fft = opService.filter().fft(rai);
+				
+				//Using JTransform package
+				//https://github.com/wendykierp/JTransforms
+				//https://wendykierp.github.io/JTransforms/apidocs/
+				//The sizes of both dimensions must be power of two.
+				//Round to next largest power of two. The resulting image will be cropped according to GUI input			
+				compute2DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix matrixA
+										
+				// Filter it.*********************************************************************************
+				lowPass((double)radius);
+									
+				// Reverse the FFT.******************************************************************************
+				//opService.filter().ifft(rai, fft);
+				FFT.complexInverse(matrixA, true); //true: values are back in the right range 
+				
+				cursor = Views.iterable(rai).localizingCursor();
+				long[] pos = new long[2];
+				float real = 0f;
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos); 
+					//JTransform needs rows and columns swapped!!!!!			
+					real = matrixA[(int)pos[1]][(int)(2*pos[0])];
+				    ((UnsignedByteType) cursor.get()).setReal((int)Math.round(real)); 
+				}	
+				
+				//Normalize if necessary
+//				//Find min max;
+//				float real = 0;
+//				float min = Float.MAX_VALUE;
+//				float max = -Float.MAX_VALUE;	
+//				float greyMax = 255f;
+//				// Loop through all pixels.	
+//					for (int k2 = 0; k2 < rows; k2++) {
+//						for (int k3 = 0; k3 < columns; k3++) {
+//							real = matrixA[k2][2*k3];
+//							if (real > max) {
+//								max = real;
+//							}
+//							if (real < min) {
+//								min = real;
+//							}
+//						}
+//					}
+//				
+//						
+//				cursor = Views.iterable(rai).localizingCursor();
+//				//cursor = datasetOut.cursor();	
+//		
+//		    	pos = new long[2];
+//		    	float rf = ((float)greyMax/(max-min)); //rescale factor
+//				while (cursor.hasNext()) {
+//					cursor.fwd();
+//					cursor.localize(pos);
+//					real = matrixA[[(int)pos[1]][(int)(2*pos[0])];
+//					real = rf * (real - min); //Rescale to 0  - greyMax
+//					((UnsignedByteType) cursor.get()).setReal((int)(Math.round(real)));	
+//				}		
+							
+				
+				
 			} else if (imageType.equals("RGB")) {
 			
-				int numDim = rai.numDimensions();
+				int numBands = 3;
 				RandomAccessibleInterval<T> raiSlice = null;	
 				
-				for (int b = 0; b < numDim; b++) {
+				for (int b = 0; b < numBands; b++) {
 				
-					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);			
-					RandomAccessibleInterval<C> fft = opService.filter().fft(raiSlice);
-					// Filter it.
-					lowPass(fft, (double)radius);
-					// Reverse the FFT.
-					opService.filter().ifft(raiSlice, fft);
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);								
+					getWindowedVolume(raiSlice); //This methods computes the windowed rai raiWindowed 
+					compute2DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix matrixA								
+					// Filter it.*********************************************************************************
+					lowPass((double)radius);							
+					// Reverse the FFT.******************************************************************************
+					//opService.filter().ifft(rai, fft);
+					FFT.complexInverse(matrixA, true); //true: values are back in the right range 
 					
+					cursor = Views.iterable(raiSlice).localizingCursor();
+					long[] pos = new long[2];
+					float real = 0f;
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						cursor.localize(pos); 
+						//JTransform needs rows and columns swapped!!!!!			
+						real = matrixA[(int)pos[1]][(int)(2*pos[0])];
+					    ((UnsignedByteType) cursor.get()).setReal((int)Math.round(real)); 
+					}						
 				} //b
 			} //RGB	
+			
+			FFT = null;
+			matrixA = null;
+					
 		} //"Low pass - FFT"
+		
+		else if (filterType.equals("High pass - FFT")) {
+			
+			//The Radius defines which pixels are changed
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+
+				getWindowedVolume(rai); //This methods computes the windowed rai raiWindowed 
+				
+//				Short algorithm:
+//				ops filter fft seems to be a Hadamard transform rather than a true FFT
+//				output size is automatically padded, so has rather strange dimensions.
+//				output is vertically symmetric 
+				//RandomAccessibleInterval<C> fft = opService.filter().fft(rai);
+				
+				//Using JTransform package
+				//https://github.com/wendykierp/JTransforms
+				//https://wendykierp.github.io/JTransforms/apidocs/
+				//The sizes of both dimensions must be power of two.
+				//Round to next largest power of two. The resulting image will be cropped according to GUI input			
+				compute2DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix matrixA
+										
+				// Filter it.*********************************************************************************
+				highPass((double)radius);
+									
+				// Reverse the FFT.******************************************************************************
+				//opService.filter().ifft(rai, fft);
+				FFT.complexInverse(matrixA, true); //true: values are back in the right range 
+				
+//				cursor = Views.iterable(rai).localizingCursor();
+//				long[] pos = new long[3];
+//				float real = 0f;
+//				while (cursor.hasNext()) {
+//					cursor.fwd();
+//					cursor.localize(pos); 
+//					//JTransform needs rows and columns swapped!!!!!			
+//					real = matrixA[(int)pos[1]][(int)(2*pos[0])];
+//				    ((UnsignedByteType) cursor.get()).setReal((int)Math.round(real)); 
+//				}	
+				
+				//Normalize is necessary
+				//Find min max;
+				float real = 0;
+				float min = Float.MAX_VALUE;
+				float max = -Float.MAX_VALUE;	
+				float greyMax = 255f;
+				int rows = matrixA.length;
+				int columns = matrixA[0].length/2;
+				// Loop through all pixels.		
+				for (int k2 = 0; k2 < rows; k2++) {
+					for (int k3 = 0; k3 < columns; k3++) {
+						real = matrixA[k2][2*k3];
+						if (real > max) {
+							max = real;
+						}
+						if (real < min) {
+							min = real;
+						}
+					}
+				}
+							
+				cursor = Views.iterable(rai).localizingCursor();
+				//cursor = datasetOut.cursor();	
+		
+		    	long[] pos = new long[2];
+		    	float rf = ((float)greyMax/(max-min)); //rescale factor
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					real = matrixA[(int)pos[1]][(int)(2*pos[0])];
+					real = rf * (real - min); //Rescale to 0  - greyMax
+					((UnsignedByteType) cursor.get()).setReal((int)(Math.round(real)));	
+				}		
+							
+							
+			} else if (imageType.equals("RGB")) {
+			
+				int numBands = 3;
+				RandomAccessibleInterval<T> raiSlice = null;	
+				
+				for (int b = 0; b < numBands; b++) {
+				
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);			
+								
+					getWindowedVolume(raiSlice); //This methods computes the windowed rai raiWindowed 
+			
+					compute2DFFTMatrix(raiWindowed); //This computes JTransform Fourier transformed matrix matrixA
+											
+					// Filter it.*********************************************************************************
+					highPass((double)radius);
+										
+					// Reverse the FFT.******************************************************************************
+					//opService.filter().ifft(rai, fft);
+					FFT.complexInverse(matrixA, true); //true: values are back in the right range 
+					
+					//Normalize is necessary
+					//Find min max;
+					float real = 0;
+					float min = Float.MAX_VALUE;
+					float max = -Float.MAX_VALUE;	
+					float greyMax = 255f;
+					int rows = matrixA.length;
+					int columns = matrixA[0].length/2;
+					// Loop through all pixels.
+					for (int k2 = 0; k2 < rows; k2++) {
+						for (int k3 = 0; k3 < columns; k3++) {
+							real = matrixA[k2][2*k3];
+							if (real > max) {
+								max = real;
+							}
+							if (real < min) {
+								min = real;
+							}
+						}
+					}
+								
+					cursor = Views.iterable(raiSlice).localizingCursor();
+					//cursor = datasetOut.cursor();	
+			
+			    	long[] pos = new long[2];
+			    	float rf = ((float)greyMax/(max-min)); //rescale factor
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						cursor.localize(pos);
+						real = matrixA[(int)pos[1]][(int)(2*pos[0])];
+						real = rf * (real - min); //Rescale to 0  - greyMax
+						((UnsignedByteType) cursor.get()).setReal((int)(Math.round(real)));	
+					}						
+				} //b
+			} //RGB	
+			
+			FFT = null;
+			matrixA = null;
+					
+		} //"High pass - FFT"
 
 		return rai;		
 	} 
 	
-
-	
-	/**
-	 * Performs an inplace low-pass filter on an image in Fourier space.
-
-	 * @param fft The image in Fourier space to be filtered.
-	 * @param radius The radius of the filter.
-	 */
-	public static <C extends ComplexType<C>> void lowPass(final RandomAccessibleInterval<C> fft, final double radius)
-	{
-		// Declare an array to hold the current position of the cursor.
-		final long[] pos = new long[fft.numDimensions()];
-
-		long rows   = fft.dimension(1);
-		// Define origin as 0,0.
-		final long[] origin1= {0, 0};
-
-		// Define a 2nd 'origin' at bottom left of image.
-		// This is a bit of a hack. We want to draw a circle around the origin,
-		// since the origin is at 0,0 - the circle will 'reflect' to the bottom.
-		final long[] origin2 = {0, rows - 1};
-	
-    	double dist1;
-    	double dist2;
+	//*************************************************************************************************
+		/**
+		 * Performs an inplace low-pass filter on the matrixA
+		 * This method is quite identical to the high-pass method, only one line is different
+		 * @param radius The radius of the filter.
+		 */
+		public void lowPass(final double radius) {
+			
+			//JTransform needs rows and columns swapped!!!!!
+			int rows    = matrixA.length;
+			int columns = matrixA[0].length/2;
+			
+			//Define 4 origins for FFT
+	    	//Define origin as 0,0,0. //frequency = 0;
+	    	final long[] origin1 = {        0,      0};
+	    	final long[] origin2 = {        0, rows-1}; //bottom right of image   		    	
+	    	
+	    	//Following origins are symmetric because sum of powers is zero with .realForward(matrixA); 
+	    	final long[] origin5 = {columns-1,      0}; 
+	    	final long[] origin6 = {columns-1, rows-1}; //bottom right of image 
+			
+			long[] posFFT = new long[2];
+			float dist = 0;
+			
+			// Define half height and depth. Later used to find right origin
+	    	final long fftHalfRows    = rows/2;
+	    	final long fftHalfColumns = columns/2;
+	    		    	
+			// Loop through all pixels and check radious
+				for (int k2 = 0; k2 < rows; k2++) {
+					//for (int k3 = 0; k3 < columns/2; k3++) { //with 4 origins
+					for (int k3 = 0; k3 < columns; k3++) { //with 8 origins
+							posFFT[1] = k2;
+							posFFT[0] = k3;
+				
+							// change origin depending on cursor position
+							if      (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows) dist = (float)Util.distance(origin1, posFFT);
+							else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows) dist = (float)Util.distance(origin2, posFFT);
+							else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows) dist = (float)Util.distance(origin5, posFFT);
+							else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows) dist = (float)Util.distance(origin6, posFFT);
+											
+							//set value of FFT to zero.
+							if (dist > radius) { //LOW PASS 
+								//System.out.println("dist > radius, dist:" + dist  + " radius:" + radius);
+								matrixA[k2][2*k3]   = 0.0f;
+								matrixA[k2][2*k3+1] = 0.0f;
+							}
+														
+//							//for debug control purposes only
+//							if      (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows) { sumDist1 += dist; sumPowers1 += powers[p-1]; }
+//							else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows) { sumDist2 += dist; sumPowers2 += powers[p-1]; }
+//							else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows) { sumDist5 += dist; sumPowers5 += powers[p-1]; }
+//							else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows) { sumDist6 += dist; sumPowers6 += powers[p-1]; }								
+					}
+				}
+			}
 		
-		// Loop through all pixels.
-		final Cursor<C> cursor = Views.iterable(fft).localizingCursor();
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-
-			// Calculate distance from 0,0 and bottom left corner
-			// (so we can form the reflected semi-circle).
-			dist1 = Util.distance(origin1, pos);
-			dist2 = Util.distance(origin2, pos);
-
-			// If distance is above radius (cutoff frequency),
-			// set value of FFT to zero.
-			if (dist1 > radius && dist2 > radius)
-				cursor.get().setZero();
+		/**
+		 * Performs an inplace high-pass filter on the matrixA
+		 * This method is quite identical to the low-pass method, only one line is different
+		 * @param radius The radius of the filter.
+		 */
+		public void highPass(final double radius) {
+			
+			//JTransform needs rows and columns swapped!!!!!
+			int rows    = matrixA.length;
+			int columns = matrixA[0].length/2;
+			
+			//Define 4 origins for FFT
+	    	//Define origin as 0,0,0. //frequency = 0;
+	    	final long[] origin1 = {        0,      0};
+	    	final long[] origin2 = {        0, rows-1}; //bottom right of image   		    	
+	    	
+	    	//Following origins are symmetric because sum of powers is zero with .realForward(matrixA); 
+	    	final long[] origin5 = {columns-1,      0}; 
+	    	final long[] origin6 = {columns-1, rows-1}; //bottom right of image 
+			
+			long[] posFFT = new long[2];
+			float dist = 0;
+			
+			// Define half height and depth. Later used to find right origin
+	    	final long fftHalfRows    = rows/2;
+	    	final long fftHalfColumns = columns/2;
+	    		    	
+			// Loop through all pixels and check radious
+				for (int k2 = 0; k2 < rows; k2++) {
+					//for (int k3 = 0; k3 < columns/2; k3++) { //with 4 origins
+					for (int k3 = 0; k3 < columns; k3++) { //with 8 origins
+							posFFT[1] = k2;
+							posFFT[0] = k3;
+				
+							// change origin depending on cursor position
+							if      (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows) dist = (float)Util.distance(origin1, posFFT);
+							else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows) dist = (float)Util.distance(origin2, posFFT);
+							else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows) dist = (float)Util.distance(origin5, posFFT);
+							else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows) dist = (float)Util.distance(origin6, posFFT);
+							
+							//set value of FFT to zero.
+							if (dist < radius) { //HIGH PASS
+	 							//System.out.println("dist > radius, dist:" + dist  + " radius:" + radius);
+								matrixA[k2][2*k3]   = 0.0f;
+								matrixA[k2][2*k3+1] = 0.0f;
+							}
+														
+//							//for debug control purposes only
+//							if      (posFFT[0] <  fftHalfColumns && posFFT[1] <  fftHalfRows) { sumDist1 += dist; sumPowers1 += powers[p-1]; }
+//							else if (posFFT[0] <  fftHalfColumns && posFFT[1] >= fftHalfRows) { sumDist2 += dist; sumPowers2 += powers[p-1]; }
+//							else if (posFFT[0] >= fftHalfColumns && posFFT[1] <  fftHalfRows) { sumDist5 += dist; sumPowers5 += powers[p-1]; }
+//							else if (posFFT[0] >= fftHalfColumns && posFFT[1] >= fftHalfRows) { sumDist6 += dist; sumPowers6 += powers[p-1]; }								
+					}
+				}
 		}
-	}
+		
+		/*
+		 * This methods computes the JTransform Fourier transformed  matrix matrixA
+		 * @param  rai
+		 * @return FloatFFT_2D FFT
+		 */
+		private FloatFFT_2D compute2DFFTMatrix (RandomAccessibleInterval<?> rai) {
+			int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit((int)width  - 1) * 2;
+			int heightDFT = height == 1 ? 1 : Integer.highestOneBit((int)height - 1) * 2;
+			
+			//All DFT axes must have the same size, otherwise lowest frequencies are not the same for anisotropic sizes
+			widthDFT  = (int)Math.max(widthDFT, heightDFT); 
+			heightDFT = widthDFT;
+				
+			//JTransform needs rows and columns swapped!!!!!
+			int rows    = heightDFT;
+			int columns = widthDFT;
+			
+			//JTransform needs rows and columns swapped!!!!!
+			matrixA = new float[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
+			Cursor<?> cursor = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[2];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos); 
+				//JTransform needs rows and columns swapped!!!!!
+				matrixA[(int)pos[1]][(int)pos[0]] = ((FloatType) cursor.get()).get();
+			}		
+			// JTransform needs rows and columns swapped!!!!!
+			FFT = new FloatFFT_2D(rows, columns); //Here always the simple DFT width
+			//FFT.realForward(matrixA);   
+			FFT.realForwardFull(matrixA); //Computes 3D forward DFT of real data leaving the result in a . This method computes full real forward transform, i.e. you will get the same result as from complexForward called with all imaginary part equal 0. Because the result is stored in a, the input array must be of size slices by rows by 2*columns, with only the first slices by rows by columns elements filled with real data. To get back the original data, use complexInverse on the output of this method.
+			return FFT;
+		}
+		
+				
+		/**
+		 * This methods computes the windowed rai raiWindowed
+		 * @param  rai
+		 */
+		private void getWindowedVolume (RandomAccessibleInterval<?> rai) {
+				
+			String windowingType = "Rectangular";
+			
+			//In the order of increasing filter strength
+			if (windowingType.equals("Rectangular")) {
+				raiWindowed = windowingRectangular(rai);
+			}
+			else if (windowingType.equals("Bartlett")) {
+				raiWindowed = windowingBartlett(rai);
+			}
+			else if (windowingType.equals("Hamming")) {
+				raiWindowed = windowingHamming(rai);
+			}
+			else if (windowingType.equals("Hanning")) {
+				raiWindowed = windowingHanning(rai);
+			}
+			else if (windowingType.equals("Blackman")) {
+				raiWindowed = windowingBlackman(rai);
+			}
+			else if (windowingType.equals("Gaussian")) {
+				raiWindowed = windowingGaussian(rai);
+			}
+			else if (windowingType.equals("Parzen")) {
+				raiWindowed = windowingParzen(rai);
+			}		
+			
+		}
+		
+
+		/**
+		 * This method does Rectangular windowing
+		 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+		 * @param  rai
+		 * @return windowed rai
+		 */
+		private RandomAccessibleInterval<FloatType> windowingRectangular (RandomAccessibleInterval<?> rai) {
+			int width  = (int) rai.dimension(0);
+			int height = (int) rai.dimension(1);	
+			raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+			
+			double weight = 1.0;
+		
+			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[raiWindowed.numDimensions()];
+			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+			while (cursorF.hasNext()){
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				cursorF.get().setReal(ra.get().getRealFloat()*weight); //simply a copy
+			} 
+		    return raiWindowed; 
+		}
+		
+		/**
+		 * This method does Bartlett windowing
+		 * See Burge Burge, Digital Image Processing, Springer
+		 * @param  rai
+		 * @return windowed rai
+		 */
+		private RandomAccessibleInterval<FloatType> windowingBartlett (RandomAccessibleInterval<?> rai) {
+			
+			int width  = (int) rai.dimension(0);
+			int height = (int) rai.dimension(1);	
+			raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+			
+			double r_u;
+			double r_v;
+			double r_uv;
+			double weight;
+			
+			//Create a full weight window
+//			double[][] window = new double[width][height];
+//			for (int u = 0; u < width; u++) {
+//				for (int v = 0; v < height; v++) {
+//					r_u = 2.0*u/width-1.0;
+//					r_v = 2.0*v/height-1.0;
+//					r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+//					if ((r_uv >= 0) && (r_uv <=1)) window[u][v] = 1 - r_uv;
+//					else window[u][v] = 0.0;
+//				}
+//			}
+			
+			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[raiWindowed.numDimensions()];
+			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+			while (cursorF.hasNext()){
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+				r_v = 2.0*(pos[1]+0.5)/height-1.0;
+				r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+				if ((r_uv >= 0) && (r_uv <=1)) weight = 1 - r_uv;
+				else weight = 0.0;	
+				//if(pos[1] == 1) System.out.println("Bartlett windowing weight " + pos[0] +" "+pos[1]+"  "+ weight);
+				cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			} 
+		    return raiWindowed; 
+		}
+
+		/**
+		 * This method does Hamming windowing
+		 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+		 * See Burge Burge, Digital Image Processing, Springer
+		 * @param  rai
+		 * @return windowed rai
+		 */
+		private RandomAccessibleInterval<FloatType> windowingHamming (RandomAccessibleInterval<?> rai) {
+		
+			int width  = (int) rai.dimension(0);
+			int height = (int) rai.dimension(1);	
+			raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+			
+			double r_u;
+			double r_v;
+			double r_uv;
+			double weight;
+			
+			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[raiWindowed.numDimensions()];
+			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+			while (cursorF.hasNext()){
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+				r_v = 2.0*(pos[1]+0.5)/height-1.0;
+				r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+				if ((r_uv >= 0) && (r_uv <=1)) weight = 0.54 + 0.46*Math.cos(Math.PI*(r_uv)); //== 0.54 - 0.46*Math.cos(Math.PI*(1.0-r_uv));
+				else weight = 0.0;	
+				//if(pos[1] == 1) System.out.println("Hamming windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
+				cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			} 
+		    return raiWindowed; 
+		}
+		
+		/**
+		 * This method does Hanning windowing
+		 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+		 * See Burge Burge, Digital Image Processing, Springer
+		 * @param  rai
+		 * @return windowed rai
+		 */
+		private RandomAccessibleInterval<FloatType> windowingHanning (RandomAccessibleInterval<?> rai) {
+			
+			int width  = (int) rai.dimension(0);
+			int height = (int) rai.dimension(1);	
+			raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+			
+			double r_u;
+			double r_v;
+			double r_uv;
+			double weight = 0;
+			
+			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[raiWindowed.numDimensions()];
+			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+			while (cursorF.hasNext()){
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+				r_v = 2.0*(pos[1]+0.5)/height-1.0;
+				r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+				if ((r_uv >= 0) && (r_uv <=1)) {
+					//weight = 0.5*Math.cos(Math.PI*r_uv+1); //Burge Burge  gives negative weights!
+					weight = 0.5 + 0.5*Math.cos(Math.PI*(r_uv)); //== 0.5 - 0.5*Math.cos(Math.PI*(1-r_uv));
+				}
+				else weight = 0.0;	
+				//if(pos[1] == 1) System.out.println("Hanning windowing weight " + pos[0] +" "+pos[1]+"  " + weight);
+				cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			} 
+		    return raiWindowed; 
+		}
+		
+		/**
+		 * This method does Blackman windowing
+		 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+		 * See Burge Burge, Digital Image Processing, Springer
+		 * @param  rai
+		 * @return windowed rai
+		 */
+		private RandomAccessibleInterval<FloatType> windowingBlackman (RandomAccessibleInterval<?> rai) {
+			int width  = (int) rai.dimension(0);
+			int height = (int) rai.dimension(1);	
+			raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+			
+			double r_u;
+			double r_v;
+			double r_uv;
+			double weight;
+			
+			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[raiWindowed.numDimensions()];
+			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+			while (cursorF.hasNext()){
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+				r_v = 2.0*(pos[1]+0.5)/height-1.0;
+				r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+				//if ((r_uv >= 0) && (r_uv <=1)) weight = 0.42 - 0.5*Math.cos(Math.PI*(1.0-r_uv)) + 0.08*Math.cos(2.0*Math.PI*(1.0-r_uv));
+				if ((r_uv >= 0) && (r_uv <=1)) weight = 0.42 - 0.5*Math.cos(Math.PI*(1.0-r_uv)) + 0.08*Math.cos(2.0*Math.PI*(1.0-r_uv));
+				else weight = 0.0;	
+				//if(pos[1] == 1) System.out.println("Blackman windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
+				cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			} 
+		    return raiWindowed; 
+		}
+		
+		/**
+		 * This method does Gaussian windowing
+		 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+		 * See Burge Burge, Digital Image Processing, Springer
+		 * @param  rai
+		 * @return windowed rai
+		 */
+		private RandomAccessibleInterval<FloatType> windowingGaussian (RandomAccessibleInterval<?> rai) {
+			int width  = (int) rai.dimension(0);
+			int height = (int) rai.dimension(1);	
+			raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+			
+			double r_u;
+			double r_v;
+			double r_uv;
+			double weight = 0;
+			double sigma  = 0.3;
+			double sigma2 = sigma*sigma;
+			
+			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[raiWindowed.numDimensions()];
+			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+			while (cursorF.hasNext()){
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+				r_v = 2.0*(pos[1]+0.5)/height-1.0;
+				r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+				weight = Math.exp(-(r_uv*r_uv)/(2.0*sigma2));
+				//if(pos[1] == 1) System.out.println("Gaussian windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
+				cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			} 
+		    return raiWindowed; 
+		}
+
+		/**
+		 * This method does Parzen windowing
+		 * See also www.labbookpages.co.uk/audio/firWindowing.html#windows
+		 * See Burge Burge, Digital Image Processing, Springer
+		 * @param  rai
+		 * @return windowed rai
+		 */
+		private RandomAccessibleInterval<FloatType> windowingParzen (RandomAccessibleInterval<?> rai) {
+		
+			int width  = (int) rai.dimension(0);
+			int height = (int) rai.dimension(1);	
+			raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
+			
+			double r_u;
+			double r_v;
+			double r_uv;
+			double weight;
+			
+			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			long[] pos = new long[raiWindowed.numDimensions()];
+			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+			while (cursorF.hasNext()){
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				r_u = 2.0*(pos[0]+0.5)/width -1.0;   //+0.5 so that the maximum is really centered
+				r_v = 2.0*(pos[1]+0.5)/height-1.0;
+				r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
+				//if      ((r_uv >= 0) && (r_uv <0.5)) weight = 1.0 - 6.0*Math.pow(r_uv, 2) + 6.0*Math.pow(r_uv, 3); //Burge Burge gives double peaks, seems to be wrong
+				if      ((r_uv >= 0) && (r_uv <0.5)) weight = 1.0 - 6.0*Math.pow(r_uv, 2)*(1-r_uv);
+				else if ((r_uv >= 0.5) && (r_uv <1)) weight = 2.0*Math.pow(1-r_uv, 3);
+				else    weight = 0.0;	
+				//if(pos[1] == 1) System.out.println("Parzen windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
+				cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			} 
+		    return raiWindowed; 
+		}
 	
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
