@@ -41,7 +41,7 @@ For binary images black pixels are the background. White pixels are the foregrou
   - Sigma can be set
 - Mean, Median
   - Size of kernel can be set
-- Lowpass with FFT
+- Low-pass, High-pass with FFT
   - Radius (Cutoff frequency) can be set
 
 ### Noise
