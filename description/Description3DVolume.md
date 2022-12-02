@@ -22,7 +22,6 @@
 - Note: Image volumes can be visualized with Fiji's 3D viewer (Plugins/3D Viewer)
 - Note: Fiji sometimes displays oversaturated grey values. Workaround: Image/Color/Edit LUT... and press 2x Invert
 
-
 ### 3D Filter
 - Image volume filtering
 - 8-bit grey or RGB color image volume
@@ -32,6 +31,16 @@
   - Size of kernel can be set
 - Low-pass, High-pass with FFT
   - Radius (Cutoff frequency) can be set
+
+### 3D Noise
+- Adding noise
+- 8-bit grey or RGB color image volume
+- Shot, Salt&Pepper
+  - Percentage of pixels that will be changed can be set
+- Uniform
+  - Percentage of maximum value changes can be set
+- Gaussian, Rayleigh, Exponential
+  - Scaling parameter can be set
 
 ### 3D Box counting dimension
 - Fractal dimension is computed with 3D box counting
