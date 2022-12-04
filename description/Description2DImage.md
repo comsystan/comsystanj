@@ -67,6 +67,8 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Raster box scanning
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
+- Ref.: Sarkar & Chauduri, Pattern Recognit., 1992, [DOI 10.1016/0031-3203(92)90066-R](https://doi.org/10.1016/0031-3203(92)90066-R)
+- Jin et al., Pattern Recognit. Lett., 1995, [DOI  10.1016/0167-8655(94)00119-N](https://doi.org/10.1016/0167-8655(94)00119-N)
 
 ### Pyramid dimension
 - Fractal dimension is computed by using image pyramids
