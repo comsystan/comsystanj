@@ -82,6 +82,7 @@
 		<module>csaj-plugin3d-kc</module>
 		<module>csaj-plugin3d-noise</module>
 		<module>csaj-plugin3d-opener</module>
+		<module>csaj-plugin3d-surrogate</module>
 	</modules>
 
 </project>

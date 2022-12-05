@@ -16,6 +16,7 @@ New
 3D Volume - Image volume opener
 3D Volume - Filter
 3D Volume - Noise
+3D Volume - Surrogate
 3D Volume - Box counting dimension
 3D Volume - Correlation dimension
 3D Volume - Generalized dimensions
@@ -28,6 +29,7 @@ Bugfixes
 
 
 Miscellaneous
+2D Image - Surrogate - Faster Shuffle algorithm
 2D Image - Minkowski dimension - Added Disk and Diamond shapes
 2D Image - Kolmogorov complexity - Added zip compression
 2D Image - Filter - Added high-pass and changed to JTransform FFT
