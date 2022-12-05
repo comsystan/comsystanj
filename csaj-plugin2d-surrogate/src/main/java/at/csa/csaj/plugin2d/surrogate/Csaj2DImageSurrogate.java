@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.Dataset;
@@ -55,7 +54,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
-
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -78,7 +76,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.commons.image.algorithms.Surrogate2D;
+import at.csa.csaj.commons.algorithms.Surrogate2D;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -194,7 +192,7 @@ public class Csaj2DImageSurrogate<T extends RealType<T>> extends ContextCommand 
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelFFTOptions = FFTOPTIONS_LABEL;
 	
-	@Parameter(label = "(Random phase/AAFT)Windowing",
+	@Parameter(label = "<html>(<i>Random phase/AAFT</i>)<br><center>Windowing</center></html>",
 			   description = "Windowing type",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			   choices = {"Rectangular", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
@@ -263,10 +261,10 @@ public class Csaj2DImageSurrogate<T extends RealType<T>> extends ContextCommand 
 	
 	// ------------------------------------------------------------------------------
 	
+	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
 	protected void callbackSurrogateType() {
 		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
-	
 	
 	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
 	protected void callbackWindowingType() {
