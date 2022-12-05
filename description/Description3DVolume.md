@@ -42,6 +42,12 @@
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
+### 3D Surrogates
+- Computes a surrogate image volume
+- 8-bit grey or RGB color image volume
+- Shuffle, Gaussian, Random phase, AAFT
+- FFT windowing can be set
+
 ### 3D Box counting dimension
 - Fractal dimension is computed with 3D box counting
 - This is a direct expansion of the 2D algorithm
