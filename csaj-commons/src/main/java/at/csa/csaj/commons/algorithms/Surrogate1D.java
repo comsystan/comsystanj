@@ -122,7 +122,16 @@ public class Surrogate1D {
 		Random random = new Random();
 		random.setSeed(System.currentTimeMillis());
 		Collections.shuffle(list, random);
-		
+		//Collections.Shuffle() does a Fisher-Yates shuffle.
+		//It's a more evenly distributed form of shuffling,
+		//and does not reshuffle what might have previously been shuffled already.
+		//The Fisher-Yates shuffle (also known as Donald Knuth Shuffle)
+		//is an unbiased algorithm that shuffles items in the array in an equally likely probability.
+		//It avoids the chance of 'moving' the same object twice.
+		//The easy way (also the known as the naive implementation) is
+		//to pick randomly any array index and shuffle it over,
+		//meaning there's a high chance of picking the same index that has already been shuffled.
+
 		for (int i = 0; i < surrogate.length; i++) surrogate[i] = list.get(i);
 		
 		list.clear();
