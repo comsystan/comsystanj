@@ -25,24 +25,24 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.commons.image.algorithms;
+package at.csa.csaj.commons.algorithms;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
-import java.util.Vector;
 import org.apache.commons.math3.stat.ranking.NaNStrategy;
 import org.apache.commons.math3.stat.ranking.NaturalRanking;
 import org.apache.commons.math3.stat.ranking.TiesStrategy;
-
-import at.csa.csaj.commons.sequence.algorithms.Surrogate;
-import edu.emory.mathcs.jtransforms.fft.DoubleFFT_2D;
+import edu.emory.mathcs.jtransforms.fft.FloatFFT_2D;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 
@@ -66,7 +66,7 @@ public class Surrogate2D {
 	public final static int SURROGATE_PSEUDOPERIODIC  = 4;
 	public final static int SURROGATE_MULTIVARIATE    = 5;
 	
-	private static RandomAccessibleInterval<DoubleType>  raiWindowed; 
+	private static RandomAccessibleInterval<FloatType>  raiWindowed; 
 	Cursor<?> cursor;
 
 	/**
@@ -106,60 +106,70 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return surrogate rai
 	 */
-	public RandomAccessibleInterval calcSurrogateShuffle(RandomAccessibleInterval rai) { //2D rai grey or §D rai for RGB	
+	public RandomAccessibleInterval calcSurrogateShuffle(RandomAccessibleInterval rai) { //2D rai grey or 3D rai for RGB	
 		
 		int numDim = rai.numDimensions();
 		
-		Random random = new Random();
-		random.setSeed(System.currentTimeMillis());
-		
-		Vector<Integer> imageVec;
+		List<Integer> list;
 		int index;
 		RandomAccessibleInterval raiSlice = null;	
 		
 		if (numDim == 2) { //2D grey
 			cursor = Views.iterable(rai).localizingCursor();
-			imageVec = new Vector<Integer>();
+			list = new ArrayList<Integer>();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				//cursor.localize(pos);	
-				imageVec.add((int)((UnsignedByteType) cursor.get()).get()); //copy image data to the vector
+				list.add((int)((UnsignedByteType) cursor.get()).get()); //copy image data to the vector
 			} //cursor
 			
-			cursor.reset();		
+			//Shuffle
+			Random random = new Random();
+			random.setSeed(System.currentTimeMillis());
+			Collections.shuffle(list, random);
+			
+			cursor.reset();	
+			index = 0;
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				//cursor.localize(pos);	
-				index = random.nextInt(imageVec.size()); //get random index
-				((UnsignedByteType) cursor.get()).set(imageVec.get(index)); //set
-				imageVec.removeElementAt(index);
+				((UnsignedByteType) cursor.get()).set(list.get(index)); //set
+				index += 1;				
 			} //cursor
-			imageVec.clear();
-			imageVec = null;
+		
+			list.clear();
+			list = null;
 		}
 		else if (numDim == 3) { //3D RGB is working
 			//Does the same, but only on one sclice of the rai 
-			for (int b = 0; b < numDim; b++) {
+			int numBands = 3; //RGB
+			for (int b = 0; b < numBands; b++) {
 				raiSlice = (RandomAccessibleInterval) Views.hyperSlice(rai, 2, b);
 		
 				cursor = Views.iterable(raiSlice).localizingCursor();	
-				imageVec = new Vector<Integer>();
+				list = new ArrayList<Integer>();
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
-					imageVec.add((int)((UnsignedByteType) cursor.get()).get()); //copy image data to the vector
+					list.add((int)((UnsignedByteType) cursor.get()).get()); //copy image data to the vector
 				} //cursor
 				
-				cursor.reset();		
+				//Shuffle
+				Random random = new Random();
+				random.setSeed(System.currentTimeMillis());
+				Collections.shuffle(list, random);
+				
+				cursor.reset();	
+				index = 0;
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
-					index = random.nextInt(imageVec.size()); //get random index
-					((UnsignedByteType) cursor.get()).set(imageVec.get(index)); //set
-					imageVec.removeElementAt(index);
+					((UnsignedByteType) cursor.get()).set(list.get(index)); //set
+					index += 1;				
 				} //cursor
-				imageVec.clear();
-				imageVec = null;
+			
+				list.clear();
+				list = null;
 			} //b
 		}; //RGB	
 		
@@ -175,8 +185,8 @@ public class Surrogate2D {
 	public RandomAccessibleInterval calcSurrogateGaussian(RandomAccessibleInterval rai) { //2D rai grey or §D rai for RGB	
 		
 		int numDim  = rai.numDimensions();
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
+		long width;
+		long height;
 		
 		Random random = new Random();
 		random.setSeed(System.currentTimeMillis());
@@ -188,6 +198,10 @@ public class Surrogate2D {
 		RandomAccessibleInterval raiSlice = null;	
 		
 		if (numDim == 2) { //2D grey
+			
+			width  = rai.dimension(0);
+			height = rai.dimension(1);
+			
 			cursor = Views.iterable(rai).localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
@@ -221,7 +235,11 @@ public class Surrogate2D {
 		}
 		else if (numDim == 3) { //3D RGB is working
 			//Does the same, but only on one sclice of the rai 
-			for (int b = 0; b < numDim; b++) {
+			width  = rai.dimension(0);
+			height = rai.dimension(1);
+		
+			int numBands = 3;//RGB
+			for (int b = 0; b < numBands; b++) {
 				raiSlice = (RandomAccessibleInterval) Views.hyperSlice(rai, 2, b);
 				cursor = Views.iterable(raiSlice).localizingCursor();
 				while (cursor.hasNext()) {
@@ -269,11 +287,11 @@ public class Surrogate2D {
 	public RandomAccessibleInterval calcSurrogateRandomPhase(RandomAccessibleInterval rai, String windowingType) { //2D rai grey or 3D rai for RGB	
 		
 		int numDim = rai.numDimensions();
-	 	int width  = (int)rai.dimension(0);
-    	int height = (int)rai.dimension(1);
+	 	int width;
+    	int height;
     
     	long[] pos;
-    	double[][] imgA;
+    	float[][] imgA;
     	
     	double[] minmaxOrig;
     	double[] minmax;
@@ -287,7 +305,8 @@ public class Surrogate2D {
 		Cursor<?> cursor;
 			
 		if (numDim == 2) { //2D grey
-			
+			width  = (int)rai.dimension(0);
+	    	height = (int)rai.dimension(1);
 			minmaxOrig = this.calcMinMax(rai);
 			
 			//In the order of increasing filter strength
@@ -334,24 +353,28 @@ public class Surrogate2D {
 			int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
 			int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
 	
+			//All DFT axes must have the same size, otherwise image will be anisotropic
+			widthDFT  = (int)Math.max(widthDFT, heightDFT); 
+			heightDFT = widthDFT;	
+			
 			//JTransform needs rows and columns swapped!!!!!
 			int rows    = heightDFT;
 			int columns = widthDFT;
 			
 			
 			//JTransform needs rows and columns swapped!!!!!
-			imgA = new double[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
+			imgA = new float[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
 			cursor = Views.iterable(raiWindowed).localizingCursor();
 			pos = new long[2];
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos); 
 				//JTransform needs rows and columns swapped!!!!!
-				imgA[(int)pos[1]][(int)pos[0]] = ((DoubleType) cursor.get()).get();
+				imgA[(int)pos[1]][(int)pos[0]] = ((FloatType) cursor.get()).get();
 			}
 			
 			//JTransform needs rows and columns swapped!!!!!
-			DoubleFFT_2D FFT = new DoubleFFT_2D(rows, columns); //Here always the simple DFT width
+			FloatFFT_2D FFT = new FloatFFT_2D(rows, columns); //Here always the simple DFT width
 			//dFFT.realForward(imgArrD);   //The first two columns are not symmetric and seem to be not right
 			FFT.realForwardFull(imgA);   //The right part is not symmetric!!
 			//Power image constructed later is also not exactly symmetric!!!!!
@@ -406,37 +429,37 @@ public class Surrogate2D {
 //			uiService.show("FFT", imgFFT);	
 			//************************************************************************************
 		
-			double mag;
+			float mag;
 					
 			//set FFT real and imaginary values
 			for (int k1 = 0; k1 < rows/2; k1++) {
 				for (int k2 = 0; k2 < columns/2; k2++) {
-					mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-					imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-					imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+					mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+					imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+					imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 				}
 			}		
 			for (int k1 = rows/2; k1 < rows; k1++) {
 				for (int k2 = 0; k2 < columns/2; k2++) {
-					mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-					imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-					imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+					mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+					imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+					imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 
 				}
 			}	
 			for (int k1 = 0; k1 < rows/2; k1++) {
 				for (int k2 = columns/2; k2 < columns; k2++) {
-					mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-					imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-					imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+					mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+					imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+					imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 
 				}
 			}
 			for (int k1 = rows/2; k1 < rows; k1++) {
 				for (int k2 = columns/2; k2 < columns; k2++) {
-					mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-					imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-					imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+					mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+					imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+					imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 
 				}
 			}
@@ -506,8 +529,12 @@ public class Surrogate2D {
 				
 		} //numDim == 2
 		else if (numDim == 3) { //3D RGB
+			width  = (int)rai.dimension(0);
+	    	height = (int)rai.dimension(1);
+	    	
 			//Does the same, but only on one sclice of the rai 
-			for (int b = 0; b < numDim; b++) {
+	    	int numBands = 3;//RGB
+			for (int b = 0; b < numBands; b++) {
 				raiSlice = (RandomAccessibleInterval) Views.hyperSlice(rai, 2, b);
 			
 				minmaxOrig = this.calcMinMax(raiSlice);
@@ -541,60 +568,64 @@ public class Surrogate2D {
 				//The sizes of both dimensions must be power of two.
 				int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
 				int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
-						
+				
+				//All DFT axes must have the same size, otherwise image will be anisotropic
+				widthDFT  = (int)Math.max(widthDFT, heightDFT); 
+				heightDFT = widthDFT;	
+				
 				//JTransform needs rows and columns swapped!!!!!
 				int rows    = heightDFT;
 				int columns = widthDFT;
 				
 				
 				//JTransform needs rows and columns swapped!!!!!
-				imgA = new double[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
+				imgA = new float[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
 				cursor = Views.iterable(raiWindowed).localizingCursor();
 				pos = new long[2];
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					cursor.localize(pos); 
 					//JTransform needs rows and columns swapped!!!!!
-					imgA[(int)pos[1]][(int)pos[0]] = ((DoubleType) cursor.get()).get();
+					imgA[(int)pos[1]][(int)pos[0]] = ((FloatType) cursor.get()).get();
 				}
 				
 				//JTransform needs rows and columns swapped!!!!!
-				DoubleFFT_2D FFT = new DoubleFFT_2D(rows, columns); //Here always the simple DFT width
+				FloatFFT_2D FFT = new FloatFFT_2D(rows, columns); //Here always the simple DFT width
 				//dFFT.realForward(imgArrD);   //The first two columns are not symmetric and seem to be not right
 				FFT.realForwardFull(imgA);   //The right part is not symmetric!!
 				//Power image constructed later is also not exactly symmetric!!!!!
 				
-				double mag;
+				float mag;
 						
 				//set FFT real and imaginary values
 				for (int k1 = 0; k1 < rows/2; k1++) {
 					for (int k2 = 0; k2 < columns/2; k2++) {
-						mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-						imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-						imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+						mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+						imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+						imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 					}
 				}		
 				for (int k1 = rows/2; k1 < rows; k1++) {
 					for (int k2 = 0; k2 < columns/2; k2++) {
-						mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-						imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-						imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+						mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+						imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+						imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 
 					}
 				}	
 				for (int k1 = 0; k1 < rows/2; k1++) {
 					for (int k2 = columns/2; k2 < columns; k2++) {
-						mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-						imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-						imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+						mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+						imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+						imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 
 					}
 				}
 				for (int k1 = rows/2; k1 < rows; k1++) {
 					for (int k2 = columns/2; k2 < columns; k2++) {
-						mag = Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
-						imgA[k1][2*k2]   = mag * Math.cos(2 * Math.PI * random.nextDouble()); //(2*x)  ...Real part
-						imgA[k1][2*k2+1] = mag * Math.sin(2 * Math.PI * random.nextDouble()); //(2*x+1)...Imaginary part 
+						mag = (float)Math.sqrt(imgA[k1][2*k2]*imgA[k1][2*k2] + imgA[k1][2*k2+1]*imgA[k1][2*k2+1]); //Magnitude	//(2*x)...Real parts   (2*x+1).... Imaginary parts					
+						imgA[k1][2*k2]   = mag * (float)Math.cos(2 * Math.PI * random.nextFloat()); //(2*x)  ...Real part
+						imgA[k1][2*k2+1] = mag * (float)Math.sin(2 * Math.PI * random.nextFloat()); //(2*x+1)...Imaginary part 
 
 					}
 				}
@@ -651,23 +682,31 @@ public class Surrogate2D {
 	public RandomAccessibleInterval calcSurrogateAAFT(RandomAccessibleInterval rai, String windowingType) { //2D rai grey or 3D rai for RGB	
 		
 		int numDim = rai.numDimensions();
-	 	int width  = (int)rai.dimension(0);
-    	int height = (int)rai.dimension(1);
+	 	int width;
+    	int height;
     
     	long[] pos;
    
     	//for converting image into 1D list
-    	int length1D = width*height;
-    	double[] image1D     = new double[length1D];
-		double[] surrogate1D = new double[length1D];
+    	int length1D;
+    	double[] image1D;
+		double[] surr1D;
     	
-		Surrogate surrogate;
+		Surrogate1D surrogate1D;
 		RandomAccess<UnsignedByteType> ra;
 		RandomAccessibleInterval raiSlice = null;	
 		Cursor<?> cursor;
 			
 		if (numDim == 2) { //2D grey
 			
+			width  = (int)rai.dimension(0);
+	    	height = (int)rai.dimension(1);
+			
+	    	//for converting image into 1D list
+	    	length1D  = width*height;
+	    	image1D   = new double[length1D];
+			surr1D    = new double[length1D];
+	    	
 			//No windowing here
 			//Windowing is done for the 1D sequence
 		
@@ -676,7 +715,7 @@ public class Surrogate2D {
 			pos = new long[2];
 			int l = 0;
 			for (int x = 0; x < width; x++) {
-				for (int y  =0; y < height; y++) {
+				for (int y = 0; y < height; y++) {
 					pos[0] = x;
 					pos[1] = y;
 					ra.setPosition(pos);
@@ -705,8 +744,8 @@ public class Surrogate2D {
 			
 	        //calculate phase randomized sequence of ranked Gaussian
 			//this call fires also the progress bar events
-			surrogate = new Surrogate(); //Sequence surrogate
-	        double[] gaussPhaseRandom = surrogate.calcSurrogateRandomPhase(gaussRank, windowingType);
+			surrogate1D = new Surrogate1D(); //Sequence surrogate
+	        double[] gaussPhaseRandom = surrogate1D.calcSurrogateRandomPhase(gaussRank, windowingType);
 		
 	        //calculate rank of Gaussian (Ranked) phase randomized
 			ranking = new NaturalRanking(NaNStrategy.REMOVED, TiesStrategy.SEQUENTIAL);
@@ -714,7 +753,7 @@ public class Surrogate2D {
 		  
 	        //Rank input sequence according to Gaussian (Ranked) phase randomized
 			for (int i = 0; i < length1D; i++){
-				surrogate1D[i] = image1D[(int)  rankOfGaussPhaseRandom[i]-1];
+				surr1D[i] = image1D[(int)  rankOfGaussPhaseRandom[i]-1];
 			}
 			
 			//Re-convert 1D surrogate to 2D image	
@@ -725,7 +764,7 @@ public class Surrogate2D {
 					pos[0] = x;
 					pos[1] = y;
 					ra.setPosition(pos);
-					ra.get().set((int)Math.round(surrogate1D[y*width + x]));
+					ra.get().set((int)Math.round(surr1D[x*height + y]));
 					//ra.get().set(240); //only for testing
 				}
 			}
@@ -733,8 +772,18 @@ public class Surrogate2D {
 			
 		}
 		else if (numDim == 3) { //3D RGB
+			
+			width  = (int)rai.dimension(0);
+	    	height = (int)rai.dimension(1);
+			
+	    	//for converting image into 1D list
+	    	length1D  = width*height;
+	    	image1D   = new double[length1D];
+			surr1D    = new double[length1D];
+			
 			//Does the same, but only on one sclice of the rai 
-			for (int b = 0; b < numDim; b++) {
+			int numBands = 3;//RGB
+			for (int b = 0; b < numBands; b++) {
 				raiSlice = (RandomAccessibleInterval) Views.hyperSlice(rai, 2, b);
 				
 				//No windowing here
@@ -774,8 +823,8 @@ public class Surrogate2D {
 				
 		        //calculate phase randomized sequence of ranked Gaussian
 				//this call fires also the progress bar events
-				surrogate = new Surrogate(); //Sequence surrogate
-		        double[] gaussPhaseRandom = surrogate.calcSurrogateRandomPhase(gaussRank, windowingType);
+				surrogate1D = new Surrogate1D(); //Sequence surrogate
+		        double[] gaussPhaseRandom = surrogate1D.calcSurrogateRandomPhase(gaussRank, windowingType);
 			
 		        //calculate rank of Gaussian (Ranked) phase randomized
 				ranking = new NaturalRanking(NaNStrategy.REMOVED, TiesStrategy.SEQUENTIAL);
@@ -783,7 +832,7 @@ public class Surrogate2D {
 			  
 		        //Rank input sequence according to Gaussian (Ranked) phase randomized
 				for (int i = 0; i < length1D; i++){
-					surrogate1D[i] = image1D[(int)  rankOfGaussPhaseRandom[i]-1];
+					surr1D[i] = image1D[(int)  rankOfGaussPhaseRandom[i]-1];
 				}
 				
 				//Re-convert 1D surrogate to 2D image	
@@ -794,7 +843,7 @@ public class Surrogate2D {
 						pos[0] = x;
 						pos[1] = y;
 						ra.setPosition(pos);
-						ra.get().set((int)Math.round(surrogate1D[y*width + x]));
+						ra.get().set((int)Math.round(surr1D[x*height + y]));
 						//ra.get().set(240); //only for testing
 					}
 				}			
@@ -847,14 +896,14 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingRectangular (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingRectangular (RandomAccessibleInterval<?> rai) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double weight = 1.0;
 	
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -872,11 +921,11 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingBartlett (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingBartlett (RandomAccessibleInterval<?> rai) {
 		
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
@@ -895,7 +944,7 @@ public class Surrogate2D {
 //			}
 //		}
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -920,18 +969,18 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingHamming (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingHamming (RandomAccessibleInterval<?> rai) {
 	
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -956,18 +1005,18 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingHanning (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingHanning (RandomAccessibleInterval<?> rai) {
 		
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight = 0;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -995,17 +1044,17 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingBlackman (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingBlackman (RandomAccessibleInterval<?> rai) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -1031,10 +1080,10 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingGaussian (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingGaussian (RandomAccessibleInterval<?> rai) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
@@ -1043,7 +1092,7 @@ public class Surrogate2D {
 		double sigma  = 0.3;
 		double sigma2 = sigma*sigma;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -1067,18 +1116,18 @@ public class Surrogate2D {
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<DoubleType> windowingParzen (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingParzen (RandomAccessibleInterval<?> rai) {
 	
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
-		raiWindowed = new ArrayImgFactory<>(new DoubleType()).create(width, height); //always single 2D
+		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
 		
 		double r_u;
 		double r_v;
 		double r_uv;
 		double weight;
 		
-		Cursor<DoubleType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
