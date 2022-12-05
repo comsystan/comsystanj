@@ -63,7 +63,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.commons.sequence.algorithms.Surrogate;
+import at.csa.csaj.commons.algorithms.Surrogate1D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.SequencePlotFrame;
 import at.csa.csaj.plugin1d.open.Csaj1DOpener;

@@ -61,7 +61,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.commons.sequence.algorithms.Surrogate;
+import at.csa.csaj.commons.algorithms.Surrogate1D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.SequencePlotFrame;
 import at.csa.csaj.plugin1d.open.Csaj1DOpener;
@@ -781,13 +781,13 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends ContextCommand im
 		if (sequenceRange.equals("Entire sequence")){	//only this option is possible for autocorrelation
 			
 			if (!surrType.equals("No surrogates")) {
-				Surrogate surrogate = new Surrogate();	
+				Surrogate1D surrogate1D = new Surrogate1D();	
 				String windowingType = "Rectangular";
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-				if (surrType.equals("Shuffle"))      sequence1D = surrogate.calcSurrogateShuffle(sequence1D);
-				if (surrType.equals("Gaussian"))     sequence1D = surrogate.calcSurrogateGaussian(sequence1D);
-				if (surrType.equals("Random phase")) sequence1D = surrogate.calcSurrogateRandomPhase(sequence1D, windowingType);
-				if (surrType.equals("AAFT"))         sequence1D = surrogate.calcSurrogateAAFT(sequence1D, windowingType);
+				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
+				if (surrType.equals("Gaussian"))     sequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
+				if (surrType.equals("Random phase")) sequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
+				if (surrType.equals("AAFT"))         sequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 			}
 			
 			//Generate Poincare plot

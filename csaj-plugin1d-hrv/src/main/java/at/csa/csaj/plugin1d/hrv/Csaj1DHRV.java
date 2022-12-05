@@ -70,7 +70,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.commons.sequence.algorithms.Surrogate;
+import at.csa.csaj.commons.algorithms.Surrogate1D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.plugin1d.open.Csaj1DOpener;
 
@@ -1168,13 +1168,13 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 				surrSequence1D = new double[sequence1D.length];
 				
 				double sumEntropies   = 0.0f;
-				Surrogate surrogate = new Surrogate();
+				Surrogate1D surrogate1D = new Surrogate1D();
 				for (int s = 0; s < numSurrogates; s++) {
 					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-					if      (surrType.equals("Shuffle"))      surrSequence1D = surrogate.calcSurrogateShuffle(sequence1D);
-					else if (surrType.equals("Gaussian"))     surrSequence1D = surrogate.calcSurrogateGaussian(sequence1D);
-					else if (surrType.equals("Random phase")) surrSequence1D = surrogate.calcSurrogateRandomPhase(sequence1D, windowingType);
-					else if (surrType.equals("AAFT"))         surrSequence1D = surrogate.calcSurrogateAAFT(sequence1D, windowingType);
+					if      (surrType.equals("Shuffle"))      surrSequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
+					else if (surrType.equals("Gaussian"))     surrSequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
+					else if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
+					else if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 											
 					//"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", 
 					//"NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"

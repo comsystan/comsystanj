@@ -66,7 +66,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.commons.sequence.algorithms.Surrogate;
+import at.csa.csaj.commons.algorithms.Surrogate1D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.SequencePlotFrame;
 import at.csa.csaj.plugin1d.open.Csaj1DOpener;
@@ -874,22 +874,22 @@ public class Csaj1DSurrogate<T extends RealType<T>> extends ContextCommand imple
 			//sequenceOut = new double[numDataPoints];
 			//rangeOut  = new double[numDataPoints];
 			
-			Surrogate surrogate = new Surrogate();	
+			Surrogate1D surrogate1D = new Surrogate1D();	
 			//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 			
 			if (surrType.equals("Shuffle")) {
-				 sequence1D = surrogate.calcSurrogateShuffle(sequence1D);		
+				 sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);		
 				 
 			} else 	if (surrType.equals("Gaussian")) {
-				sequence1D = surrogate.calcSurrogateGaussian(sequence1D);
+				sequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
 				
 			} else 	if (surrType.equals("Random phase")) {
 				//String windowingType = "Rectangular";
-				sequence1D = surrogate.calcSurrogateRandomPhase(sequence1D, windowingType);
+				sequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
 				
 			} else 	if (surrType.equals("AAFT")) {
 				//String windowingType = "Rectangular";
-				sequence1D = surrogate.calcSurrogateAAFT(sequence1D, windowingType);
+				sequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
 			}
 				
