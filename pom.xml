@@ -68,6 +68,7 @@
 		<module>csaj-plugin2d-opener</module>
 		<module>csaj-plugin2d-surrogate</module>
 		<!--3D plugins-->
+		<module>csaj-plugin3d-en-genen</module>
 		<module>csaj-plugin3d-filter</module>
 		<module>csaj-plugin3d-frac-dim-boxcounting</module>
 		<module>csaj-plugin3d-frac-dim-correlation</module>

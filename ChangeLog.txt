@@ -24,6 +24,7 @@ New
 3D Volume - Fractal fragmentation indices
 3D Volume - Lacunarity
 3D Volume - Kolmogorov complexity
+3D Volume - Generalized entropies
 
 Bugfixes
 
