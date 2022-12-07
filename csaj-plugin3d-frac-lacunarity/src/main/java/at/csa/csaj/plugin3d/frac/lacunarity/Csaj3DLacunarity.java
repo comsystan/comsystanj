@@ -1044,7 +1044,7 @@ public class Csaj3DLacunarity<T extends RealType<T>> extends ContextCommand impl
 			}
 			boolean isLineVisible = false; // ?
 			RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-					"Double Log Plot - 3D Higuchi Dimension", preName + datasetName, "ln(k)", "ln(L)", "", regMin, regMax);
+					"Double Log Plot - 3D Lacunarity", preName + datasetName, "ln(k)", "ln(L)", "", regMin, regMax);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
 		if (!imageType.equals("Grey")) {
