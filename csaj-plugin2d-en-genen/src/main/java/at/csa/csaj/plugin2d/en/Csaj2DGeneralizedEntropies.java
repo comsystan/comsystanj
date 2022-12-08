@@ -256,7 +256,7 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
  	@Parameter(label = "Probability type",
 			description = "Selection of probability type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Grey values"}, //, "Pairwise differences", "Sum of differences", "SD"}, 
+			choices = {"Grey values", "Pairwise differences"},// "Sum of differences", "SD"}, 
 			persist = true,  //restore previous value default = true
 			initializer = "initialProbabilityType",
 			callback = "callbackProbabilityType")
@@ -1156,10 +1156,10 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
 		
 	
-		//probabilities = compProbabilities2(rai, probType);	
+		//probabilities = compProbabilities(rai, probType);	
 		probabilities = compProbabilities2(rai, probType); //faster	
 		
-	GeneralizedEntropies ge = new GeneralizedEntropies(probabilities);
+		GeneralizedEntropies ge = new GeneralizedEntropies(probabilities);
 		
 		genEntSE      = ge.compSE();
 		genEntH       = ge.compH();	//H1 H2 H3 
@@ -1250,25 +1250,65 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 	 * @param probOption
 	 * @return probabilities[]
 	 */
-	//"Grey values" (, "Pairwise differences", "Sum of differences", "SD")
-	private double[] compProbabilities(RandomAccessibleInterval<?> rai, String probType) {
+	//"Grey values", "Pairwise differences", ("Sum of differences", "SD")
+	private double[] compProbabilities(RandomAccessibleInterval<?> rai, String probType) {//2D rai
 		double imageMin = Double.MAX_VALUE;
 		double imageMax = -Double.MAX_VALUE;
-		double imageDouble[] = new double[(int) (rai.dimension(0)*rai.dimension(1))]; 
-		int i = 0;
+		long width = rai.dimension(0);
+		long height = rai.dimension(1);
+		double[] imageDouble = null;
+		
 		if (probType.equals("Grey values")) {//Actual values
+			imageDouble = new double[(int) (width*height)]; 
 			cursor = Views.iterable(rai).cursor();
+			int i=0;
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				imageDouble[i] = (double)((UnsignedByteType) cursor.get()).getInteger();
 				i++;
 			}
 		}
-		if (probType.equals("Pairwise differences")) {//Pairwise differences
+		else if (probType.equals("Pairwise differences")) {//Pairwise differences
+			imageDouble = new double[(int) (height*(width-1) + width*(height-1))]; 
+			ra = rai.randomAccess(rai);
+			long[] pos = new long[2];
+			int sample1;
+			int sample2;
+			int i = 0;
+			//x direction pairs
+			for (int y = 0; y < height; y++){
+				for (int x = 0; x < width - 1; x++){
+					pos[0] = x;
+					pos[1] = y;
+					ra.setPosition(pos);
+					sample1 = ((UnsignedByteType) ra.get()).get();
+					pos[0] = x + 1;
+					//pos[1] = y;
+					ra.setPosition(pos);
+					sample2 = ((UnsignedByteType) ra.get()).get();	
+					imageDouble[i] = Math.abs(sample2-sample1);
+					i++;
+				}
+			}
+			//y direction pairs
+			for (int x = 0; x < width; x++){
+				for (int y = 0; y < height - 1; y++){
+					pos[0] = x;
+					pos[1] = y;
+					ra.setPosition(pos);
+					sample1 = ((UnsignedByteType) ra.get()).get();
+					//pos[0] = x;
+					pos[1] = y + 1;
+					ra.setPosition(pos);
+					sample2 = ((UnsignedByteType) ra.get()).get();	
+					imageDouble[i] = Math.abs(sample2-sample1);
+					i++;
+				}
+			}		
 		}
-		if (probType.equals("Sum of differences")) {//Sum of differences in between lag
+		else if (probType.equals("Sum of differences")) {//Sum of differences in between lag
 		}
-		if (probType.equals("SD")) {//SD in between lag
+		else if (probType.equals("SD")) {//SD in between lag
 		}
 	
 		//Apache
@@ -1319,14 +1359,16 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 	 */
 	//"Grey values" (, "Pairwise differences", "Sum of differences", "SD")
 	private double[] compProbabilities2(RandomAccessibleInterval<?> rai, String probType) { //shorter computation
+		long width = rai.dimension(0);
+		long height = rai.dimension(1);
 		int binNumber = 256;
 		double[] pis = new double[binNumber]; 
 		double imageMin = Double.MAX_VALUE;
 		double imageMax = -Double.MAX_VALUE;
-		int sample;
 		double totalsMax = 0.0;
 	
 		if (probType.equals("Grey values")) {//Actual values
+			int sample;
 			imgUnsignedByte = this.createImgUnsignedByte(rai);
 			cursor = imgUnsignedByte.cursor();
 			while (cursor.hasNext()) {
@@ -1337,6 +1379,44 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 			}
 		}
 		if (probType.equals("Pairwise differences")) {//Pairwise differences
+			
+			ra = rai.randomAccess(rai);
+			long[] pos = new long[2];
+			int sample1;
+			int sample2;
+			int i = 0;
+			//x direction pairs
+			for (int y = 0; y < height; y++){
+				for (int x = 0; x < width - 1; x++){
+					pos[0] = x;
+					pos[1] = y;
+					ra.setPosition(pos);
+					sample1 = ((UnsignedByteType) ra.get()).get();
+					pos[0] = x + 1;
+					//pos[1] = y;
+					ra.setPosition(pos);
+					sample2 = ((UnsignedByteType) ra.get()).get();	
+					pis[Math.abs(sample2-sample1)]++;
+					totalsMax++;;
+					i++;
+				}
+			}
+			//y direction pairs
+			for (int x = 0; x < width; x++){
+				for (int y = 0; y < height - 1; y++){
+					pos[0] = x;
+					pos[1] = y;
+					ra.setPosition(pos);
+					sample1 = ((UnsignedByteType) ra.get()).get();
+					//pos[0] = x;
+					pos[1] = y + 1;
+					ra.setPosition(pos);
+					sample2 = ((UnsignedByteType) ra.get()).get();	
+					pis[Math.abs(sample2-sample1)]++;
+					totalsMax++;;
+					i++;
+				}
+			}		
 		}
 		if (probType.equals("Sum of differences")) {//Sum of differences in between lag
 		}
