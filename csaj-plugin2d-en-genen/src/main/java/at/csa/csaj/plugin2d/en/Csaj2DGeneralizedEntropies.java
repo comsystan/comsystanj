@@ -1167,7 +1167,6 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 	
 		//probabilities = compProbabilities(rai, lag, probType);	
 		probabilities = compProbabilities2(rai, lag, probType); //faster	
-		
 		GeneralizedEntropies ge = new GeneralizedEntropies(probabilities);
 		
 		genEntSE      = ge.compSE();
@@ -1377,8 +1376,9 @@ public class Csaj2DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 		if (probType.equals("Grey values")) {//Actual values
 			
 			int sample;
-			imgUnsignedByte = this.createImgUnsignedByte(rai);
-			cursor = imgUnsignedByte.cursor();
+			//imgUnsignedByte = this.createImgUnsignedByte(rai);
+			//cursor = imgUnsignedByte.cursor();
+			cursor = Views.iterable(rai).localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				sample = ((UnsignedByteType) cursor.get()).getInteger();
