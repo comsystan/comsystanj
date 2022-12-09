@@ -270,10 +270,16 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 			callback = "callbackProbabilityType")
 	private String choiceRadioButt_ProbabilityType;
 
-//	@Parameter(label = "lag", description = "delta for computation", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000000", stepSize = "1",
-//			   persist = false, // restore  previous value  default  =  true
-//			   initializer = "initialLag", callback = "callbackLag")
-//	private int spinnerInteger_Lag;
+	@Parameter(label = "Lag",
+			   description = "(difference)delta between two data points",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "1",
+			   max = "1000000",
+			   stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialLag",
+			   callback = "callbackLag")
+	private int spinnerInteger_Lag;
 
 	@Parameter(label = "(Renyi/Tsallis/SNorm/SEscort) Min q", description = "minimal Q for Renyi and Tsallis entropies", style = NumberWidget.SPINNER_STYLE, min = "-1000", max = "1000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
@@ -378,8 +384,7 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 //			callback = "callbackProcessAllImages")
 //	private Button buttonProcessAllImages;
 	
-	// ---------------------------------------------------------------------
-		
+	// ---------------------------------------------------------------------	
 	protected void initialPluginLaunch() {
 		//datasetIn = imageDisplayService.getActiveDataset();
 		checkItemIOIn();
@@ -389,9 +394,9 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 	 	choiceRadioButt_ProbabilityType = "Grey values"; //"Grey values", "Pairwise differences", "Sum of differences", "SD"
 	} 
 	 	
-//	protected void initialLag() {
-//	 	spinnerInteger_Lag = 1;
-//	 }
+	protected void initialLag() {
+	 	spinnerInteger_Lag = 1;
+	 }
 	 	
 	protected void initialMinQ() {
 		spinnerInteger_MinQ = -5;
@@ -471,21 +476,25 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 	 protected void initialOverwriteDisplays() {
 		 booleanOverwriteDisplays = true;
 	 }
-	
-	 
-	// ------------------------------------------------------------------------------
-		
-
+		 
+	// ------------------------------------------------------------------------------		
 	/** Executed whenever the {@link #choiceRadioButt_ProbabilityType} parameter changes. */
 	protected void callbackProbabilityType() {
 		logService.info(this.getClass().getName() + " Propability type set to " + choiceRadioButt_ProbabilityType);
+		if (choiceRadioButt_ProbabilityType.contains("Grey values")) {
+			logService.info(this.getClass().getName() + " Grey values only with lag = 1");
+			spinnerInteger_Lag = 1;
+		}
 	}
 		
-
-//	/** Executed whenever the {@link #spinnerInteger_Lag} parameter changes. */
-//	protected void callbackLag() {
-//		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
-//	}
+	/** Executed whenever the {@link #spinnerInteger_Lag} parameter changes. */
+	protected void callbackLag() {
+		if (choiceRadioButt_ProbabilityType.contains("Grey values")) {
+			logService.info(this.getClass().getName() + " Grey values only with lag = 1");
+			spinnerInteger_Lag = 1;
+		}
+		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
+	}
 		
 	/** Executed whenever the {@link #spinnerInteger_MinQ} parameter changes. */
 	protected void callbackMinQ() {
@@ -948,13 +957,12 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 		
 		GenericColumn columnFileName  = new GenericColumn("File name");
 		GenericColumn columnProbType  = new GenericColumn("Probability type");
-		//GenericColumn columnLag       = new GenericColumn("Lag");
-				
-	
+		GenericColumn columnLag       = new GenericColumn("Lag");
+
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnProbType);	
-		//table.add(columnLag);	
+		tableOut.add(columnLag);	
 	
 		//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
 		tableOut.add(new DoubleColumn("SE"));
@@ -987,8 +995,8 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 		tableOut.appendRow();
 		tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
 		tableOut.set("Probability type", tableOut.getRowCount() - 1, choiceRadioButt_ProbabilityType); 
-		//table.set("Lag", table.getRowCount() - 1, spinnerInteger_Lag);    // Lag
-		tableColLast = 1;
+		tableOut.set("Lag",              tableOut.getRowCount() - 1, spinnerInteger_Lag);    // Lag
+		tableColLast = 2;
 			
 		int numParameters = resultValuesTable.length;
 		tableColStart = tableColLast + 1;
@@ -996,7 +1004,6 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 		for (int c = tableColStart; c < tableColEnd; c++ ) {
 			tableOut.set(c, tableOut.getRowCount() - 1, resultValuesTable[c-tableColStart]);
 		}	
-
 	}
 
 	/**
@@ -1009,8 +1016,8 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		String  probType      = choiceRadioButt_ProbabilityType;
-		//int     numLag        = spinnerInteger_Lag;
+		String  probType         = choiceRadioButt_ProbabilityType;
+		int     lag              = spinnerInteger_Lag;
 		boolean optShowRenyiPlot = booleanShowRenyiPlot;
 
 //		if ((!colorModelType.equals("Binary")) && (regMin == 1)){
@@ -1039,8 +1046,8 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 		resultValues = new double[numOfEntropies]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 		
-		//probabilities = compProbabilities2(rai, probType); //3D rai	grey
-		probabilities = compProbabilities2(rai, probType); //faster  //3D grey	
+		//probabilities = compProbabilities(rai, lag, probType); //3D rai	grey
+		probabilities = compProbabilities2(rai, lag, probType); //faster  //3D grey	
 		GeneralizedEntropies ge = new GeneralizedEntropies(probabilities);
 		
 		genEntSE      = ge.compSE();
@@ -1125,19 +1132,22 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 	 * This computes probabilities of actual values
 	 * 
 	 * @param sequence
+	 * @param lag
 	 * @param probOption
 	 * @return probabilities[]
 	 */
 	//"Grey values" (, "Pairwise differences", "Sum of differences", "SD")
-	private double[] compProbabilities(RandomAccessibleInterval<?> rai, String probType) {//3D rai grey
-		double volumeMin = Double.MAX_VALUE;
-		double volumeMax = -Double.MAX_VALUE;
+	private double[] compProbabilities(RandomAccessibleInterval<?> rai, int lag, String probType) {//3D rai grey
+		//double volumeMin = Double.MAX_VALUE;
+		//double volumeMax = -Double.MAX_VALUE;
+		double volumeMin = 0;
+		double volumeMax = 255;
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		long depth  = rai.dimension(2);
 		double[] volumeDouble = null;
 	
-		if (probType.equals("Grey values")) {//Actual values
+		if (probType.equals("Grey values")) {//Actual values without lag
 			volumeDouble = new double[(int)(width*height*depth)]; 
 			cursor = Views.iterable(rai).cursor();
 			int i = 0;
@@ -1147,8 +1157,9 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 				i++;
 			}
 		}
-		if (probType.equals("Pairwise differences")) {//Pairwise differences
-			volumeDouble = new double[(int)(depth*height*(width-1) + depth*width*(height-1) + width*height*(depth-1))];
+		else if (probType.equals("Pairwise differences")) {//Pairwise differences
+			volumeDouble = new double[(int)(depth*height*(width-lag) + depth*width*(height-lag) + width*height*(depth-lag))];
+			ra = rai.randomAccess(rai);
 			long[] pos = new long[3];
 			int sample1;
 			int sample2;
@@ -1156,13 +1167,13 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 			//x direction pairs
 			for (int z = 0; z < depth; z++){
 				for (int y = 0; y < height; y++){
-					for (int x = 0; x < width - 1; x++){
+					for (int x = 0; x < width - lag; x++){
 						pos[0] = x;
 						pos[1] = y;
 						pos[2] = z;
 						ra.setPosition(pos);
 						sample1 = ((UnsignedByteType) ra.get()).get();
-						pos[0] = x + 1;
+						pos[0] = x + lag;
 						//pos[1] = y;
 						//pos[2] = z;
 						ra.setPosition(pos);
@@ -1175,14 +1186,14 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 			//y direction pairs
 			for (int z = 0; z < depth; z++){
 				for (int x = 0; x < width; x++){
-					for (int y = 0; y < height - 1; y++){
+					for (int y = 0; y < height - lag; y++){
 						pos[0] = x;
 						pos[1] = y;
 						pos[2] = z;
 						ra.setPosition(pos);
 						sample1 = ((UnsignedByteType) ra.get()).get();
 						//pos[0] = x;
-						pos[1] = y + 1;
+						pos[1] = y + lag;
 						//pos[2] = z;
 						ra.setPosition(pos);
 						sample2 = ((UnsignedByteType) ra.get()).get();	
@@ -1194,7 +1205,7 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 			//z direction pairs
 			for (int x = 0; x < width; x++){
 				for (int y = 0; y < width; y++){
-					for (int z = 0; z < depth - 1; z++){
+					for (int z = 0; z < depth - lag; z++){
 						pos[0] = x;
 						pos[1] = y;
 						pos[2] = z;
@@ -1202,7 +1213,7 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 						sample1 = ((UnsignedByteType) ra.get()).get();
 						//pos[0] = x;
 						//pos[1] = y;
-						pos[2] = z + 1;
+						pos[2] = z + lag;
 						ra.setPosition(pos);
 						sample2 = ((UnsignedByteType) ra.get()).get();	
 						volumeDouble[i] = Math.abs(sample2-sample1);
@@ -1210,12 +1221,11 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 					}
 				}	
 			}
-			
-			
+				
 		}
-		if (probType.equals("Sum of differences")) {//Sum of differences in between lag
+		else if (probType.equals("Sum of differences")) {//Sum of differences in between lag == integral
 		}
-		if (probType.equals("SD")) {//SD in between lag
+		else if (probType.equals("SD")) {//SD in between lag
 		}
 	
 		//Apache
@@ -1230,21 +1240,13 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 		    histogram[k++] = stats.getN();
 		}   
 
-//	    double xValues[] = new double[binNumber];
-//        for (int i = 0; i < binNumber; i++) {
-//            if (i == 0){
-//                xValues[i] = sequenceMin;
-//            } else {
-//                xValues[i] = xValues[i-1] + binSize;
-//            }
-//        }
         double[] pis = new double[binNumber]; 
 
 		double totalsMax = 0.0;
 		for (int p= 0; p < binNumber; p++) {
 			pis[p] = histogram[p];
 			totalsMax = totalsMax + histogram[p]; // calculate total count for normalization
-		}	
+		}
 		
 		// normalization
 		double sumP = 0.0;
@@ -1261,18 +1263,21 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 	 * This computes probabilities of actual values
 	 * 
 	 * @param sequence
+	 * @param lag
 	 * @param probOption
 	 * @return probabilities[]
 	 */
 	//"Grey values" (, "Pairwise differences", "Sum of differences", "SD")
-	private double[] compProbabilities2(RandomAccessibleInterval<?> rai, String probType) { //shorter computation
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		long depth  = rai.dimension(2);
+	private double[] compProbabilities2(RandomAccessibleInterval<?> rai, int lag, String probType) { //shorter computation
+		long width    = rai.dimension(0);
+		long height   = rai.dimension(1);
+		long depth    = rai.dimension(2);
 		int binNumber = 256;
 		double[] pis = new double[binNumber]; 
-		double volumeMin = Double.MAX_VALUE;
-		double volumeMax = -Double.MAX_VALUE;
+		//double volumeMin = Double.MAX_VALUE;
+		//double volumeMax = -Double.MAX_VALUE;
+		double volumeMin = 0;
+		double volumeMax = 255;
 		double totalsMax = 0.0;
 	
 		if (probType.equals("Grey values")) {//Actual values
@@ -1287,20 +1292,76 @@ public class Csaj3DGeneralizedEntropies<T extends RealType<T>> extends ContextCo
 				totalsMax++;
 			}
 		}
-		if (probType.equals("Pairwise differences")) {//Pairwise differences
+		else if (probType.equals("Pairwise differences")) {//Pairwise differences
 		
 			ra = rai.randomAccess(rai);
-			long[] pos = new long[2];
+			long[] pos = new long[3];
 			int sample1;
 			int sample2;
-			int i = 0;
 			
+			//x direction pairs
+			for (int z = 0; z < depth; z++){
+				for (int y = 0; y < height; y++){
+					for (int x = 0; x < width - lag; x++){
+						pos[0] = x;
+						pos[1] = y;
+						pos[2] = z;
+						ra.setPosition(pos);
+						sample1 = ((UnsignedByteType) ra.get()).get();
+						pos[0] = x + lag;
+						//pos[1] = y;
+						//pos[2] = z;
+						ra.setPosition(pos);
+						sample2 = ((UnsignedByteType) ra.get()).get();	
+						pis[Math.abs(sample2-sample1)]++;
+						totalsMax++;
+					}
+				}
+			}
+			//y direction pairs
+			for (int z = 0; z < depth; z++){
+				for (int x = 0; x < width; x++){
+					for (int y = 0; y < height - lag; y++){
+						pos[0] = x;
+						pos[1] = y;
+						pos[2] = z;
+						ra.setPosition(pos);
+						sample1 = ((UnsignedByteType) ra.get()).get();
+						//pos[0] = x;
+						pos[1] = y + lag;
+						//pos[2] = z;
+						ra.setPosition(pos);
+						sample2 = ((UnsignedByteType) ra.get()).get();	
+						pis[Math.abs(sample2-sample1)]++;
+						totalsMax++;
+					}
+				}	
+			}
+			//z direction pairs
+			for (int x = 0; x < width; x++){
+				for (int y = 0; y < width; y++){
+					for (int z = 0; z < depth - lag; z++){
+						pos[0] = x;
+						pos[1] = y;
+						pos[2] = z;
+						ra.setPosition(pos);
+						sample1 = ((UnsignedByteType) ra.get()).get();
+						//pos[0] = x;
+						//pos[1] = y;
+						pos[2] = z + lag;
+						ra.setPosition(pos);
+						sample2 = ((UnsignedByteType) ra.get()).get();	
+						pis[Math.abs(sample2-sample1)]++;
+						totalsMax++;
+					}
+				}	
+			}
 			
 			
 		}
-		if (probType.equals("Sum of differences")) {//Sum of differences in between lag
+		else if (probType.equals("Sum of differences")) {//Sum of differences in between lag  == integral
 		}
-		if (probType.equals("SD")) {//SD in between lag
+		else if (probType.equals("SD")) {//SD in between lag
 		}
 	
 		// normalization
