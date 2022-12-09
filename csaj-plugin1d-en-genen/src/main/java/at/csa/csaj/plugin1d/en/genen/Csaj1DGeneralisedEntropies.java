@@ -254,8 +254,8 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 			   callback = "callbackProbabilityType")
 	private String choiceRadioButt_ProbabilityType;
 
-	@Parameter(label = "lag",
-			   description = "delta for computation",
+	@Parameter(label = "Lag",
+			   description = "(difference)delta between two data points",
 			   style = NumberWidget.SPINNER_STYLE,
 			   min = "1",
 			   max = "1000000",
@@ -541,16 +541,21 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 	}
 
 	// ------------------------------------------------------------------------------
-	
-	
 	/** Executed whenever the {@link #choiceRadioButt_ProbabilityType} parameter changes. */
 	protected void callbackProbabilityType() {
 		logService.info(this.getClass().getName() + " Propability type set to " + choiceRadioButt_ProbabilityType);
+		if (choiceRadioButt_ProbabilityType.contains("Sequence values")) {
+			logService.info(this.getClass().getName() + " Sequence values only with lag = 1");
+			spinnerInteger_Lag = 1;
+		}
 	}
 	
-
 	/** Executed whenever the {@link #spinnerInteger_Lag} parameter changes. */
 	protected void callbackLag() {
+		if (choiceRadioButt_ProbabilityType.contains("Sequence values")) {
+			logService.info(this.getClass().getName() + " Sequence values only with lag = 1");
+			spinnerInteger_Lag = 1;
+		}
 		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
 	}
 	
@@ -1197,7 +1202,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		String  probType      = choiceRadioButt_ProbabilityType;
-		int     numLag        = spinnerInteger_Lag;
+		int     lag           = spinnerInteger_Lag;
 		
 		boolean removeZeores  = booleanRemoveZeroes;
 		
@@ -1269,7 +1274,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 				//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
 				//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 				
-				probabilities = compProbabilities(sequence1D, numLag, probType);				
+				probabilities = compProbabilities(sequence1D, lag, probType);				
 				ge = new GeneralizedEntropies(probabilities);
 				
 				genEntSE      = ge.compSE();
@@ -1321,7 +1326,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 			} else {
 				resultValues = new double[1+1+1*numSurrogates]; // Entropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
 				
-				probabilities = compProbabilities(sequence1D, numLag, probType);		
+				probabilities = compProbabilities(sequence1D, lag, probType);		
 				ge = new GeneralizedEntropies(probabilities);
 				
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
@@ -1354,7 +1359,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 					else if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
 					else if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 			
-					probabilities = compProbabilities(surrSequence1D, numLag, probType);
+					probabilities = compProbabilities(surrSequence1D, lag, probType);
 					ge = new GeneralizedEntropies(probabilities);
 					
 					//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
@@ -1394,7 +1399,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 					subSequence1D[ii-start] = sequence1D[ii];
 				}
 				//Compute specific values************************************************
-				probabilities = compProbabilities(subSequence1D, numLag, probType);	
+				probabilities = compProbabilities(subSequence1D, lag, probType);	
 				ge = new GeneralizedEntropies(probabilities);
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
 				if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE();
@@ -1429,7 +1434,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 					subSequence1D[ii-start] = sequence1D[ii];
 				}	
 				//Compute specific values************************************************
-				probabilities = compProbabilities(subSequence1D, numLag, probType);	
+				probabilities = compProbabilities(subSequence1D, lag, probType);	
 				ge = new GeneralizedEntropies(probabilities);
 				
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
@@ -1470,27 +1475,30 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		if (probType.equals("Sequence values")) lag = 0; //to be sure that eps = 0 for that case
 		double sequenceMin = Double.MAX_VALUE;
 		double sequenceMax = -Double.MAX_VALUE;
-		double sequenceDouble[] = new double[sequence.length - lag]; 
+		double[] sequenceDouble = null;
 		
-		if (probType.equals("Sequence values")) {//Actual values
-			for (int i = 0; i < sequence.length - lag; i++) {
+		if (probType.equals("Sequence values")) {//Actual values without lag
+			sequenceDouble = new double[sequence.length]; 
+			for (int i = 0; i < sequenceDouble.length; i++) {
 				sequenceDouble[i] = sequence[i];
 				if (sequenceDouble[i] < sequenceMin) sequenceMin = sequenceDouble[i];  
 				if (sequenceDouble[i] > sequenceMax) sequenceMax = sequenceDouble[i];  
 			}
 		}
 		if (probType.equals("Pairwise differences")) {//Pairwise differences
-			for (int i = 0; i < sequence.length - lag; i++) {
+			sequenceDouble = new double[sequence.length - lag]; 
+			for (int i = 0; i < sequenceDouble.length; i++) {
 				sequenceDouble[i] = Math.abs(sequence[i+lag] - sequence[i]); //Difference
 				if (sequenceDouble[i] < sequenceMin) sequenceMin = sequenceDouble[i];  
 				if (sequenceDouble[i] > sequenceMax) sequenceMax = sequenceDouble[i];  
 			}
 		}
-		if (probType.equals("Sum of differences")) {//Sum of differences in between lag
-			for (int i = 0; i < sequence.length - lag; i++) {
+		if (probType.equals("Sum of differences")) {//Sum of differences in between lag == integral
+			sequenceDouble = new double[sequence.length - lag]; 
+			for (int i = 0; i < sequenceDouble.length; i++) {
 				double sum = 0.0;
 				for (int ii = 0; ii < lag; ii++) {
-					sum = sum + Math.abs(sequence[i+ii+1] - sequence[i+ii]); //Difference
+					sum = sum + Math.abs(sequence[i+ii+1] - sequence[i+ii]); //Sum of differences
 				}
 				sequenceDouble[i] = sum;
 				if (sequenceDouble[i] < sequenceMin) sequenceMin = sequenceDouble[i];  
@@ -1498,10 +1506,11 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 			}
 		}
 		if (probType.equals("SD")) {//SD in between lag
-			for (int i = 0; i < sequence.length - lag; i++) {
+			sequenceDouble = new double[sequence.length - lag]; 
+			for (int i = 0; i < sequenceDouble.length; i++) {
 				double mean = 0.0;
 				for (int ii = 0; ii < lag; ii++) {
-					mean = mean + sequence[i+ii]; //Difference
+					mean = mean + sequence[i+ii]; //Sum for Mean
 				}
 				mean = mean/((double)lag);
 				double sumDiff2 = 0.0;
