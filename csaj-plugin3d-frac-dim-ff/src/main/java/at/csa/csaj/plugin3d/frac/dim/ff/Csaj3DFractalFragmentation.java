@@ -47,7 +47,13 @@ import net.imagej.DatasetService;
 import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.display.ImageDisplayService;
+import net.imagej.mesh.Mesh;
+import net.imagej.mesh.Meshes;
+import net.imagej.mesh.Triangle;
 import net.imagej.ops.OpService;
+import net.imagej.ops.geom.geom2d.DefaultConvexHull2D;
+import net.imagej.ops.geom.geom3d.DefaultConvexHull3D;
+import net.imagej.ops.geom.geom3d.DefaultVoxelization3D;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -55,9 +61,15 @@ import net.imglib2.algorithm.morphology.Erosion;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.roi.Masks;
+import net.imglib2.roi.Regions;
+import net.imglib2.roi.geom.real.Polygon2D;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
+
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -93,6 +105,7 @@ import at.csa.csaj.plugin3d.frac.dim.generalized.util.GeneralizedDim3D_Grey;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
+
 /**
  * A {@link ContextCommand} plugin computing <the 3D fractal fragmentation indices</a>
  * of an image volume.
@@ -118,6 +131,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 
+	private static Img<BitType> imgBit; 
 	private static Img<FloatType> imgFloat; 
 	private static Img<FloatType> imgSubSampled;
 	private static Img<FloatType> imgTemp;
@@ -726,12 +740,17 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		
 		long startTime = System.currentTimeMillis();
 
-		resultValuesTable = new double[15];
+		//resultValuesTable = new double[15]; //3x5 regression parameters
+		resultValuesTable = new double[30]; //x2 for complex hull
 	
+		Mesh mesh;
+		Mesh hull;
+		DefaultConvexHull3D defaultConvexHull3D;
+		
 		//get rai
 		RandomAccessibleInterval<T> rai = null;	
 	
-		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
+		rai =  (RandomAccessibleInterval<T>) datasetIn.copy().getImgPlus(); //dim==3
 
 		// Compute regression parameters
 		double[] regressionValues = process(rai); //rai is 3D
@@ -760,8 +779,41 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		resultValuesTable[1]  = dimD1;
 		resultValuesTable[6]  = dimMass;
 		resultValuesTable[11] = dimPerim;
-		
 		logService.info(this.getClass().getName() + " 3D D mass: " + dimMass);
+		
+		imgBit = createImgBit(rai);
+		int isoLevel = 1; //isoLevel is a threshold
+		mesh = Meshes.marchingCubes(imgBit, isoLevel);
+		//mesh = Meshes.marchingCubes(rai, isoLevel);
+		//or 
+		//mesh = ij.op().geom().marchingCubes(imgBit, isoLevel);
+		
+//		defaultConvexHull3D = new DefaultConvexHull3D();
+//		hull = defaultConvexHull3D.calculate(mesh);		
+//		or
+		List result = opService.geom().convexHull(mesh);
+		hull = (Mesh) result.get(0);
+		
+		//volumes for checking
+		double meshVolume = opService.geom().size(mesh).getRealDouble();
+		double hullVolume =   ij.op().geom().size(hull).getRealDouble();
+			
+		RandomAccessibleInterval<BitType> raiMesh = opService.geom().voxelization(mesh, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
+		RandomAccessibleInterval<BitType> raiHull = opService.geom().voxelization(hull, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
+		
+		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();	
+		cursor = (Views.iterable(raiHull)).localizingCursor();
+		long[] pos = new long[3];
+		while(cursor.hasNext()) {
+			cursor.next();
+			cursor.localize(pos);
+			ra.setPosition(pos);
+			if (((BitType) cursor.get()).get() == true)  ((UnsignedByteType) ra.get()).set(255); //This changes the rai
+		}
+
+		uiService.show("raiMesh", raiMesh);
+		uiService.show("raiHull", raiHull);
+		uiService.show("rai", rai);
 	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
@@ -1131,6 +1183,34 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
 		return pl;	
+	}
+	
+	/**
+	 * 
+	 * This methods creates an Img<BitType>
+	 */
+	private Img<BitType > createImgBit(RandomAccessibleInterval<?> rai){ //rai must always be a single 3D volume
+		
+		imgBit = new ArrayImgFactory<>(new BitType()).create(rai.dimension(0), rai.dimension(1), rai.dimension(2)); //always single 3D volume
+		Cursor<BitType> cursor = imgBit.localizingCursor();
+		final long[] pos = new long[imgBit.numDimensions()];
+		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+		while (cursor.hasNext()){
+			cursor.fwd();
+			cursor.localize(pos);
+			ra.setPosition(pos);
+			//if (numSlices == 1) { //for only one 2D image;
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
+			//} else { //for more than one image e.g. image stack
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
+			//	ra.setPosition(s, 2);
+			//}
+			//ra.get().setReal(cursor.get().get());
+			if (ra.get().getRealFloat() > 0) cursor.get().setOne();
+		}	
+		return imgBit;
 	}
 
 	/**
