@@ -50,6 +50,7 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
+import net.imagej.ops.geom.geom2d.DefaultConvexHull2D;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
@@ -58,9 +59,15 @@ import net.imglib2.algorithm.morphology.Erosion;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.roi.Masks;
+import net.imglib2.roi.Regions;
+import net.imglib2.roi.geom.real.Polygon2D;
+import net.imglib2.type.BooleanType;
 import net.imglib2.type.Type;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 import org.scijava.ItemIO;
@@ -120,6 +127,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
+	private static Img<BitType> imgBit; 
 	private static Img<FloatType> imgFloat; 
 	private static Img<FloatType> imgSubSampled;
 	private static Img<FloatType> imgTemp;
@@ -729,7 +737,12 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	 */
 	private void processSingleInputImage(int s) {
 		long startTime = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][15];//three times 5 regression parameters
+		//resultValuesTable = new double[(int) numSlices][15];//3x5 regression parameters
+		resultValuesTable = new double[(int) numSlices][30];//x2 for complex hull
+		
+		Polygon2D poly;
+		Polygon2D hull;
+		DefaultConvexHull2D defaultConvexHull2D;
 		
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -737,10 +750,10 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 
 		RandomAccessibleInterval<?> rai = null;	
 		if( (s==0) && (numSlices == 1) && (numDimensions == 2) ) { // for only one 2D image;
-			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
+			rai =  (RandomAccessibleInterval<?>) datasetIn.copy().getImgPlus(); //copy() because rai will be changed for convex hull
 
 		} else if ( (numSlices > 1) && (numDimensions == 3) ){ // for a stack of 2D images
-			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);	
+			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn.copy(), 2, s); //copy() because rai will be changed for convex hull	
 		}
 
 		//Compute regression parameters
@@ -765,7 +778,49 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		resultValuesTable[s][1]  = dimD1;
 		resultValuesTable[s][6]  = dimMass;
 		resultValuesTable[s][11] = dimPerim;
+			
+		//Do it again for convex Hull**************************************************
+		//Create Bittype imgBit
+		imgBit = createImgBit(rai);
+		//Polygon2D poly = ij.convert().convert(imgBit, Polygon2D.class);//is always null
+		poly = ij.op().geom().contour(imgBit, false );
+		defaultConvexHull2D = new DefaultConvexHull2D();
+		hull = defaultConvexHull2D.calculate(poly);
 		
+		//areas for checking
+//		DoubleType areaPoly  = (DoubleType) opService.run("geom.size", poly);
+//		DoubleType areaHull1 = (DoubleType) opService.run("geom.size", hull);
+//		DoubleType areaHull2 = (DoubleType) opService.run("geom.sizeConvexHull", poly); //same result
+		
+		cursor = Regions.sample(Masks.toIterableRegion(hull), rai).localizingCursor();
+		while(cursor.hasNext()) {
+			cursor.next();
+			((UnsignedByteType) cursor.get()).set(255); //This changes the rai
+		}
+		//uiService.show("Convex Hull", rai);
+		
+		//Compute regression parameters
+		regressionValues = process(rai, s);	
+		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
+		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
+		//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
+			
+		//set values for output table
+		for (int i = 0; i < regressionValues.length; i++ ) {
+				resultValuesTable[s][15 + i] = regressionValues[i]; //15 values are already set
+		}
+		//Compute dimension
+		dimD1    = Double.NaN;
+		dimMass  = Double.NaN;
+		dimPerim = Double.NaN;
+		dimD1    =  regressionValues[1]; //Slope for D1
+		dimMass  = -regressionValues[6];
+		dimPerim = -regressionValues[11];
+		logService.info(this.getClass().getName() + " D mass-hull: " + dimMass);
+		resultValuesTable[s][15+1]  = dimD1;    //Hull
+		resultValuesTable[s][15+6]  = dimMass;  //Hull
+		resultValuesTable[s][15+11] = dimPerim; //Hull
+		 
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;
@@ -793,7 +848,12 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][15];
+		//resultValuesTable = new double[(int) numSlices][15];//15: 3x5 regression parameters
+		resultValuesTable = new double[(int) numSlices][30];//x2 for complex hull
+		
+		Polygon2D poly;
+		Polygon2D hull;
+		DefaultConvexHull2D defaultConvexHull2D;
 	
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -821,10 +881,10 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 				
 				RandomAccessibleInterval<?> rai = null;	
 				if( (s==0) && (numSlices == 1) && (numDimensions == 2) ) { // for only one 2D image;
-					rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
+					rai =  (RandomAccessibleInterval<?>) datasetIn.copy().getImgPlus(); //copy() because rai will be changed for convex hull
 	
 				} else if ( (numSlices > 1) && (numDimensions == 3) ){ // for a stack of 2D images
-					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
+					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn.copy(), 2, s); //copy() because rai will be changed for convex hull
 				
 				}
 				//Compute regression parameters
@@ -849,6 +909,49 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 				resultValuesTable[s][1]  = dimD1;
 				resultValuesTable[s][6]  = dimMass;
 				resultValuesTable[s][11] = dimPerim;
+				logService.info(this.getClass().getName() + " D mass: " + dimMass);
+				
+				//Do it again for convex Hull**************************************************
+				//Create Bittype imgBit
+				imgBit = createImgBit(rai);
+				//Polygon2D poly = ij.convert().convert(imgBit, Polygon2D.class);//is always null
+				poly = ij.op().geom().contour(imgBit, false );
+				defaultConvexHull2D = new DefaultConvexHull2D();
+				hull = defaultConvexHull2D.calculate(poly);
+				
+				//areas to check 
+				DoubleType areaPoly  = (DoubleType) opService.run("geom.size", poly);
+				DoubleType areaHull1 = (DoubleType) opService.run("geom.size", hull);
+				DoubleType areaHull2 = (DoubleType) opService.run("geom.sizeConvexHull", poly); //same result
+				
+				cursor = Regions.sample(Masks.toIterableRegion(hull), rai).localizingCursor();
+				while(cursor.hasNext()) {
+					cursor.next();
+					((UnsignedByteType) cursor.get()).set(255); //This changes the rai
+				}
+				//uiService.show("Convex Hull", rai);
+				
+				//Compute regression parameters
+				regressionValues = process(rai, s);	
+				//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
+				//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
+				//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
+					
+				//set values for output table
+				for (int i = 0; i < regressionValues.length; i++ ) {
+						resultValuesTable[s][15 + i] = regressionValues[i]; //15 values are already set
+				}
+				//Compute dimension
+				dimD1    = Double.NaN;
+				dimMass  = Double.NaN;
+				dimPerim = Double.NaN;
+				dimD1    =  regressionValues[1]; //Slope for D1
+				dimMass  = -regressionValues[6];
+				dimPerim = -regressionValues[11];
+				logService.info(this.getClass().getName() + " D mass-hull: " + dimMass);
+				resultValuesTable[s][15+1]  = dimD1;    //Hull
+				resultValuesTable[s][15+6]  = dimMass;  //Hull
+				resultValuesTable[s][15+11] = dimPerim; //Hull
 				
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -892,12 +995,19 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
 		DoubleColumn columnFFI             = new DoubleColumn("FFI");
 		DoubleColumn columnFFDI            = new DoubleColumn("FFDI");
+		DoubleColumn columnFTI             = new DoubleColumn("FTI");
 		DoubleColumn columnD1              = new DoubleColumn("D1");
 		DoubleColumn columnDmass           = new DoubleColumn("D-mass");
 		DoubleColumn columnDbound          = new DoubleColumn("D-boundary");
 		DoubleColumn columnR2d1            = new DoubleColumn("R2-D1");
 		DoubleColumn columnR2mass          = new DoubleColumn("R2-mass");
 		DoubleColumn columnR2bound         = new DoubleColumn("R2-boundary");
+		DoubleColumn columnCH_D1           = new DoubleColumn("CH_D1");  //CH----ComplexHull
+		DoubleColumn columnCH_Dmass        = new DoubleColumn("CH_D-mass");
+		DoubleColumn columnCH_Dbound       = new DoubleColumn("CH_D-boundary");
+		DoubleColumn columnCH_R2d1         = new DoubleColumn("CH_R2-D1");
+		DoubleColumn columnCH_R2mass       = new DoubleColumn("CH_R2-mass");
+		DoubleColumn columnCH_R2bound      = new DoubleColumn("CH_R2-boundary");
 	
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -908,12 +1018,19 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//table.add(columnFractalDimType);
 		tableOut.add(columnFFI);
 		tableOut.add(columnFFDI);
+		tableOut.add(columnFTI);
 		tableOut.add(columnD1);
 		tableOut.add(columnDmass);
 		tableOut.add(columnDbound);
 		tableOut.add(columnR2d1);
 		tableOut.add(columnR2mass);
 		tableOut.add(columnR2bound);
+		tableOut.add(columnCH_D1);
+		tableOut.add(columnCH_Dmass);
+		tableOut.add(columnCH_Dbound);
+		tableOut.add(columnCH_R2d1);
+		tableOut.add(columnCH_R2mass);
+		tableOut.add(columnCH_R2bound);
 	}
 	
 	/** 
@@ -945,12 +1062,19 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
 			tableOut.set("FFI",         	 tableOut.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
 			tableOut.set("FFDI",         	 tableOut.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
+			tableOut.set("FTI",         	 tableOut.getRowCount()-1, (resultValuesTable[s][15+6] - resultValuesTable[s][15+11])-(resultValuesTable[s][6] - resultValuesTable[s][11])); //FFI hull - FFI
 			tableOut.set("D1",         	     tableOut.getRowCount()-1, resultValuesTable[s][1]); //D1
 			tableOut.set("D-mass",           tableOut.getRowCount()-1, resultValuesTable[s][6]); //Dmass
 			tableOut.set("D-boundary",       tableOut.getRowCount()-1, resultValuesTable[s][11]); //D-boundary
 			tableOut.set("R2-D1",         	 tableOut.getRowCount()-1, resultValuesTable[s][4]);
 			tableOut.set("R2-mass",          tableOut.getRowCount()-1, resultValuesTable[s][9]);
 			tableOut.set("R2-boundary",      tableOut.getRowCount()-1, resultValuesTable[s][14]);
+			tableOut.set("CH_D1",         	 tableOut.getRowCount()-1, resultValuesTable[s][15+1]); //D1   Complex Hull values
+			tableOut.set("CH_D-mass",        tableOut.getRowCount()-1, resultValuesTable[s][15+6]); //Dmass
+			tableOut.set("CH_D-boundary",    tableOut.getRowCount()-1, resultValuesTable[s][15+11]); //D-boundary
+			tableOut.set("CH_R2-D1",         tableOut.getRowCount()-1, resultValuesTable[s][15+4]);
+			tableOut.set("CH_R2-mass",       tableOut.getRowCount()-1, resultValuesTable[s][15+9]);
+			tableOut.set("CH_R2-boundary",   tableOut.getRowCount()-1, resultValuesTable[s][15+14]);
 	}
 	
 	/** 
@@ -973,20 +1097,27 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		    //Boundary 5 Intercept, 6 Dim, 7 InterceptStdErr, 8 SlopeStdErr, 9 RSquared		
 			//fill table with values
 			tableOut.appendRow();
-			tableOut.set("File name",	 tableOut.getRowCount() - 1, datasetName);	
-			if (sliceLabels != null)	 tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-			tableOut.set("# Boxes",    	 tableOut.getRowCount()-1, numImages);	
-			tableOut.set("RegMin",       tableOut.getRowCount()-1, regMin);	
-			tableOut.set("RegMax",       tableOut.getRowCount()-1, regMax);	
+			tableOut.set("File name",	  tableOut.getRowCount() - 1, datasetName);	
+			if (sliceLabels != null)	  tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+			tableOut.set("# Boxes",    	  tableOut.getRowCount()-1, numImages);	
+			tableOut.set("RegMin",        tableOut.getRowCount()-1, regMin);	
+			tableOut.set("RegMax",        tableOut.getRowCount()-1, regMax);	
 			//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
-			tableOut.set("FFI",          tableOut.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
-			tableOut.set("FFDI",         tableOut.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
-			tableOut.set("D1",         	 tableOut.getRowCount()-1, resultValuesTable[s][1]); //D1
-			tableOut.set("D-mass",       tableOut.getRowCount()-1, resultValuesTable[s][6]); //Dmass
-			tableOut.set("D-boundary",   tableOut.getRowCount()-1, resultValuesTable[s][11]); //D-boundary
-			tableOut.set("R2-D1",        tableOut.getRowCount()-1, resultValuesTable[s][4]);
-			tableOut.set("R2-mass",      tableOut.getRowCount()-1, resultValuesTable[s][9]);
-			tableOut.set("R2-boundary",  tableOut.getRowCount()-1, resultValuesTable[s][14]);
+			tableOut.set("FFI",           tableOut.getRowCount()-1, resultValuesTable[s][6] - resultValuesTable[s][11]); //FFI
+			tableOut.set("FFDI",          tableOut.getRowCount()-1, resultValuesTable[s][1]*(1.0-(resultValuesTable[s][6] - resultValuesTable[s][11]))); //FFDI = D1(1-FFI)
+			tableOut.set("FTI",           tableOut.getRowCount()-1, (resultValuesTable[s][15+6] - resultValuesTable[s][15+11])-(resultValuesTable[s][6] - resultValuesTable[s][11])); //FFI hull - FFI
+			tableOut.set("D1",         	  tableOut.getRowCount()-1, resultValuesTable[s][1]); //D1
+			tableOut.set("D-mass",        tableOut.getRowCount()-1, resultValuesTable[s][6]); //Dmass
+			tableOut.set("D-boundary",    tableOut.getRowCount()-1, resultValuesTable[s][11]); //D-boundary
+			tableOut.set("R2-D1",         tableOut.getRowCount()-1, resultValuesTable[s][4]);
+			tableOut.set("R2-mass",       tableOut.getRowCount()-1, resultValuesTable[s][9]);
+			tableOut.set("R2-boundary",   tableOut.getRowCount()-1, resultValuesTable[s][14]);
+			tableOut.set("CH_D1",         tableOut.getRowCount()-1, resultValuesTable[s][15+1]); //D1   Complex Hull values
+			tableOut.set("CH_D-mass",     tableOut.getRowCount()-1, resultValuesTable[s][15+6]); //Dmass 
+			tableOut.set("CH_D-boundary", tableOut.getRowCount()-1, resultValuesTable[s][15+11]);//D-boundary
+			tableOut.set("CH_R2-D1",      tableOut.getRowCount()-1, resultValuesTable[s][15+4]);
+			tableOut.set("CH_R2-mass",    tableOut.getRowCount()-1, resultValuesTable[s][15+9]);
+			tableOut.set("CH_R2-boundary",tableOut.getRowCount()-1, resultValuesTable[s][15+14]);
 		}
 	}
 							
@@ -1594,6 +1725,34 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			cursor.get().setReal(ra.get().getRealFloat());
 		}	
 		return imgFloat;
+	}
+	
+	/**
+	 * 
+	 * This methods creates an Img<BitType>
+	 */
+	private Img<BitType > createImgBit(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
+		
+		imgBit = new ArrayImgFactory<>(new BitType()).create(rai.dimension(0), rai.dimension(1)); //always single 2D
+		Cursor<BitType> cursor = imgBit.localizingCursor();
+		final long[] pos = new long[imgBit.numDimensions()];
+		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+		while (cursor.hasNext()){
+			cursor.fwd();
+			cursor.localize(pos);
+			ra.setPosition(pos);
+			//if (numSlices == 1) { //for only one 2D image;
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
+			//} else { //for more than one image e.g. image stack
+			//	ra.setPosition(pos[0], 0);
+			//	ra.setPosition(pos[1], 1);
+			//	ra.setPosition(s, 2);
+			//}
+			//ra.get().setReal(cursor.get().get());
+			if (ra.get().getRealFloat() > 0) cursor.get().setOne();
+		}	
+		return imgBit;
 	}
 	
 	/**
