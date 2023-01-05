@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,22 +54,28 @@ import net.imagej.ops.OpService;
 import net.imagej.ops.geom.geom2d.DefaultConvexHull2D;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
+import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealLocalizable;
 import net.imglib2.algorithm.morphology.Erosion;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.roi.Masks;
 import net.imglib2.roi.Regions;
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.roi.geom.real.Polygon2D;
+import net.imglib2.roi.geom.real.WritablePolygon2D;
 import net.imglib2.type.BooleanType;
 import net.imglib2.type.Type;
 import net.imglib2.type.logic.BitType;
+import net.imglib2.type.logic.BoolType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.RandomAccessibleOnRealRandomAccessible;
 import net.imglib2.view.Views;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -94,7 +101,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
+import at.csa.csaj.commons.algorithms.ConvexHull2D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
@@ -739,11 +746,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		long startTime = System.currentTimeMillis();
 		//resultValuesTable = new double[(int) numSlices][15];//3x5 regression parameters
 		resultValuesTable = new double[(int) numSlices][30];//x2 for complex hull
-		
-		Polygon2D poly;
-		Polygon2D hull;
-		DefaultConvexHull2D defaultConvexHull2D;
-		
+			
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//mg<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
@@ -755,7 +758,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		} else if ( (numSlices > 1) && (numDimensions == 3) ){ // for a stack of 2D images
 			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn.copy(), 2, s); //copy() because rai will be changed for convex hull	
 		}
-
+		
 		//Compute regression parameters
 		double[] regressionValues = process(rai, s);	
 		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
@@ -780,24 +783,62 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		resultValuesTable[s][11] = dimPerim;
 			
 		//Do it again for convex Hull**************************************************
-		//Create Bittype imgBit
-		imgBit = createImgBit(rai);
-		//Polygon2D poly = ij.convert().convert(imgBit, Polygon2D.class);//is always null
-		poly = ij.op().geom().contour(imgBit, false );
-		defaultConvexHull2D = new DefaultConvexHull2D();
-		hull = defaultConvexHull2D.calculate(poly);
-		
-		//areas for checking
+//      This did not work for non compact objects 
+//		//Create Bittype imgBit
+//		imgBit = createImgBit(rai);
+//		//Polygon2D poly = ij.convert().convert(imgBit, Polygon2D.class);//is always null
+//		poly = ij.op().geom().contour(imgBit, true);
+//		defaultConvexHull2D = new DefaultConvexHull2D();
+//		hull = defaultConvexHull2D.calculate(poly);
+//		
+//		//areas for checking
 //		DoubleType areaPoly  = (DoubleType) opService.run("geom.size", poly);
 //		DoubleType areaHull1 = (DoubleType) opService.run("geom.size", hull);
 //		DoubleType areaHull2 = (DoubleType) opService.run("geom.sizeConvexHull", poly); //same result
+//		
+//		RandomAccessibleInterval raiPoly = Views.interval(Masks.toIterableRegion(poly), rai);
+//		RandomAccessibleInterval raiHull = Views.interval(Masks.toIterableRegion(hull), rai);
+//		
+//		cursor = Regions.sample(Masks.toIterableRegion(hull), rai).localizingCursor();
+//		while(cursor.hasNext()) {
+//			cursor.next();
+//			((UnsignedByteType) cursor.get()).set(255); //This changes the rai
+//		}
+//		uiService.show("raiPoly", raiPoly);
+//		uiService.show("raiHull", raiHull);
+//		uiService.show("Convex Hull", rai);
+			
+		//get list of object points	
+		List<Point> pointList = new ArrayList<>();
+		cursor = Views.iterable(rai).localizingCursor();
+		int[] pos = new int[2];
+		while(cursor.hasNext()) {
+			cursor.next();
+			cursor.localize(pos);
+			
+			if (((UnsignedByteType) cursor.get()).getInteger() > 0 ) {
+				pointList.add(new Point(pos[0], pos[1])) ;
+			}
+		}
+		
+		ConvexHull2D convexHull2D = new ConvexHull2D();
+		List<Point> hullList = convexHull2D.convexHull(pointList);
+		
+//		WritablePolygon2D hull = GeomMasks.polygon2D(hullPointsX, hullPointsY);
+		WritablePolygon2D hull = GeomMasks.polygon2D(hullList);
+		
+		//RandomAccessibleInterval raiPoly = Views.interval(Masks.toIterableRegion(poly), rai);
+		RandomAccessibleInterval raiHull = Views.interval(Masks.toIterableRegion(hull), rai);
 		
 		cursor = Regions.sample(Masks.toIterableRegion(hull), rai).localizingCursor();
 		while(cursor.hasNext()) {
 			cursor.next();
 			((UnsignedByteType) cursor.get()).set(255); //This changes the rai
 		}
-		//uiService.show("Convex Hull", rai);
+		
+//		uiService.show("raiHull", raiHull);
+//		uiService.show("Convex Hull", rai);
+//		uiService.show("Convex Hull", rai);
 		
 		//Compute regression parameters
 		regressionValues = process(rai, s);	
@@ -850,11 +891,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		long startTimeAll = System.currentTimeMillis();
 		//resultValuesTable = new double[(int) numSlices][15];//15: 3x5 regression parameters
 		resultValuesTable = new double[(int) numSlices][30];//x2 for complex hull
-		
-		Polygon2D poly;
-		Polygon2D hull;
-		DefaultConvexHull2D defaultConvexHull2D;
-	
+			
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
@@ -912,24 +949,52 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 				logService.info(this.getClass().getName() + " D mass: " + dimMass);
 				
 				//Do it again for convex Hull**************************************************
-				//Create Bittype imgBit
-				imgBit = createImgBit(rai);
-				//Polygon2D poly = ij.convert().convert(imgBit, Polygon2D.class);//is always null
-				poly = ij.op().geom().contour(imgBit, false );
-				defaultConvexHull2D = new DefaultConvexHull2D();
-				hull = defaultConvexHull2D.calculate(poly);
+//				//Create Bittype imgBit
+//				imgBit = createImgBit(rai);
+//				//Polygon2D poly = ij.convert().convert(imgBit, Polygon2D.class);//is always null
+//				poly = ij.op().geom().contour(imgBit, false );
+//				defaultConvexHull2D = new DefaultConvexHull2D();
+//				hull = defaultConvexHull2D.calculate(poly);
+//				
+//				//areas to check 
+//				DoubleType areaPoly  = (DoubleType) opService.run("geom.size", poly);
+//				DoubleType areaHull1 = (DoubleType) opService.run("geom.size", hull);
+//				DoubleType areaHull2 = (DoubleType) opService.run("geom.sizeConvexHull", poly); //same result
+//				
+//				cursor = Regions.sample(Masks.toIterableRegion(hull), rai).localizingCursor();
+//				while(cursor.hasNext()) {
+//					cursor.next();
+//					((UnsignedByteType) cursor.get()).set(255); //This changes the rai
+//				}
+//				//uiService.show("Convex Hull", rai);
 				
-				//areas to check 
-				DoubleType areaPoly  = (DoubleType) opService.run("geom.size", poly);
-				DoubleType areaHull1 = (DoubleType) opService.run("geom.size", hull);
-				DoubleType areaHull2 = (DoubleType) opService.run("geom.sizeConvexHull", poly); //same result
+				//get list of object points	
+				List<Point> pointList = new ArrayList<>();
+				cursor = Views.iterable(rai).localizingCursor();
+				int[] pos = new int[2];
+				while(cursor.hasNext()) {
+					cursor.next();
+					cursor.localize(pos);
+					
+					if (((UnsignedByteType) cursor.get()).getInteger() > 0 ) {
+						pointList.add(new Point(pos[0], pos[1])) ;
+					}
+				}
+				
+				ConvexHull2D convexHull2D = new ConvexHull2D();
+				List<Point> hullList = convexHull2D.convexHull(pointList);
+				
+//				WritablePolygon2D hull = GeomMasks.polygon2D(hullPointsX, hullPointsY);
+				WritablePolygon2D hull = GeomMasks.polygon2D(hullList);
+				
+				//RandomAccessibleInterval raiPoly = Views.interval(Masks.toIterableRegion(poly), rai);
+				RandomAccessibleInterval raiHull = Views.interval(Masks.toIterableRegion(hull), rai);
 				
 				cursor = Regions.sample(Masks.toIterableRegion(hull), rai).localizingCursor();
 				while(cursor.hasNext()) {
 					cursor.next();
 					((UnsignedByteType) cursor.get()).set(255); //This changes the rai
 				}
-				//uiService.show("Convex Hull", rai);
 				
 				//Compute regression parameters
 				regressionValues = process(rai, s);	
@@ -1628,6 +1693,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//table
 	}
 
+	
 	
 
 	//This methods reduces dimensionality to 2D just for the display 	
