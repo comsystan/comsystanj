@@ -192,8 +192,9 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Ref.: de Melo & Conci, Telecommunication Systems, 2013, [DOI 10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
 
 ### Fractal fragmentation indices
-- Fractal fragmentation index FFI
-- Fractal fragmentation and disorder index FFDI
+- FFI -  Fractal fragmentation index
+- FFDI - Fractal fragmentation and disorder index
+- FTI -  Fractal tentacularity index
 - 8-bit binary images
 - Binary [0, >0] algorithm
 - FFI = FD of mass - FD of boundary
@@ -201,6 +202,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Boundary image = Image - Eroded image (erosion by one pixel)
 - FFDI = D1(1-FFI)
 - D1 is the Information dimension
+- FTI = FFI(convex hull) - FFI
 - Fractal dimension computations with Box counting (raster box scanning)
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
