@@ -33,6 +33,7 @@ Miscellaneous
 2D Image - Surrogate - Faster Shuffle algorithm
 2D Image - Minkowski dimension - Added Disk and Diamond shapes
 2D Image - Kolmogorov complexity - Added zip compression
+2D Image - Fractal fragmentation indices - Added FTI
 2D Image - Filter - Added high-pass and changed to JTransform FFT
 
 Known issues

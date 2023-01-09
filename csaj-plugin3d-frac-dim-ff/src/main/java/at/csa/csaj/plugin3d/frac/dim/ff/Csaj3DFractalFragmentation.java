@@ -784,6 +784,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		logService.info(this.getClass().getName() + " 3D D mass: " + dimMass);
 		
 		//Do it again for convex Hull**************************************************
+		logService.info(this.getClass().getName() + " Create convex hull.....");
 //		imgBit = createImgBit(rai);
 //		int isoLevel = 1; //isoLevel is a threshold
 //		mesh = Meshes.marchingCubes(imgBit, isoLevel);
@@ -903,6 +904,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		procInst     = null;
 		
 		// Compute regression parameters
+		logService.info(this.getClass().getName() + " Processing of convex hull volume.....");
 		regressionValues = process(rai); //rai is 3D
 		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
 		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
@@ -1052,6 +1054,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	*/
 	private double[] process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
+		logService.info(this.getClass().getName() + " Processing of volume started");
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
@@ -1156,8 +1159,11 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		double[]   eps               = new double[numBoxes];
 		
 		eps            = bc3DMass.calcEps();
+		logService.info(this.getClass().getName() + " Processing of D1.....");
 		totalsGen      = gd3DMass.calcTotals();
+		logService.info(this.getClass().getName() + " Processing of Dmass.....");
 		totalsMass     = bc3DMass.calcTotals();
+		logService.info(this.getClass().getName() + " Processing of Dboundary.....");
 		totalsBoundary = bc3DPerim.calcTotals();
 		
 		if (eps == null || totalsGen == null || totalsMass == null || totalsBoundary  == null) return null;
@@ -1235,7 +1241,8 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
 		// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
 	
-		if (optShowPlot) {			
+		if (optShowPlot) {	
+			logService.info(this.getClass().getName() + " Prepare double log plot......");
 			String preName = "";
 			String xAxisLabel = "";
 			if      (fractalDimType.equals("Box counting")) xAxisLabel = "ln(Box size)";
@@ -1254,6 +1261,7 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		}
 				
 		// Compute regressions
+		logService.info(this.getClass().getName() + " Computing of regressions.....");
 		LinearRegression lr = new LinearRegression();
 		double[] regressionParamsD1 = lr.calculateParameters(lnDataX, lnDataY[0], regMin, regMax);
 		lr = new LinearRegression();
