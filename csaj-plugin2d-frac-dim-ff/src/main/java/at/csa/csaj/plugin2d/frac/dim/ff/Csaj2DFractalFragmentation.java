@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,13 +50,11 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
-import net.imagej.ops.geom.geom2d.DefaultConvexHull2D;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealLocalizable;
 import net.imglib2.algorithm.morphology.Erosion;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
@@ -65,17 +62,12 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.roi.Masks;
 import net.imglib2.roi.Regions;
 import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.roi.geom.real.Polygon2D;
 import net.imglib2.roi.geom.real.WritablePolygon2D;
-import net.imglib2.type.BooleanType;
 import net.imglib2.type.Type;
 import net.imglib2.type.logic.BitType;
-import net.imglib2.type.logic.BoolType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.view.RandomAccessibleOnRealRandomAccessible;
 import net.imglib2.view.Views;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -282,6 +274,11 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
     		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
+     
+     @Parameter(label = "Show convex hull",
+		   	   persist = true, //restore previous value default = true
+			   initializer = "initialShowConvexHull")
+	 private boolean booleanShowConvexHull;
        
      @Parameter(label = "Overwrite result display(s)",
     	    	description = "Overwrite already existing result images, plots or tables",
@@ -348,6 +345,9 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
+	protected void initialShowConvexHull() {
+		booleanShowConvexHull = true;
+	}
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
@@ -685,7 +685,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			optDeleteExistingPlots  = true;
 			optDeleteExistingTables = true;
 		}
-		
+		 
 		if (optDeleteExistingImgs) {
 //			//List<Display<?>> list = defaultDisplayService.getDisplays();
 //			//for (int i = 0; i < list.size(); i++) {
@@ -694,17 +694,17 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 //			//	if (display.getName().contains("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
 //			//}			
 //			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
-//		
-//			Frame frame;
-//			Frame[] listFrames = JFrame.getFrames();
-//			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
-//				frame = listFrames[i];
-//				//System.out.println("frame name: " + frame.getTitle());
-//				if (frame.getTitle().contains("Name")) {
-//					frame.setVisible(false); //Successfully closes also in Fiji
-//					frame.dispose();
-//				}
-//			}
+			
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().contains("Convex hull")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
 		}
 		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
@@ -806,7 +806,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 //		}
 //		uiService.show("raiPoly", raiPoly);
 //		uiService.show("raiHull", raiHull);
-//		uiService.show("Convex Hull", rai);
+//		if (booleanShowConvexHull) uiService.show("Convex hull", rai);
 			
 		//get list of object points	
 		List<Point> pointList = new ArrayList<>();
@@ -837,8 +837,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		}
 		
 //		uiService.show("raiHull", raiHull);
-//		uiService.show("Convex Hull", rai);
-//		uiService.show("Convex Hull", rai);
+		if (booleanShowConvexHull) uiService.show("Convex hull", rai);
 		
 		//Compute regression parameters
 		regressionValues = process(rai, s);	
@@ -966,7 +965,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 //					cursor.next();
 //					((UnsignedByteType) cursor.get()).set(255); //This changes the rai
 //				}
-//				//uiService.show("Convex Hull", rai);
+//				//if (booleanShowConvexHull) uiService.show("Convex hull", rai);
 				
 				//get list of object points	
 				List<Point> pointList = new ArrayList<>();
@@ -1177,7 +1176,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 			tableOut.set("R2-D1",         tableOut.getRowCount()-1, resultValuesTable[s][4]);
 			tableOut.set("R2-mass",       tableOut.getRowCount()-1, resultValuesTable[s][9]);
 			tableOut.set("R2-boundary",   tableOut.getRowCount()-1, resultValuesTable[s][14]);
-			tableOut.set("CH_D1",         tableOut.getRowCount()-1, resultValuesTable[s][15+1]); //D1   Complex Hull values
+			tableOut.set("CH_D1",         tableOut.getRowCount()-1, resultValuesTable[s][15+1]); //D1   Comvex Hull values
 			tableOut.set("CH_D-mass",     tableOut.getRowCount()-1, resultValuesTable[s][15+6]); //Dmass 
 			tableOut.set("CH_D-boundary", tableOut.getRowCount()-1, resultValuesTable[s][15+11]);//D-boundary
 			tableOut.set("CH_R2-D1",      tableOut.getRowCount()-1, resultValuesTable[s][15+4]);
