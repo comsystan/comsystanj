@@ -47,13 +47,7 @@ import net.imagej.DatasetService;
 import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.display.ImageDisplayService;
-import net.imagej.mesh.Mesh;
-import net.imagej.mesh.Meshes;
-import net.imagej.mesh.Triangle;
 import net.imagej.ops.OpService;
-import net.imagej.ops.geom.geom2d.DefaultConvexHull2D;
-import net.imagej.ops.geom.geom3d.DefaultConvexHull3D;
-import net.imagej.ops.geom.geom3d.DefaultVoxelization3D;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -61,9 +55,6 @@ import net.imglib2.algorithm.morphology.Erosion;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.roi.Masks;
-import net.imglib2.roi.Regions;
-import net.imglib2.roi.geom.real.Polygon2D;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
@@ -95,6 +86,12 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
+
+import at.csa.csaj.commons.algorithms.geopolygon3d.GeoPoint;
+import at.csa.csaj.commons.algorithms.geopolygon3d.GeoPolygon;
+import at.csa.csaj.commons.algorithms.geopolygon3d.GeoPolygonProc;
+import at.csa.csaj.commons.algorithms.quickhull3d.Point3d;
+import at.csa.csaj.commons.algorithms.quickhull3d.QuickHull3D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.regression.LinearRegression;
@@ -107,7 +104,7 @@ import io.scif.MetaTable;
 
 
 /**
- * A {@link ContextCommand} plugin computing <the 3D fractal fragmentation indices</a>
+ * A {@link ContextCommand} plugin computing <3D fractal fragmentation indices</a>
  * of an image volume.
  */
 @Plugin(type = ContextCommand.class,
@@ -285,6 +282,11 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
+	
+	@Parameter(label = "Show convex hull",
+		   	   persist = true, //restore previous value default = true
+			   initializer = "initialShowConvexHull")
+	private boolean booleanShowConvexHull;
 
 	@Parameter(label = "Overwrite result display(s)",
 	    	description = "Overwrite already existing result images, plots or tables",
@@ -350,6 +352,10 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 	
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
+	}
+	
+	protected void initialShowConvexHull() {
+		booleanShowConvexHull = true;
 	}
 	
 	protected void initialOverwriteDisplays() {
@@ -678,17 +684,17 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 //			//	if (display.getName().contains("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
 //			//}			
 //			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
-//		
-//			Frame frame;
-//			Frame[] listFrames = JFrame.getFrames();
-//			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
-//				frame = listFrames[i];
-//				//System.out.println("frame name: " + frame.getTitle());
-//				if (frame.getTitle().contains("Name")) {
-//					frame.setVisible(false); //Successfully closes also in Fiji
-//					frame.dispose();
-//				}
-//			}
+		
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().contains("Convex hull")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
 		}
 		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
@@ -742,10 +748,6 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 
 		//resultValuesTable = new double[15]; //3x5 regression parameters
 		resultValuesTable = new double[30]; //x2 for complex hull
-	
-		Mesh mesh;
-		Mesh hull;
-		DefaultConvexHull3D defaultConvexHull3D;
 		
 		//get rai
 		RandomAccessibleInterval<T> rai = null;	
@@ -781,40 +783,154 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		resultValuesTable[11] = dimPerim;
 		logService.info(this.getClass().getName() + " 3D D mass: " + dimMass);
 		
-		imgBit = createImgBit(rai);
-		int isoLevel = 1; //isoLevel is a threshold
-		mesh = Meshes.marchingCubes(imgBit, isoLevel);
-		//mesh = Meshes.marchingCubes(rai, isoLevel);
-		//or 
-		//mesh = ij.op().geom().marchingCubes(imgBit, isoLevel);
+		//Do it again for convex Hull**************************************************
+//		imgBit = createImgBit(rai);
+//		int isoLevel = 1; //isoLevel is a threshold
+//		mesh = Meshes.marchingCubes(imgBit, isoLevel);
+//		//mesh = Meshes.marchingCubes(rai, isoLevel);
+//		//or 
+//		//mesh = ij.op().geom().marchingCubes(imgBit, isoLevel);
+//		
+////		defaultConvexHull3D = new DefaultConvexHull3D();
+////		hull = defaultConvexHull3D.calculate(mesh);		
+////		or
+//		List result = opService.geom().convexHull(mesh);
+//		hull = (Mesh) result.get(0);
+//		
+//		//volumes for checking
+//		double meshVolume = opService.geom().size(mesh).getRealDouble();
+//		double hullVolume =   ij.op().geom().size(hull).getRealDouble();
+//			
+//		RandomAccessibleInterval<BitType> raiMesh = opService.geom().voxelization(mesh, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
+//		RandomAccessibleInterval<BitType> raiHull = opService.geom().voxelization(hull, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
+//		
+//		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();	
+//		cursor = (Views.iterable(raiHull)).localizingCursor();
+//		long[] pos = new long[3];
+//		while(cursor.hasNext()) {
+//			cursor.next();
+//			cursor.localize(pos);
+//			ra.setPosition(pos);
+//			if (((BitType) cursor.get()).get() == true)  ((UnsignedByteType) ra.get()).set(255); //This changes the rai
+//		}
+//		uiService.show("raiMesh", raiMesh);
+//		uiService.show("raiHull", raiHull);
+//		if (booleanShowConvexHull) uiService.show("Convex hull", rai);
+
+		//Convex hull with
+		//QuickHull3D: A Robust 3D Convex Hull Algorithm in Java
+		//https://www.cs.ubc.ca/~lloyd/java/quickhull3d.html
+		//get number of object points
+		int numPoints = 0;
+		cursor = Views.iterable(rai).localizingCursor();
+		while(cursor.hasNext()) {
+			cursor.next();	
+			if (((UnsignedByteType) cursor.get()).getInteger() > 0 ) {
+				numPoints += 1;
+			}
+		}
 		
-//		defaultConvexHull3D = new DefaultConvexHull3D();
-//		hull = defaultConvexHull3D.calculate(mesh);		
-//		or
-		List result = opService.geom().convexHull(mesh);
-		hull = (Mesh) result.get(0);
-		
-		//volumes for checking
-		double meshVolume = opService.geom().size(mesh).getRealDouble();
-		double hullVolume =   ij.op().geom().size(hull).getRealDouble();
-			
-		RandomAccessibleInterval<BitType> raiMesh = opService.geom().voxelization(mesh, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
-		RandomAccessibleInterval<BitType> raiHull = opService.geom().voxelization(hull, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
-		
-		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();	
-		cursor = (Views.iterable(raiHull)).localizingCursor();
-		long[] pos = new long[3];
+		//get list of object points	
+		Point3d[] points = new Point3d[numPoints];
+		int p = 0;
+		cursor = Views.iterable(rai).localizingCursor();
+		int[] pos = new int[3];
 		while(cursor.hasNext()) {
 			cursor.next();
-			cursor.localize(pos);
-			ra.setPosition(pos);
-			if (((BitType) cursor.get()).get() == true)  ((UnsignedByteType) ra.get()).set(255); //This changes the rai
+			cursor.localize(pos);		
+			if (((UnsignedByteType) cursor.get()).getInteger() > 0 ) {
+				points[p] = new Point3d(pos[0], pos[1], pos[2]) ;
+				p += 1;
+			}
 		}
-
-		uiService.show("raiMesh", raiMesh);
-		uiService.show("raiHull", raiHull);
-		uiService.show("raiResult", rai);
+		
+		//get vertices of convex hull
+		QuickHull3D hull3D = new QuickHull3D();
+		hull3D.build (points);
+		Point3d[] vertices = hull3D.getVertices();
 	
+//		//write vertices to rai
+//		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+//		pos = new int[3];
+//		for (int v = 0; v <vertices.length; v++) {
+//			Point3d pnt = vertices[v];
+//			pos[0] = (int)Math.round(pnt.x);
+//			pos[1] = (int)Math.round(pnt.y);
+//			pos[2] = (int)Math.round(pnt.z);
+//			ra.setPosition(pos);
+//			ra.get().set(255);
+//			//System.out.println (pnt.x + " " + pnt.y + " " + pnt.z);
+//		}	
+		if (booleanShowConvexHull) uiService.show("Convex hull", rai);
+			
+		//Change to GeoPolygons to find all pixels inside convex hull
+		//https://www.codeproject.com/Articles/1071168/Point-Inside-D-Convex-Polygon-in-Java
+		//Create GeoPolygon
+		ArrayList<GeoPoint> cubeVertices = new ArrayList<GeoPoint>();
+		Point3d p3d;
+		for (int v = 0; v < vertices.length; v++) {
+			p3d = vertices[v];
+			cubeVertices.add(new GeoPoint(p3d.x, p3d.y, p3d.z));
+		}
+		
+		//delete quickhull3d classes to save memory
+		points   = null;
+		hull3D   = null;
+		vertices = null;
+		
+		// Create polygon instance
+		GeoPolygon polygonInst = new GeoPolygon(cubeVertices);
+		// Create main process instance
+		GeoPolygonProc procInst = new GeoPolygonProc(polygonInst);
+		
+		//Main procedure to check if a point (ax, ay, az) is inside the CubeVertices:               
+		//procInst.PointInside3DPolygon(ax, ay, az);
+		//set rai accordingly
+		cursor = Views.iterable(rai).localizingCursor();
+		pos = new int[3];
+		while(cursor.hasNext()) {
+			cursor.next();
+			cursor.localize(pos);	
+			if (procInst.PointInside3DPolygon(pos[0], pos[1], pos[2])) {
+				((UnsignedByteType) cursor.get()).set(255);
+			}
+		}
+		//if (booleanShowConvexHull) uiService.show("Convex hull", rai);
+		
+		//delete GeoPolygon classes to save memory
+		cubeVertices = null;
+		polygonInst  = null;
+		procInst     = null;
+		
+		// Compute regression parameters
+		regressionValues = process(rai); //rai is 3D
+		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
+		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
+		//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
+		
+		//set values for output table
+		for (int i = 0; i < regressionValues.length; i++ ) {
+			resultValuesTable[15+i] = regressionValues[i]; 
+		}
+		//Compute dimension
+		dim = Double.NaN;	
+		dim = -regressionValues[1];
+		if ((choiceRadioButt_ScanningType.equals("Raster box"))  && (choiceRadioButt_ColorModelType.equals("Binary")));       //Do nothing, slope = dim	
+		//if ((choiceRadioButt_ScanningType.equals("Sliding box")) && (choiceRadioButt_ColorModelType.equals("Binary")));
+		//TO DO 
+		
+		dimD1    = Double.NaN;
+		dimMass  = Double.NaN;
+		dimPerim = Double.NaN;
+		dimD1    =  regressionValues[1]; //Slope for D1
+		dimMass  = -regressionValues[6];
+		dimPerim = -regressionValues[11];
+		
+		resultValuesTable[15+1]  = dimD1;
+		resultValuesTable[15+6]  = dimMass;
+		resultValuesTable[15+11] = dimPerim;
+		logService.info(this.getClass().getName() + " 3D D mass-hull: " + dimMass);
+		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;
@@ -850,12 +966,19 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
 		DoubleColumn columnFFI             = new DoubleColumn("3D FFI");
 		DoubleColumn columnFFDI            = new DoubleColumn("3D FFDI");
+		DoubleColumn columnFTI             = new DoubleColumn("3D FTI");
 		DoubleColumn columnD1              = new DoubleColumn("3D D1");
 		DoubleColumn columnDmass           = new DoubleColumn("3D Dmass");
 		DoubleColumn columnDbound          = new DoubleColumn("3D Dboundary");
 		DoubleColumn columnR2d1            = new DoubleColumn("R2 D1");
 		DoubleColumn columnR2mass          = new DoubleColumn("R2 Dmass");
 		DoubleColumn columnR2bound         = new DoubleColumn("R2 Dboundary");
+		DoubleColumn columnCH_D1           = new DoubleColumn("3D CH_D1");  //CH----ComplexHull
+		DoubleColumn columnCH_Dmass        = new DoubleColumn("3D CH_D-mass");
+		DoubleColumn columnCH_Dbound       = new DoubleColumn("3D CH_D-boundary");
+		DoubleColumn columnCH_R2d1         = new DoubleColumn("CH_R2-D1");
+		DoubleColumn columnCH_R2mass       = new DoubleColumn("CH_R2-mass");
+		DoubleColumn columnCH_R2bound      = new DoubleColumn("CH_R2-boundary");
 
 		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -867,13 +990,19 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		tableOut.add(columnColorModelType);
 		tableOut.add(columnFFI);
 		tableOut.add(columnFFDI);
+		tableOut.add(columnFTI);
 		tableOut.add(columnD1);
 		tableOut.add(columnDmass);
 		tableOut.add(columnDbound);
 		tableOut.add(columnR2d1);
 		tableOut.add(columnR2mass);
 		tableOut.add(columnR2bound);
-
+		tableOut.add(columnCH_D1);
+		tableOut.add(columnCH_Dmass);
+		tableOut.add(columnCH_Dbound);
+		tableOut.add(columnCH_R2d1);
+		tableOut.add(columnCH_R2mass);
+		tableOut.add(columnCH_R2bound);
 	}
 
 	/** 
@@ -893,21 +1022,28 @@ public class Csaj3DFractalFragmentation<T extends RealType<T>> extends ContextCo
 		//Boundary 10 Intercept, 11 Dim, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
 		// fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",		tableOut.getRowCount()-1, datasetName);	
-		tableOut.set("# Boxes",			tableOut.getRowCount()-1, numBoxes);
-		tableOut.set("RegMin",			tableOut.getRowCount()-1, regMin);
-		tableOut.set("RegMax",			tableOut.getRowCount()-1, regMax);
-		tableOut.set("Scanning type",	tableOut.getRowCount()-1, scanningType);
-		tableOut.set("Color model",		tableOut.getRowCount()-1, colorModelType);
+		tableOut.set("File name",	 	 tableOut.getRowCount()-1, datasetName);	
+		tableOut.set("# Boxes",		     tableOut.getRowCount()-1, numBoxes);
+		tableOut.set("RegMin",			 tableOut.getRowCount()-1, regMin);
+		tableOut.set("RegMax",			 tableOut.getRowCount()-1, regMax);
+		tableOut.set("Scanning type",	 tableOut.getRowCount()-1, scanningType);
+		tableOut.set("Color model",		 tableOut.getRowCount()-1, colorModelType);
 		//table.set("Fractal dimension type",   table.getRowCount()-1, fractalDimType);	
-		tableOut.set("3D FFI",         	tableOut.getRowCount()-1, resultValuesTable[6] - resultValuesTable[11]); //FFI
-		tableOut.set("3D FFDI",         tableOut.getRowCount()-1, resultValuesTable[1]*(1.0-(resultValuesTable[6] - resultValuesTable[11]))); //FFDI = D1(1-FFI)
-		tableOut.set("3D D1",         	tableOut.getRowCount()-1, resultValuesTable[1]); //D1
-		tableOut.set("3D Dmass",        tableOut.getRowCount()-1, resultValuesTable[6]); //Dmass
-		tableOut.set("3D Dboundary",    tableOut.getRowCount()-1, resultValuesTable[11]); //D-boundary
-		tableOut.set("R2 D1",           tableOut.getRowCount()-1, resultValuesTable[4]);
-		tableOut.set("R2 Dmass",        tableOut.getRowCount()-1, resultValuesTable[9]);
-		tableOut.set("R2 Dboundary",    tableOut.getRowCount()-1, resultValuesTable[14]);
+		tableOut.set("3D FFI",         	 tableOut.getRowCount()-1, resultValuesTable[6] - resultValuesTable[11]); //FFI
+		tableOut.set("3D FFDI",          tableOut.getRowCount()-1, resultValuesTable[1]*(1.0-(resultValuesTable[6] - resultValuesTable[11]))); //FFDI = D1(1-FFI)
+		tableOut.set("3D FTI",         	 tableOut.getRowCount()-1, (resultValuesTable[15+6] - resultValuesTable[15+11])-(resultValuesTable[6] - resultValuesTable[11])); //FFI hull - FFI
+		tableOut.set("3D D1",         	 tableOut.getRowCount()-1, resultValuesTable[1]); //D1
+		tableOut.set("3D Dmass",         tableOut.getRowCount()-1, resultValuesTable[6]); //Dmass
+		tableOut.set("3D Dboundary",     tableOut.getRowCount()-1, resultValuesTable[11]); //D-boundary
+		tableOut.set("R2 D1",            tableOut.getRowCount()-1, resultValuesTable[4]);
+		tableOut.set("R2 Dmass",         tableOut.getRowCount()-1, resultValuesTable[9]);
+		tableOut.set("R2 Dboundary",     tableOut.getRowCount()-1, resultValuesTable[14]);
+		tableOut.set("3D CH_D1",         tableOut.getRowCount()-1, resultValuesTable[15+1]); //D1   Complex Hull values
+		tableOut.set("3D CH_D-mass",     tableOut.getRowCount()-1, resultValuesTable[15+6]); //Dmass
+		tableOut.set("3D CH_D-boundary", tableOut.getRowCount()-1, resultValuesTable[15+11]); //D-boundary
+		tableOut.set("CH_R2-D1",         tableOut.getRowCount()-1, resultValuesTable[15+4]);
+		tableOut.set("CH_R2-mass",       tableOut.getRowCount()-1, resultValuesTable[15+9]);
+		tableOut.set("CH_R2-boundary",   tableOut.getRowCount()-1, resultValuesTable[15+14]);
 	}
 
 	/**
