@@ -131,8 +131,9 @@
 - Ref.: Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### 3D Fractal fragmentation indices
-- Fractal fragmentation index FFI
-- Fractal fragmentation and disorder index FFDI
+- FFI -  Fractal fragmentation index
+- FFDI - Fractal fragmentation and disorder index
+- FTI -  Fractal tentacularity index
 - 8-bit binary image volume
 - Binary [0, >0] algorithm
 - Raster box scanning
@@ -141,6 +142,7 @@
 - Boundary volume = volume - Eroded volume (erosion by one pixel)
 - FFDI = D1(1-FFI)
 - D1 is the Information dimension
+- FTI = FFI(convex hull) - FFI
 - Fractal dimension computations with 3D Box counting (raster box scanning)
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
