@@ -253,10 +253,10 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-	@Parameter(label = "Remove zero values",
+	@Parameter(label = "Skip zero values",
 			   persist = true,
-		       callback = "callbackRemoveZeroes")
-	private boolean booleanRemoveZeroes;
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -328,8 +328,8 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
 		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 	}
-	protected void initialRemoveZeroes() {
-		booleanRemoveZeroes = false;
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
 	}	
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
@@ -417,9 +417,9 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 	}
 
-	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-	protected void callbackRemoveZeroes() {
-		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -633,7 +633,7 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		tableOut.add(new GenericColumn("Surrogate type"));
 		tableOut.add(new IntColumn("# Surrogates"));
 		tableOut.add(new IntColumn("Box length"));
-		tableOut.add(new BoolColumn("Zeroes removed"));
+		tableOut.add(new BoolColumn("Skip zeroes"));
 		
 		tableOut.add(new IntColumn("k"));
 		tableOut.add(new IntColumn("Reg Min"));
@@ -813,7 +813,7 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		} else {
 			tableOut.set(5, row, null);
 		}	
-		tableOut.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		
 		tableOut.set(7, row, spinnerInteger_KMax); // KMax
 		tableOut.set(8, row, spinnerInteger_RegMin); //RegMin
@@ -861,7 +861,7 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		int numKMax           = spinnerInteger_KMax;
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;
-		boolean removeZeores  = booleanRemoveZeroes;
+		boolean skipZeores    = booleanSkipZeroes;
 	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
@@ -897,7 +897,7 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		}
 		
 		sequence1D = removeNaN(sequence1D);
-		if (removeZeores) sequence1D = removeZeroes(sequence1D);
+		if (skipZeores) sequence1D = removeZeroes(sequence1D);
 		
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;
