@@ -245,9 +245,9 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 	
-	@Parameter(label = "Remove zero values", persist = true,
-		       callback = "callbackRemoveZeroes")
-	private boolean booleanRemoveZeroes;
+	@Parameter(label = "Skip zero values", persist = true,
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -400,9 +400,9 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 	}
 	
 	
-	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-	protected void callbackRemoveZeroes() {
-		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -989,7 +989,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		IntColumn columnRegMax           	= new IntColumn("RegMax");
 		GenericColumn columnMethod       	= new GenericColumn("Method");
 		BoolColumn columnOnlyHQR2  			= new BoolColumn("R^2>0.9");
-		BoolColumn columnZeroesRemoved   	= new BoolColumn("Zeroes removed");
+		BoolColumn columnSkipZeroes       	= new BoolColumn("Skip zeroes");
 		DoubleColumn columnDhRow      	 	= new DoubleColumn("Dh-row");
 		DoubleColumn columnDhCol     	 	= new DoubleColumn("Dh-col");
 		DoubleColumn columnDh         	 	= new DoubleColumn("Dh");
@@ -1012,7 +1012,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		tableOut.add(columnRegMax);
 		tableOut.add(columnMethod);
 		tableOut.add(columnOnlyHQR2);
-		tableOut.add(columnZeroesRemoved);
+		tableOut.add(columnSkipZeroes);
 		tableOut.add(columnDhRow);
 		tableOut.add(columnDhCol);
 		tableOut.add(columnDh);
@@ -1058,7 +1058,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		tableOut.set("RegMax",           tableOut.getRowCount() - 1, regMax);
 		tableOut.set("Method",           tableOut.getRowCount() - 1, choiceRadioButt_Method);
 		tableOut.set("R^2>0.9",			 tableOut.getRowCount() - 1, booleanOnlyHighQualityRegressions);
-		tableOut.set("Zeroes removed",   tableOut.getRowCount() - 1, booleanRemoveZeroes);
+		tableOut.set("Skip zeroes",      tableOut.getRowCount() - 1, booleanSkipZeroes);
 		tableOut.set("Dh-row",     	     tableOut.getRowCount() - 1, resultValuesTable[s][0]);
 		tableOut.set("Dh-col",     	     tableOut.getRowCount() - 1, resultValuesTable[s][1]);
 		tableOut.set("Dh",         	     tableOut.getRowCount() - 1, resultValuesTable[s][2]);
@@ -1108,7 +1108,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 			tableOut.set("RegMax",           tableOut.getRowCount() - 1, regMax);
 			tableOut.set("Method",           tableOut.getRowCount() - 1, choiceRadioButt_Method);
 			tableOut.set("R^2>0.9",			 tableOut.getRowCount() - 1, booleanOnlyHighQualityRegressions);
-			tableOut.set("Zeroes removed",   tableOut.getRowCount() - 1, booleanRemoveZeroes);
+			tableOut.set("Skip zeroes",      tableOut.getRowCount() - 1, booleanSkipZeroes);
 			tableOut.set("Dh-row",     	     tableOut.getRowCount() - 1, resultValuesTable[s][0]);
 			tableOut.set("Dh-col",     	     tableOut.getRowCount() - 1, resultValuesTable[s][1]);
 			tableOut.set("Dh",         	     tableOut.getRowCount() - 1, resultValuesTable[s][2]);
@@ -1152,7 +1152,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		int regMax = spinnerInteger_RegMax;
 		int numKMax = spinnerInteger_KMax;
 		boolean onlyHighQualityRegressions = booleanOnlyHighQualityRegressions;
-		boolean removeZeores = booleanRemoveZeroes;
+		boolean skipZeores = booleanSkipZeroes;
 	
 		int numBands = 1;
 
@@ -1207,7 +1207,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 					ra.setPosition(height / 2, 1); //row in the middle of the image (column)
 					sequence1D[w] = ((UnsignedByteType) ra.get()).getRealFloat();
 				}
-				if (removeZeores) sequence1D = removeZeroes(sequence1D);
+				if (skipZeores) sequence1D = removeZeroes(sequence1D);
 				logService.info(this.getClass().getName() + " Single row #: "+ (height/2) + "  Size of sequence = " + sequence1D.length);
 				//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 				
@@ -1236,7 +1236,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 					ra.setPosition(h, 1);
 					sequence1D[h] = ((UnsignedByteType) ra.get()).getRealFloat();
 				}
-				if (removeZeores) sequence1D = removeZeroes(sequence1D);
+				if (skipZeores) sequence1D = removeZeroes(sequence1D);
 				logService.info(this.getClass().getName() + " Single column #: "+ (width/2) + "  Size of sequence = " + sequence1D.length);
 				//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 				if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough
@@ -1282,7 +1282,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 						ra.setPosition(h, 1); //row at position h
 						sequence1D[w] = ((UnsignedByteType) ra.get()).getRealFloat();
 					}
-					if (removeZeores) sequence1D = removeZeroes(sequence1D);
+					if (skipZeores) sequence1D = removeZeroes(sequence1D);
 					//logService.info(this.getClass().getName() + " Row #: "+ h + "  Size of sequence = " + sequence1D.length);
 					//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 					if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough
@@ -1318,7 +1318,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 						ra.setPosition(h, 1);
 						sequence1D[h] = ((UnsignedByteType) ra.get()).getRealFloat();
 					}
-					if (removeZeores) sequence1D = removeZeroes(sequence1D);
+					if (skipZeores) sequence1D = removeZeroes(sequence1D);
 					//logService.info(this.getClass().getName() + " Column #: "+ w + "  Size of sequence = " + sequence1D.length);
 					//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 					
@@ -1384,7 +1384,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 						}
 					}
 				}
-				if (removeZeores) sequence1D = removeZeroes(sequence1D);
+				if (skipZeores) sequence1D = removeZeroes(sequence1D);
 				logService.info(this.getClass().getName() + " Single meander row:   Size of sequence = " + sequence1D.length);
 				//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 				if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough
@@ -1423,7 +1423,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 						}
 					}
 				}
-				if (removeZeores) sequence1D = removeZeroes(sequence1D);
+				if (skipZeores) sequence1D = removeZeroes(sequence1D);
 				logService.info(this.getClass().getName() + " Single meander column:   Size of sequence = " + sequence1D.length);
 				//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 				if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough
@@ -1642,7 +1642,7 @@ public class Csaj2DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 //					ij.ui().show("Line a=" + a, ra);					
 			       //----------------------------------------------------------------------------------------
 			        
-					if (removeZeores) sequence1D = removeZeroes(sequence1D);
+					if (skipZeores) sequence1D = removeZeroes(sequence1D);
 				
 					if (optShowSomeRadialLinePlots ){
 						// get plots of radial lines
