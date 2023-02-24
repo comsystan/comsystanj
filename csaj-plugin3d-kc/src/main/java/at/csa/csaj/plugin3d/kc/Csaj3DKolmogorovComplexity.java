@@ -64,6 +64,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
+import org.scijava.table.BoolColumn;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
@@ -102,7 +103,7 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	private static final String SPACE_LABEL             = "";
 	private static final String COMPRESSION_LABEL       = "<html><b>Compression type</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
-	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 
 	private static Dataset dataset;
@@ -207,11 +208,20 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 //  		       initializer = "initialCorrectSystemBias")
 //	private boolean booleanCorrectSystemBias;
 
-	//-----------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------
+   	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+   	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
+   	
+   	@Parameter(label = "Skip zero values", persist = true,
+   		       callback = "callbackSkipZeroes")
+   	private boolean booleanSkipZeroes;
+    //-----------------------------------------------------------------------------------------------------
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+    private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	persist = true,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+			   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
@@ -267,10 +277,22 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	/** Executed whenever the {@link #choiceRadioButt_Interpolation} parameter changes. */
 	protected void callbackCompression() {
 		logService.info(this.getClass().getName() + " Compression method set to " + choiceRadioButt_Compression);
+		if (choiceRadioButt_Compression.equals("TIFF-LZW (lossless)")) {
+				booleanSkipZeroes = false;	
+				logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+			}
 	}
 	/** Executed whenever the {@link #spinnerInteger_NumIterations} parameter changes. */
 	protected void callbackNumIterations() {
 		logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
+	}
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		if (choiceRadioButt_Compression.equals("TIFF-LZW (lossless)")) {
+			booleanSkipZeroes = false;		
+			logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+		}
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -635,6 +657,7 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		IntColumn columnNumbIterations     = new IntColumn("Iterations [#]");
 		GenericColumn columnComprType      = new GenericColumn("Compression");	
+		BoolColumn columnSkipZeroes        = new BoolColumn("Skip zeroes");
 		GenericColumn columnImgSz          = new GenericColumn("Volume size [MB]");
 		GenericColumn columnKC             = new GenericColumn("3D KC [MB]");
 		GenericColumn columnImgSzMinusKC   = new GenericColumn("Volume size - (3D KC) [MB]");
@@ -644,6 +667,7 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnComprType);
+		tableOut.add(columnSkipZeroes);
 		tableOut.add(columnImgSz);
 		tableOut.add(columnKC);
 		tableOut.add(columnImgSzMinusKC);
@@ -665,6 +689,7 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		tableOut.appendRow();
 		tableOut.set("File name",				   tableOut.getRowCount()-1, datasetName);	
 		tableOut.set("Compression",                tableOut.getRowCount()-1, choiceRadioButt_Compression);
+		tableOut.set("Skip zeroes",                tableOut.getRowCount()-1, booleanSkipZeroes);
 		tableOut.set("Volume size [MB]",           tableOut.getRowCount()-1, resultValuesTable[0]);
 		tableOut.set("3D KC [MB]",                 tableOut.getRowCount()-1, resultValuesTable[1]);
 		tableOut.set("Volume size - (3D KC) [MB]", tableOut.getRowCount()-1, resultValuesTable[2]);
@@ -687,6 +712,8 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		
 		String compressionType = choiceRadioButt_Compression;
 		int numIterations      = spinnerInteger_NumIterations;
+		boolean skipZeroes     = booleanSkipZeroes;
+		
 		double[] resultValues  = new double[5];
 
 		long width  = rai.dimension(0);
@@ -699,7 +726,7 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
-				kc3D = new Kolmogorov3D_Grey(rai, compressionType, numIterations, logService, uiService, ioService, datasetService, dlgProgress, statusService);	
+				kc3D = new Kolmogorov3D_Grey(rai, compressionType, skipZeroes, numIterations, logService, uiService, ioService, datasetService, dlgProgress, statusService);	
 		
 			//******************************************************************************************************************************************		
 		} else if (imageType.equals("RGB")) { // RGB image  //additional check, is already checked during validation of active dataset

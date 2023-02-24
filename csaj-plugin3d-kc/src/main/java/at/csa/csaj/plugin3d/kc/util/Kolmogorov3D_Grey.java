@@ -33,6 +33,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
@@ -42,6 +44,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.scijava.app.StatusService;
 import org.scijava.io.IOService;
@@ -79,6 +82,7 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 	private Dataset dataset;
 	private RandomAccessibleInterval rai;
 	private String compressionType;
+	private boolean skipZeroes;
 	private int numIterations;
 	private static File kolmogorovComplexityDir;
 	private static double durationReference  = Double.NaN;
@@ -112,12 +116,13 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public Kolmogorov3D_Grey(RandomAccessibleInterval<?> rai, String compressionType, int numIterations, LogService logService, UIService uiService, IOService ioService, DatasetService datasetService, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
+	public Kolmogorov3D_Grey(RandomAccessibleInterval<?> rai, String compressionType, boolean skipZeroes, int numIterations, LogService logService, UIService uiService, IOService ioService, DatasetService datasetService, WaitingDialogWithProgressBar dlgProgress, StatusService statusService) {
 		this.rai               = rai;
 		this.width             = rai.dimension(0);
 		this.height            = rai.dimension(1);
 		this.depth             = rai.dimension(2);
 		this.compressionType   = compressionType;
+		this.skipZeroes        = skipZeroes;
 		this.numIterations     = numIterations;
 		this.logService        = logService;
 		this.uiService         = uiService;
@@ -164,16 +169,28 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 		
 		//*******************************************************************************************************************
 		if(compressionType.equals("ZIP (lossless)")){	
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 1;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes *= rai.dimension(d); //8bit per pixel
+			//convert rai to 1D byte[]
+			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
+			byte sample = 0; 
+			// Loop through all pixels of this image
+			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			while (cursor.hasNext()) { //Image
+				cursor.fwd();
+				sample = (byte) ((UnsignedByteType) cursor.get()).get();
+				if ((skipZeroes) && (sample == 0)) {
+					//do not add zeroes;
+				} else {
+					list.add(sample); 
+				}
 			}
-			double sequenceSize = numOfBytes; //Bytes
+			byte[] sequence = ArrayUtils.toPrimitive((list.toArray(new Byte[list.size()])));
+			list = null;
+			
+			double sequenceSize = sequence.length; //Bytes
 		    double originalSize = sequenceSize/1024/1024;   //[MB]
 		    
 			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_ZIP((RandomAccessibleInterval<?>) rai);
+			compressedSequence = calcCompressedBytes_ZIP(sequence);
 			double kc = (double)compressedSequence.length/1024/1024; //[MB]	
 				
 			byte[] decompressedSequence;
@@ -194,8 +211,8 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
 			double ld = stats.getPercentile(50); //Median	; //[ns]	
 			//double is = megabytesReference;
-			//double is = originalSize;
-			double is = dataset.getBytesOfInfo()/1024.0/1024.0; //[MB]
+			double is = originalSize;
+			//double is = dataset.getBytesOfInfo()/1024.0/1024.0; //[MB]
 		
 			resultValues[0] = is;
 			resultValues[1] = kc;
@@ -206,16 +223,28 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 		
 		//*******************************************************************************************************************
 		if(compressionType.equals("ZLIB (lossless)")){
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 1;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes *= rai.dimension(d); //8bit per pixel
+			//convert rai to 1D byte[]
+			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
+			byte sample = 0; 
+			// Loop through all pixels of this image
+			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			while (cursor.hasNext()) { //Image
+				cursor.fwd();
+				sample = (byte) ((UnsignedByteType) cursor.get()).get();
+				if ((skipZeroes) && (sample == 0)) {
+					//do not add zeroes;
+				} else {
+					list.add(sample); 
+				}
 			}
-			double sequenceSize = numOfBytes; //Bytes
+			byte[] sequence = ArrayUtils.toPrimitive((list.toArray(new Byte[list.size()])));
+			list = null;
+			
+			double sequenceSize = sequence.length; //Bytes
 		    double originalSize = sequenceSize/1024/1024;   //[MB]
 		    
 			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_ZLIB((RandomAccessibleInterval<?>) rai);
+			compressedSequence = calcCompressedBytes_ZLIB(sequence);
 			double kc =  (double)compressedSequence.length/1024/1024; //[MB]	
 				
 			byte[] decompressedSequence;
@@ -236,8 +265,8 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
 			double ld = stats.getPercentile(50); //Median	; //[ns]	
 			//double is = megabytesReference;
-			//double is = originalSize;
-			double is = dataset.getBytesOfInfo()/1024.0/1024.0; //[MB]
+			double is = originalSize;
+			//double is = dataset.getBytesOfInfo()/1024.0/1024.0; //[MB]
 			
 			resultValues[0] = is;
 			resultValues[1] = kc;
@@ -248,16 +277,28 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 		
 		//*******************************************************************************************************************
 		if(compressionType.equals("GZIP (lossless)")){	
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 1;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes *= rai.dimension(d); //8bit per pixel
+			//convert rai to 1D byte[]
+			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
+			byte sample = 0; 
+			// Loop through all pixels of this image
+			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			while (cursor.hasNext()) { //Image
+				cursor.fwd();
+				sample = (byte) ((UnsignedByteType) cursor.get()).get();
+				if ((skipZeroes) && (sample == 0)) {
+					//do not add zeroes;
+				} else {
+					list.add(sample); 
+				}
 			}
-			double sequenceSize = numOfBytes; //Bytes
+			byte[] sequence = ArrayUtils.toPrimitive((list.toArray(new Byte[list.size()])));
+			list = null;
+			
+			double sequenceSize = sequence.length; //Bytes
 		    double originalSize = sequenceSize/1024/1024;   //[MB]
 		    
 			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_GZIP((RandomAccessibleInterval<?>) rai);
+			compressedSequence = calcCompressedBytes_GZIP(sequence);
 			double kc = (double)compressedSequence.length/1024/1024; //[MB]	
 				
 			byte[] decompressedSequence;
@@ -278,8 +319,8 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
 			double ld = stats.getPercentile(50); //Median	; //[ns]	
 			//double is = megabytesReference;
-			//double is = originalSize;
-			double is = dataset.getBytesOfInfo()/1024.0/1024.0; //[MB]
+			double is = originalSize;
+			//double is = dataset.getBytesOfInfo()/1024.0/1024.0; //[MB]
 			
 			resultValues[0] = is;
 			resultValues[1] = kc;
@@ -668,24 +709,11 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 	
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<?> rai
-	 * @return byte[] compressed image
+	 * @param  byte[] sequence
+	 * @return byte[] compressed sequence
 	 */
-	private byte[] calcCompressedBytes_ZIP(RandomAccessibleInterval<?> rai) {
+	private byte[] calcCompressedBytes_ZIP(byte[] sequence) {
 		
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		long depth  = rai.dimension(2);
-		byte[] data = new byte[(int)width * (int)height * (int)depth]; //????? * 8];?????
-		
-		// Loop through all pixels of this image
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
-		int i = 0;
-		while (cursor.hasNext()) { //Image
-			cursor.fwd();
-			data[i] = (byte) ((UnsignedByteType) cursor.get()).get();
-			i = i + 1;
-		}
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    	try{
 	            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
@@ -693,7 +721,7 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 	            zipOutputStream.putNextEntry(ze);
 	            //zipOutputStream.setMethod(0); ??
 	            zipOutputStream.setLevel(9); //0...9    9 highest compression
-	            zipOutputStream.write(data);
+	            zipOutputStream.write(sequence);
 	            zipOutputStream.close();
 	        } catch(IOException e){
 	            throw new RuntimeException(e);
@@ -712,28 +740,15 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<?> rai
-	 * @return byte[] compressed image
+	 * @param  byte[] sequence
+	 * @return byte[] compressed sequence
 	 */
-	private byte[] calcCompressedBytes_ZLIB(RandomAccessibleInterval<?> rai) {
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		long depth  = rai.dimension(2);
-		byte[] data = new byte[(int)width * (int)height * (int)depth]; //????? * 8];?????
-		
-		// Loop through all pixels of this image
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
-		int i = 0;
-		while (cursor.hasNext()) { //Image
-			cursor.fwd();
-			data[i] = (byte) ((UnsignedByteType) cursor.get()).get();
-			i = i + 1;
-		}
-		
+	private byte[] calcCompressedBytes_ZLIB(byte[] sequence) {
+
 		Deflater deflater = new Deflater(); 
 		deflater.setLevel(Deflater.BEST_COMPRESSION);
-		deflater.setInput(data); 
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);  
+		deflater.setInput(sequence); 
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(sequence.length);  
 		
 		deflater.finish(); 
 		byte[] buffer = new byte[1048];  
@@ -759,28 +774,15 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 	
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<?> rai
-	 * @return byte[] compressed image
+	 * @param  byte[] sequence
+	 * @return byte[] compressed sequence
 	 */
-	private byte[] calcCompressedBytes_GZIP(RandomAccessibleInterval<?> rai) {
+	private byte[] calcCompressedBytes_GZIP(byte[] sequence) {
 		
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		long depth  = rai.dimension(2);
-		byte[] data = new byte[(int)width * (int)height * (int)depth]; //????? * 8];?????
-		
-		// Loop through all pixels of this image
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
-		int i = 0;
-		while (cursor.hasNext()) { //Image
-			cursor.fwd();
-			data[i] = (byte) ((UnsignedByteType) cursor.get()).get();
-			i = i + 1;
-		}
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    	try{
 	            GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
-	            gzipOutputStream.write(data);
+	            gzipOutputStream.write(sequence);
 	            gzipOutputStream.close();
 	        } catch(IOException e){
 	            throw new RuntimeException(e);

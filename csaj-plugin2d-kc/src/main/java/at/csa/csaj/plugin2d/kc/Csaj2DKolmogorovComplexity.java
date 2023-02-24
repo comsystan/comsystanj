@@ -38,6 +38,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -72,6 +73,8 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -89,6 +92,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
+import org.scijava.table.BoolColumn;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
@@ -231,14 +235,22 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 //  		       initializer = "initialCorrectSystemBias")
 //	private boolean booleanCorrectSystemBias;
     
-  //-----------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------
+  	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+  	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
+  	
+  	@Parameter(label = "Skip zero values", persist = true,
+  		       callback = "callbackSkipZeroes")
+  	private boolean booleanSkipZeroes;
+    
+    //-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
     
     @Parameter(label = "Overwrite result display(s)",
-        	description = "Overwrite already existing result images, plots or tables",
-        	persist = true,  //restore previous value default = true
-    		initializer = "initialOverwriteDisplays")
+        	   description = "Overwrite already existing result images, plots or tables",
+        	   persist = true,  //restore previous value default = true
+    		   initializer = "initialOverwriteDisplays")
     private boolean booleanOverwriteDisplays;
       
 	//-----------------------------------------------------------------------------------------------------
@@ -246,8 +258,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
     private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
     @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
-        	description = "Immediate processing of active image when a parameter is changed",
-    		callback = "callbackProcessImmediately")
+               description = "Immediate processing of active image when a parameter is changed",
+    		   callback = "callbackProcessImmediately")
     private boolean booleanProcessImmediately;
      
 	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
@@ -257,7 +269,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	private int spinnerInteger_NumImageSlice;
 	
 	@Parameter(label   = "   Process single image #    ",
-		    	callback = "callbackProcessSingleImage")
+		       callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
@@ -302,10 +314,28 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	/** Executed whenever the {@link #choiceRadioButt_Interpolation} parameter changes. */
 	protected void callbackCompression() {
 		logService.info(this.getClass().getName() + " Compression method set to " + choiceRadioButt_Compression);
+		if (choiceRadioButt_Compression.equals("TIFF-LZW (lossless)") ||
+			choiceRadioButt_Compression.equals("PNG (lossless)")      ||	
+			choiceRadioButt_Compression.equals("J2K (lossless)")      ||
+			choiceRadioButt_Compression.equals("JPG (lossy)")) {
+			booleanSkipZeroes = false;	
+			logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+		}	
 	}
 	/** Executed whenever the {@link #spinnerInteger_NumIterations} parameter changes. */
 	protected void callbackNumIterations() {
 		logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
+	}
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		if (choiceRadioButt_Compression.equals("TIFF-LZW (lossless)") ||
+			choiceRadioButt_Compression.equals("PNG (lossless)")      ||	
+			choiceRadioButt_Compression.equals("J2K (lossless)")      ||
+			choiceRadioButt_Compression.equals("JPG (lossy)")) {
+			booleanSkipZeroes = false;		
+			logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+		}
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
@@ -748,7 +778,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
 		IntColumn columnNumbIterations     = new IntColumn("Iterations [#]");
-		GenericColumn columnComprType      = new GenericColumn("Compression");	
+		GenericColumn columnComprType      = new GenericColumn("Compression");
+		BoolColumn columnSkipZeroes        = new BoolColumn("Skip zeroes");
 		GenericColumn columnImgSz          = new GenericColumn("Image size [MB]");
 		GenericColumn columnKC             = new GenericColumn("KC [MB]");
 		GenericColumn columnImgSzMinusKC   = new GenericColumn("Image size - KC [MB]");
@@ -759,6 +790,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		tableOut.add(columnFileName);
 		tableOut.add(columnSliceName);
 		tableOut.add(columnComprType);
+		tableOut.add(columnSkipZeroes);
 		tableOut.add(columnImgSz);
 		tableOut.add(columnKC);
 		tableOut.add(columnImgSzMinusKC);
@@ -783,6 +815,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 			tableOut.set("Compression",           tableOut.getRowCount()-1, choiceRadioButt_Compression);
+			tableOut.set("Skip zeroes",           tableOut.getRowCount()-1, booleanSkipZeroes);
 			tableOut.set("Image size [MB]",       tableOut.getRowCount()-1, resultValuesTable[s][0]);
 			tableOut.set("KC [MB]",               tableOut.getRowCount()-1, resultValuesTable[s][1]);
 			tableOut.set("Image size - KC [MB]",  tableOut.getRowCount()-1, resultValuesTable[s][2]);
@@ -806,6 +839,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			tableOut.set("File name",  tableOut.getRowCount() - 1, datasetName);	
 			if (sliceLabels != null) tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
 			tableOut.set("Compression",           tableOut.getRowCount()-1, choiceRadioButt_Compression);
+			tableOut.set("Skip zeroes",           tableOut.getRowCount()-1, booleanSkipZeroes);
 			tableOut.set("Image size [MB]",       tableOut.getRowCount()-1, resultValuesTable[s][0]);
 			tableOut.set("KC [MB]",               tableOut.getRowCount()-1, resultValuesTable[s][1]);
 			tableOut.set("Image size - KC [MB]",  tableOut.getRowCount()-1, resultValuesTable[s][2]);
@@ -830,24 +864,39 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 //		SCIFIOImgPlus<T> scifioImgPlus = dius.makeSCIFIOImgPlus((Img<T>) rai);
 			
 		String compressionType = choiceRadioButt_Compression;
-		int numIterations      = spinnerInteger_NumIterations;
+		boolean skipZeroes = booleanSkipZeroes;
+		
+		int numIterations     = spinnerInteger_NumIterations;
 		double[] resultValues = new double[5];
 		for (int n = 0; n < resultValues.length; n++) resultValues[n] = Double.NaN;
 		
 		DescriptiveStatistics stats;
-	
+		
 		//*******************************************************************************************************************
 		if(compressionType.equals("ZIP (lossless)")){	
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 1;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes *= rai.dimension(d); //8bit per pixel
+			
+			//convert rai to 1D byte[]
+			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
+			byte sample = 0; 
+			// Loop through all pixels of this image
+			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			while (cursor.hasNext()) { //Image
+				cursor.fwd();
+				sample = (byte) ((UnsignedByteType) cursor.get()).get();
+				if ((skipZeroes) && (sample == 0)) {
+					//do not add zeroes;
+				} else {
+					list.add(sample); 
+				}
 			}
-			double sequenceSize = numOfBytes; //Bytes
+			byte[] sequence = ArrayUtils.toPrimitive((list.toArray(new Byte[list.size()])));
+			list = null;
+			
+			double sequenceSize = sequence.length; //Bytes
 		    double originalSize = sequenceSize/1024/1024;   //[MB]
 		    
 			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_ZIP((RandomAccessibleInterval<?>) rai);
+			compressedSequence = calcCompressedBytes_ZIP(sequence);
 			double kc = (double)compressedSequence.length/1024/1024; //[MB]	
 				
 			byte[] decompressedSequence;
@@ -863,8 +912,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
 			double ld = stats.getPercentile(50); //Median	; //[ns]	
 			//double is = megabytesReference;
-			//double is = originalSize;
-			double is = dataset.getBytesOfInfo()/1024.0/1024.0;
+			double is = originalSize;
+			//double is = dataset.getBytesOfInfo()/1024.0/1024.0;
 			resultValues[0] = is;
 			resultValues[1] = kc;
 			resultValues[2] = is-kc;
@@ -874,16 +923,29 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		
 		//*******************************************************************************************************************
 		if(compressionType.equals("ZLIB (lossless)")){
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 1;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes *= rai.dimension(d); //8bit per pixel
+		
+			//convert rai to 1D byte[]
+			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
+			byte sample = 0; 
+			// Loop through all pixels of this image
+			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			while (cursor.hasNext()) { //Image
+				cursor.fwd();
+				sample = (byte) ((UnsignedByteType) cursor.get()).get();
+				if ((skipZeroes) && (sample == 0)) {
+					//do not add zeroes;
+				} else {
+					list.add(sample); 
+				}
 			}
-			double sequenceSize = numOfBytes; //Bytes
+			byte[] sequence = ArrayUtils.toPrimitive((list.toArray(new Byte[list.size()])));
+			list = null;
+			
+			double sequenceSize = sequence.length; //Bytes
 		    double originalSize = sequenceSize/1024/1024;   //[MB]
 		    
 			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_ZLIB((RandomAccessibleInterval<?>) rai);
+			compressedSequence = calcCompressedBytes_ZLIB(sequence);
 			double kc =  (double)compressedSequence.length/1024/1024; //[MB]	
 				
 			byte[] decompressedSequence;
@@ -899,8 +961,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
 			double ld = stats.getPercentile(50); //Median	; //[ns]	
 			//double is = megabytesReference;
-			//double is = originalSize;
-			double is = dataset.getBytesOfInfo()/1024.0/1024.0;
+			double is = originalSize;
+			//double is = dataset.getBytesOfInfo()/1024.0/1024.0;
 			resultValues[0] = is;
 			resultValues[1] = kc;
 			resultValues[2] = is-kc;
@@ -910,16 +972,29 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		
 		//*******************************************************************************************************************
 		if(compressionType.equals("GZIP (lossless)")){	
-			int[] dims = new int[rai.numDimensions()];
-			int numOfBytes = 1;
-			for(int d = 0 ; d < dims.length; d++) {
-				numOfBytes *= rai.dimension(d); //8bit per pixel
+			
+			//convert rai to 1D byte[]
+			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
+			byte sample = 0; 
+			// Loop through all pixels of this image
+			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			while (cursor.hasNext()) { //Image
+				cursor.fwd();
+				sample = (byte) ((UnsignedByteType) cursor.get()).get();
+				if ((skipZeroes) && (sample == 0)) {
+					//do not add zeroes;
+				} else {
+					list.add(sample); 
+				}
 			}
-			double sequenceSize = numOfBytes; //Bytes
+			byte[] sequence = ArrayUtils.toPrimitive((list.toArray(new Byte[list.size()])));
+			list = null;
+			
+			double sequenceSize = sequence.length; //Bytes
 		    double originalSize = sequenceSize/1024/1024;   //[MB]
 		    
 			byte[] compressedSequence = null;
-			compressedSequence = calcCompressedBytes_GZIP((RandomAccessibleInterval<?>) rai);
+			compressedSequence = calcCompressedBytes_GZIP(sequence);
 			double kc = (double)compressedSequence.length/1024/1024; //[MB]	
 				
 			byte[] decompressedSequence;
@@ -934,8 +1009,8 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 			//durationTarget = (double)(System.nanaoTime() - startTime) / (double)iterations;
 			double ld = stats.getPercentile(50); //Median	; //[ns]	
 			//double is = megabytesReference;
-			//double is = originalSize;
-			double is = dataset.getBytesOfInfo()/1024.0/1024.0;
+			double is = originalSize;
+			//double is = dataset.getBytesOfInfo()/1024.0/1024.0;
 			resultValues[0] = is;
 			resultValues[1] = kc;
 			resultValues[2] = is-kc;
@@ -1513,23 +1588,12 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<?> rai
+	 * @param  byte[] sequence
 	 * @return byte[] compressed image
 	 */
-	private byte[] calcCompressedBytes_ZIP(RandomAccessibleInterval<?> rai) {
+	private byte[] calcCompressedBytes_ZIP(byte[] sequence) {
 		
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		byte[] data = new byte[(int)width * (int)height]; //????? * 8];?????
-		
-		// Loop through all pixels of this image
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
-		int i = 0;
-		while (cursor.hasNext()) { //Image
-			cursor.fwd();
-			data[i] = (byte) ((UnsignedByteType) cursor.get()).get();
-			i = i + 1;
-		}
+	
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    	try{
 	            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
@@ -1537,7 +1601,7 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	            zipOutputStream.putNextEntry(ze);
 	            //zipOutputStream.setMethod(0); ??
 	            zipOutputStream.setLevel(9); //0...9    9 highest compression
-	            zipOutputStream.write(data);
+	            zipOutputStream.write(sequence);
 	            zipOutputStream.close();
 	        } catch(IOException e){
 	            throw new RuntimeException(e);
@@ -1556,27 +1620,15 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<?> rai
-	 * @return byte[] compressed image
+	 * @param  byte[] sequence
+	 * @return byte[] compressed sequence
 	 */
-	private byte[] calcCompressedBytes_ZLIB(RandomAccessibleInterval<?> rai) {
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		byte[] data = new byte[(int)width * (int)height]; //????? * 8];?????
-		
-		// Loop through all pixels of this image
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
-		int i = 0;
-		while (cursor.hasNext()) { //Image
-			cursor.fwd();
-			data[i] = (byte) ((UnsignedByteType) cursor.get()).get();
-			i = i + 1;
-		}
-		
+	private byte[] calcCompressedBytes_ZLIB(byte[] sequence) {
+
 		Deflater deflater = new Deflater(); 
 		deflater.setLevel(Deflater.BEST_COMPRESSION);
-		deflater.setInput(data); 
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);  
+		deflater.setInput(sequence); 
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(sequence.length);  
 		
 		deflater.finish(); 
 		byte[] buffer = new byte[1048];  
@@ -1600,27 +1652,15 @@ public class Csaj2DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 	
 	/**
 	 * This method calculates and returns compressed bytes
-	 * @param RandomAccessibleInterval<?> rai
-	 * @return byte[] compressed image
+	 * @param  byte[] sequence
+	 * @return byte[] compressed sequence
 	 */
-	private byte[] calcCompressedBytes_GZIP(RandomAccessibleInterval<?> rai) {
+	private byte[] calcCompressedBytes_GZIP(byte[] sequence) {
 		
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		byte[] data = new byte[(int)width * (int)height]; //????? * 8];?????
-		
-		// Loop through all pixels of this image
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
-		int i = 0;
-		while (cursor.hasNext()) { //Image
-			cursor.fwd();
-			data[i] = (byte) ((UnsignedByteType) cursor.get()).get();
-			i = i + 1;
-		}
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    	try{
 	            GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
-	            gzipOutputStream.write(data);
+	            gzipOutputStream.write(sequence);
 	            gzipOutputStream.close();
 	        } catch(IOException e){
 	            throw new RuntimeException(e);
