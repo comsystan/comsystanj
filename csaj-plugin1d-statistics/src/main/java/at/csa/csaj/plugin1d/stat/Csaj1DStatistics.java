@@ -214,10 +214,10 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 	
-	@Parameter(label = "Remove zero values",
+	@Parameter(label = "Skip zero values",
 			   persist = true,
-		       initializer = "initialRemoveZeroes", callback = "callbackRemoveZeroes")
-	private boolean booleanRemoveZeroes;
+		       initializer = "initialSkipZeroes", callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -268,8 +268,8 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
 		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 	}	
-	protected void initialRemoveZeroes() {
-		booleanRemoveZeroes = false;
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
 	}	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
@@ -314,9 +314,9 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 	}
 
-	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-	protected void callbackRemoveZeroes() {
-		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -529,7 +529,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 		tableOut.add(new GenericColumn("Surrogate type"));
 		tableOut.add(new IntColumn("# Surrogates"));
 		tableOut.add(new IntColumn("Box length"));
-		tableOut.add(new BoolColumn("Zeroes removed"));
+		tableOut.add(new BoolColumn("Skip zeroes"));
 	
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
@@ -703,7 +703,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 		} else {
 			tableOut.set(5, row, null);
 		}	
-		tableOut.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		tableColLast = 6;
 		
 		if (resultValues == null) { //set missing result values to NaN
@@ -743,11 +743,11 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		String sequenceRange    = choiceRadioButt_SequenceRange;
-		String surrType      = choiceRadioButt_SurrogateType;
-		int boxLength        = spinnerInteger_BoxLength;
-		int numDataPoints    = dgt.getRowCount();
-		boolean removeZeores = booleanRemoveZeroes;
+		String sequenceRange  = choiceRadioButt_SequenceRange;
+		String surrType       = choiceRadioButt_SurrogateType;
+		int boxLength         = spinnerInteger_BoxLength;
+		int numDataPoints     = dgt.getRowCount();
+		boolean skipZeroes    = booleanSkipZeroes;
 		double[] resultValues = null;
 		// Get a DescriptiveStatistics instance
 		DescriptiveStatistics stats = null;
@@ -774,7 +774,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends ContextCommand impl
 		}	
 		
 		sequence1D = removeNaN(sequence1D);
-		if (removeZeores) sequence1D = removeZeroes(sequence1D);
+		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;

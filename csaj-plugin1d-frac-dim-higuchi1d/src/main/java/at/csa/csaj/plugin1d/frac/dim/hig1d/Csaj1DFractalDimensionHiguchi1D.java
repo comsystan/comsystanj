@@ -854,15 +854,14 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 
-		String sequenceRange     = choiceRadioButt_SequenceRange;
+		String sequenceRange  = choiceRadioButt_SequenceRange;
 		String surrType       = choiceRadioButt_SurrogateType;
 		int boxLength         = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
 		int numKMax           = spinnerInteger_KMax;
 		int regMin            = spinnerInteger_RegMin;
 		int regMax            = spinnerInteger_RegMax;
-		boolean skipZeores    = booleanSkipZeroes;
-	
+		boolean skipZeroes    = booleanSkipZeroes;
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
 		double[] resultValues = new double[3]; // Dim, R2, StdErr
@@ -897,7 +896,7 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		}
 		
 		sequence1D = removeNaN(sequence1D);
-		if (skipZeores) sequence1D = removeZeroes(sequence1D);
+		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 		
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;

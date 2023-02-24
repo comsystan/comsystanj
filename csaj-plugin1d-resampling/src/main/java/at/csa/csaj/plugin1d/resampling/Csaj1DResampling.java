@@ -240,9 +240,9 @@ public class Csaj1DResampling<T extends RealType<T>> extends ContextCommand impl
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-//	@Parameter(label = "Remove zero values", persist = false,
-//		       callback = "callbackRemoveZeroes")
-//	private boolean booleanRemoveZeroes;
+//	@Parameter(label = "Skip zero values", persist = false,
+//		       callback = "callbackSkipZeroes")
+//	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -312,8 +312,8 @@ public class Csaj1DResampling<T extends RealType<T>> extends ContextCommand impl
 //		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 //	}
 	
-//	protected void initialRemoveZeroes() {
-//		booleanRemoveZeroes = false;
+//	protected void initialSkipZeroes() {
+//		booleanSkipZeroes = false;
 //	}	
 	
 	protected void initialOverwriteDisplays() {
@@ -374,9 +374,9 @@ public class Csaj1DResampling<T extends RealType<T>> extends ContextCommand impl
 //		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 //	}
 
-//	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-//	protected void callbackRemoveZeroes() {
-//		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+//	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+//	protected void callbackSkipZeroes() {
+//		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 //	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -797,15 +797,15 @@ public class Csaj1DResampling<T extends RealType<T>> extends ContextCommand impl
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		String rsType       = this.choiceRadioButt_ResamplingType;
-		int    rsFactor     = this.spinnerInteger_NumFactor;
-		String interpolType = this.choiceRadioButt_InterpolationType;
-		//String  sequenceRange     = choiceRadioButt_SequenceRange;
-		//int     boxLength        = spinnerInteger_BoxLength;
+		String rsType            = choiceRadioButt_ResamplingType;
+		int    rsFactor          = spinnerInteger_NumFactor;
+		String interpolType      = choiceRadioButt_InterpolationType;
+		//String  sequenceRange  = choiceRadioButt_SequenceRange;
+		//int     boxLength      = spinnerInteger_BoxLength;
 		int     numDataPoints    = dgt.getRowCount();
-		//boolean removeZeores     = booleanRemoveZeroes;
-		//String  surrogateType    = choiceRadioButt_SurrogateType;//
-		//int     numSurrogates    = spinnerInteger_NumSurrogates;
+		//boolean skipZeroes     = booleanSkipZeroes;
+		//String  surrogateType  = choiceRadioButt_SurrogateType;//
+		//int     numSurrogates  = spinnerInteger_NumSurrogates;
 		//******************************************************************************************************
 		
 	
@@ -830,7 +830,7 @@ public class Csaj1DResampling<T extends RealType<T>> extends ContextCommand impl
 		}	
 		
 		sequence1D = removeNaN(sequence1D);
-		//if (removeZeores) sequence1D = removeZeroes(sequence1D);
+		//if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;

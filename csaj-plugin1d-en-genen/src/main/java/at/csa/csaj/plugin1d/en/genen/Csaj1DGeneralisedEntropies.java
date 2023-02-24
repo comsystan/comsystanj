@@ -382,10 +382,10 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-	@Parameter(label = "Remove zero values",
+	@Parameter(label = "Skip zero values",
 			   persist = true,
-		       callback = "callbackRemoveZeroes")
-	private boolean booleanRemoveZeroes;
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -528,8 +528,8 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		choiceRadioButt_EntropyType = "Renyi"; //"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
 	} 
 	
-	protected void initialRemoveZeroes() {
-		booleanRemoveZeroes = false;
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
 	}	
 	
 	protected void initialOverwriteDisplays() {
@@ -681,9 +681,9 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		logService.info(this.getClass().getName() + " Entropy type for surrogate or box set to " + choiceRadioButt_EntropyType);
 	}
 	
-	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-	protected void callbackRemoveZeroes() {
-		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -903,7 +903,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		tableOut.add(new GenericColumn("Surrogate type"));
 		tableOut.add(new IntColumn("Surrogates #"));
 		tableOut.add(new IntColumn("Box length"));
-		tableOut.add(new BoolColumn("Zeroes removed"));
+		tableOut.add(new BoolColumn("Skip zeroes"));
 	
 		tableOut.add(new GenericColumn("Probability type"));		
 		tableOut.add(new IntColumn("Lag"));
@@ -1157,7 +1157,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		} else {
 			tableOut.set(5, row, null);
 		}	
-		tableOut.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		
 		tableOut.set(7, row, choiceRadioButt_ProbabilityType);    // Lag
 		tableOut.set(8, row, spinnerInteger_Lag);    // Lag
@@ -1197,14 +1197,13 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		String  sequenceRange  = choiceRadioButt_SequenceRange;
+		String  sequenceRange = choiceRadioButt_SequenceRange;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		String  probType      = choiceRadioButt_ProbabilityType;
 		int     lag           = spinnerInteger_Lag;
-		
-		boolean removeZeores  = booleanRemoveZeroes;
+		boolean skipZeroes    = booleanSkipZeroes;
 		
 		//min max and step values are already set in the table header generation method
 		
@@ -1249,7 +1248,7 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		}	
 		
 		sequence1D = removeNaN(sequence1D);
-		if (removeZeores) sequence1D = removeZeroes(sequence1D);
+		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 		
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;

@@ -311,10 +311,10 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-	@Parameter(label = "Remove zero values",
+	@Parameter(label = "Skip zero values",
 			   persist = true,
-		       callback = "callbackRemoveZeroes")
-	private boolean booleanRemoveZeroes;
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -421,8 +421,8 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 	protected void initialHurstType() {
 		this.choiceRadioButt_HurstType = "PSD";
 	}
-	protected void initialRemoveZeroes() {
-		booleanRemoveZeroes = false;
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
 	}	
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
@@ -521,9 +521,9 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 		logService.info(this.getClass().getName() + " Hurst type for surrogate or box set to " + choiceRadioButt_HurstType);
 	}
 
-	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-	protected void callbackRemoveZeroes() {
-		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -736,7 +736,7 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 		tableOut.add(new GenericColumn("Surrogate type"));
 		tableOut.add(new IntColumn("# Surrogates"));
 		tableOut.add(new IntColumn("Box length"));
-		tableOut.add(new BoolColumn("Zeroes removed"));
+		tableOut.add(new BoolColumn("Skip zeroes"));
 		
 		tableOut.add(new IntColumn("Reg Min"));
 		tableOut.add(new IntColumn("Reg Max"));
@@ -930,7 +930,7 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 		} else {
 			tableOut.set(5, row, null);
 		}	
-		tableOut.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		tableOut.set(7, row, regMin); //may be changed by the algorithm, particularly by lowPSD
 		tableOut.set(8, row, regMax); //may be changed by the algorithm, particularly by lowPSD
 	
@@ -970,17 +970,15 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 
-		String sequenceRange   = choiceRadioButt_SequenceRange;
+		String sequenceRange  = choiceRadioButt_SequenceRange;
 		String surrType       = choiceRadioButt_SurrogateType;
 		int boxLength         = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
 		regMin                = spinnerInteger_RegMin; //may be changed later
 		regMax                = spinnerInteger_RegMax; //may be changed later
-		boolean removeZeores  = booleanRemoveZeroes;
-		
+		boolean skipZeroes    = booleanSkipZeroes;	
 		String psdType        = choiceRadioButt_PSDType;
-		String swvType        = choiceRadioButt_SWVType;
-		
+		String swvType        = choiceRadioButt_SWVType;	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
 		double[] resultValues = new double[3]; // Dim, R2, StdErr
@@ -1015,7 +1013,7 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 		}	
 		
 		sequence1D = removeNaN(sequence1D);
-		if (removeZeores) sequence1D = removeZeroes(sequence1D);
+		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;

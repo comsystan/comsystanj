@@ -313,10 +313,10 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-	@Parameter(label = "Remove zero values",
+	@Parameter(label = "Skip zero values",
 			   persist = true,
-		       callback = "callbackRemoveZeroes")
-	private boolean booleanRemoveZeroes;
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -388,8 +388,8 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 		choiceRadioButt_MeasurementType = "MeanHR [1/min]"; //"Beats [#]", "MeanHR [1/min]", "MeanNN [ms]", "SDNN [ms]", "SDANN [ms]", "SDNNI [ms]", "HRVTI", "RMSSD [ms]", "SDSD [ms]", "NN50 [#]", "PNN50 [%]", "NN20 [#]", "PNN20 [%]", "ULF [ms^2]", "VLF [ms^2]", "LF [ms^2]", "HF [ms^2]", "LFnorm", "HFnorm", "LF/HF", "TP [ms^2]"
 	} 
 	
-	protected void initialRemoveZeroes() {
-		booleanRemoveZeroes = false;
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
 	}	
 	
 	protected void initialOverwriteDisplays() {
@@ -450,9 +450,9 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 		logService.info(this.getClass().getName() + " Measurement type set to " + choiceRadioButt_MeasurementType);
 	}
 	
-	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-	protected void callbackRemoveZeroes() {
-		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -665,7 +665,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 		tableOut.add(new GenericColumn("Surrogate type"));
 		tableOut.add(new IntColumn("Surrogates #"));
 		tableOut.add(new IntColumn("Box length"));
-		tableOut.add(new BoolColumn("Zeroes removed"));
+		tableOut.add(new BoolColumn("Skip zeroes"));
 	
 		tableOut.add(new GenericColumn("Time base"));	
 		tableOut.add(new GenericColumn("Windowing"));
@@ -942,7 +942,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 		} else {
 			tableOut.set(5, row, null);
 		}	
-		tableOut.set(6, row, booleanRemoveZeroes); //Zeroes removed
+		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		
 		tableOut.set(7, row, choiceRadioButt_TimeBase);    //
 		tableOut.set(8, row, this.choiceRadioButt_WindowingType);
@@ -982,17 +982,15 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		String  sequenceRange   = choiceRadioButt_SequenceRange;
+		String  sequenceRange = choiceRadioButt_SequenceRange;
 		String  surrType      = choiceRadioButt_SurrogateType;
 		int     boxLength     = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		String  timeBase      = choiceRadioButt_TimeBase;
 		String  windowingType = choiceRadioButt_WindowingType;
+		boolean skipZeroes    = booleanSkipZeroes;			
 		
-		boolean removeZeores  = booleanRemoveZeroes;
-				
 		int numOfMeasurements = 21;
-		
 		resultValues = new double[numOfMeasurements]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 		
@@ -1018,7 +1016,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends ContextCommand implements 
 		}
 		
 		sequence1D = removeNaN(sequence1D);
-		if (removeZeores) sequence1D = removeZeroes(sequence1D);
+		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 		
 		//May be smaller than before
 		numDataPoints = sequence1D.length;

@@ -245,10 +245,10 @@ public class Csaj1DSurrogate<T extends RealType<T>> extends ContextCommand imple
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-//	@Parameter(label = "Remove zero values",
+//	@Parameter(label = "Skip zero values",
 //			   persist = true,
-//		       callback = "callbackRemoveZeroes")
-//	private boolean booleanRemoveZeroes;
+//		       callback = "callbackSkipZeroes")
+//	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -314,8 +314,8 @@ public class Csaj1DSurrogate<T extends RealType<T>> extends ContextCommand imple
 //		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 //	}
 	
-//	protected void initialRemoveZeroes() {
-//		booleanRemoveZeroes = false;
+//	protected void initialSkipZeroes() {
+//		booleanSkipZeroes = false;
 //	}	
 	
 	protected void initialOverwriteDisplays() {
@@ -376,9 +376,9 @@ public class Csaj1DSurrogate<T extends RealType<T>> extends ContextCommand imple
 //		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 //	}
 
-//	/** Executed whenever the {@link #booleanRemoveZeroes} parameter changes. */
-//	protected void callbackRemoveZeroes() {
-//		logService.info(this.getClass().getName() + " Remove zeroes set to " + booleanRemoveZeroes);
+//	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+//	protected void callbackSkipZeroes() {
+//		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 //	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -814,17 +814,16 @@ public class Csaj1DSurrogate<T extends RealType<T>> extends ContextCommand imple
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		//String  sequenceRange     = choiceRadioButt_SequenceRange;
-		String  surrType       = choiceRadioButt_SurrogateType;
-		//int     boxLength     = spinnerInteger_BoxLength;
-		int     numDataPoints  = dgt.getRowCount();
-		//boolean removeZeores  = booleanRemoveZeroes;
-		//String  surrogateType     = choiceRadioButt_SurrogateType;//
-		//int     numSurrogates    = spinnerInteger_NumSurrogates;
-		String  windowingType  = choiceRadioButt_WindowingType;
+		//String sequenceRange = choiceRadioButt_SequenceRange;
+		String surrType        = choiceRadioButt_SurrogateType;
+		//int boxLength        = spinnerInteger_BoxLength;
+		int numDataPoints      = dgt.getRowCount();
+		//boolean skipZeroes   = booleanSkipZeroes;
+		//String surrogateType = choiceRadioButt_SurrogateType;//
+		//int numSurrogates    = spinnerInteger_NumSurrogates;
+		String windowingType   = choiceRadioButt_WindowingType;
 		//******************************************************************************************************
 		
-	
 		//domain1D = new double[numDataPoints];
 		sequence1D = new double[numDataPoints];
 		for (int n = 0; n < numDataPoints; n++) {
@@ -846,7 +845,7 @@ public class Csaj1DSurrogate<T extends RealType<T>> extends ContextCommand imple
 		}	
 		
 		sequence1D = removeNaN(sequence1D);
-		//if (removeZeores) sequence1D = removeZeroes(sequence1D);
+		//if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;
