@@ -20,17 +20,19 @@
 A manuscript describing ComsystanJ has already been submitted. If you use ComsystanJ plugins in the meantime and publish your work, please cite at least one of the following publications:
 
 ###### Time series
-- Müller et al., Scientific Reports, 2017, [https://doi.org/10.1038/s41598-017-02665-5](https://doi.org/10.1038/s41598-017-02665-5)
 - Ahammer et al., Front.Physiol., 2018, [https://doi.org/10.3389/fphys.2018.00546](https://doi.org/10.3389/fphys.2018.00546)
+- Müller et al., Scientific Reports, 2017, [https://doi.org/10.1038/s41598-017-02665-5](https://doi.org/10.1038/s41598-017-02665-5)
 
 ###### Image processing
-- Ahammer, PLoS ONE, 2011, [https://doi.org/10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
 - Ahammer et.al., Chaos, 2015, [https://doi.org/10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
+- Ahammer, PLoS ONE, 2011, [https://doi.org/10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
+- Andronache et al., Scientific Reports, 2019, https://doi.org/10.1038/s41598-019-48277-z](https://doi.org/10.1038/s41598-019-48277-z)
+- Andronache et al., Chaos, Solitons & Fractals, 2016, [https://doi.org/10.1016/j.chaos.2016.06.0139](https://doi.org/10.1016/j.chaos.2016.06.013)
+- Djuričić et al., Journal of Magnetic Resonance Imaging, 2022, [https://doi.org/10.1002/jmri.28232](https://doi.org/10.1002/jmri.28232)
 - Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [https://doi.org/10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
-- Kainz et.al., PLoS ONE, 2015, [https://doi.org/10.1371/journal.pone.0116329](https://doi.org/10.1371/journal.pone.0116329)
+- Reiss et al., Chaos, 2016, [https://doi.org/10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Collaborations
-
 [<img src="images/nasa-logo.png" width=60 height=50/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=117 height=45/>](https://ccmc.gsfc.nasa.gov/) [CCMC](https://ccmc.gsfc.nasa.gov/)<br/>
 CCMC is a multi-agency partnership enabling, supporting, and performing research and development for next-generation space science and space weather models.
 It is situated at NASA Goddard Space Flight Center [GSFC](https://www.nasa.gov/goddard)
@@ -61,7 +63,7 @@ Medical University of Graz, Division of Medical Physics & Biophysics
 
 **It is recommended to use the latest Fiji version from the download archive [https://downloads.imagej.net/fiji/archive](https://downloads.imagej.net/fiji/archive). Updating is not mandatory.**
 
-**Please note that updating an older Fiji version is sometimes not successful to get the latest version**
+**Please note that updating an older Fiji version is sometimes not successful to get the latest version.**
 
 It is recommended to use both ComsystanJ and Fiji with the same pom-scijava version number.
 The pom-scijava version number of ComsystanJ can be viewed directly on the download site [Downloads](https://github.com/comsystan/comsystanj/releases).
