@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin1d-generator</artifactId>
-	<version>2.1.0</version><!--ComsystanJ version-->
+	<version>1.0.0</version><!--ComsystanJ version-->
 
 	<name>1D Sequence - Generator</name>
 	<description>ImageJ2 plugin to generate signals.</description>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>2.1.0</version><!--ComsystanJ version-->
+			<version>1.0.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

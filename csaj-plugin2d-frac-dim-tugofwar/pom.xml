@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin2d-frac-dim-tugofwar</artifactId>
-	<version>2.1.0</version><!--ComsystanJ version-->
+	<version>1.0.0</version><!--ComsystanJ version-->
 
 	<name>2D Image - Fractal dimension - Tug of war</name>
 	<description>ImageJ2 plugin for computing fractal dimension with tug of war algorithm.</description>
@@ -111,7 +111,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>2.1.0</version><!--ComsystanJ version-->
+			<version>1.0.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

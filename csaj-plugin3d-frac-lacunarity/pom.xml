@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin3d-frac-lacunarity</artifactId>
-	<version>2.1.0</version><!--ComsystanJ version-->
+	<version>1.0.0</version><!--ComsystanJ version-->
 
 	<name>3D Volume - Lacunarity</name>
 	<description>ImageJ2 plugin for computing 3D lacunarity</description>
@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>2.1.0</version><!--ComsystanJ version-->
+			<version>1.0.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

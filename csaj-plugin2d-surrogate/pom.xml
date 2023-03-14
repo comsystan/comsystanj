@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin2d-surrogate</artifactId>
-	<version>2.1.0</version><!--ComsystanJ version-->
+	<version>1.0.0</version><!--ComsystanJ version-->
 
 	<name>2D Image - Surrogate</name>
 	<description>ImageJ2 plugin for constructing surrogate images.</description>
@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>2.1.0</version><!--ComsystanJ version-->
+			<version>1.0.0</version><!--ComsystanJ version-->
 		</dependency>
 	</dependencies>
 	<build>
