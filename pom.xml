@@ -12,7 +12,7 @@
 	
 <!--These Maven projects are aggregated to be built at once https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Aggregation
 	No inheritance, no dependencies on parent etc. https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance
-	Projects are still independent and can be built independently-->
+	Projects are still independent and can be built independently -->
 	<modules>
 		<module>csaj-commons</module>
 		<!--1D plugins-->
