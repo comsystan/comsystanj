@@ -85,7 +85,7 @@ import at.csa.csaj.plugin1d.open.Csaj1DOpener;
 	@Menu(label = "1D Sequence(s)"),
 	@Menu(label = "Detrended fluctuation analysis ", weight = 150)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SequenceDFA<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+public class Csaj1DFA<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL            = "<html><b>Detrended fluctuation analysis</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -1155,6 +1155,6 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DDFA.class, true);
+		ij.command().run(Csaj1DFA.class, true);
 	}
 }
