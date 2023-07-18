@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin3d-frac-dim-generalized</artifactId>
-	<version>1.0.0</version><!--ComsystanJ version-->
+	<version>1.1.0</version><!--ComsystanJ version-->
 
 	<name>3D Volume - Fractal dimension - Generalized</name>
 	<description>ImageJ2 plugin for computing the 3D Generalized fractal dimensions.</description>
@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>1.0.0</version><!--ComsystanJ version-->
+			<version>1.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

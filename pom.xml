@@ -7,7 +7,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-maven-aggregation-build</artifactId>
-	<version>1.0</version>
+    <version>1.1.0</version><!--ComsystanJ version-->
 	<packaging>pom</packaging>
 	
 <!--These Maven projects are aggregated to be built at once https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Aggregation

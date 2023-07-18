@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin3d-generator</artifactId>
-	<version>1.0.0</version><!--ComsystanJ version-->
+	<version>1.1.0</version><!--ComsystanJ version-->
 
 	<name>3D Volume - Image volume generator</name>
 	<description>ImageJ2 plugin to generate 3D image volumes.</description>
@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>1.0.0</version><!--ComsystanJ version-->
+			<version>1.1.0</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
