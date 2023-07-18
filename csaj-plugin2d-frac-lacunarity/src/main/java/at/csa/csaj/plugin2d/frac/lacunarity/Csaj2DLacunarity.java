@@ -1260,8 +1260,13 @@ public class Csaj2DLacunarity<T extends RealType<T>> extends ContextCommand impl
 				for (DoubleType k : avgKernel) {
 					k.setReal(1.0);
 				}
-				imgDil = (Img<FloatType>) opService.filter().convolve(imgBin, avgKernel);
-				
+				//This must be solved******************************************************
+				//TODO
+				//This causes an error during runtime:
+				//incompatible types: net.imglib2.RandomAccessibleInterval<O> cannot be converted to net.imglib2.img.Img<net.imglib2.type.numeric.real.FloatType>
+				//imgDil = (Img<FloatType>) opService.filter().convolve(imgBin, avgKernel);
+				//************************************************************************
+	
 				//uiService.show("imgDil", imgDil);
 				// each pixel value is now the sum of the box (neighborhood values)
 				// get statistics
