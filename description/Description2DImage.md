@@ -218,15 +218,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 Statistical Mechanics, Springer, 2009
 
 ### Kolmogorov complexity and Logical depth
-- KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB)
-- or
+- KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB) or
 - KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW, PNG, J2K, JPG) - slow!
 - 8-bit grey images
 - RGB color images may also work, but not tested
 - Lossless and lossy algorithms can be chosen
 - Lossless algorithms are recommended.
-- LD is estimated by the opening time of the compressed image (LZW, PNG, J2K, JPG)
-- LD is estimated by the decompression time of the compressed data bytes (ZLIB, GZIB)
+- LD is estimated by the decompression time of the compressed data bytes (ZIP, ZLIB, GZIB) or
+- LD is estimated by the opening time of the compressed image (TIFF-LZW, PNG, J2K, JPG)
 - Iterations should be set to as high a value as possible.
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Ref.: Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
