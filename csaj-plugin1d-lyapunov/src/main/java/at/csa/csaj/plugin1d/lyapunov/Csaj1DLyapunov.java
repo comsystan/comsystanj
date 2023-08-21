@@ -85,7 +85,7 @@ import at.csa.csaj.plugin1d.open.Csaj1DOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Lyapunov exponent ", weight = 335)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
+	@Menu(label = "Lyapunov exponent ", weight = 143)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SequenceLyapunov<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
