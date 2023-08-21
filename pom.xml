@@ -43,6 +43,7 @@
 		<module>csaj-plugin1d-opener</module>
 		<module>csaj-plugin1d-poincareplot</module>
 		<module>csaj-plugin1d-resampling</module>
+		<module>csaj-plugin1d-rqa</module>
 		<module>csaj-plugin1d-statistics</module>
 		<module>csaj-plugin1d-surrogate</module>
 		<module>csaj-plugin1d-symbolicaggregation</module>
