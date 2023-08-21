@@ -20,7 +20,7 @@
 - Following signal types are supported:
   - Constant, Sine, Square, Triangle, Sawtooth
   - Gaussian and Uniform noise
-  - Discrete chaotical maps (Logistic, Henon, Cubic, Spence), Silva & Murta Jr., 2012, Chaos, [DOI 10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
+  - Discrete chaotical maps (Logistic, Lorenz, Henon, Cubic, Spence), Silva & Murta Jr., 2012, Chaos, [DOI 10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
   - Fractional Gaussian noise with variable Hurst coefficient using Davis and Harte autocorrelation method DHM
   - Fractional Gaussian motion with variable Hurst coefficient using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [DOI 10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
   - Weierstraß-Mandelbrot signals with variable fractal dimension, Falconer, Fractal Geometry, Wiley, 2014, 3rd Ed., ISBN: 978-1-119-94239-9
@@ -149,6 +149,46 @@
 - The time lag can be set
 - Multiple plots with distinct colors
 - Signals should be opened with the CSAJ Signal Opener
+
+### Lyapunov exponent
+- Computes the largest Lyapunov exponent
+- Rosenstein's and Kantz's algorithms are implemented
+- Additionally a direct method without phase space reconstruction is implemented but should be used with care.
+- The maximum delay can be set
+- The regression minimum and maximum can be set
+- The most linear part of the first k values should be taken
+- The embedding dimension can be set (usually not too high)
+- The delay (tau) for the phase space reconstruction can be set (a relaible value value is the first minimum of the autocorrelation)
+- The sampling frequency can be set. If not known it should be 1
+- For the Rosenstein algorithm only one initial distance (minimum distance) is used.
+- For the Kantz algorithm the number of initial distances can be set. The average of the linear regressions is computed. This might be better for noisy data series. 
+- For the Direct method a maximum eps (initial distance) can be set. Averages for every k are computed.
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Rosenstein et al., 1993, PhysicaD, [10.1016/0167-2789(93)90009-P](https://doi.org/10.1016/0167-2789(93)90009-P), Kantz, 1994, Physics Letters A, [10.1016/0375-9601(94)90991-1](https://doi.org/10.1016/0375-9601(94)90991-1)
+
+### Recurrence quantification analysis
+- Computes RQA measures that quantify the number and duration of reccurrences of a phase space trajectory
+- RR, DET, RATIO, DIV, Lmean, Lmax, ENT, LAM, TT  
+- The embedding dimension can be set (usually not too high)
+- The delay (tau) for the phase space reconstruction can be set (a relaible value value is the first minimum of the autocorrelation)
+- The distance between adjacent points (eps) of the phase space trajectory can be set
+- Optionally, the recurrence plot can be shown
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Ref.: Marwan et al., 2007, PhysicaD, [10.1016/j.physrep.2006.11.001](https://doi.org/10.1016/j.physrep.2006.11.001)
 
 ### Detrended fluctuation analysis
 - Computes Detrended fluctuation analysis.
@@ -351,29 +391,6 @@ Statistical Mechanics, Springer, 2009
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Ref.: Zenil et al., 2012, Complexity, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
-
-### Lyapunov exponent
-- Computes the largest Lyapunov exponent
-- Rosenstein's and Kantz's algorithms are implemented
-- Additionally a direct method without phase space reconstruction is implemented but should be used with care.
-- The maximum delay can be set
-- The regression minimum and maximum can be set
-- The most linear part of the first k values should be taken
-- The embedding dimension can be set (usually not too high)
-- The tau for the pase space reconstruction can be set (a relaible value value is the first minimum of the autocorrelation)
-- The sampling frequency can be set. If not known it should be 1
-- For the Rosenstein algorithm only one initial distance (minimum distance) is used.
-- For the Kantz algorithm the number of initial distances can be set. The average of the linear regressions is computed. This might be better for noisy data series. 
-- For the Direct method a maximum eps (initial distance) can be set. Averages for every k are computed.
-- Signals should be opened with the CSAJ Signal Opener
-- Optional surrogate data analysis
-- Analysis of Entire signal or Subsequent/Gliding boxes
-- Notes for Subsequent/Gliding box:
-  - the box size should not be larger than 1/3 of the signal length 
-  - The number of subsequent boxes is (signal length)/(box size)
-  - The number of gliding boxes is (signal length)-(box size)
-  - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Ref.: Rosenstein et al., 1993, PhysicaD, [10.1016/0167-2789(93)90009-P](https://doi.org/10.1016/0167-2789(93)90009-P), Kantz, 1994, Physics Letters A, [10.1016/0375-9601(94)90991-1](https://doi.org/10.1016/0375-9601(94)90991-1)
 
 ### Allometric scaling
 - Computes a double log plot of aggregated variances and means
