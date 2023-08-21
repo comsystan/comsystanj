@@ -116,7 +116,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
     @Parameter(label = "Method",
     		   description = "Type of sequence, fGn..fractional Gaussian noise, fBm..fractional Brownian noise, W-M..Weierstraß-Mandelbrot sequence",
  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
- 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm", "W-M", "Cantor"},
+ 		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Lorenz", "Henon", "Cubic", "Spence", "fGn", "fBm", "W-M", "Cantor"},
  		       initializer = "initialMethod",
                callback = "changedMethod")
     private String choiceRadioButt_Method;
@@ -644,6 +644,91 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 			sdf.applyPattern("HHH:mm:ss:SSS");
 			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
  	  	}     
+    }
+    
+    /**
+     * This method computes a Lorenz attractor 
+     */
+    private void computeLorenzSequences() {
+    	
+    	//defaultGenericTable = new DefaultGenericTable(spinnerInteger_NumSequences, spinnerInteger_NumDataPoints);
+      	//EXCEPTION
+    	//Always 3 sequences for X Y Z
+    	defaultGenericTable = new DefaultGenericTable(3, spinnerInteger_NumDataPoints);
+    
+    	Random generator = new Random();
+    	generator.setSeed(System.currentTimeMillis());
+    
+    	double amplitude = 1.0;
+    	double sigma=10f;
+    	double beta=8f/3f;
+    	double rho=28f;
+    	double dt=0.01f;
+   
+    	//double[] sequenceX;
+    	//double[] sequenceY;
+    	//double[] sequenceZ;
+    	
+    	double valueX; 
+    	double valueY; 
+    	double valueZ;
+    	
+    	double dX; //Incremental change
+    	double dY;
+    	double dZ;
+    
+    	//EXCEPTION
+    	//always three columns at once for X Y Z 
+ 	  	//for (int c = 0; c < spinnerInteger_NumSequences; c++) {    //columns
+
+			long startTime = System.currentTimeMillis();
+ 	  		defaultGenericTable.setColumnHeader(0, "SequenceX");
+ 	  		defaultGenericTable.setColumnHeader(1, "SequenceY");
+ 	  		defaultGenericTable.setColumnHeader(2, "SequenceZ");
+ 	  		
+ 	  		//Starting point 
+	  		valueX = 1;
+	  		valueY = 1;
+	  		valueZ = 1; 		 	  	
+ 	  		defaultGenericTable.set(0, 0, valueX);
+ 	  		defaultGenericTable.set(1, 0, valueY);
+ 	  		defaultGenericTable.set(2, 0, valueZ);
+	 	 
+ 	  		for (int r = 1; r < spinnerInteger_NumDataPoints; r++) {
+ 	  			
+ 	  			
+ 	  			int percent = (int)Math.round((  ((float)r)/((float)spinnerInteger_NumDataPoints) * 100.f ));
+ 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
+ 				dlgProgress.updateBar(percent);
+ 				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+ 				statusService.showStatus((r), (int)spinnerInteger_NumDataPoints, "Processing " + (r+1) + "/" + (int)spinnerInteger_NumDataPoints);
+ 				logService.info(this.getClass().getName() + " Processing " + (r+1) + "/" + spinnerInteger_NumDataPoints);
+ 	  			
+ 	  			
+	 	  	    dX=(sigma*(valueY-valueX))*dt;
+	 	  	    dY=((valueX)*(rho-valueZ)-valueY)*dt;
+	 	  	    dZ=(valueX*valueY-beta*valueZ)*dt;
+	 	  		valueX += dX;
+	 	  		valueY += dY;
+	 	  		valueZ += dZ;
+	 	  		defaultGenericTable.set(0, r, valueX);  
+	 	  		defaultGenericTable.set(1, r, valueY);  
+	 	  		defaultGenericTable.set(2, r, valueZ);  
+	 	  	}
+	 	  	
+//	 	  	if (amplitude != 1.0) {
+//		 		for (int r = 0; r < spinnerInteger_NumDataPoints; r++) { 
+//		 	  		defaultGenericTable.set(c, r, amplitude*(double)defaultGenericTable.get(c, r));
+//		 	  	}
+//	 	  	}
+	 	  	
+	 	  	//sequenceX = null;
+	 	  	long duration = System.currentTimeMillis() - startTime;
+			TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+			SimpleDateFormat sdf = new SimpleDateFormat();
+			sdf.applyPattern("HHH:mm:ss:SSS");
+			logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+ 	  	//}     
     }
     
     /**
@@ -1404,6 +1489,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 		else if (choiceRadioButt_Method.equals("Gaussian")) computeGaussianSequences();
 		else if (choiceRadioButt_Method.equals("Uniform"))  computeUniformSequences();
 		else if (choiceRadioButt_Method.equals("Logistic")) computeLogisticSequences();
+		else if (choiceRadioButt_Method.equals("Lorenz"))   computeLorenzSequences();
 		else if (choiceRadioButt_Method.equals("Henon"))    computeHenonSequences();
 		else if (choiceRadioButt_Method.equals("Cubic"))    computeCubicSequences();
 		else if (choiceRadioButt_Method.equals("Spence"))   computeSpenceSequences();
@@ -1433,16 +1519,32 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 		
         int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 		if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[spinnerInteger_NumSequences];
+			int[] cols;
 			boolean isLineVisible = true;
 			String sequenceTitle = choiceRadioButt_Method + " sequence(s)";
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[spinnerInteger_NumSequences];		
-			for (int c = 0; c < spinnerInteger_NumSequences; c++) {
-				cols[c] = c;
-				seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
+			String[] seriesLabels;
+			
+			//EXCEPTION for Lorenz, always 3 sequences for X Y Z
+			if ((choiceRadioButt_Method.equals("Lorenz"))  ) {
+				cols = new int[3];
+				seriesLabels = new String[3];
+				for (int c = 0; c < 3; c++) {
+					cols[c] = c;
+					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
+				}
 			}
+			else { //for all others
+				cols         = new int[spinnerInteger_NumSequences];
+				seriesLabels = new String[spinnerInteger_NumSequences];
+				for (int c = 0; c < spinnerInteger_NumSequences; c++) {
+					cols[c] = c;
+					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
+				}
+			};
+			
+		
 			SequencePlotFrame pdf = new SequencePlotFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		}
