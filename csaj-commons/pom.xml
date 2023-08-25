@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-commons</artifactId>
-	<version>1.1.0</version><!--ComsystanJ version-->
+	<version>1.1.1</version><!--ComsystanJ version-->
 
 	<name>Commons</name>
 	<description>Commons for ComsystanJ ImageJ Plugins</description>

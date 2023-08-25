@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin2d-opener</artifactId>
-	<version>1.1.0</version><!--ComsystanJ version-->
+	<version>1.1.1</version><!--ComsystanJ version-->
 
 	<name>2D Image - Image opener</name>
 	<description>ImageJ2 plugin to open single or multiple images.</description>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>1.1.0</version><!--ComsystanJ version-->
+			<version>1.1.1</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
