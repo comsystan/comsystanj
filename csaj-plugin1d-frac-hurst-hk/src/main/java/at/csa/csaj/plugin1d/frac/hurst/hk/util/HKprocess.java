@@ -48,11 +48,11 @@ import org.scijava.log.LogService;
  * https://cran.r-project.org/package=HKprocess
  * 
  * According to:
- * Likens, Aaron D., Madhur Mangalam, Aaron Y. Wong, Anaelle C. Charles, und Caitlin Mills.
- * „Better than DFA? A Bayesian Method for Estimating the Hurst Exponent in Behavioral Sciences“.
- * arXiv, 26. Januar 2023.
- * https://doi.org/10.48550/arXiv.2301.11262.
- * 
+ * Tyralis, Hristos, und Demetris Koutsoyiannis.
+ * „A Bayesian Statistical Model for Deriving the Predictive Distribution of Hydroclimatic Variables“.
+ * Climate Dynamics 42, Nr. 11 (1. Juni 2014): 2867–83.
+ * https://doi.org/10.1007/s00382-013-1804-y.
+ *
  * Specially suited for small sequence lengths
  * 
  * <p>
