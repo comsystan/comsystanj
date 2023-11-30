@@ -920,7 +920,8 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
     }
     
     /**
-     * Generates fGn sequences using Davis and Harte autocorrelation method DHM 
+     * Generates fGn sequences using Davies and Harte autocorrelation method DHM 
+     * Davies, R.B., Harte, D.: Tests for Hurst effect. Biometrika 74(1), 95–101 (1987). https://doi.org/10.1093/biomet/74.1.95
      */
     
     private void computefGnSequences() {
