@@ -61,7 +61,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - FFT windowing can be set
 
 ### Box counting dimension
-- Fractal dimension is computed with box counting
+- Fractal dimension with box counting
 - 8-bit binary or grey images
 - Binary [0, >0] counting or DBC and RDBC
 - Raster box scanning
@@ -71,7 +71,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Jin et al., Pattern Recognit. Lett., 1995, [DOI  10.1016/0167-8655(94)00119-N](https://doi.org/10.1016/0167-8655(94)00119-N)
 
 ### Pyramid dimension
-- Fractal dimension is computed by using image pyramids
+- Fractal dimension by using image pyramids
 - 8-bit binary images
 - Binary [0, >0] algorithm
 - Linear regression parameters of the double log plot can be set
@@ -81,7 +81,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [DOI 10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
 
 ### Minkowski dimension
-- Fractal dimension is computed with morphological dilations and erosions
+- Fractal dimension with morphological dilations and erosions
 - 8-bit binary or grey images
 - Binary [0, >0] dilation
 - Blanket or Variation method with grey value dilation/erosion
@@ -91,7 +91,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Peleg et al., IEEE-TPAMI, 1984, [DOI 10.1109/TPAMI.1984.4767557](https://doi.org/10.1109/TPAMI.1984.4767557)
 
 ### Correlation dimension
-- Fractal correlation dimension is computed
+- Fractal correlation dimension
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Raster box scanning or
@@ -103,7 +103,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Grassberger & Procaccia, Physica D, 1983, [DOI 10.1016/0167-2789(83)90298-1](https:/doi.org/10.1016/0167-2789(83)90298-1)
 
 ### Directional correlation dimension
-- A directional dependent fractal correlation dimension is computed
+- A directional dependent fractal correlation dimension
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Classical pair wise occurrence counting
@@ -114,7 +114,6 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 
 ### Generalized dimensions
-- Generalized fractal dimensions are computed
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Raster or sliding box scanning
@@ -126,7 +125,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Ahammer et al., Physica D, 2003, [DOI 10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
 
 ### Higuchi dimension 1D
-- Fractal dimension is computed for 1D grey value profiles extracted from an image
+- Fractal dimension for 1D grey value profiles extracted from an image
 - 8-bit grey images
 - Several extraction methods can be chosen
 - Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
@@ -135,14 +134,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Ahammer, PLoS ONE, 2011, [DOI 10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
 
 ### Higuchi dimension 2D
-- Fractal dimension is computed with Higuchi inspired 2D algorithms
+- Fractal dimension with Higuchi inspired 2D algorithms
 - 8-bit grey or RGB color images
 - Several options can be chosen
 - Linear regression parameters of the double log plot can be set
 - Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
 
 ### FFT dimension
-- Fractal dimension is computed with FFT algorithm
+- Fractal dimension with FFT algorithm
 - 8-bit grey images
 - Several windowing filters can be set
 - Circluar average of k values or
@@ -154,7 +153,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Anguiano et al., Journal of Microscopy, 1993, [DOI 10.1111/j.1365-2818.1993.tb03416.x](https://doi.org/10.1111/j.1365-2818.1993.tb03416.x)
 
 ### Tug of war dimension
-- Fractal dimension is computed by using a tug of war algorithm
+- Fractal dimension by using a tug of war algorithm
 - 8-bit binary images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes according to the power of 2 can be set
@@ -165,7 +164,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Lacunarity
-- Lacunarity is computed of a binary image  
+- Lacunarity of a binary image  
 - 8-bit binary or grey images
 - The number of boxes with distinct sizes can be set
 - Shows a double logarithmic plot of lacunarities
@@ -181,7 +180,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Succolarity
-- Succolarity is computed by flooding the black pixels of a binary image  
+- Succolarity by flooding the black pixels of a binary image  
 - 8-bit binary images
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes can be set
@@ -209,7 +208,6 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
 ### Generalised entropies
-- Computes generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
 - Probabilities are computed with plain pixel grey values
 - 8-bit grey images
