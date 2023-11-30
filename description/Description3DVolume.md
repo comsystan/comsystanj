@@ -49,7 +49,7 @@
 - FFT windowing can be set
 
 ### 3D Box counting dimension
-- Fractal dimension is computed with 3D box counting
+- Fractal dimension with 3D box counting
 - This is a direct expansion of the 2D algorithm
 - 8-bit grey image volume
 - Binary [0, >0] algorithm
@@ -58,7 +58,7 @@
 - Linear regression parameters of the double log plot can be set
 
 ### 3D Minkowski dimension
-- Fractal dimension is computed with 3D morphological dilations and erosions
+- Fractal dimension with 3D morphological dilations and erosions
 - 8-bit binary or grey image volume
 - Binary [0, >0] dilation
 - Blanket or Variation method with grey value dilation/erosion
@@ -68,7 +68,7 @@
 - Peleg et al., IEEE-TPAMI, 1984, [DOI 10.1109/TPAMI.1984.4767557](https://doi.org/10.1109/TPAMI.1984.4767557)
 
 ### 3D Correlation dimension
-- Fractal dimension is computed with 3D correlation
+- Fractal dimension with 3D correlation
 - This is a direct expansion of the 2D algorithm
 - 8-bit grey image volume
 - Binary [0, >0] or grey value correlation
@@ -77,7 +77,7 @@
 - Linear regression parameters of the double log plot can be set
 
 ### 3D Generalized dimensions
-- 3D Generalized fractal dimensions are computed
+- 3D Generalized fractal dimensions
 - 8-bit binary or grey image volume
 - Binary [0, >0] or grey value mass algorithm
 - Raster box scanning
@@ -87,7 +87,7 @@
 - Ahammer et al., Physica D, 2003, DOI 10.1016/S0167-2789(03)00099-X
 
 ### 3D Higuchi dimension
-- Fractal dimension is computed with Higuchi inspired 3D algorithms
+- Fractal dimension with Higuchi inspired 3D algorithms
 - This is a direct expansion of the 2D algorithms
 - 8-bit grey image volume
 - Grey value algorithm
@@ -96,7 +96,7 @@
 - Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
 
 ### 3D FFT dimension
-- Fractal dimension is computed with a 3D FFT algorithm or subsequent 1D FFTs
+- Fractal dimension with a 3D FFT algorithm or subsequent 1D FFTs
 - 8-bit grey image volume
 - Several windowing filters can be set
 - Spherical average of k values or
@@ -107,7 +107,7 @@
 - For spherical averaging, the number of regression points is higher than k itself and additionally, will be automatically lowered to the number of averages.  
 
 ### 3D Tug of war dimension
-- Fractal dimension is computed by using the 3D tug of war algorithm
+- Fractal dimension by using the 3D tug of war algorithm
 - 8-bit binary image volume
 - Binary [0, >0] algorithm
 - Grey value algorithm
@@ -119,7 +119,7 @@
 - Reiss et al., Chaos, 2016, DOI 10.1063/1.4966539
 
 ### 3D Lacunarity
-- This is a direct expansion of the 2D algorithms
+- Direct expansion of the 2D algorithms
 - 8-bit binary or grey image volume
 - The number of boxes with distinct sizes can be set
 - Shows a double logarithmic plot of lacunarities
