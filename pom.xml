@@ -34,6 +34,7 @@
 		<module>csaj-plugin1d-frac-dim-sevcik</module>
 		<module>csaj-plugin1d-frac-dim-tugofwar</module>
 		<module>csaj-plugin1d-frac-hurst-psd</module>
+		<module>csaj-plugin1d-frac-hurst-hk</module>
 		<module>csaj-plugin1d-generator</module>
 		<module>csaj-plugin1d-hrv</module>
 		<module>csaj-plugin1d-kc</module>
