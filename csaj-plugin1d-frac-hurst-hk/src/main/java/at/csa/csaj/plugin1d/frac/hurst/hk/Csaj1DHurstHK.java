@@ -677,7 +677,7 @@ public class Csaj1DHurstHK<T extends RealType<T>> extends ContextCommand impleme
 		// Compute result values
 		double[] resultValues = process(tableIn, c); 
 		// 0 D, 1 R2, 2 StdErr
-		logService.info(this.getClass().getName() + " hk H: " + resultValues[0]);
+		//logService.info(this.getClass().getName() + " H (HK): " + resultValues[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, resultValues); //write always to the first row
 		
@@ -867,6 +867,7 @@ public class Csaj1DHurstHK<T extends RealType<T>> extends ContextCommand impleme
 			resultH = hkProcess.getH();
 			
 			resultValues[0]  = resultH;
+			logService.info(this.getClass().getName() + " H (HK):" + resultH);
 	
 			int lastMainResultsIndex = 0;
 			
@@ -896,6 +897,7 @@ public class Csaj1DHurstHK<T extends RealType<T>> extends ContextCommand impleme
 					sumHs += H;
 					
 				}
+				logService.info(this.getClass().getName() + " H (HK) Surr mean:" + sumHs/numSurrogates);
 				resultValues[lastMainResultsIndex   + 1] = sumHs/numSurrogates;
 				//resultValues[lastMainResultsIndex + 2] = sum?s/numSurrogates;
 				//resultValues[lastMainResultsIndex + 3] = sum?s/?;				

@@ -129,6 +129,7 @@ public class HKprocess {
 		double H = 0.0;
 				
 	    double logM = optimprice(data); // Maximum value of logphxfunction
+	    //System.out.println("HKProcess logM: " + logM);
         double[] estimatesOfH = new double[n];
         
         for (int i = 0; i < n; i++) {
@@ -151,10 +152,10 @@ public class HKprocess {
         double EPS  = Double.MIN_VALUE;
         double[] a1 = new double[4]; //Result from ltz method
         int fault   = 999;
-        //fault = ltza(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result
-        //fault = ltzb(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result
-        fault = ltzc(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result
-        //fault = ltzd(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result
+        fault = ltza(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result
+        //fault = ltzb(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result //ERROR: NaN because a1[2] = 0
+        //fault = ltzc(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result //ERROR: NaN because a1[2] = 0
+        //fault = ltzd(acfHKp(H, maxlag), nx, x, nx, EPS, a1); //a1 will be the result //ERROR: NaN because a1[1] = and a1[2] = 0
         //System.out.println("HKprocess fault:" + fault);
          
         double log = -0.5 * a1[3] - 0.5 * (size - 1) * Math.log(a1[2] * a1[0] - Math.pow(a1[1], 2)) + (0.5 * size - 1) * Math.log(a1[2]);
@@ -166,7 +167,7 @@ public class HKprocess {
         OptimizationData bounds = new SearchInterval(0.00001, 0.99999);
         MaxEval maxEval = new MaxEval(200);
         UnivariateOptimizer optimizer = new BrentOptimizer(1e-6, 1e-12);
-        UnivariatePointValuePair result = optimizer.optimize(maxEval, f, GoalType.MINIMIZE, bounds);
+        UnivariatePointValuePair result = optimizer.optimize(maxEval, f, GoalType.MAXIMIZE, bounds);
         return result.getValue(); //.getPoint() would be the location of the minimum
     }
  
