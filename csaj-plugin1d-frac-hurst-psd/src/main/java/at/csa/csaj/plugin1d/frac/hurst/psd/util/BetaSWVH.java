@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ2 signal plugin for computing the Hurst coefficient.
- * File: BetaDispH.java
+ * Project: ImageJ2 signal plugin for computing the Hurst coefficient using power spectral densities.
+ * File: BetaSWVH.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,18 +25,17 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin1d.frac.hurst.util;
+package at.csa.csaj.plugin1d.frac.hurst.psd.util;
 
 import java.util.Vector;
-
 import org.scijava.log.LogService;
 import at.csa.csaj.commons.regression.LinearRegression;
 
 /**
- * This class calculates H using dispersional analysis according to Eke et al.
- * Standard Deviations of local averages
+ * This method calculates H using scaled window variance according to Eke et al.
+ * Average of local Standard Deviations
  */
-public class BetaDispH {
+public class BetaSWVH {
 
 	
 private LogService logService;	
@@ -81,21 +80,22 @@ private LogService logService;
 	/**
 	 * This is the standard constructor
 	 */
-	public BetaDispH() {
+	public BetaSWVH() {
 
 	}
 
 	/**
-	 * This class calculates H using dispersional analysis according to Eke et al.
-	 * Standard Deviations of local averages
+	 * This method calculates H using scaled window variance according to Eke et al.
+	 * Average of local Standard Deviations
 	 * 
 	 * @param sequence
 	 * @return
 	 */
 	public double[] computeRegression(double[] sequence) {
 		int length = sequence.length;
-		Vector<Double> meanVec = new Vector<Double>();
+		Vector<Double> sdtDevVec = new Vector<Double>();
 		double winMean = 0.0d;
+		double winSdtDev = 0;
 		
 		//get number of iterations
 		int winSize = 3; //initial window size
@@ -104,28 +104,34 @@ private LogService logService;
 	    	winSize = winSize*2;	
 	    	numIterations += 1;
 		}
-	
+		
 		double[] dataY = new double[numIterations];
 		double[] dataX = new double[numIterations];  
 		lnDataY = new double[numIterations];
 		lnDataX = new double[numIterations];  
-
+		
 		winSize = 3; //initial window size
 		int n = 0;
 	    while ((sequence.length / winSize) > 1){ // at least two big windows
-	    	meanVec = new Vector<Double>();
+	    	sdtDevVec = new Vector<Double>();
 	    	int w = 0; 	
 	    	while (w <= (sequence.length - winSize)){   //scroll through sequence with windows
 	    		winMean = 0.0d;
 	    		for (int i = w; i < w + winSize; i++){ //scroll through data points of a single window
-	    			winMean = winMean + sequence[i];
+	    			winMean = winMean +sequence[i];
 	    		}
 	    		winMean = winMean/winSize;
-	    		meanVec.add(winMean);  // add local mean
+	    		winSdtDev = 0;
+	    		for (int i = w; i < w + winSize; i++){ //scroll through data points of a single window
+	    			winSdtDev = winSdtDev + ((sequence[i] - winMean) * (sequence[i] - winMean));  			
+	    		}
+	    		winSdtDev = winSdtDev/winSize;
+	    		winSdtDev = Math.sqrt(winSdtDev);
+	    		sdtDevVec.add(winSdtDev);  // add local SD
 	    		w = w + winSize;
 	    	}
-	    	//calculate SD and set data values:
-	    	dataY[n] = this.calcStandardDeviation(meanVec);
+	    	//calculate mean and set data values:
+	    	dataY[n] = this.calcMean(sdtDevVec);
 	    	dataX[n] = (double)winSize;
 	    	winSize = winSize*2;
 	    	n = n + 1;
@@ -139,18 +145,17 @@ private LogService logService;
 			lnDataX[i] = Math.log(dataX[i]/dataX[0]);
 			lnDataY[i] = Math.log(dataY[i]/dataY[0]);
 		}
-		
 		int regMin = 1;
 		int regMax = lnDataY.length;
-	
+			
 		// Compute regression
 		LinearRegression lr = new LinearRegression();
 		double[] regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		
 		double[] result = {regressionParams[1], regressionParams[4], regressionParams[3]};  //slope, r2, slope standard error
-		//dispH = 1+ regressionParams[1];
-		 
+		//swvH = p[1];
+		
 		return result;
 	}
 	

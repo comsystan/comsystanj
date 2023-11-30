@@ -13,11 +13,11 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>csaj-plugin1d-frac-hurst</artifactId>
+	<artifactId>csaj-plugin1d-frac-hurst-psd</artifactId>
 	<version>1.1.1</version><!--ComsystanJ version-->
 
-	<name>1D Sequence - Hurst coefficient</name>
-	<description>ImageJ2 signal plugin for computing the Hurst coefficient.</description>
+	<name>1D Sequence - Hurst coefficient (PSD)</name>
+	<description>ImageJ2 signal plugin for computing the Hurst coefficient using power spectral densities.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2021</inceptionYear>
 	<organization>
@@ -77,8 +77,8 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>at.csa.csaj.plugin1d.frac.hurst</package-name>
-		<main-class>at.csa.csaj.plugin1d.frac.hurst.Csaj1DHurst</main-class>
+		<package-name>at.csa.csaj.plugin1d.frac.hurst.psd</package-name>
+		<main-class>at.csa.csaj.plugin1d.frac.hurst.Csaj1DHurstPSD</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

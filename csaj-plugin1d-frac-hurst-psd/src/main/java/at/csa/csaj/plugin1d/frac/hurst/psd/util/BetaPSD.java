@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 signal plugin for computing the Hurst coefficient.
+ * Project: ImageJ2 signal plugin for computing the Hurst coefficient using power spectral densities.
  * File: BetaPSD.java
  * 
  * $Id$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin1d.frac.hurst.util;
+package at.csa.csaj.plugin1d.frac.hurst.psd.util;
 
 import java.util.Vector;
 

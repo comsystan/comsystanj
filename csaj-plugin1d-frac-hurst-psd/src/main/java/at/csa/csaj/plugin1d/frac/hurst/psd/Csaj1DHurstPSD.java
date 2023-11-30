@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ2 signal plugin for computing the Hurst coefficient.
- * File: Csaj1DHurst.java
+ * Project: ImageJ2 signal plugin for computing the Hurst coefficient using power spectral densities.
+ * File: Csaj1DHurstPSD.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin1d.frac.hurst;
+package at.csa.csaj.plugin1d.frac.hurst.psd;
 
 import java.awt.Toolkit;
 import java.text.SimpleDateFormat;
@@ -64,32 +64,38 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.plugin1d.frac.hurst.util.BetaDispH;
-import at.csa.csaj.plugin1d.frac.hurst.util.BetaPSD;
-import at.csa.csaj.plugin1d.frac.hurst.util.BetaSWVH;
+
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.algorithms.Surrogate1D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
+import at.csa.csaj.plugin1d.frac.hurst.psd.util.BetaDispH;
+import at.csa.csaj.plugin1d.frac.hurst.psd.util.BetaPSD;
+import at.csa.csaj.plugin1d.frac.hurst.psd.util.BetaSWVH;
 import at.csa.csaj.plugin1d.open.Csaj1DOpener;
 
 /**
- * A {@link Command} plugin computing <the Hurst coefficient</a>
+ * A {@link Command} plugin computing <the Hurst coefficient using power spectral densities</a>
  * of a  sequence.
  */
+
+//According to:
+//Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, 
+//https://doi.org/10.1007/s004249900135
+
 @Plugin(type = ContextCommand.class, 
 	headless = true,
-	label = "Hurst coefficient",
+	label = "Hurst coefficient (PSD)",
 	initializer = "initialPluginLaunch",
 	//iconPath = "/images/comsystan-??.png", //Menu entry icon
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Hurst coefficient ", weight = 160)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
-//public class SequenceHurst<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+	@Menu(label = "Hurst coefficient (PSD)", weight = 160)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
+//public class SequenceHurstPSD<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
-	private static final String PLUGIN_LABEL            = "<html><b>Hurst coefficient</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Hurst coefficient (PSD)</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String HURSTOPTIONS_LABEL      = "<html><b>Hurst options</b></html>";
 	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
@@ -149,7 +155,7 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 	
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	
-	private static final String tableOutName = "Table - Hurst";
+	private static final String tableOutName = "Table - Hurst (PSD)";
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -1046,12 +1052,12 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 			ssc_stdErr  = Double.NaN;
 	
 			disp_Beta   = Double.NaN;
-			disp_H 	   = Double.NaN;
+			disp_H 	    = Double.NaN;
 			disp_r2     = Double.NaN;
 			disp_stdErr = Double.NaN;
 			
 			swv_Beta    = Double.NaN;
-			swv_H 	   = Double.NaN;
+			swv_H 	    = Double.NaN;
 			swv_r2      = Double.NaN;
 			swv_stdErr  = Double.NaN;
 			
@@ -1567,6 +1573,6 @@ public class Csaj1DHurst<T extends RealType<T>> extends ContextCommand implement
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DHurst.class, true);
+		ij.command().run(Csaj1DHurstPSD.class, true);
 	}
 }
