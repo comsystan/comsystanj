@@ -50,7 +50,7 @@
 - Optional surrogate data conversion
 
 ### Filter
-- Computes Moving average or Moving Median
+- Computes Moving average or Moving median
 - The range of average or median computation can be set
 - The range must be an odd number
 - A range of e.g. 3 means that for a data point, the previous value, the value itself and the next value are taken for the computation  
@@ -67,14 +67,14 @@
   - Scaling parameter can be set
 
 ### Surrogates
-- Computes surrogate signals
+- Surrogate signals
 - Shuffle, Gaussian, Random phase, AAFT
 - FFT windowing can be set
 - Signals should be opened with the CSAJ Signal Opener
 - Ref: Mark Shelhammer, Nonlinear Dynamics in Physiology, World Scientific 2007
 
 ### FFT
-- Computes the Power- or Magnitude spectrum
+- Power- or Magnitude spectrum
 - Several windowing functions can be set (default - Hanning)
 - Normalization can be set to Standard or Unitary
 - Output value scaling can be set to Log, Ln or Linear
@@ -84,7 +84,6 @@
 - Optional surrogate data conversion
 
 ### Autocorrelation
-- Computes the autocorrelation
 - Options for large and small number of data points
 - FFT according to Wiener-Khinchin theorem
 - The maximal lag can be set
@@ -93,7 +92,7 @@
 - Oppenheim & Schafer, Discrete-Time Signal Processing, Ed.3, Pearson, 2010 
 
 ### Statistics
-- Computes descriptive statistics
+- Descriptive statistics
 - N, Min, Max, Median, RMS, Mean, SD, Kurtosis, Skewness, Sum, Sum of squares
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
@@ -130,7 +129,7 @@
 - Hamilton & Tompkins, 1987, IEEE Trans.Biomed.Eng., [DOI 10.1109/TBME.1986.325695](https://doi.org/10.1109/TBME.1986.325695)
 
 ### Standard HRV measurements
-- Computes standard HRV measurements (e.g. for 24h ECG Holter recordings)
+- Standard HRV measurements (e.g. for 24h ECG Holter recordings)
 - Time domain and Frquency domain methods
 - Several windowing functions for the frequency domain measurements (default - Hanning)
 - MeanHR, MeanNN, SDNN, SDANN, SDNNI, HRVTI, RMSSD, SDSD, NN50, PNN50, NN20, PNN20, ULF, VLF, LF, HF, LFnorm, HFnorm, LF/HF, TP
@@ -152,7 +151,7 @@
 - Signals should be opened with the CSAJ Signal Opener
 
 ### Lyapunov exponent
-- Computes the largest Lyapunov exponent
+- Largest Lyapunov exponent
 - Rosenstein's and Kantz's algorithms are implemented
 - Additionally a direct method without phase space reconstruction is implemented but should be used with care.
 - The maximum delay can be set
@@ -176,7 +175,7 @@
 - Kantz, 1994, Physics Letters A, [10.1016/0375-9601(94)90991-1](https://doi.org/10.1016/0375-9601(94)90991-1)
 
 ### Recurrence quantification analysis
-- Computes RQA measures that quantify the number and duration of reccurrences of a phase space trajectory
+- RQA measures that quantify the number and duration of reccurrences of a phase space trajectory
 - RR, DET, RATIO, DIV, Lmean, Lmax, ENT, LAM, TT  
 - The embedding dimension can be set (usually not too high)
 - The delay (tau) for the phase space reconstruction can be set (a relaible value value is the first minimum of the autocorrelation)
@@ -193,7 +192,6 @@
 - Marwan et al., 2007, PhysicaD, [10.1016/j.physrep.2006.11.001](https://doi.org/10.1016/j.physrep.2006.11.001)
 
 ### Detrended fluctuation analysis
-- Computes Detrended fluctuation analysis.
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
@@ -208,7 +206,7 @@
 - Peng et al., 1994, Phys.Rev.E., [DOI 10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
 ### Hurst coefficient (PSD)
-- Computes the Hurst coefficient using the power spectrum density PSD
+- Using the power spectrum density PSD
 - lowPSDwe - PSD using only lower frequencies (low), parabolic windowing (w) and end matching (e) (bridge detrending)
 - for PSD, regression Min and Max can be set
 - for lowPSDwe, regression Min = 1/8 and Max = 1/2 of the PSD size(1/2 of the signal length)
@@ -228,8 +226,9 @@
 - Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135)
 
 ### Hurst coefficient (HK)
-- Computes the Hurst coefficient using the Hurst-Kolmogorov HK method
+- For fGn signals using the Hurst-Kolmogorov HK method
 - Better than DLA for short sequences
+  Only for fGn signals (algorithm does not converge for fGm signals) 
 - n - Number of samples from the posterior distribution - the higher, the better
 - Signals should be opened with the CSAJ Signal Opener
 - Analysis of Entire signal or Subsequent/Gliding box
@@ -244,7 +243,6 @@
 - Likens et al. 2023, arXiv, [DOI 10.48550/arXiv.2301.11262](https://doi.org/10.48550/arXiv.2301.11262)
 
 ### Higuchi dimension
-- Computes Higuchi dimensions
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
@@ -259,7 +257,6 @@
 - Higuchi, 1988, Physica D, [DOI 10.1016/0167-2789(88)90081-4](https://doi.org/10.1016/0167-2789(88)90081-4)
 
 ### Tug of war dimension
-- Computes Tug of war dimensions
 - Binary [0, >0] algorithm!
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
@@ -293,7 +290,6 @@
 - Katz, 1988, Comp Biol Med, [DOI 10.1016/0010-4825(88)90041-8](https://doi.org/10.1016/0010-4825(88)90041-8)
 
 ### Petrosian dimension
-- Computes Petrosian dimensions
 - Construction of a binary signal sequence by following a criterion
 - Possible criterions:
 - Greater or smaller than the mean of signal
@@ -311,7 +307,6 @@
 - Petrosian, 1988, Proc 8th IEEE Symp Comp Med Syst, [DOI 10.1109/CBMS.1995.465426](https://doi.org/10.1109/CBMS.1995.465426)
 
 ### Sevcik dimension
-- Computes Sevcik dimensions
 - Gives better results than Katz dimension
 - Signal lengths are computed by Euclidean distances 
 - Signals should be opened with the CSAJ Signal Opener
@@ -325,7 +320,7 @@
 - Sevcik, 1988, Complexity International, [arxiv.org/abs/1003.5266](http://arxiv.org/abs/1003.5266)
 
 ### RSE dimension (Roughness dimension)
-- Computes Roughness scaling extraction dimensions
+- Roughness scaling extraction dimension
 - M number of randomly chosen sub-sequences for each length (M=50 recommended)
 - Scaling factor = 1 (fixed) 
 - Flattening (detrending) of sub-sequences with polynomials
@@ -362,7 +357,6 @@
 - Richman & Moorman, 2000, Am.J.Physiol.Heart.Circ.Physiol., [DOI 10.1152/ajpheart.2000.278.6.H2039](https://doi.org/10.1152/ajpheart.2000.278.6.H2039)
 
 ### Permutation entropy
-- Computes Permutation entropies
 - Permutation entropy H(n), Permutation entropy per symbol h(n)=H(n)/(n-1), Normalized permutation entropy H(n)/log(n!), Sorting entropy d(n)=H(n)-H(n-1), d(2)=H(2)  
 - n Order of Permutation entropy (>=2)
 - d Additional delay according to Govindan et.al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
@@ -378,7 +372,6 @@
 - Bandt&Pompe, 2002, Phys.Rev.Lett, [DOI 10.1103/PhysRevLett.88.174102](https://doi.org/10.1103/PhysRevLett.88.174102)
 
 ### Generalised entropies
-- Computes generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
 - Probabilities are computed with plain signal values or with differences
 - The time lag can be set
@@ -428,7 +421,6 @@
 - West, 2006, Complexity, [DOI 10.1002/cplx.20114](https://doi.org/10.1002/cplx.20114)
 
 ### Symbolic aggregation
-- Generates symbolic aggregation
 - Output is an image
 - Aggregation size = Sqrt(Alphabet size) x 2^(Sub-word length - 1)
 - Aggregation length can be set
