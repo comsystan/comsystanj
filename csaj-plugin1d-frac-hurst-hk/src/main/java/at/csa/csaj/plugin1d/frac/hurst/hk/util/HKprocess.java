@@ -114,7 +114,7 @@ public class HKprocess {
 	public HKprocess() {
 
 	}
-
+	
 	/**
 	 * This method calculates the Hurst coefficient using the Hurst-Kolmogorov method
 	 * 
@@ -126,6 +126,17 @@ public class HKprocess {
 		double add = 0.001;
 	    double minu = 0.001;
 	    double maxu = 0.999;
+	    return computeH(data, n, add, minu, maxu);
+	}
+
+	/**
+	 * This method calculates the Hurst coefficient using the Hurst-Kolmogorov method
+	 * 
+	 * @param sequence  1D data double[]
+	 * @param iterations n   
+	 * @return double H
+	 */
+	public double computeH(double[] data, int n, double add, double minu, double maxu) {
 		double H = 0.0;
 				
 	    double logM = optimprice(data); // Maximum value of logphxfunction
@@ -133,7 +144,7 @@ public class HKprocess {
         double[] estimatesOfH = new double[n];
         
         for (int i = 0; i < n; i++) {
-            estimatesOfH[i] = accrej(data, logM, add, minu, maxu);
+            estimatesOfH[i] = acceptReject(data, logM, add, minu, maxu);
             //System.out.println("HKprocess  i(n):" + i + "("+n+")" + "  estimatesOfH[i]:"+estimatesOfH[i] );
         }
 
@@ -168,11 +179,13 @@ public class HKprocess {
         MaxEval maxEval = new MaxEval(200);
         UnivariateOptimizer optimizer = new BrentOptimizer(1e-6, 1e-12);
         UnivariatePointValuePair result = optimizer.optimize(maxEval, f, GoalType.MAXIMIZE, bounds);
-        return result.getValue(); //.getPoint() would be the location of the minimum
+        return result.getValue(); //.getPoint() would be the location of the maximum
     }
  
-    //An Accept-Reject algorithm to simulate from H
-    private double accrej(double[] x, double logM, double add, double minu, double maxu) {
+    //Accept-Reject algorithm to simulate from H
+    //See: Robert, C.P., Casella, G., Casella, G.: Monte Carlo Statistical Methods vol. 2. Springer, New York, NY (1999)
+    //Note: Acceptance-rejection sampling is is a Monte Carlo method that has largely been replaced by newer Markov Chain Monte Carlo methods. It’s usually only used when it’s challenging to sample individual distributions within a larger Markov chain (Christensen et al., 2011).Christensen, R. et al., (2011). Bayesian Ideas and Data Analysis: An Introduction for Scientists and Statisticians. CRC Press.
+    private double acceptReject(double[] x, double logM, double add, double minu, double maxu) {
         double dist = 1 / (maxu - minu);
         double logM1 = logM - Math.log(dist) + add;
         RandomDataGenerator randomDataGenerator = new RandomDataGenerator();
@@ -187,6 +200,7 @@ public class HKprocess {
         return y;
     }
     
+    // Autocorrelation function
     public double[] acfHKp(double H, int maxlag) {
         double h2 = 2 * H;
         int[] k = new int[maxlag];
