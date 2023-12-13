@@ -91,7 +91,7 @@ import at.csa.csaj.plugin1d.open.Csaj1DOpener;
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Hurst coefficient (PSD)", weight = 160)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
+	@Menu(label = "Hurst coefficient (PSD)", weight = 161)}) //Space at the end of the label is necessary to avoid duplicate with image2d plugin 
 //public class SequenceHurstPSD<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
@@ -309,9 +309,9 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 			   style = ChoiceWidget.LIST_BOX_STYLE,
 			   choices = {"PSD_Beta"},   //may be later  "DISP", "SWV"}, //"PSD", "DISP", "SWV"
 			   persist = true,  //restore previous value default = true
-			   initializer = "initialHurstType",
-			   callback = "callbackHurstType")
-	private String choiceRadioButt_HurstType;
+			   initializer = "initialSurrBoxHurstType",
+			   callback = "callbackSurrBoxHurstType")
+	private String choiceRadioButt_SurrBoxHurstType;
 	
 	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -424,8 +424,8 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
 		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 	}
-	protected void initialHurstType() {
-		this.choiceRadioButt_HurstType = "PSD";
+	protected void initialSurrBoxHurstType() {
+		this.choiceRadioButt_SurrBoxHurstType = "PSD";
 	}
 	protected void initialSkipZeroes() {
 		booleanSkipZeroes = false;
@@ -522,9 +522,9 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_HurstType} parameter changes. */
-	protected void callbackHurstType() {
-		logService.info(this.getClass().getName() + " Hurst type for surrogate or box set to " + choiceRadioButt_HurstType);
+	/** Executed whenever the {@link #choiceRadioButt_SurrBoxHurstType} parameter changes. */
+	protected void callbackSurrBoxHurstType() {
+		logService.info(this.getClass().getName() + " Hurst type for surrogate or box set to " + choiceRadioButt_SurrBoxHurstType);
 	}
 
 	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
@@ -773,15 +773,15 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
-				tableOut.add(new DoubleColumn(choiceRadioButt_PSDType+"_Beta_Surr")); //Mean surrogate value	
-				tableOut.add(new DoubleColumn(choiceRadioButt_PSDType+"R2_Surr"));    //Mean surrogate value
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn(choiceRadioButt_PSDType+"_Beta_Surr-#"+(s+1))); 
+				tableOut.add(new DoubleColumn(choiceRadioButt_SurrBoxHurstType+"_Beta_Surr")); //Mean surrogate value	
+				tableOut.add(new DoubleColumn(choiceRadioButt_SurrBoxHurstType+"R2_Surr"));    //Mean surrogate value
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn(choiceRadioButt_SurrBoxHurstType+"_Beta_Surr-#"+(s+1))); 
 				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
 			}	
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn(choiceRadioButt_PSDType+"_Beta-#" + n));	
+				tableOut.add(new DoubleColumn(choiceRadioButt_SurrBoxHurstType+"_Beta-#" + n));	
 			}
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableOut.add(new DoubleColumn("R2-#" + n));	
@@ -789,7 +789,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn(choiceRadioButt_PSDType+"_Beta-#" + n));	
+				tableOut.add(new DoubleColumn(choiceRadioButt_SurrBoxHurstType+"_Beta-#" + n));	
 			}
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableOut.add(new DoubleColumn("R2-#" + n));	
@@ -1248,7 +1248,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 					if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 
 					//"PSD", "DISP", "SWV"
-					if (this.choiceRadioButt_HurstType.equals("PSD_Beta")) {
+					if (this.choiceRadioButt_SurrBoxHurstType.equals("PSD_Beta")) {
 						poweSpecLength = surrSequence1D.length/2;	
 						if (psdType.equals("PSD")){			
 							resultPSD = betaPSD.computeRegression(surrSequence1D, 1 , poweSpecLength);		
@@ -1266,10 +1266,10 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 						beta = -resultPSD[0];
 						r2   =  resultPSD[1];
 					}
-					else if (this.choiceRadioButt_HurstType.equals("DISP_Beta")) {
+					else if (this.choiceRadioButt_SurrBoxHurstType.equals("DISP_Beta")) {
 						
 					}
-					else if (this.choiceRadioButt_HurstType.equals("SWV_Beta")) {
+					else if (this.choiceRadioButt_SurrBoxHurstType.equals("SWV_Beta")) {
 						
 					}			
 					resultValues[lastMainResultsIndex + 3 + s]                    = beta;
@@ -1306,7 +1306,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 //				//Compute specific values************************************************
 				
 				//"PSD", "DISP", "SWV"
-				if (this.choiceRadioButt_HurstType.equals("PSD_Beta")) {
+				if (choiceRadioButt_SurrBoxHurstType.equals("PSD_Beta")) {
 					poweSpecLength = subSequence1D.length/2;	
 					
 					if (psdType.equals("PSD")){			
@@ -1325,10 +1325,10 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 					beta = -resultPSD[0];
 					r2   =  resultPSD[1];
 				}
-				else if (this.choiceRadioButt_HurstType.equals("DISP_Beta")) {
+				else if (choiceRadioButt_SurrBoxHurstType.equals("DISP_Beta")) {
 					
 				}
-				else if (this.choiceRadioButt_HurstType.equals("SWV_Beta")) {
+				else if (choiceRadioButt_SurrBoxHurstType.equals("SWV_Beta")) {
 					
 				}			
 				
@@ -1364,7 +1364,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 				//Compute specific values************************************************
 			
 				//"PSD", "DISP", "SWV"
-				if (this.choiceRadioButt_HurstType.equals("PSD_Beta")) {
+				if (choiceRadioButt_SurrBoxHurstType.equals("PSD_Beta")) {
 					poweSpecLength = subSequence1D.length/2;	
 					
 					if (psdType.equals("PSD")){			
@@ -1383,10 +1383,10 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 					beta = -resultPSD[0];
 					r2   =  resultPSD[1];
 				}
-				else if (this.choiceRadioButt_HurstType.equals("DISP_Beta")) {
+				else if (choiceRadioButt_SurrBoxHurstType.equals("DISP_Beta")) {
 					
 				}
-				else if (this.choiceRadioButt_HurstType.equals("SWV_Beta")) {
+				else if (choiceRadioButt_SurrBoxHurstType.equals("SWV_Beta")) {
 					
 				}						
 				//if (optShowPlot){ //show all plots
