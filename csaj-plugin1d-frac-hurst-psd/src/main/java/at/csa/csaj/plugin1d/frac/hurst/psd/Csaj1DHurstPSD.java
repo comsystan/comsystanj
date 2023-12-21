@@ -215,7 +215,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 	private final String labelHurstOptions = HURSTOPTIONS_LABEL;
 	
 	@Parameter(label = "PSD option",
-			   description = "PSD or improved PSD",
+			   description = "Power spectral density or low frequency PSD with parabolic windowing and end matching",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			   //PSD: power spectrum density without any improvements
 			   //lowPSDwe: power spectrum density using only lower frequencies (low), parabolic windowing (w) and end matching (e) (bridge detrending)
@@ -250,7 +250,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 	private int spinnerInteger_RegMax = 3;
 	
 	@Parameter(label = "SWV option",
-			   description = "",
+			   description = "Scaled window variance or bridge detrending SWV",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			   //SWV: scaled windowed variance (mean of SD's)
 			   //bdSWV: scaled windowed variance (mean of SD's) with bridge detrending
@@ -294,7 +294,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 	private int spinnerInteger_NumSurrogates;
 	
 	@Parameter(label = "Box length",
-			   description = "Length of subsequent or gliding box - Shoud be at least three times kMax",
+			   description = "Length of subsequent or gliding box",
 			   style = NumberWidget.SPINNER_STYLE, 
 			   min = "2",
 			   max = "9999999999999999999",
@@ -305,7 +305,7 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends ContextCommand implem
 	private int spinnerInteger_BoxLength;
 	
 	@Parameter(label = "(Surr/Box) Hurst type",
-			   description = "Entropy for Surrogates, Subsequent boxes or Gliding box",
+			   description = "Hurst type for Surrogates, Subsequent boxes or Gliding box",
 			   style = ChoiceWidget.LIST_BOX_STYLE,
 			   choices = {"PSD_Beta"},   //may be later  "DISP", "SWV"}, //"PSD", "DISP", "SWV"
 			   persist = true,  //restore previous value default = true

@@ -210,7 +210,7 @@ public class Csaj1DFractalDimensionKatz<T extends RealType<T>> extends ContextCo
 	private int spinnerInteger_NumSurrogates;
 	
 	@Parameter(label = "Box length",
-			   description = "Length of subsequent or gliding box - Shoud be at least three times kMax",
+			   description = "Length of subsequent or gliding box",
 			   style = NumberWidget.SPINNER_STYLE, 
 			   min = "2",
 			   max = "9999999999999999999",
