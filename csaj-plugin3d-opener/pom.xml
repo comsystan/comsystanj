@@ -78,7 +78,7 @@
 
 	<properties>
 		<package-name>at.csa.csaj.plugin3d.open</package-name>
-		<main-class>at.csa.csaj.plugin3d.open.Csaj3DImageOpener</main-class>
+		<main-class>at.csa.csaj.plugin3d.open.Csaj3DOpener</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

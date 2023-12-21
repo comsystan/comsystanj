@@ -92,7 +92,7 @@ import javax.swing.UIManager;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "2D Image(s)"),
         @Menu(label = "Image opener", weight = 1)})
-public class Csaj2DImageOpener<T extends RealType<T>> extends ContextCommand { //modal GUI with cancel
+public class Csaj2DOpener<T extends RealType<T>> extends ContextCommand { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens single or multiple images</b></html>";
 	private static final String SPACE_LABEL  = "";
@@ -405,7 +405,7 @@ public class Csaj2DImageOpener<T extends RealType<T>> extends ContextCommand { /
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj2DImageOpener.class, true);
+         ij.command().run(Csaj2DOpener.class, true);
     	
     }
 

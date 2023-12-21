@@ -93,7 +93,7 @@ import javax.swing.UIManager;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "3D Volume"),
         @Menu(label = "3D Image volume opener", weight = 1)})
-public class Csaj3DVolumeOpener<T extends RealType<T>> extends ContextCommand { //modal GUI with cancel
+public class Csaj3DOpener<T extends RealType<T>> extends ContextCommand { //modal GUI with cancel
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens multiple images</b></html>";
 	private static final String SPACE_LABEL  = "";
@@ -406,7 +406,7 @@ public class Csaj3DVolumeOpener<T extends RealType<T>> extends ContextCommand { 
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj3DVolumeOpener.class, true);
+         ij.command().run(Csaj3DOpener.class, true);
     	
     }
 

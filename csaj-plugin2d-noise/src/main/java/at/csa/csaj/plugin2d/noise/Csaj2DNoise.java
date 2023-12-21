@@ -97,7 +97,7 @@ import io.scif.MetaTable;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Noise", weight = 20)})
-//public class Img2DImageNoise<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+//public class Csaj2DNoise<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
 public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL          = "<html><b>Noise</b></html>";

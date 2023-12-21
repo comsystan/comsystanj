@@ -94,8 +94,8 @@ import io.scif.MetaTable;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Surrogates", weight = 25)})
-//public class Img2DImageSurrogate<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj2DImageSurrogate<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+//public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
+public class Csaj2DSurrogate<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 
 	private static final String PLUGIN_LABEL          = "<html><b>Surrogate</b></html>";
 	private static final String SPACE_LABEL           = "";
@@ -911,6 +911,6 @@ public class Csaj2DImageSurrogate<T extends RealType<T>> extends ContextCommand 
 		// execute the filter, waiting for the operation to finish.
 		// ij.command().run(FractalDimensionHiguchi1D.class,
 		// true).get().getOutput("image");
-		ij.command().run(Csaj2DImageSurrogate.class, true);
+		ij.command().run(Csaj2DSurrogate.class, true);
 	}
 }
