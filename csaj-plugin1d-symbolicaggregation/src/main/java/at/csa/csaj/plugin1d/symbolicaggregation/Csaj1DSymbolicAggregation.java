@@ -874,6 +874,8 @@ public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		
 		String  sequenceRange   = choiceRadioButt_SequenceRange;
 		String  surrType        = choiceRadioButt_SurrogateType;
+		//numSurrogates         = spinnerInteger_NumSurrogates;
+		//numBoxLength          = spinnerInteger_BoxLength;
 		int     numDataPoints   = dgt.getRowCount();
 		//boolean skipZeroes    = booleanSkipZeroes;
 		int     aggLength       = spinnerInteger_AggLength;

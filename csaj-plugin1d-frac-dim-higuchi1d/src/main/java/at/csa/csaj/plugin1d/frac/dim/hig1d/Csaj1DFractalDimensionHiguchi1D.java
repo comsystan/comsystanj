@@ -856,7 +856,8 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 
 		String sequenceRange  = choiceRadioButt_SequenceRange;
 		String surrType       = choiceRadioButt_SurrogateType;
-		int boxLength         = spinnerInteger_BoxLength;
+		numSurrogates         = spinnerInteger_NumSurrogates;
+		numBoxLength          = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
 		int numKMax           = spinnerInteger_KMax;
 		int regMin            = spinnerInteger_RegMin;
@@ -974,15 +975,15 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		} else if (sequenceRange.equals("Subsequent boxes")){
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
-			subSequence1D = new double[(int) boxLength];
+			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
 			long actualNumSubsequentBoxes = (long) Math.floor((double)sequence1D.length/(double)spinnerInteger_BoxLength);
 		
 			//get sub-sequences and compute dimensions
 			for (int i = 0; i < actualNumSubsequentBoxes; i++) {	
 				logService.info(this.getClass().getName() + " Processing subsequent box #: "+(i+1) + "/" + actualNumSubsequentBoxes);	
-				int start = (i*boxLength);
-				for (int ii = start; ii < (start + boxLength); ii++){ 
+				int start = (i*numBoxLength);
+				for (int ii = start; ii < (start + numBoxLength); ii++){ 
 					subSequence1D[ii-start] = sequence1D[ii];
 				}
 				//Compute specific values************************************************
@@ -1006,7 +1007,7 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 		} else if (sequenceRange.equals("Gliding box")){
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
-			subSequence1D = new double[(int) boxLength];
+			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller because of NaNs or removed zeroes
 			long actualNumGlidingBoxes = sequence1D.length - spinnerInteger_BoxLength + 1;
 			
@@ -1014,7 +1015,7 @@ public class Csaj1DFractalDimensionHiguchi1D<T extends RealType<T>> extends Cont
 			for (int i = 0; i < actualNumGlidingBoxes; i++) {
 				logService.info(this.getClass().getName() + " Processing gliding box #: "+(i+1) + "/" + actualNumGlidingBoxes);	
 				int start = i;
-				for (int ii = start; ii < (start + boxLength); ii++){ 
+				for (int ii = start; ii < (start + numBoxLength); ii++){ 
 					subSequence1D[ii-start] = sequence1D[ii];
 				}	
 				//Compute specific values************************************************

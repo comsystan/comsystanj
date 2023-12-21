@@ -801,7 +801,9 @@ public class Csaj1DResampling<T extends RealType<T>> extends ContextCommand impl
 		int    rsFactor          = spinnerInteger_NumFactor;
 		String interpolType      = choiceRadioButt_InterpolationType;
 		//String  sequenceRange  = choiceRadioButt_SequenceRange;
-		//int     boxLength      = spinnerInteger_BoxLength;
+		//String surrType        = choiceRadioButt_SurrogateType;
+		//numSurrogates          = spinnerInteger_NumSurrogates;
+		//numBoxLength           = spinnerInteger_BoxLength;
 		int     numDataPoints    = dgt.getRowCount();
 		//boolean skipZeroes     = booleanSkipZeroes;
 		//String  surrogateType  = choiceRadioButt_SurrogateType;//

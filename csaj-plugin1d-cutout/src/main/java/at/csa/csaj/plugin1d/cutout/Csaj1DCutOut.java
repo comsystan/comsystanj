@@ -779,9 +779,10 @@ public class Csaj1DCutOut<T extends RealType<T>> extends ContextCommand implemen
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		//String sequenceRange= choiceRadioButt_SequenceRange;
-		//String surrType    = choiceRadioButt_SurrogateType;
-		//int  boxLength     = spinnerInteger_BoxLength;
+		//String sequenceRange = choiceRadioButt_SequenceRange;
+		//String surrType      = choiceRadioButt_SurrogateType;
+		//numSurrogates        = spinnerInteger_NumSurrogates;
+		//numBoxLength         = spinnerInteger_BoxLength;
 		int    numDataPoints = dgt.getRowCount();
 		//boolean skipZeroes  = booleanSkipZeroes;
 		

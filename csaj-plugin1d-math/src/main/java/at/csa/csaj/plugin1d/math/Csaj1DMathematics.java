@@ -806,9 +806,10 @@ public class Csaj1DMathematics<T extends RealType<T>> extends ContextCommand imp
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		String  sequenceRange  = choiceRadioButt_SequenceRange;
+		String  sequenceRange = choiceRadioButt_SequenceRange;
 		String  surrType      = choiceRadioButt_SurrogateType;
-		//int     boxLength     = spinnerInteger_BoxLength;
+		//numSurrogates       = spinnerInteger_NumSurrogates;
+		//numBoxLength        = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		//boolean skipZeroes  = booleanSkipZeroes;
 		

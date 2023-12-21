@@ -816,7 +816,8 @@ public class Csaj1DSurrogate<T extends RealType<T>> extends ContextCommand imple
 		
 		//String sequenceRange = choiceRadioButt_SequenceRange;
 		String surrType        = choiceRadioButt_SurrogateType;
-		//int boxLength        = spinnerInteger_BoxLength;
+		//numSurrogates        = spinnerInteger_NumSurrogates;
+		//numBoxLength         = spinnerInteger_BoxLength;
 		int numDataPoints      = dgt.getRowCount();
 		//boolean skipZeroes   = booleanSkipZeroes;
 		//String surrogateType = choiceRadioButt_SurrogateType;//

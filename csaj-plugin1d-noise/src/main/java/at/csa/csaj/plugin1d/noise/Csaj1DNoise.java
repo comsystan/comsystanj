@@ -801,7 +801,8 @@ public class Csaj1DNoise<T extends RealType<T>> extends ContextCommand implement
 		
 		String  sequenceRange  = choiceRadioButt_SequenceRange;
 		String  surrType       = choiceRadioButt_SurrogateType;
-		//int     boxLength    = spinnerInteger_BoxLength;
+		//numSurrogates        = spinnerInteger_NumSurrogates;
+		//numBoxLength         = spinnerInteger_BoxLength;
 		int     numDataPoints  = dgt.getRowCount();
 		//boolean skipZeroes   = booleanSkipZeroes;
 		String  noiseType      = choiceRadioButt_NoiseType;//"Shot" "Salt&Pepper", "Uniform" "Gaussian" "Rayleigh" "Exponential"
