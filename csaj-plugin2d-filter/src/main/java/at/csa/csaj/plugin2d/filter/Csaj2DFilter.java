@@ -544,7 +544,8 @@ public class Csaj2DFilter<T extends RealType<T>> extends ContextCommand implemen
 			boolean virtual  = false;
 			
 			int bitsPerPixel = 8;
-			long[] dims = new long[]{width, height, 3};
+			//long[] dims = new long[]{width, height, 3};
+			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), 3};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
 			datasetPreview = datasetService.create(dims, imagePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
 			datasetPreview.setCompositeChannelCount(3);
