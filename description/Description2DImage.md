@@ -54,6 +54,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
+### Preprocess
+- Preprocessing of images
+- 8-bit grey or RGB color images
+- Auto crop borders ACP
+  - useful for e.g. computing fractal dimensions of ojects rather than images
+  - Black or white background can be choosen
+- ...More to come 
+
 ### Surrogates
 - Computes surrogate images
 - 8-bit grey or RGB color images
