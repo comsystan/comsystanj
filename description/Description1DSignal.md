@@ -205,6 +205,27 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Peng et al., 1994, Phys.Rev.E., [DOI 10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
+### Hurst coefficient (HK, RS, SP)
+- For fGn signals the Hurst-Kolmogorov HK method
+- For fGm signals the traditional Rescale Range RS method
+- For fGm signals the simple Scaling property SP method
+- HK Method better than DLA for short sequences
+- HK algorithm does not converge for fGm signals 
+- n - Number of samples from the posterior distribution - the higher, the better
+- Minimum and maximum window size for RS
+- Maximum lag for SP 
+- Signals should be opened with the CSAJ Signal Opener
+- Analysis of Entire signal or Subsequent/Gliding box
+- Notes for Subsequent/Gliding box:
+  - Restricted to PSD Beta
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- HKProcess converted to Java and adapted from R project [https://cran.r-project.org/package=HKprocess](https://cran.r-project.org/package=HKprocess)
+- Tyralis&Koutsoyiannis, 2014, Climate Dynamics, [DOI 10.1007/s00382-013-1804-y](https://doi.org/10.1007/s00382-013-1804-y)
+- Likens et al. 2023, arXiv, [DOI 10.48550/arXiv.2301.11262](https://doi.org/10.48550/arXiv.2301.11262)
+
 ### Hurst coefficient (PSD)
 - Using the power spectrum density PSD
 - lowPSDwe - PSD using only lower frequencies (low), parabolic windowing (w) and end matching (e) (bridge detrending)
@@ -224,23 +245,6 @@
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135)
-
-### Hurst coefficient (HK)
-- For fGn signals using the Hurst-Kolmogorov HK method
-- Better than DLA for short sequences
-  Only for fGn signals (algorithm does not converge for fGm signals) 
-- n - Number of samples from the posterior distribution - the higher, the better
-- Signals should be opened with the CSAJ Signal Opener
-- Analysis of Entire signal or Subsequent/Gliding box
-- Notes for Subsequent/Gliding box:
-  - Restricted to PSD Beta
-  - The box size should not be larger than 1/3 of the signal length 
-  - The number of subsequent boxes is (signal length)/(box size)
-  - The number of gliding boxes is (signal length)-(box size)
-  - Note: The number of subsequent and particularly of gliding boxes can be very high
-- HKProcess converted to Java and adapted from R project [https://cran.r-project.org/package=HKprocess](https://cran.r-project.org/package=HKprocess)
-- Tyralis&Koutsoyiannis, 2014, Climate Dynamics, [DOI 10.1007/s00382-013-1804-y](https://doi.org/10.1007/s00382-013-1804-y)
-- Likens et al. 2023, arXiv, [DOI 10.48550/arXiv.2301.11262](https://doi.org/10.48550/arXiv.2301.11262)
 
 ### Higuchi dimension
 - Signals should be opened with the CSAJ Signal Opener
