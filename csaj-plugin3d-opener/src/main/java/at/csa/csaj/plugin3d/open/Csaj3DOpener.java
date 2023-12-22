@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin to open multiple images as a volume.
- * File: Csaj3DVolumeOpener.java
+ * File: Csaj3DOpener.java
  * 
  * $Id$
  * $HeadURL$

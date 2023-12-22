@@ -1,7 +1,7 @@
 /*-
  * #%L
- * Project: ImageJ2 signal plugin for computing the Hurst coefficient using the Hurst Kolmogorov method.
- * File: Csaj1DHurstHK.java
+ * Project: ImageJ2 signal plugin for computing the Hurst coefficient.
+ * File: Csaj1DHurst.java
  * 
  * $Id$
  * $HeadURL$

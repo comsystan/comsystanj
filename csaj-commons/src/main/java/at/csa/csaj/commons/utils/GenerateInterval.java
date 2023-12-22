@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: Commons for ComsystanJ ImageJ Plugins
- * File: DoubleSort.java
+ * File: GenerateInterval.java
  * 
  * $Id$
  * $HeadURL$

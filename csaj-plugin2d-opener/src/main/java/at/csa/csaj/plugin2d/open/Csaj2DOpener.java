@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2 plugin to open single or multiple images.
- * File: Csaj2DImageOpener.java
+ * File: Csaj2DOpener.java
  * 
  * $Id$
  * $HeadURL$
