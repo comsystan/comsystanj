@@ -508,7 +508,8 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 			boolean virtual  = false;
 			
 			int bitsPerPixel = 8;
-			long[] dims = new long[]{width, height, depth};
+			//long[] dims = new long[]{width, height, depth};
+			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), rai.dimension(2)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
 			datasetPreview = datasetService.create(dims, volumePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
 			

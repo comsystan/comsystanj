@@ -473,7 +473,8 @@ public class Csaj2DNoise<T extends RealType<T>> extends ContextCommand implement
 			boolean virtual  = false;
 			
 			int bitsPerPixel = 8;
-			long[] dims = new long[]{width, height};
+			//long[] dims = new long[]{width, height};
+			long[] dims = new long[]{rai.dimension(0), rai.dimension(1)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y};
 			datasetPreview = datasetService.create(dims, imagePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
 			
