@@ -195,7 +195,7 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 			   callback = "callbackPreprocessType")
 	private String choiceRadioButt_PreprocessType;
 	
-	@Parameter(label = "(ACP) Background",
+	@Parameter(label = "(ACB) Background",
 			   description = "Black or white background",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			   choices = {"Black", "White"}, //
