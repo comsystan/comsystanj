@@ -21,8 +21,8 @@
   - Constant, Sine, Square, Triangle, Sawtooth
   - Gaussian and Uniform noise
   - Discrete chaotical maps (Logistic, Lorenz, Henon, Cubic, Spence), Silva & Murta Jr., 2012, Chaos, [DOI 10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
-  - Fractional Gaussian noise with variable Hurst coefficient using Davis and Harte autocorrelation method DHM
-  - Fractional Gaussian motion with variable Hurst coefficient using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [DOI 10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
+  - Fractional Gaussian noise fGn with variable Hurst coefficient using Davis and Harte autocorrelation method DHM
+  - Fractional Brownian motion fBm with variable Hurst coefficient using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [DOI 10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
   - Weierstraß-Mandelbrot signals with variable fractal dimension, Falconer, Fractal Geometry, Wiley, 2014, 3rd Ed., ISBN: 978-1-119-94239-9
   - Binary Cantor dusts with variable fractal dimension
 - Optionally generates a plot display of signals
@@ -206,9 +206,8 @@
 - Peng et al., 1994, Phys.Rev.E., [DOI 10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
 ### Hurst coefficient (HK, RS, SP)
-- For fGn signals the Hurst-Kolmogorov HK method
-- For fGm signals the traditional Rescale Range RS method
-- For fGm signals the simple Scaling property SP method
+- For stationary fGn signals the Hurst-Kolmogorov HK method
+- For non-stationary fBm signals the common Rescale Range RS or the simpler Scaling property SP method
 - HK Method better than DLA for short sequences
 - HK algorithm does not converge for fGm signals 
 - n - Number of samples from the posterior distribution - the higher, the better
@@ -228,6 +227,7 @@
 
 ### Hurst coefficient (PSD)
 - Using the power spectrum density PSD
+- Automatic descision between stationary fGn and non-stationary fBm signals with the PSD slope 
 - lowPSDwe - PSD using only lower frequencies (low), parabolic windowing (w) and end matching (e) (bridge detrending)
 - for PSD, regression Min and Max can be set
 - for lowPSDwe, regression Min = 1/8 and Max = 1/2 of the PSD size(1/2 of the signal length)
