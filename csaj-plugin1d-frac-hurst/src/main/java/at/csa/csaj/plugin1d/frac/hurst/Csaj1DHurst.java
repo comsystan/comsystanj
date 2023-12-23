@@ -78,11 +78,13 @@ import at.csa.csaj.plugin1d.frac.hurst.util.HurstSP;
 import at.csa.csaj.plugin1d.open.Csaj1DOpener;
 
 /**
- * A {@link Command} plugin computing <the Hurst coefficient using the Hurst Kolmogorov method</a>
+ * A {@link Command} plugin computing <the Hurst coefficient</a>
  * of a  sequence.
- * Specially suited for small sequence lengths
+ * fGn Hurst-Kolmogorov process, specially suited for small sequence lengths
+ * fGm traditional Rescaled range algorithm
+ * fGm simpler Scaling property algorithm
  *
- * According to:
+ * HK according to:
  * Tyralis, Hristos, und Demetris Koutsoyiannis.
  * „A Bayesian Statistical Model for Deriving the Predictive Distribution of Hydroclimatic Variables“.
  * Climate Dynamics 42, Nr. 11 (1. Juni 2014): 2867–83.
@@ -92,6 +94,10 @@ import at.csa.csaj.plugin1d.open.Csaj1DOpener;
  * Likens et al. „Better than DFA? A Bayesian Method for Estimating the Hurst Exponent in Behavioral Sciences“.
  * arXiv, 26. Januar 2023.
  * https://doi.org/10.48550/arXiv.2301.11262.
+ * 
+ * For RS and SP:
+ * https://www.adrian.idv.hk/2021-07-26-hurst/
+ * Adrian S. Tam  •  © 2023  •  CC-BY-SA 4.0 •  http://www.adrian.idv.hk
 */
  
 @Plugin(type = ContextCommand.class, 
