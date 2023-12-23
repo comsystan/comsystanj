@@ -8,14 +8,14 @@ Version numbering
 
 
 **************************************************************
-Version 1.?.?
+Version 1.1.2
 pom-scijava 36.0.0
-2023-??-??
+2023-12-23
 
 --------------------------------------------------------------
-New plugin:
+New plugins:
 1D Hurst coefficient (HK, RS, SP)
-
+2D Preprocess (Auto crop borders)
 --------------------------------------------------------------
 Plugin changes:
 1D Hurst coefficient changed to 1D Hurst coefficient (PSD)

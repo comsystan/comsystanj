@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-plugin1d-rqa</artifactId>
-	<version>1.1.1</version><!--ComsystanJ version-->
+	<version>1.1.2</version><!--ComsystanJ version-->
 
 	<name>1D Sequence - Recurrence quantification analysis</name>
 	<description>ImageJ2 signal plugin for recurrence quantification analysis.</description>
@@ -94,12 +94,12 @@
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-plugin1d-opener</artifactId>
-			<version>1.1.1</version><!--ComsystanJ version-->
+			<version>1.1.2</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
 			<artifactId>csaj-commons</artifactId>
-			<version>1.1.1</version><!--ComsystanJ version-->
+			<version>1.1.2</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>

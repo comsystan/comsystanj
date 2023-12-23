@@ -7,7 +7,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>csaj-maven-aggregation-build</artifactId>
-    <version>1.1.1</version><!--ComsystanJ version-->
+    <version>1.1.2</version><!--ComsystanJ version-->
 	<packaging>pom</packaging>
 	
 <!--These Maven projects are aggregated to be built at once https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Aggregation
@@ -68,6 +68,7 @@
 		<module>csaj-plugin2d-kc</module>
 		<module>csaj-plugin2d-noise</module>
 		<module>csaj-plugin2d-opener</module>
+		<module>csaj-plugin2d-preprocess</module>
 		<module>csaj-plugin2d-surrogate</module>
 		<!--3D plugins-->
 		<module>csaj-plugin3d-en-genen</module>
