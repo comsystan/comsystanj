@@ -19,7 +19,7 @@
 	<name>1D Sequence - Porta Guzik Ehler indices</name>
 	<description>ImageJ2 signal plugin for Porta, Guzik, and Ehler indices using distances in the Poincare plot.</description>
 	<url>https://github.com/comsystan/comsystanj</url>
-	<inceptionYear>2023</inceptionYear>
+	<inceptionYear>2024</inceptionYear>
 	<organization>
 		<name>comsystan</name>
 		<url>https://github.com/comsystan</url>
