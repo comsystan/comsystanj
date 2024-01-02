@@ -42,6 +42,7 @@
 		<module>csaj-plugin1d-math</module>
 		<module>csaj-plugin1d-noise</module>
 		<module>csaj-plugin1d-opener</module>
+		<module>csaj-plugin1d-pge</module>
 		<module>csaj-plugin1d-poincareplot</module>
 		<module>csaj-plugin1d-resampling</module>
 		<module>csaj-plugin1d-rqa</module>
