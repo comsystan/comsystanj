@@ -8,7 +8,7 @@
  * 
  * This file is part of ComsystanJ software, hereinafter referred to as "this program".
  * %%
- * Copyright (C) 2020 - 2023 Comsystan Software
+ * Copyright (C) 2020 - 2024 Comsystan Software
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
