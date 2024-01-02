@@ -171,8 +171,8 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Rosenstein et al., 1993, PhysicaD, [10.1016/0167-2789(93)90009-P](https://doi.org/10.1016/0167-2789(93)90009-P)
-- Kantz, 1994, Physics Letters A, [10.1016/0375-9601(94)90991-1](https://doi.org/10.1016/0375-9601(94)90991-1)
+- Rosenstein et al., 1993, PhysicaD, [DOI 10.1016/0167-2789(93)90009-P](https://doi.org/10.1016/0167-2789(93)90009-P)
+- Kantz, 1994, Physics Letters A, [DOI 10.1016/0375-9601(94)90991-1](https://doi.org/10.1016/0375-9601(94)90991-1)
 
 ### Recurrence quantification analysis
 - RQA measures that quantify the number and duration of reccurrences of a phase space trajectory
@@ -189,7 +189,31 @@
   - The number of subsequent boxes is (signal length)/(box size)
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
-- Marwan et al., 2007, PhysicaD, [10.1016/j.physrep.2006.11.001](https://doi.org/10.1016/j.physrep.2006.11.001)
+- Marwan et al., 2007, PhysicaD, [DOI 10.1016/j.physrep.2006.11.001](https://doi.org/10.1016/j.physrep.2006.11.001)
+
+### Porta Guzik Ehler indices
+- Indices using the perpendicular distances from the diagonal line in the Poincare plot 
+- The delay (tau) for the Poincare plot can be set
+- Porta index: Irreversible data series when significantly >0.5 or <0.5
+  - Porta index >0.5: distribution skewed toward negative distances (under the diagonal line)
+  - Porta index <0.5: distribution skewed toward positive distances (over the diagonal line)
+- Guzik index: Irreversible data series when significantly >0.5 or <0.5
+  - Guzik index >0.5: distribution skewed toward positive distances (over the diagonal line)
+  - Guzik index >0.5: distribution skewed toward negative distances (under the diagonal line)
+- Ehler index: Irreversible data series when significantly >0 or <0
+  - Ehler index >0: distribution skewed toward positive distances (over the diagonal line)
+  - Ehler index <0: distribution skewed toward negative distances (under the diagonal line)
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Porta et al., 2008, American Journal of Physiology-Regulatory, Integrative and Comparative Physiology, [DOI 10.1152/ajpregu.00129.2008](https://doi.org/10.1152/ajpregu.00129.2008).
+- Guzik et al., 2006, Biomedizinische Technik/Biomedical Engineering, [DOI 10.1515/BMT.2006.054](https://doi.org/10.1515/BMT.2006.054).
+
 
 ### Detrended fluctuation analysis
 - Signals should be opened with the CSAJ Signal Opener
