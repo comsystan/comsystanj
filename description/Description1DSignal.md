@@ -214,7 +214,6 @@
 - Porta et al., 2008, American Journal of Physiology-Regulatory, Integrative and Comparative Physiology, [DOI 10.1152/ajpregu.00129.2008](https://doi.org/10.1152/ajpregu.00129.2008).
 - Guzik et al., 2006, Biomedizinische Technik/Biomedical Engineering, [DOI 10.1515/BMT.2006.054](https://doi.org/10.1515/BMT.2006.054).
 
-
 ### Detrended fluctuation analysis
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
@@ -366,6 +365,19 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Wang et al., 2019, IEEE Access, [DOI 10.1109/ACCESS.2019.2926515](https://doi.org/10.1109/ACCESS.2019.2926515)
 
+### Fragmentation dimension
+- Data values must be positive
+- Data values are expected to be a distribution of linear size
+- ln(N(x)) = -Dfrag ln(x)
+- x... size of an object   N(x)...Number of objects with size > x
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
 
 ### Sample entropy
 - Computes Sample or Approximate entropy
