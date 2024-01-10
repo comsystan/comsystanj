@@ -102,15 +102,15 @@ public class DFA {
 	 * This method computes the "Fluctuation function" of the series
 	 * 
 	 * @param data  1D data vector
-	 * @param winSize
+	 * @param winSizeMax
 	 *            winSize must be smaller than the total number of time points
 	 *            winSize should not be greater than N/3 (N number of data points)!
 	 * @return double F[winSize] "Fluctuation functions"
 	 */
-	public double[] computeFluctuationFunction(double[] data, int winSize) {
+	public double[] computeFluctuationFunction(double[] data, int winSizeMax) {
 		int N = data.length;
-		if (winSize > N) {
-			winSize = N / 3;
+		if (winSizeMax > N) {
+			winSizeMax = N / 3;
 			logService.info(this.getClass().getName() + " DFA parameter window size too large, automatically set to data length/3");
 			JOptionPane.showMessageDialog(null, " DFA parameter window size too large, automatically set to data length/3", "Info", JOptionPane.INFORMATION_MESSAGE);
 
@@ -129,46 +129,56 @@ public class DFA {
 		}
 		
 		
-		double[] F = new double[winSize];
+		double[] F = new double[winSizeMax];
 		F[0] = Double.MIN_VALUE;
 		F[1] = Double.MIN_VALUE;
 		F[2] = Double.MIN_VALUE;  //will be hopefully eliminated later on
 		
-		for (int winLength = 4; winLength <= winSize; winLength++) {// windows with size 1,2, and 3 should not be used according to Peng et al.
-			Integer numWin = (int)Math.floor((double)(N/(double)winLength));	
-			double[] flucWin = new double[numWin];
+		Integer numWin;	
+		double[] flucWin;
+		
+		double[] segmentDataY;
+		double[] segmentDataX;
+		int startIndex;  
+		int endIndex;	
+		LinearRegression lr;
+		double[] residuals; 
+		double sum = 0.0;	
+		
+		for (int winLength = 4; winLength <= winSizeMax; winLength++) {// windows with size 1,2, and 3 should not be used according to Peng et al.
+			numWin = (int)Math.floor((double)(N/(double)winLength));	
+			flucWin = new double[numWin];
 			
 			for (int w = 1; w <= numWin; w++) {
 				//Extract data points with length winLength
-				double[] regDataY = new double[winLength];
-				double[] regDataX = new double[winLength];
-				int startIndex = (w-1) * winLength;  
-				int endIndex   = startIndex + winLength -1 ;		
+				segmentDataY = new double[winLength];
+				segmentDataX = new double[winLength];
+				startIndex = (w-1) * winLength;  
+				endIndex   = startIndex + winLength -1 ;		
 				for (int i = startIndex; i <= endIndex; i++) {
-					regDataY[i-startIndex] = data[i];
-					regDataX[i-startIndex] = i-startIndex +1; 
+					segmentDataY[i-startIndex] = data[i];
+					segmentDataX[i-startIndex] = i-startIndex +1; 
 				}
 					
 				//Compute fluctuation of segment	
-				LinearRegression lr = new LinearRegression();
-				double[] residuals = lr.calculateResiduals(regDataX, regDataY); //Simply the differences of the data y values and the computed regression y values.		
+				lr = new LinearRegression();
+				residuals = lr.calculateResiduals(segmentDataX, segmentDataY); //Simply the differences of the data y values and the computed regression y values.		
 				
-				double rms = 0.0;		
+				sum = 0.0;		
 				for (int y = 0; y < residuals.length; y++) {
-					rms = rms + (residuals[y]*residuals[y]);
+					sum = sum + (residuals[y]*residuals[y]);
 				}
-				rms = rms/residuals.length;
-				rms = Math.sqrt(rms);
-				flucWin[w-1] = rms;			
+				sum = sum/residuals.length;
+				flucWin[w-1] = sum;			
 			}
 			//Mean fluctuation for one window size:
 			double meanF = 0.0;
 			for (int w = 1; w <= numWin; w++) {
 				meanF = meanF + flucWin[w-1];
 			}			
-			meanF = meanF / numWin;
+			meanF = meanF/numWin;
 
-			F[winLength-1] =  meanF;
+			F[winLength-1] =  Math.sqrt(meanF);
 	
 //			if (operator != null) {
 //				this.operator.fireProgressChanged(winLength * (progressBarMax - progressBarMin) / winSize + progressBarMin);
@@ -196,14 +206,16 @@ public class DFA {
 		lnDataX = new double[F.length]; //k
 		//lnDataY = new Vector<Double>();
 		//lnDataX = new Vector<Double>(); // k
+		double lnX;
+		double lnY;
 		for (int i = 0; i < F.length; i++) {
 			if (F[i] == 0) F[i] =  Double.MIN_VALUE;
 		}
 		// System.out.println("DFA: lnk ln(F)");
-		logService.info(this.getClass().getName() + " DFA: lnX   ln(F)"); 
+		//logService.info(this.getClass().getName() + " DFA: lnX   ln(F)"); 
 		for (int i = 0; i < F.length; i++) {
-			double lnX = Math.log(i + 1);
-			double lnY = Math.log(F[i]);
+			lnX = Math.log(i + 1);
+			lnY = Math.log(F[i]);
 			lnDataX[i] = lnX;
 			lnDataY[i] = lnY;
 			// System.out.println(lnX + " " + lnY);

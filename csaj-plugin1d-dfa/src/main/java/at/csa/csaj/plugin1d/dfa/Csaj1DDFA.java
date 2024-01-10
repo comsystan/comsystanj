@@ -615,7 +615,7 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 		tableOut.add(new IntColumn("Box length"));
 		tableOut.add(new BoolColumn("Skip zeroes"));
 	
-		tableOut.add(new IntColumn("Window size"));
+		tableOut.add(new IntColumn("Window size Max"));
 		tableOut.add(new IntColumn("Reg Min"));
 		tableOut.add(new IntColumn("Reg Max"));
 		
@@ -1055,7 +1055,7 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 		}
 		boolean isLineVisible = false; // ?
 		RegressionPlotFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-				"Double Log Plot - DFA", preName + "-" + tableInName, "ln(k)", "ln(F)", "", regMin, regMax);
+				"Double Log Plot - DFA", preName + "-" + tableInName, "ln(Window size)", "ln(F)", "", regMin, regMax);
 		doubleLogPlotList.add(doubleLogPlot);
 		
 	}
