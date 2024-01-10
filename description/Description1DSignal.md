@@ -228,6 +228,25 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Peng et al., 1994, Phys.Rev.E., [DOI 10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
+### Generalized DFA
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Multifractal detrended fluctuation analysis
+- Minimum q can be set
+- Maximum q can be set
+- An Alpha[q] plot can be shown
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Note for Entire signal:
+  - Maximal window size should not be larger than 1/3 of the signal length
+  - Surrogate analysis is restricted to the Alpha values of the minimal q 
+- Notes for Subsequent/Gliding box:
+  - Maximal window size should not be larger than 1/3 of the box size
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Kantelhardt et al., 2002, Physica A, [DOI 10.1016/S0378-4371(02)01383-3](https://doi.org/10.1016/S0378-4371(02)01383-3)
+
 ### Hurst coefficient (HK, RS, SP)
 - For stationary fGn signals the Hurst-Kolmogorov HK method
 - For non-stationary fBm signals the common Rescale Range RS or the simpler Scaling property SP method
