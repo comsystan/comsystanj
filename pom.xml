@@ -22,6 +22,7 @@
 		<module>csaj-plugin1d-detect-events</module>
 		<module>csaj-plugin1d-detect-qrspeaks</module>
 		<module>csaj-plugin1d-dfa</module>
+		<module>csaj-plugin1d-dfagen</module>
 		<module>csaj-plugin1d-en-genen</module>
 		<module>csaj-plugin1d-en-permen</module>
 		<module>csaj-plugin1d-en-sampen</module>
