@@ -234,7 +234,8 @@
 - Multifractal detrended fluctuation analysis
 - Minimum q can be set
 - Maximum q can be set
-- An Alpha[q] plot can be shown
+- The h[q] plot can be shown
+- The f spectrum plot can be shown
 - Analysis of Entire signal or Subsequent/Gliding boxes
 - Note for Entire signal:
   - Maximal window size should not be larger than 1/3 of the signal length
