@@ -17,7 +17,9 @@ New plugins:
 1D Fragmentation dimension
 1D Generalized DFA
 
-**************************************************************
+--------------------------------------------------------------
+Plugin changes:
+2D Succolarity code optimization, thanks to Ion Andronache
 
 **************************************************************
 Version 1.1.2

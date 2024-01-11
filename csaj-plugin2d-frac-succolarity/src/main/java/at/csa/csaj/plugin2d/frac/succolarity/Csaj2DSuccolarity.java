@@ -1311,11 +1311,11 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
 			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
 			pressure = 0.0;
-			for (int y = 0;  y<= (height-boxSize); y=y+delta){
+			for (int y = (int)height-1;  y>= boxSize-1; y=y-delta){
 				//Pressure is the only variable which is distinct between these 4 methods
-				pressure = height - ((double)y + (double)y + (double)boxSize)/2.0;
+				pressure = ((double)(height-1-y) + (double)(height-1-y + boxSize))/2.0;
 				for (int x = 0; x <= (width-boxSize); x=x+delta){
-					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+					raiBox = Views.interval(imgFlood, new long[]{x, y-boxSize+1}, new long[]{x+boxSize-1, y});
 					occ = 0.0;
 					// Loop through all pixels of this box.
 					cursor = Views.iterable(raiBox).localizingCursor();
@@ -1406,11 +1406,11 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
 			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
 			pressure = 0.0;
-			for (int x = 0; x <= (width-boxSize); x=x+delta){
+			for (int x = (int)width-1; x >= boxSize-1; x=x-delta){
 				//Pressure is the only variable which is distinct between these 4 methods
-				pressure = width - ((double)x + (double)x + (double)boxSize)/2.0; 
+				pressure = ((double)(width-1-x) + (double)(width-1-x + boxSize))/2.0; 
 				for (int y = 0;  y<= (height-boxSize); y=y+delta){
-					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+					raiBox = Views.interval(imgFlood, new long[]{x-boxSize+1, y}, new long[]{x, y+boxSize-1});
 					occ = 0.0;
 					// Loop through all pixels of this box.
 					cursor = Views.iterable(raiBox).localizingCursor();
