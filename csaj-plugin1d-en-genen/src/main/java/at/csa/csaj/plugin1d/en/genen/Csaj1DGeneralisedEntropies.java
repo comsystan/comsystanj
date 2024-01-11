@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Project: ImageJ2 signal plugin for computing generalizeed entropies
+ * Project: ImageJ2 signal plugin for computing generalized entropies
  * File: Csaj1DGeneralisedEntropies.java
  * 
  * $Id$
