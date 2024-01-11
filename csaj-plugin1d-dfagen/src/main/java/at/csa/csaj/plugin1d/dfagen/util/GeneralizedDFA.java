@@ -39,10 +39,9 @@ import at.csa.csaj.commons.regression.LinearRegression;
  * @since 2024-01 Generalized (multifractal) DFA
  * 
  * According to:
- * Kantelhardt, Jan W., Stephan A. Zschiegner, Eva Koscielny-Bunde, Shlomo Havlin, Armin Bunde, und H. Eugene Stanley.
- * „Multifractal detrended fluctuation analysis of nonstationary time series“.
- * Physica A: Statistical Mechanics and its Applications 316, Nr. 1 (15. Dezember 2002): 87–114.
- * https://doi.org/10.1016/S0378-4371(02)01383-3.
+ * Kantelhardt et al., Physica A, 2002, https://doi.org/10.1016/S0378-4371(02)01383-3.
+ * Dutta et al. Front. Physiol., 2013,  https://doi.org/10.3389/fphys.2013.00274 //q==0!
+ * 
  */
 
 public class GeneralizedDFA {
@@ -109,12 +108,12 @@ public class GeneralizedDFA {
 	 * This method computes the "Fluctuation function" for every q of the series
 	 * 
 	 * @param data  1D data vector
-	 * @param winSize
+	 * @param winSizeMax
 	 *            winSize must be smaller than the total number of time points
 	 *            winSize should not be greater than N/3 (N number of data points)!
 	 * @return double F[winSize][numQ] "Fluctuation functions"
 	 */
-	public double[][] computeFluctuationFunctions(double[] data, int winSizeMax, int minQ, int maxQ, int numQ) {
+	public double[][] computeFluctuationFunctions(double[] data, int winSizeMax, int minQ, int numQ) {
 		int N = data.length;
 		if (winSizeMax > N) {
 			winSizeMax = N / 3;
@@ -173,7 +172,6 @@ public class GeneralizedDFA {
 				lr = new LinearRegression();
 				residuals = lr.calculateResiduals(segmentDataX, segmentDataY); //Simply the differences of the data y values and the computed regression y values.		
 				
-			
 				sum = 0.0;		
 				for (int y = 0; y < residuals.length; y++) {
 					sum = sum + (residuals[y]*residuals[y]);
@@ -188,11 +186,14 @@ public class GeneralizedDFA {
 				//Mean fluctuation for one window size:
 				meanF = 0.0;
 				for (int w = 1; w <= numWin; w++) {
-					meanF = meanF + Math.pow(flucWin[w-1], (double)(minQ+q)/2.0);  //Equ.4 Kantelhardt et al
+					//For q==0: Equ.4 in Dutta et al. Front. Physiol., 2013,  https://doi.org/10.3389/fphys.2013.00274
+					if ((minQ+q) == 0) meanF = meanF + Math.log(flucWin[w-1]); 
+					else               meanF = meanF + Math.pow(flucWin[w-1], (double)(minQ+q)/2.0);  //Equ.4 Kantelhardt et al
 				}			
-				meanF = meanF/numWin;
-				
-				F[q][winLength-1] =  Math.pow(meanF, 1.0/(minQ+q)); //Equ.4 Kantelhardt et al
+				meanF = meanF/numWin;		
+				//For q==0: Equ.4 in Dutta et al. Front. Physiol., 2013,  https://doi.org/10.3389/fphys.2013.00274
+				if ((minQ+q) == 0) F[q][winLength-1] = Math.exp(0.5*meanF);
+				else               F[q][winLength-1] = Math.pow(meanF, 1.0/(minQ+q)); //Equ.4 Kantelhardt et al
 			} //Simple DFA alpha for q==2;
 	
 //			if (operator != null) {
@@ -213,13 +214,14 @@ public class GeneralizedDFA {
 	}
 
 	/**
+	 * This method computes the generalized Hurst exponents 
 	 * 
 	 * @param F   DFA Fluctuation functions [q][]
 	 * @param regStart
 	 * @param regEnd
-	 * @return double regression paramters for ever [q][]
+	 * @return double[][] regression paramters for ever [q][]
 	 */
-	public double[][] computeAlphas(double[][] F, int regStart, int regEnd, int numQ) {
+	public double[][] computeExponents(double[][] F, int regStart, int regEnd, int numQ) {
 		
 		double[][] regressionParamsQ = new double[numQ][5];
 		lnDataX       = new double[F[0].length];
@@ -246,12 +248,7 @@ public class GeneralizedDFA {
 				// System.out.println(lnX + " " + lnY);
 				//logService.info(this.getClass().getName() + "      " + lnX + "     " + lnY); 
 			}
-				
-			int F0length = F[0].length;
-			int lnDX = lnDataX.length;
-			int lnDY = lnDataY[0].length;
-			
-			
+						
 			// Compute regression
 			//get regression data vectors for q
 			for (int i = 0; i < F[0].length; i++) {
@@ -268,5 +265,53 @@ public class GeneralizedDFA {
 		}//q
 		return regressionParamsQ;
 	}
+	
+	/**
+	 * This method computes the Alphas
+	 * 
+	 * @param h generalized hurst exponents for every q
+	 * @param minQ;
+	 * @param numQ;
+	 * @return Alpha for ever [q][]
+	 */
+	public double[] computeAlphas(double[] h, int minQ, int numQ ) {
+		double[] alphas = new double[numQ];
+		// Compute q's
+		double [] qList   = new double[numQ];
+		for (int q = 0; q < numQ; q++) qList[q] = q + minQ;
+				
+		//first point
+		alphas[0] = h[0] + qList[0] * ((h[1] - h[0]))/1.0;
+		
+		for (int q = 1; q < numQ-1; q++) {
+			alphas[q] = h[q] + qList[q] * ((h[q+1] - h[q-1]))/2.0;	
+		}
+		
+		//Last point
+		alphas[numQ-1] = h[numQ-1] + qList[numQ-1] * ((h[numQ-1] - h[numQ-1-1]))/1.0;
+		
+		return alphas;
+	}
+	
+	/**
+	 * This method computes the f spectrum
+	 * 
+	 * @param h generalized hurst exponents for every q
+	 * @param Alphas for every q
+	 * @param minQ;
+	 * @param numQ;
+	 * @return f for ever alpha
+	 */
+	public double[] computeFSpectrum(double[] h, double[] alphas, int minQ, int numQ ) {
+		double[] fSpec = new double[numQ];
+	
+		// Compute q's
+		double [] qList   = new double[numQ];
+		for (int q = 0; q < numQ; q++) qList[q] = q + minQ;
 
+		for (int q = 0; q < numQ; q++) fSpec[q] = qList[q]*(alphas[q] - h[q]) + 1.0;
+		
+		return fSpec;
+	}
+	
 }// END

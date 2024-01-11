@@ -75,10 +75,8 @@ import at.csa.csaj.plugin1d.open.Csaj1DOpener;
  * A {@link Command} plugin computing <Generalized DFA</a>
  * of a  sequence.
  * According to:
- * Kantelhardt, Jan W., Stephan A. Zschiegner, Eva Koscielny-Bunde, Shlomo Havlin, Armin Bunde, und H. Eugene Stanley.
- * „Multifractal detrended fluctuation analysis of nonstationary time series“.
- * Physica A: Statistical Mechanics and its Applications 316, Nr. 1 (15. Dezember 2002): 87–114.
- * https://doi.org/10.1016/S0378-4371(02)01383-3.
+ * Kantelhardt et al., Physica A, 2002, https://doi.org/10.1016/S0378-4371(02)01383-3.
+ * Dutta et al. Front. Physiol., 2013,  https://doi.org/10.3389/fphys.2013.00274 //q==0
  */
 @Plugin(type = ContextCommand.class, 
 	headless = true,
@@ -126,6 +124,10 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 	private static int numQ;
 	
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
+	private static ArrayList<SequencePlotFrame>   genHPlotList      = new ArrayList<SequencePlotFrame>();
+	private static ArrayList<SequencePlotFrame>   fSpecPlotList     = new ArrayList<SequencePlotFrame>();
+	
+	
 	
 	private static final String tableOutName = "Table - Generalized DFA";
 	
@@ -276,6 +278,16 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 		   	   persist = true, //restore previous value default = true
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
+	
+	@Parameter(label = "Show h[q] plot",
+  		       persist = true,  //restore previous value default = true
+ 		       initializer = "initialShowHPlot")
+ 	private boolean booleanShowHPlot;
+	
+	@Parameter(label = "Show F spectrum",
+ 		       persist = true,  //restore previous value default = true
+		       initializer = "initialShowFSpectrum")
+	private boolean booleanShowFSpectrum;
 
 	@Parameter(label = "Overwrite result display(s)",
 	    	description = "Overwrite already existing result images, plots or tables",
@@ -353,6 +365,12 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
 	}
+	protected void initialShowHPlot() {
+	    	booleanShowHPlot = true;
+	}
+    protected void initialShowFSpectrum() {
+    	booleanShowFSpectrum = true;
+    }
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
 	}
@@ -676,21 +694,21 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
-				for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("Alpha_q"   + (minQ + q))); 
+				for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("h_q" + (minQ + q))); 
 			} else { //Surrogates
-				tableOut.add(new DoubleColumn("Alpha_q"+minQ));  
-				tableOut.add(new DoubleColumn("Alpha_q"+minQ+"_Surr"));  //Mean surrogate value	
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Alphaq_"+minQ+"_Surr-#"+(s+1))); 
+				tableOut.add(new DoubleColumn("h_q"+minQ));  
+				tableOut.add(new DoubleColumn("h_q"+minQ+"_Surr"));  //Mean surrogate value	
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("h_q"+minQ+"_Surr-#"+(s+1))); 
 			}	
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn("Alpha_q"+minQ+"-#" + n));	
+				tableOut.add(new DoubleColumn("h_q"+minQ+"-#" + n));	
 			}
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn("Alpha_q"+minQ+"-#" + n));	
+				tableOut.add(new DoubleColumn("h_q"+minQ+"-#" + n));	
 			}
 		}	
 	}
@@ -718,6 +736,22 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 					// doubleLogPlotList.remove(l); /
 				}
 				doubleLogPlotList.clear();
+			}
+			if (genHPlotList != null) {
+				for (int l = 0; l < genHPlotList.size(); l++) {
+					genHPlotList.get(l).setVisible(false);
+					genHPlotList.get(l).dispose();
+					//genHPlotList.remove(l);  /
+				}
+				genHPlotList.clear();		
+			}
+			if (fSpecPlotList != null) {
+				for (int l = 0; l < fSpecPlotList.size(); l++) {
+					fSpecPlotList.get(l).setVisible(false);
+					fSpecPlotList.get(l).dispose();
+					//fSpecPlotList.remove(l);  /
+				}
+				fSpecPlotList.clear();		
 			}
 //			//ImageJ PlotWindows aren't recognized by DeafultDisplayService!!?
 //			List<Display<?>> list = defaultDisplayService.getDisplays();
@@ -886,7 +920,9 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 		int regMax            = spinnerInteger_RegMax;
 		boolean skipZeroes    = booleanSkipZeroes;
 	
-		boolean optShowPlot   = booleanShowDoubleLogPlot;
+		boolean optShowPlot      = booleanShowDoubleLogPlot;
+		boolean optShowHPlot     = booleanShowHPlot;
+		boolean optShowFSpectrum = booleanShowFSpectrum;
 		
 		//min max and step values are already set in the table header generation method		
 
@@ -950,9 +986,16 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 				
 				if (sequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralizedDFA(logService);
-					F = genDfa.computeFluctuationFunctions(sequence1D, numWinSizeMax, minQ, maxQ, numQ);
-					regressionValues = genDfa.computeAlphas(F, regMin, regMax, numQ);
+					F = genDfa.computeFluctuationFunctions(sequence1D, numWinSizeMax, minQ, numQ);
+					regressionValues = genDfa.computeExponents(F, regMin, regMax, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+					
+					
+					//			resultValues[0] = regressionValues[1]; //Alpha = -slope
+					//			resultValues[1] = regressionValues[4];  //R2
+					//			resultValues[2] = regressionValues[3];  //StdErr
+										
+					for (int q = 0; q < resultValues.length; q++) resultValues[q] = regressionValues[q][1];	
 					
 					if (optShowPlot) {
 						String preName = sequenceColumn.getHeader();
@@ -972,12 +1015,32 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 						doubleLogPlotList.add(doubleLogPlot);
 						
 					}
+					
+					if (optShowHPlot) {	
+						boolean isLineVisible = false; //?
+						String preName = sequenceColumn.getHeader();
+						String axisNameX = "q";
+						String axisNameY = "h"; //Exponents h[q]
+				
+						// Compute q's
+						double [] qList   = new double[numQ];
+						for (int q = 0; q < numQ; q++) qList[q] = q + minQ;
+						SequencePlotFrame dimGenPlot = DisplaySinglePlotXY(qList, resultValues, isLineVisible, "Generalized DFA", 
+								preName, axisNameX, axisNameY, "");
+						genHPlotList.add(dimGenPlot);
+					}
+					if (optShowFSpectrum) {	
+						boolean isLineVisible = false; //?
+						String preName = sequenceColumn.getHeader();
+						String axisNameX = "alpha";
+						String axisNameY = "f";
+						double[] alphas = genDfa.computeAlphas(resultValues, minQ, numQ);
+						double[] fSpec  = genDfa.computeFSpectrum(resultValues, alphas, minQ, numQ);
+						SequencePlotFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
+								preName, axisNameX, axisNameY, "");
+						fSpecPlotList.add(fSpecPlot);
+					}
 				}
-	//				resultValues[0] = regressionValues[1]; //Alpha = -slope
-	//				resultValues[1] = regressionValues[4];  //R2
-	//				resultValues[2] = regressionValues[3];  //StdErr
-						
-					for (int q = 0; q < resultValues.length; q++) resultValues[q] = regressionValues[q][1];	
 				
 			} else { //Add surrogate analysis
 				resultValues = new double[1+1+1*numSurrogates]; // Dim, Dim_Surr, Dim_Surr1, Dim_Surr2,  Dim_Surr3.... 2, 3......
@@ -985,8 +1048,8 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 					
 				if (sequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralizedDFA(logService);
-					F = genDfa.computeFluctuationFunctions(sequence1D, numWinSizeMax, minQ, maxQ, numQ);
-					regressionValues = genDfa.computeAlphas(F, regMin, regMax, numQ);
+					F = genDfa.computeFluctuationFunctions(sequence1D, numWinSizeMax, minQ, numQ);
+					regressionValues = genDfa.computeExponents(F, regMin, regMax, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 							
 					resultValues[0] = regressionValues[0][1]; //Take the value for minQ	
@@ -1006,8 +1069,8 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 						if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
 						genDfa = new GeneralizedDFA(logService);
-						F = genDfa.computeFluctuationFunctions(surrSequence1D, numWinSizeMax, minQ, maxQ, numQ);
-						regressionValues = genDfa.computeAlphas(F, regMin, regMax, numQ);
+						F = genDfa.computeFluctuationFunctions(surrSequence1D, numWinSizeMax, minQ, numQ);
+						regressionValues = genDfa.computeExponents(F, regMin, regMax, numQ); //h[q]
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						resultValues[lastMainResultsIndex + 2 + s]                    = regressionValues[0][1]; //Value for minQ
@@ -1037,8 +1100,8 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 				//Compute specific values************************************************
 				if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralizedDFA(logService);
-					F = genDfa.computeFluctuationFunctions(subSequence1D, numWinSizeMax, minQ, maxQ, numQ);
-					regressionValues = genDfa.computeAlphas(F, regMin, regMax, numQ);
+					F = genDfa.computeFluctuationFunctions(subSequence1D, numWinSizeMax, minQ, numQ);
+					regressionValues = genDfa.computeExponents(F, regMin, regMax, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 					//if (optShowPlot){ //show all plots
@@ -1069,8 +1132,8 @@ public class Csaj1DGeneralizedDFA<T extends RealType<T>> extends ContextCommand 
 				//Compute specific values************************************************
 				if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralizedDFA(logService);
-					F = genDfa.computeFluctuationFunctions(subSequence1D, numWinSizeMax, minQ, maxQ, numQ);
-					regressionValues = genDfa.computeAlphas(F, regMin, regMax, numQ);
+					F = genDfa.computeFluctuationFunctions(subSequence1D, numWinSizeMax, minQ, numQ);
+					regressionValues = genDfa.computeExponents(F, regMin, regMax, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 					//if (optShowPlot){ //show all plots

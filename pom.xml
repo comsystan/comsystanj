@@ -28,7 +28,8 @@
 		<module>csaj-plugin1d-en-sampen</module>
 		<module>csaj-plugin1d-fft</module>
 		<module>csaj-plugin1d-filter</module>
-		<module>csaj-plugin1d-frac-dim-Higuchi1d</module>
+		<module>csaj-plugin1d-frac-dim-frag</module>
+		<module>csaj-plugin1d-frac-dim-higuchi1d</module>
 		<module>csaj-plugin1d-frac-dim-katz</module>
 		<module>csaj-plugin1d-frac-dim-petrosian</module>
 		<module>csaj-plugin1d-frac-dim-rse</module>
