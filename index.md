@@ -19,7 +19,7 @@
 ### Citing ComsystanJ 
 If you use ComsystanJ plugins and publish your work, please cite following publication:
 
-Ahammer, Helmut, Martin A. Reiss, Moritz Hackhofer, Ion Andronache, Marko Radulovic, Fabián Labra-Spröhnle, and Herbert Franz Jelinek. „ComsystanJ: A Collection of Fiji/ImageJ2 Plugins for Nonlinear and Complexity Analysis in 1D, 2D and 3D“. PLOS ONE 18, Nr. 10, 2023, e0292217, [https://doi.org/10.1371/journal.pone.0292217](https://doi.org/10.1371/journal.pone.0292217)
+Helmut Ahammer, Martin A. Reiss, Moritz Hackhofer, Ion Andronache, Marko Radulovic, Fabián Labra-Spröhnle, and Herbert Franz Jelinek. „ComsystanJ: A Collection of Fiji/ImageJ2 Plugins for Nonlinear and Complexity Analysis in 1D, 2D and 3D“. PLOS ONE 18, Nr. 10, 2023, e0292217, [https://doi.org/10.1371/journal.pone.0292217](https://doi.org/10.1371/journal.pone.0292217)
 
 ### Collaborations
 [<img src="images/nasa-logo.png" width=60 height=50/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=117 height=45/>](https://ccmc.gsfc.nasa.gov/) [CCMC](https://ccmc.gsfc.nasa.gov/)<br/>
