@@ -19,7 +19,8 @@ New plugins:
 
 --------------------------------------------------------------
 Plugin changes:
-2D Succolarity code optimization, thanks to Ion Andronache
+2D Succolarity: code optimization, thanks to Ion Andronache
+2D Succolarity: added Potential and Delta succolarities, thanks to Ion Andronache
 
 **************************************************************
 Version 1.1.2

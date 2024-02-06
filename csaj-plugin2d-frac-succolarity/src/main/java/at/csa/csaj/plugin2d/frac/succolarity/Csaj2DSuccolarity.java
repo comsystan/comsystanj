@@ -100,6 +100,9 @@ import io.scif.MetaTable;
  * According to
  * de Melo, R. H. C., und A. Conci. „Succolarity: Defining a method to calculate this fractal measure“. In 2008 15th International Conference on Systems, Sequences and Image Processing, 291–94, 2008. https://doi.org/10.1109/IWSSIP.2008.4604424.
  * de Melo, R. H. C., und A. Conci. „How Succolarity Could Be Used as Another Fractal Measure in Image Analysis“. Telecommunication Systems 52, Nr. 3 (1. März 2013): 1643–55. https://doi.org/10.1007/s11235-011-9657-3.
+ * Andronache, Ion. „Analysis of Forest Fragmentation and Connectivity Using Fractal Dimension and Succolarity“.
+ * Land 13, Nr. 2 (Februar 2024): 138.
+ * * https://doi.org/10.3390/land13020138.
  * 
  */
 @Plugin(type = ContextCommand.class,
@@ -141,6 +144,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
 	private static int  numBoxes = 0;
+	private static double potentialSuccolarity = 0.0; 
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
 	private static final String tableOutName = "Table - Succolarities";
@@ -721,7 +725,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 	 */
 	private void processSingleInputImage(int s) {
 		long startTime = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][numBoxes];
+		resultValuesTable = new double[(int) numSlices][numBoxes*2];  //*2 because of Delta succolarities
 		
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -736,14 +740,14 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		
 		}
 
-		//Compute succolarity
-		double[] succolarities = process(rai, s);
+		//Compute succolarities and delta succolarities
+		double[] succolaritiesExtended = process(rai, s);
 		
 		//set values for output table
-		for (int i = 0; i < succolarities.length; i++ ) {
-				resultValuesTable[s][i] = succolarities[i]; 
+		for (int i = 0; i < succolaritiesExtended.length; i++ ) {
+				resultValuesTable[s][i] = succolaritiesExtended[i]; 
 		}
-		logService.info(this.getClass().getName() + " Succolarities[0]: " + succolarities[0]);
+		logService.info(this.getClass().getName() + " Succolarities[0]: " + succolaritiesExtended[0]);
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
@@ -772,7 +776,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][numBoxes];
+		resultValuesTable = new double[(int) numSlices][numBoxes*2]; //*2 because of Delta succolarities
 	
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -807,11 +811,11 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
 				
 				}
-				//succolarities
-				double[] succolarities = process(rai, s);	
+				//Succolarities and delta succolarities
+				double[] succolaritiesExtended = process(rai, s);	
 				//set values for output table
-				for (int i = 0; i < succolarities.length; i++ ) {
-						resultValuesTable[s][i] = succolarities[i]; 
+				for (int i = 0; i < succolaritiesExtended.length; i++ ) {
+						resultValuesTable[s][i] = succolaritiesExtended[i]; 
 				}
 				
 				long duration = System.currentTimeMillis() - startTime;
@@ -855,6 +859,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//IntColumn columnRegMax         = new IntColumn("RegMax");
 		GenericColumn columnScanType   = new GenericColumn("Scanning type");
 		GenericColumn columnFloodType  = new GenericColumn("Flooding type");
+		DoubleColumn columnPotSucc     = new DoubleColumn("Pot succ");
 	
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -864,7 +869,12 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//tableOut.add(columnRegMax);
 		tableOut.add(columnScanType);
 		tableOut.add(columnFloodType);
+		tableOut.add(columnPotSucc);
 		String preString = "Succ";
+		for (int i = 0; i < numBoxes; i++) {
+			tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
+		}
+		preString = "Delta succ";
 		for (int i = 0; i < numBoxes; i++) {
 			tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
 		}
@@ -881,6 +891,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//int regMax     	= spinnerInteger_RegMax;
 		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
+		double potSucc = potentialSuccolarity; 
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -897,7 +908,8 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 		tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-		tableColLast = 4;
+		tableOut.set("Pot succ",      tableOut.getRowCount()-1, potSucc);
+		tableColLast = 5;
 		
 		int numParameters = resultValuesTable[s].length;
 		tableColStart = tableColLast + 1;
@@ -918,7 +930,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//int regMax        = spinnerInteger_RegMax;
 		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
-		
+		double potSucc = potentialSuccolarity; 
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -936,7 +948,8 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 			tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 			tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-			tableColLast = 4;
+			tableOut.set("Pot succ",      tableOut.getRowCount()-1, potSucc);	
+			tableColLast = 5;
 			
 			int numParameters = resultValuesTable[s].length;
 			tableColStart = tableColLast + 1;
@@ -970,12 +983,16 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
 		
 		//String imageType = "8-bit";  //  "RGB"....
-	
+		
+		//Get potential succolarity
+		potentialSuccolarity = computePotSucc(rai);
+		
 		double[] succolaritiesT2D = null;
 		double[] succolaritiesD2T = null;
 		double[] succolaritiesL2R = null;
 		double[] succolaritiesR2L = null;
 		double[] succolarities    = null;
+		double[] succolaritiesExtended = null; //With added Delta succolarities
 			
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255	
 		if (floodingType.equals("T2D")) {
@@ -1057,13 +1074,44 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//LinearRegression lr = new LinearRegression();
 		//regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-	
-		return succolarities;
+		succolaritiesExtended = new double[2*succolarities.length]; //Succolarities and Delta succolarities
+		for (int s = 0; s < succolarities.length; s++) {
+			succolaritiesExtended[s] = succolarities[s]; //Succolarities
+		}
+		for (int s = 0; s < succolarities.length; s++) {
+			succolaritiesExtended[succolarities.length + s] = potentialSuccolarity - succolarities[s]; //Delta succolarities
+		}
+		
+		return succolaritiesExtended;
 		//Output
 		//uiService.show(tableOutName, table);
 		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
 		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
+	}
+	
+	/**
+	 * This method computes the potential succolarity
+	 * Andronache, Ion. „Analysis of Forest Fragmentation and Connectivity Using Fractal Dimension and Succolarity“.
+	 * Land 13, Nr. 2 (Februar 2024): 138.
+	 * https://doi.org/10.3390/land13020138.
+
+	 * @param rai
+	 */
+	private double computePotSucc(RandomAccessibleInterval<?> rai) { 
+	
+		double numBlackPixels = 0;
+		double numTotalPixels = 0;
+		
+		cursor = Views.iterable(rai).localizingCursor();
+		while (cursor.hasNext()) {
+			cursor.fwd();				
+			if (((UnsignedByteType) cursor.get()).get() == 0) {
+				numBlackPixels += 1.0; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+			}			
+			numTotalPixels += 1.0;
+		}
+		return numBlackPixels/numTotalPixels; //Potential succolarity
 	}
 
 	/**
