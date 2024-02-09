@@ -144,7 +144,6 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
 	private static int  numBoxes = 0;
-	private static double potentialSuccolarity = 0.0; 
 	private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
 	private static double[][] resultValuesTable; //first column is the image index, second column are the corresponding regression values
 	private static final String tableOutName = "Table - Succolarities";
@@ -257,7 +256,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
     @Parameter(label = "Flooding type",
    		       description = "Type of flooding, e.g. Top to down or Left to right.... or mean of all 4 directions",
    		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-     		   choices = {"T2D", "D2T", "L2R", "R2L", "Mean"},
+     		   choices = {"T2D", "D2T", "L2R", "R2L", "Mean & Anisotropy"},
      		   persist = true,  //restore previous value default = true
    		       initializer = "initialFloodingType",
                callback = "callbackFloodingType")
@@ -725,8 +724,12 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 	 */
 	private void processSingleInputImage(int s) {
 		long startTime = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][numBoxes*2];  //*2 because of Delta succolarities
-		
+		if (choiceRadioButt_FloodingType.equals("Mean & Anisotropy")) {
+			resultValuesTable = new double[(int) numSlices][1+numBoxes*3]; //1+ because of potential succ *3 because of Delta succolarities and Anistropy indices
+		}
+		else {
+			resultValuesTable = new double[(int) numSlices][1+numBoxes*2]; //1+ because of potential succ *2 because of Delta succolarities			
+		}		
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//mg<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
@@ -776,8 +779,12 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
-		resultValuesTable = new double[(int) numSlices][numBoxes*2]; //*2 because of Delta succolarities
-	
+		if (choiceRadioButt_FloodingType.equals("Mean & Anisotropy")) {
+			resultValuesTable = new double[(int) numSlices][1+numBoxes*3]; //1+ because of potential succ *3 because of Delta succolarities and Anistropy indices
+		}
+		else {
+			resultValuesTable = new double[(int) numSlices][1+numBoxes*2]; //1+ because of potential succ *2 because of Delta succolarities			
+		}
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
@@ -878,6 +885,12 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		for (int i = 0; i < numBoxes; i++) {
 			tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
 		}
+		if (choiceRadioButt_FloodingType.equals("Mean & Anisotropy")) {
+			preString = "Anisotropy";
+			for (int i = 0; i < numBoxes; i++) {
+				tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
+			}	
+		}
 	}
 	
 	/** 
@@ -891,7 +904,6 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//int regMax     	= spinnerInteger_RegMax;
 		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
-		double potSucc = potentialSuccolarity; 
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -908,16 +920,15 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 		tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-		tableOut.set("Pot succ",      tableOut.getRowCount()-1, potSucc);
+		tableOut.set("Pot succ",      tableOut.getRowCount()-1, resultValuesTable[s][0]); //Potential succolarity
 		tableColLast = 5;
 		
-		int numParameters = resultValuesTable[s].length;
+		int numParameters = resultValuesTable[s].length - 1; //-1 because potential succolarity is already set to table
 		tableColStart = tableColLast + 1;
 		tableColEnd = tableColStart + numParameters;
 		for (int c = tableColStart; c < tableColEnd; c++ ) {
-			tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart]);
-		}	
-		
+			tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart + 1]); //+1 because first entry is potential succolarity
+		}		
 	}
 	
 	/** 
@@ -930,7 +941,6 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//int regMax        = spinnerInteger_RegMax;
 		String scanningType = choiceRadioButt_ScanningType;
 		String floodingType = choiceRadioButt_FloodingType;
-		double potSucc = potentialSuccolarity; 
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -948,14 +958,14 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 			tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 			tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-			tableOut.set("Pot succ",      tableOut.getRowCount()-1, potSucc);	
+			tableOut.set("Pot succ",      tableOut.getRowCount()-1, resultValuesTable[s][0]); //Potential succolarity	
 			tableColLast = 5;
 			
-			int numParameters = resultValuesTable[s].length;
+			int numParameters = resultValuesTable[s].length - 1; //-1 because potential succolarity is already set to table
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart]);
+				tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart + 1]); //+1 because first entry is potential succolarity
 			}	
 		}
 	}
@@ -977,6 +987,8 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		
 		boolean optShowPlot = booleanShowDoubleLogPlot;
 		
+	
+		
 		//long width  = rai.dimension(0);
 		//long height = rai.dimension(1);
 		//RandomAccess<?> ra = rai.randomAccess();
@@ -985,14 +997,16 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//String imageType = "8-bit";  //  "RGB"....
 		
 		//Get potential succolarity
-		potentialSuccolarity = computePotSucc(rai);
+		//Potential succolarity is identical for each flooding direction
+		double potentialSuccolarity = computePotSucc(rai);
 		
-		double[] succolaritiesT2D = null;
-		double[] succolaritiesD2T = null;
-		double[] succolaritiesL2R = null;
-		double[] succolaritiesR2L = null;
-		double[] succolarities    = null;
-		double[] succolaritiesExtended = null; //With added Delta succolarities
+		double[] succolaritiesT2D      = null;
+		double[] succolaritiesD2T      = null;
+		double[] succolaritiesL2R      = null;
+		double[] succolaritiesR2L      = null;
+		double[] succolarities         = null;
+		double[] succolaritiesExtended = null; //With added succolarities such as ootential, Deltam Anisotropy
+		double[] anisotropyIndices     = null;
 			
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255	
 		if (floodingType.equals("T2D")) {
@@ -1016,7 +1030,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			floodingImgFlood();
 			succolarities = computeSuccolarities_R2L();	
 		}
-		else if (floodingType.equals("Mean")) {
+		else if (floodingType.equals("Mean & Anisotropy")) {
 			initializeImgFlood_T2D(rai);
 			floodingImgFlood();
 			succolaritiesT2D = computeSuccolarities_T2D();	
@@ -1036,6 +1050,10 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			succolarities = new double[numBoxes];
 			for (int s = 0; s < numBoxes; s++) {
 				succolarities[s] = (succolaritiesT2D[s] + succolaritiesD2T[s] + succolaritiesL2R[s] + succolaritiesR2L[s])/4.0;
+			}
+			anisotropyIndices = new double[numBoxes];
+			for (int s = 0; s < numBoxes; s++) {
+				anisotropyIndices[s] = Math.abs((succolaritiesL2R[s]+succolaritiesR2L[s])/2.0 - (succolaritiesT2D[s]+succolaritiesD2T[s])/2.0);			
 			}
 		}
 			
@@ -1074,12 +1092,26 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//LinearRegression lr = new LinearRegression();
 		//regressionParams = lr.calculateParameters(lnDataX, lnDataY, regMin, regMax);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		succolaritiesExtended = new double[2*succolarities.length]; //Succolarities and Delta succolarities
+		
+		
+		if (floodingType.equals("Mean & Anisotropy")) {
+			succolaritiesExtended = new double[1+2*succolarities.length+anisotropyIndices.length]; //Potential succolarity, Succolarities and Delta succolarities
+		} else {
+			succolaritiesExtended = new double[1+2*succolarities.length]; //Potential succolarity, Succolarities and Delta succolarities
+		}
+		
+		succolaritiesExtended[0] = potentialSuccolarity;
+		
 		for (int s = 0; s < succolarities.length; s++) {
-			succolaritiesExtended[s] = succolarities[s]; //Succolarities
+			succolaritiesExtended[1+s] = succolarities[s]; //Succolarities
 		}
 		for (int s = 0; s < succolarities.length; s++) {
-			succolaritiesExtended[succolarities.length + s] = potentialSuccolarity - succolarities[s]; //Delta succolarities
+			succolaritiesExtended[1+succolarities.length + s] = potentialSuccolarity - succolarities[s]; //Delta succolarities
+		}
+		if (floodingType.equals("Mean & Anisotropy")) {
+			for (int s = 0; s < anisotropyIndices.length; s++) {
+				succolaritiesExtended[1+2*succolarities.length + s] = anisotropyIndices[s]; //Anisotropy indices
+			}
 		}
 		
 		return succolaritiesExtended;
