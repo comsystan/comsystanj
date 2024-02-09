@@ -194,9 +194,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 - The number of boxes with distinct sizes can be set
 - Shows a double logarithmic plot of succolarities 
 - Raster box or Sliding box scanning
-- Binary [0, >0] algorithm
-- Flooding of image can be set to Top2down, Down2top, Left2right, Right2left or the mean of all four directions
+- Flooding can be set to Top2Down, Down2Top, Left2Right or Right2L
+- Mean computes the average of all four flooding directions
+- Anisotropy is ABS( (L2R+R2L)/2 - (T2D+D2T)/2 )
+- Potential succolarity is the largest possible succolarity (#black pixels)/(#total pixels)
+- Delta succolarity is Potential succolarity - Succolarity 
 - de Melo & Conci, Telecommunication Systems, 2013, [DOI 10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
+- Andronache, Land, 2024, [DOI 10.3390/land13020138](https://doi.org/10.3390/land13020138)
+
 
 ### Fractal fragmentation indices
 - FFI -  Fractal fragmentation index
