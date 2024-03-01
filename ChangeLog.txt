@@ -20,7 +20,7 @@ New plugins:
 --------------------------------------------------------------
 Plugin changes:
 2D Succolarity: code optimization, thanks to Ion Andronache
-2D Succolarity: added Potential-, Delta succolarities and Anisotropy indices, thanks to Ion Andronache
+2D Succolarity: added Succolarity reservoir, Delta succolarities and Anisotropy indices, thanks to Ion Andronache
 
 **************************************************************
 Version 1.1.2

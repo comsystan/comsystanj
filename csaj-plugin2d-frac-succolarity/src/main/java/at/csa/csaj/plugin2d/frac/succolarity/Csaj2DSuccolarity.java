@@ -743,7 +743,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		
 		}
 
-		//Compute succolarities and delta succolarities
+		//Compute Succolarity reservoir, succolarities and delta succolarities
 		double[] succolaritiesExtended = process(rai, s);
 		
 		//set values for output table
@@ -818,7 +818,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
 				
 				}
-				//Succolarities and delta succolarities
+				//Compute Succolarity reservoir, succolarities and delta succolarities
 				double[] succolaritiesExtended = process(rai, s);	
 				//set values for output table
 				for (int i = 0; i < succolaritiesExtended.length; i++ ) {
@@ -866,7 +866,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//IntColumn columnRegMax         = new IntColumn("RegMax");
 		GenericColumn columnScanType   = new GenericColumn("Scanning type");
 		GenericColumn columnFloodType  = new GenericColumn("Flooding type");
-		DoubleColumn columnPotSucc     = new DoubleColumn("Pot succ");
+		DoubleColumn columnPotSucc     = new DoubleColumn("Succ reservoir");
 	
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -920,14 +920,14 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 		tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 		tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-		tableOut.set("Pot succ",      tableOut.getRowCount()-1, resultValuesTable[s][0]); //Potential succolarity
+		tableOut.set("Succ reservoir",tableOut.getRowCount()-1, resultValuesTable[s][0]); //Succolarity reservoir (= potential succolarity)
 		tableColLast = 5;
 		
-		int numParameters = resultValuesTable[s].length - 1; //-1 because potential succolarity is already set to table
+		int numParameters = resultValuesTable[s].length - 1; //-1 because succolarity reservoir (= potential succolarity) is already set to table
 		tableColStart = tableColLast + 1;
 		tableColEnd = tableColStart + numParameters;
 		for (int c = tableColStart; c < tableColEnd; c++ ) {
-			tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart + 1]); //+1 because first entry is potential succolarity
+			tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart + 1]); //+1 because first entry is succolarity reservoir (= potential succolarity)
 		}		
 	}
 	
@@ -958,14 +958,14 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			//tableOut.set("RegMax",      tableOut.getRowCount()-1, regMax);
 			tableOut.set("Scanning type", tableOut.getRowCount()-1, scanningType);
 			tableOut.set("Flooding type", tableOut.getRowCount()-1, floodingType);
-			tableOut.set("Pot succ",      tableOut.getRowCount()-1, resultValuesTable[s][0]); //Potential succolarity	
+			tableOut.set("Succ reservoir",tableOut.getRowCount()-1, resultValuesTable[s][0]); //Succolarity reservoir (= potential succolarity)	
 			tableColLast = 5;
 			
-			int numParameters = resultValuesTable[s].length - 1; //-1 because potential succolarity is already set to table
+			int numParameters = resultValuesTable[s].length - 1; //-1 because succolarity reservoir (= potential succolarity) is already set to table
 			tableColStart = tableColLast + 1;
 			tableColEnd = tableColStart + numParameters;
 			for (int c = tableColStart; c < tableColEnd; c++ ) {
-				tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart + 1]); //+1 because first entry is potential succolarity
+				tableOut.set(c, tableOut.getRowCount()-1, resultValuesTable[s][c-tableColStart + 1]); //+1 because first entry is succolarity reservoir (= potential succolarity)
 			}	
 		}
 	}
@@ -996,16 +996,16 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		
 		//String imageType = "8-bit";  //  "RGB"....
 		
-		//Get potential succolarity
-		//Potential succolarity is identical for each flooding direction
-		double potentialSuccolarity = computePotSucc(rai);
+		//Get succolarity reservoir (= potential succolarity)
+		//Succolarity reservoir (= potential succolarity) is identical for each flooding direction
+		double succReservoir = computeSuccReservoir(rai);
 		
 		double[] succolaritiesT2D      = null;
 		double[] succolaritiesD2T      = null;
 		double[] succolaritiesL2R      = null;
 		double[] succolaritiesR2L      = null;
 		double[] succolarities         = null;
-		double[] succolaritiesExtended = null; //With added succolarities such as ootential, Deltam Anisotropy
+		double[] succolaritiesExtended = null; //With added succolarities such as Succolarity reservoir  , Delta succolarities, Anisotropy
 		double[] anisotropyIndices     = null;
 			
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255	
@@ -1095,18 +1095,18 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 		
 		
 		if (floodingType.equals("Mean & Anisotropy")) {
-			succolaritiesExtended = new double[1+2*succolarities.length+anisotropyIndices.length]; //Potential succolarity, Succolarities and Delta succolarities
+			succolaritiesExtended = new double[1+2*succolarities.length+anisotropyIndices.length]; //Succolarity reservoir (= potential succolarity), Succolarities and Delta succolarities
 		} else {
-			succolaritiesExtended = new double[1+2*succolarities.length]; //Potential succolarity, Succolarities and Delta succolarities
+			succolaritiesExtended = new double[1+2*succolarities.length]; //Succolarity reservoir (= potential succolarity), Succolarities and Delta succolarities
 		}
 		
-		succolaritiesExtended[0] = potentialSuccolarity;
+		succolaritiesExtended[0] = succReservoir;
 		
 		for (int s = 0; s < succolarities.length; s++) {
 			succolaritiesExtended[1+s] = succolarities[s]; //Succolarities
 		}
 		for (int s = 0; s < succolarities.length; s++) {
-			succolaritiesExtended[1+succolarities.length + s] = potentialSuccolarity - succolarities[s]; //Delta succolarities
+			succolaritiesExtended[1+succolarities.length + s] = succReservoir - succolarities[s]; //Delta succolarities
 		}
 		if (floodingType.equals("Mean & Anisotropy")) {
 			for (int s = 0; s < anisotropyIndices.length; s++) {
@@ -1123,14 +1123,14 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 	}
 	
 	/**
-	 * This method computes the potential succolarity
+	 * This method computes the Succolarity reservoir (= potential succolarity)
 	 * Andronache, Ion. „Analysis of Forest Fragmentation and Connectivity Using Fractal Dimension and Succolarity“.
 	 * Land 13, Nr. 2 (Februar 2024): 138.
 	 * https://doi.org/10.3390/land13020138.
 
 	 * @param rai
 	 */
-	private double computePotSucc(RandomAccessibleInterval<?> rai) { 
+	private double computeSuccReservoir(RandomAccessibleInterval<?> rai) { 
 	
 		double numBlackPixels = 0;
 		double numTotalPixels = 0;
@@ -1143,7 +1143,7 @@ public class Csaj2DSuccolarity<T extends RealType<T>> extends ContextCommand imp
 			}			
 			numTotalPixels += 1.0;
 		}
-		return numBlackPixels/numTotalPixels; //Potential succolarity
+		return numBlackPixels/numTotalPixels; //Succolarity reservoir (= potential succolarity)
 	}
 
 	/**
