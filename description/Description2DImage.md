@@ -197,8 +197,9 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Flooding can be set to Top2Down, Down2Top, Left2Right or Right2L
 - Mean computes the average of all four flooding directions
 - Anisotropy is ABS( (L2R+R2L)/2 - (T2D+D2T)/2 )
-- Potential succolarity is the largest possible succolarity (#black pixels)/(#total pixels)
-- Delta succolarity is Potential succolarity - Succolarity 
+- Succolarity reservoir is the largest possible flooding area (#black pixels)/(#total pixels)
+- Delta succolarity is Succolarity reservoir - Succolarity
+- de Melo & Conci, 15th International Conference on Systems, Signals and Image Processing, 2008, [DOI 10.1109/IWSSIP.2008.4604424](https://doi.org/10.1109/IWSSIP.2008.4604424)
 - de Melo & Conci, Telecommunication Systems, 2013, [DOI 10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
 - Andronache, Land, 2024, [DOI 10.3390/land13020138](https://doi.org/10.3390/land13020138)
 
