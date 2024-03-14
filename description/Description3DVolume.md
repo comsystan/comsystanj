@@ -123,7 +123,7 @@
 - 8-bit binary or grey image volume
 - The number of boxes with distinct sizes can be set
 - Shows a double logarithmic plot of lacunarities
-- Raster/Sliding box scanning or Tug of war method
+- Raster box scanning (Sliding box and Tug of war method are planned for a future release)
 - Binary [0, >0] or grey value algorithm
 - Raster box scanning
 - \<L\>-R&P... Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [DOI10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
