@@ -994,7 +994,7 @@ public class Csaj2DFractalFragmentation<T extends RealType<T>> extends ContextCo
 					cursor.next();
 					((UnsignedByteType) cursor.get()).set(255); //This changes the rai
 				}
-				
+				if (booleanShowConvexHull) uiService.show("Convex hull", rai);
 				//Compute regression parameters
 				regressionValues = process(rai, s);	
 				//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
