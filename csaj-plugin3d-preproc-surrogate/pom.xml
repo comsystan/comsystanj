@@ -13,13 +13,13 @@
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
-	<artifactId>csaj-plugin2d-preproc-preprocess</artifactId>
+	<artifactId>csaj-plugin3d-preproc-surrogate</artifactId>
 	<version>1.1.2</version><!--ComsystanJ version-->
 
-	<name>2D Image - Preprocessing - Preprocess</name>
-	<description>ImageJ2 plugin for preprocessing.</description>
+	<name>3D Volume - Preprocessing - Surrogate</name>
+	<description>ImageJ2 plugin for constructing a 3D surrogate image volume </description>
 	<url>https://github.com/comsystan/comsystanj</url>
-	<inceptionYear>2023</inceptionYear>
+	<inceptionYear>2022</inceptionYear>
 	<organization>
 		<name>comsystan</name>
 		<url>https://github.com/comsystan</url>
@@ -49,12 +49,7 @@
 	</developers>
 	<contributors>
 		<contributor>
-			<name>Helmut Ahammer</name>
-			<url></url>
-			<properties><id></id></properties>
-		</contributor>
-		<contributor>
-			<name>Ion Andronache</name>
+		    <name>Helmut Ahammer</name>
 			<url></url>
 			<properties><id></id></properties>
 		</contributor>
@@ -82,8 +77,8 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>at.csa.csaj.plugin2d.preproc.preprocess</package-name>
-		<main-class>at.csa.csaj.plugin2d.preproc.preprocess.Csaj2DPreprocess</main-class>
+		<package-name>at.csa.csaj.plugin3d.preproc.surrogate</package-name>
+		<main-class>at.csa.csaj.plugin3d.preproc.surrogate.Csaj3DSurrogate</main-class>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>Comsystan Software</license.copyrightOwners>
 	</properties>

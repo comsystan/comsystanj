@@ -18,7 +18,6 @@
 		<!--1D plugins-->
 		<module>csaj-plugin1d-allomscale</module>
 		<module>csaj-plugin1d-autocorr</module>
-		<module>csaj-plugin1d-cutout</module>
 		<module>csaj-plugin1d-detect-events</module>
 		<module>csaj-plugin1d-detect-qrspeaks</module>
 		<module>csaj-plugin1d-dfa</module>
@@ -27,7 +26,6 @@
 		<module>csaj-plugin1d-en-permen</module>
 		<module>csaj-plugin1d-en-sampen</module>
 		<module>csaj-plugin1d-fft</module>
-		<module>csaj-plugin1d-filter</module>
 		<module>csaj-plugin1d-frac-dim-frag</module>
 		<module>csaj-plugin1d-frac-dim-higuchi1d</module>
 		<module>csaj-plugin1d-frac-dim-katz</module>
@@ -41,19 +39,20 @@
 		<module>csaj-plugin1d-hrv</module>
 		<module>csaj-plugin1d-kc</module>
 		<module>csaj-plugin1d-lyapunov</module>
-		<module>csaj-plugin1d-math</module>
-		<module>csaj-plugin1d-noise</module>
 		<module>csaj-plugin1d-opener</module>
 		<module>csaj-plugin1d-pge</module>
 		<module>csaj-plugin1d-poincareplot</module>
-		<module>csaj-plugin1d-resampling</module>
+		<module>csaj-plugin1d-preproc-cutout</module>
+		<module>csaj-plugin1d-preproc-filter</module>
+		<module>csaj-plugin1d-preproc-math</module>
+		<module>csaj-plugin1d-preproc-noise</module>
+		<module>csaj-plugin1d-preproc-resampling</module>
+		<module>csaj-plugin1d-preproc-surrogate</module>
 		<module>csaj-plugin1d-rqa</module>
 		<module>csaj-plugin1d-statistics</module>
-		<module>csaj-plugin1d-surrogate</module>
 		<module>csaj-plugin1d-symbolicaggregation</module>
 		<!--2D plugins-->
 		<module>csaj-plugin2d-en-genen</module>
-		<module>csaj-plugin2d-filter</module>
 		<module>csaj-plugin2d-frac-dim-boxcounting</module>
 		<module>csaj-plugin2d-frac-dim-correlation-directional</module>
 		<module>csaj-plugin2d-frac-dim-ff</module>
@@ -69,13 +68,13 @@
 		<module>csaj-plugin2d-frac-succolarity</module>
 		<module>csaj-plugin2d-generator</module>
 		<module>csaj-plugin2d-kc</module>
-		<module>csaj-plugin2d-noise</module>
 		<module>csaj-plugin2d-opener</module>
+		<module>csaj-plugin2d-preproc-filter</module>
+		<module>csaj-plugin2d-preproc-noise</module>
 		<module>csaj-plugin2d-preproc-preprocess</module>
-		<module>csaj-plugin2d-surrogate</module>
+		<module>csaj-plugin2d-preproc-surrogate</module>
 		<!--3D plugins-->
 		<module>csaj-plugin3d-en-genen</module>
-		<module>csaj-plugin3d-filter</module>
 		<module>csaj-plugin3d-frac-dim-boxcounting</module>
 		<module>csaj-plugin3d-frac-dim-correlation</module>
 		<module>csaj-plugin3d-frac-dim-ff</module>
@@ -87,9 +86,10 @@
 		<module>csaj-plugin3d-frac-lacunarity</module>
 		<module>csaj-plugin3d-generator</module>
 		<module>csaj-plugin3d-kc</module>
-		<module>csaj-plugin3d-noise</module>
 		<module>csaj-plugin3d-opener</module>
-		<module>csaj-plugin3d-surrogate</module>
+		<module>csaj-plugin3d-preproc-filter</module>
+		<module>csaj-plugin3d-preproc-noise</module>
+		<module>csaj-plugin3d-preproc-surrogate</module>
 	</modules>
 
 </project>
