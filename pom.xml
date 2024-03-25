@@ -71,7 +71,7 @@
 		<module>csaj-plugin2d-kc</module>
 		<module>csaj-plugin2d-noise</module>
 		<module>csaj-plugin2d-opener</module>
-		<module>csaj-plugin2d-preprocess</module>
+		<module>csaj-plugin2d-preproc-preprocess</module>
 		<module>csaj-plugin2d-surrogate</module>
 		<!--3D plugins-->
 		<module>csaj-plugin3d-en-genen</module>
