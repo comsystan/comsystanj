@@ -23,6 +23,8 @@ Plugin changes:
 2D Succolarity: added Succolarity reservoir, Delta succolarities and Anisotropy indices, thanks to Ion Andronache
 2D Preprocess: added option Paticles to stack, thanks to Ion Andronache
 
+Miscellaneous:
+Grouped class paths of various plugins
 **************************************************************
 Version 1.1.2
 pom-scijava 36.0.0

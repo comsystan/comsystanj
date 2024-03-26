@@ -69,7 +69,7 @@ import at.csa.csaj.plugin1d.frac.dim.frag.util.FragmentationDimension;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
 import at.csa.csaj.commons.algorithms.Surrogate1D;
 import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
-import at.csa.csaj.plugin1d.open.Csaj1DOpener;
+import at.csa.csaj.plugin1d.misc.open.Csaj1DOpener;
 
 /**
  * A {@link Command} plugin computing <the Fragmentation index</a>

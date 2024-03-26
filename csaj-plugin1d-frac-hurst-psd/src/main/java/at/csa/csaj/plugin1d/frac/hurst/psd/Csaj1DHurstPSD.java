@@ -71,7 +71,7 @@ import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.plugin1d.frac.hurst.psd.util.BetaDispH;
 import at.csa.csaj.plugin1d.frac.hurst.psd.util.BetaPSD;
 import at.csa.csaj.plugin1d.frac.hurst.psd.util.BetaSWVH;
-import at.csa.csaj.plugin1d.open.Csaj1DOpener;
+import at.csa.csaj.plugin1d.misc.open.Csaj1DOpener;
 
 /**
  * A {@link Command} plugin computing <the Hurst coefficient using power spectral densities</a>

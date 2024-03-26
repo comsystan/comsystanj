@@ -75,7 +75,7 @@ import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
 import at.csa.csaj.plugin1d.frac.hurst.util.HKprocess;
 import at.csa.csaj.plugin1d.frac.hurst.util.HurstRS;
 import at.csa.csaj.plugin1d.frac.hurst.util.HurstSP;
-import at.csa.csaj.plugin1d.open.Csaj1DOpener;
+import at.csa.csaj.plugin1d.misc.open.Csaj1DOpener;
 
 /**
  * A {@link Command} plugin computing <the Hurst coefficient</a>

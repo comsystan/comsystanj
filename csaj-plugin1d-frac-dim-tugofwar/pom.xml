@@ -109,7 +109,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>at.csa.csaj</groupId>
-			<artifactId>csaj-plugin1d-opener</artifactId>
+			<artifactId>csaj-plugin1d-misc-opener</artifactId>
 			<version>1.1.2</version><!--ComsystanJ version-->
 		</dependency>
 		<dependency>

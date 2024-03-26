@@ -79,7 +79,7 @@ import at.csa.csaj.plugin1d.detect.events.util.osea4java.QRSDetector2;
 import at.csa.csaj.plugin1d.detect.events.util.osea4java.classification.BeatDetectionAndClassification;
 import at.csa.csaj.plugin1d.detect.events.util.osea4java.classification.BeatDetectionAndClassification.BeatDetectAndClassifyResult;
 import at.csa.csaj.plugin1d.detect.events.util.osea4java.classification.ECGCODES;
-import at.csa.csaj.plugin1d.open.Csaj1DOpener;
+import at.csa.csaj.plugin1d.misc.open.Csaj1DOpener;
 
 
 /**
