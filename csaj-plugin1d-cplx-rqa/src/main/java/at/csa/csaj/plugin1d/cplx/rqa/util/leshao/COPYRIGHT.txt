@@ -1,0 +1,4 @@
+ComsystanJ uses modified and extended classes from
+https://github.com/Leshao-Zhang/Visualisation-Cross-Recurrence-Quantification-Analysis/tree/master
+
+Original is Copyright (c) 2019 Leshao Zhang
