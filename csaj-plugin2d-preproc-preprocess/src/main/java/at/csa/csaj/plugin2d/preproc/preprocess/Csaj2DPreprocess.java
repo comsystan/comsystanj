@@ -53,7 +53,15 @@ import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.labeling.ConnectedComponents;
+import net.imglib2.algorithm.labeling.ConnectedComponents.StructuringElement;
+import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.roi.RealMask;
+import net.imglib2.roi.labeling.ImgLabeling;
+import net.imglib2.roi.labeling.LabelingMapping;
+import net.imglib2.roi.labeling.Labelings;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -127,8 +135,7 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 	private static int cropMaxX;
 	private static int cropMaxY;
 	
-	private static int[][] labeledParticles;
-	private static int numLabels;
+	private static Img<UnsignedByteType> labeledParticles;
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -199,8 +206,8 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 			   callback = "callbackPreprocessType")
 	private String choiceRadioButt_PreprocessType;
 	
-	@Parameter(label = "(ACB, PTS) Background",
-			   description = "Black or white background",
+	@Parameter(label = "(ACB) Background",
+			   description = "Black or white background for option auto crop borders",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			   choices = {"Black", "White"}, //
 			   persist = true,  //restore previous value default = true
@@ -897,6 +904,9 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 					logService.info(this.getClass().getName() + " cropMaxY: " + cropMaxY);			
 				}
 				//************************************************************************
+				else if (choiceRadioButt_PreprocessType.equals("Particles to stack")) {
+					//nothing to do
+				}
 	
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -999,7 +1009,7 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 					datasetOut.setCompositeChannelCount(3);
 					datasetOut.setRGBMerged(true);
 					
-					//We must read from datasetIn		
+					//Read from datasetIn		
 					RandomAccess<RealType<?>> ra = datasetIn.randomAccess();
 					Cursor<RealType<?>> cursor = datasetOut.cursor();
 					long[] pos = new long[3];
@@ -1038,8 +1048,8 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 					dims = new long[]{cropWidth, cropHeight, 3, numSlices};
 					axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
 					datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-					//We must read from datasetIn
-		
+				
+					//Read from datasetIn
 					RandomAccess<RealType<?>> ra = datasetIn.randomAccess();
 					Cursor<RealType<?>> cursor = datasetOut.cursor();
 					long[] pos = new long[4];
@@ -1062,76 +1072,9 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 		
 		
 		else if (choiceRadioButt_PreprocessType.equals("Particles to stack")) { //Result is an image stack 
-			
-			width  = datasetIn.getWidth();
-			height = datasetIn.getHeight();
-		
-			AxisType[] axes  = null;
-			long[] dims 	 = null;
-			int bitsPerPixel = 0;
-			boolean signed   = false;
-			boolean floating = false;
-			boolean virtual  = false;
-			String name = "Particle stack";
-					
-			if (imageType.equals("Grey")) {
-				bitsPerPixel = 8;
-				dims = new long[]{width, height, numLabels};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-			
-				//We must read from matrix labeledParticles 
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
-				long[] pos = new long[3];
-				int label;	
-			
-				for (int x = 0; x < width; x++) {
-					for (int y = 0; y < height; y++) {
-						label = labeledParticles[x][y];			
-						if (label > 0) {
-							pos[0] = x;
-							pos[1] = y;
-							pos[2] = label-1; //Stack position corresponds to label numbers 
-							ra.setPosition(pos);
-							ra.get().setReal(255);						
-						}	
-					}
-				}	
-			} //Grey
-			
-			if (imageType.equals("RGB")) {
-				bitsPerPixel = 8;
-				dims = new long[]{width, height, 3, numLabels};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-			
-				//We must read from matrix labeledParticles 
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
-				long[] pos = new long[4];
-				int label;	
-			
-				for (int x = 0; x < width; x++) {
-					for (int y = 0; y < height; y++) {
-						label = labeledParticles[x][y];			
-						if (label > 0) {
-							pos[0] = x;
-							pos[1] = y;
-							pos[2] = 0; //R
-							pos[3] = label-1; //Stack position corresponds to label numbers 
-							ra.setPosition(pos);
-							ra.get().setReal(255);	
-							pos[2] = 1; //G
-							ra.setPosition(pos);
-							ra.get().setReal(255);	
-							pos[2] = 2; //B
-							ra.setPosition(pos);
-							ra.get().setReal(255);	
-						}	
-					}
-				}	
-			
-			} //RGB
-		}// Auto crop borders
+			//nothing to do 
+			//datasetOut is already a stack
+		}// Particles to stack
 		
 		
 		// stack channels back together
@@ -1172,7 +1115,6 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 		String preprocessType = choiceRadioButt_PreprocessType;   //"Auto crop borders"
 		String backgroundType = choiceRadioButt_BackgroundType;   //"Black", "White"
 		String neighborhood   = choiceRadioButt_ConnectivityType; //4 or 8 Option for Particles to stack
-		boolean overwriteRai  = true; //Option for Particles to stack in order to show labeled image for workflow for a single image processSingleInputImage()
 		
 		//imageType = "Grey"; // "Grey" "RGB"....
 		//numSlices;
@@ -1229,51 +1171,164 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 		} //Auto crop borders
 		
 		if (preprocessType.equals("Particles to stack")) {
-		//https://stackoverflow.com/questions/26319323/connected-pixels-using-recursion
-		//https://en.wikipedia.org/wiki/Connected-component_labeling
-		//https://courses.cs.washington.edu/courses/cse576/02au/homework/hw3/ConnectComponent.java
-		//https://stackoverflow.com/questions/26319323/connected-pixels-using-recursion
+			//https://en.wikipedia.org/wiki/Connected-component_labeling
+		
+			AxisType[] axes  = null;
+			long[] dims 	 = null;
+			int bitsPerPixel = 0;
+			boolean signed   = false;
+			boolean floating = false;
+			boolean virtual  = false;
+			String name = "Particle stack";
 			
-		labeledParticles = new int[(int)rai.dimension(0)][(int)rai.dimension(1)];
-		int particleLabel = 0;
-		numLabels = 0 ;
 			if (imageType.equals("Grey")) { //rai should have 2 dimensions	
+						
+				StructuringElement se = null;
+				if (neighborhood.equals("4")) se = ConnectedComponents.StructuringElement.FOUR_CONNECTED;
+				if (neighborhood.equals("8")) se = ConnectedComponents.StructuringElement.EIGHT_CONNECTED;
 				
-				cursor = Views.iterable(rai).localizingCursor();
-				int[] pos = new int[2];
+//				long[] dimensions = new long[2];
+//				dimensions[0] = rai.dimension(0);
+//				dimensions[1] = rai.dimension(1);
+//				labeledParticles = ArrayImgs.unsignedBytes(dimensions);
+				
+				//ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
+				ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //With preview
+				
+				//rai is now             a single labeled image (each particle with a distinct number, 1,2,3,4......)
+				//rai will not be changed
+				//datasetOut is now also a single labeled image (each particle with a distinct number, 1,2,3,4......)
+				//Make a duplicate to generate a new datasetOut (image stack)	
+				Dataset datasetTemp = datasetOut.duplicate();
+							
+				width  = datasetOut.getWidth();
+				height = datasetOut.getHeight();
+				int numLabels = 0;
+				
+				//datasetTemp is a labeled image - ever particle has a number
+				//get number of labels (find highest value)
+				//for Grey and RGB
+				Cursor<RealType<?>> cursor = datasetTemp.cursor();
 				while (cursor.hasNext()) {
 					cursor.fwd();
-					cursor.localize(pos);	
 					pixelValue = ((UnsignedByteType) cursor.get()).get();
-					if(pixelValue != backValue && labeledParticles[pos[0]][pos[1]] == backValue) {
-		                particleLabel ++;
-		                numLabels ++;
-		                regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, pos[0], pos[1], neighborhood, overwriteRai);
+					if (pixelValue > numLabels) {
+						numLabels = pixelValue;
+						//System.out.println("Csaj2DPreprocessor: New label number: " + numLabels);
 					}
-				} //cursor						
-			} else if (imageType.equals("RGB")) {				
-				cursor = Views.iterable(rai).localizingCursor();
-				int[] pos = new int[3];
+				}	
+					
+				bitsPerPixel = 8;
+				dims = new long[]{width, height, numLabels};
+				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
+				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
+			
+				long[] posTemp = new long[2];
+				long[] posOut = new long[3];
+				//read from datasetTemp
+				cursor = datasetTemp.cursor();
+				//write to datasetOut
+				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 				while (cursor.hasNext()) {
 					cursor.fwd();
-					cursor.localize(pos);	
 					pixelValue = ((UnsignedByteType) cursor.get()).get();
-					if(pixelValue != backValue && labeledParticles[pos[0]][pos[1]] == backValue) {
-		                particleLabel ++;
-		                numLabels ++;
-		                regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, pos[0], pos[1], neighborhood, overwriteRai);
-					}	
-				} //cursor	
-				cursor.reset();										
+					if (pixelValue > 0) {
+						cursor.localize(posTemp);
+						posOut[0] = posTemp[0];
+						posOut[1] = posTemp[1];
+						posOut[2] = pixelValue - 1; //Stack position corresponds to label number 
+						ra.setPosition(posOut);
+						ra.get().setReal(255);			
+					}
+				}	
+				//datasetOut = datasetTemp; //just for debugging
+				datasetTemp = null;
+									
+			} else if (imageType.equals("RGB")) {  //rai should have 3 dimensions	
+				
+				StructuringElement se = null;
+				if (neighborhood.equals("4")) se = ConnectedComponents.StructuringElement.FOUR_CONNECTED;
+				if (neighborhood.equals("8")) se = ConnectedComponents.StructuringElement.EIGHT_CONNECTED;
+				
+//				long[] dimensions = new long[3];
+//				dimensions[0] = rai.dimension(0);
+//				dimensions[1] = rai.dimension(1);
+//				dimensions[2] = rai.dimension(2);
+//				labeledParticles = ArrayImgs.unsignedBytes(dimensions);
+							
+				//ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
+				ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //With preview
+				
+				//rai is now             a single labeled image (each particle with a distinct number, 1,2,3,4......)
+				//rai will not be changed
+				//datasetOut is now also a single labeled image (each particle with a distinct number, 1,2,3,4......)
+				//Make a duplicate to generate a new datasetOut (image stack)	
+				Dataset datasetTemp = datasetOut.duplicate();
+							
+				width  = datasetOut.getWidth();
+				height = datasetOut.getHeight();
+				int numLabels = 0;
+				
+				//datasetTemp is a labeled image - ever particle has a number
+				//get number of labels (find highest value)
+				//for Grey and RGB
+				Cursor<RealType<?>> cursor = datasetTemp.cursor();
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					if (pixelValue > numLabels) {
+						numLabels = pixelValue;
+						//System.out.println("Csaj2DPreprocessor: New label number: " + numLabels);
+					}
+				}	
+				
+				bitsPerPixel = 8;
+				dims = new long[]{width, height, 3, numLabels};
+				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
+				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
+			
+				long[] posTemp = new long[3];
+				long[] posOut = new long[4];
+				//read from datasetTemp
+				cursor = datasetTemp.cursor();
+				//write to datasetOut
+				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					if (pixelValue > 0) {
+						cursor.localize(posTemp);
+						posOut[0] = posTemp[0];
+						posOut[1] = posTemp[1];
+						posOut[2] = 0; //R
+						posOut[3] = pixelValue - 1; //Stack position corresponds to label number 
+						ra.setPosition(posOut);
+						ra.get().setReal(255);		
+						posOut[2] = 1; //G
+						//posOut[3] = pixelValue - 1; //Stack position corresponds to label number
+						ra.setPosition(posOut);
+						ra.get().setReal(255);		
+						posOut[2] = 2; //B
+						//posOut[3] = pixelValue - 1; //Stack position corresponds to label number
+						ra.setPosition(posOut);
+						ra.get().setReal(255);		
+					}
+				}	
+				//datasetOut = datasetTemp; //just for debugging		
+				datasetTemp = null;
 			} //RGB	
 		} // Particles to stack
+		
 		if (preprocessType.equals("Something else")) {
 	
+			
 		} //
 		
 		return rai;	
 	}
 	
+	//DO NOT USE!
+	//This recursive function is working but produces an exploding number of stacks yielding a StackOverFlow error
 	public static void regionGrowingOfNewParticle(RandomAccessibleInterval rai, int[][] labeledParticles, int particleLabel, int x, int y, String neighborhood, boolean overwriteRai){
 		int pixelValue = -999999;
 		//A pixel must be within the boundaries of the image
