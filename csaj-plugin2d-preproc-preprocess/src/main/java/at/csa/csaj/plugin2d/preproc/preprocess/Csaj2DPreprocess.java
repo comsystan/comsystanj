@@ -1217,7 +1217,16 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 						//System.out.println("Csaj2DPreprocessor: New label number: " + numLabels);
 					}
 				}	
-					
+		
+				//scale rai to [0,255] for the preview
+				cursor = Views.iterable(rai).cursor();
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					cursor.get().setReal((int) Math.round((double)pixelValue/(double)numLabels*255.0));
+				}
+						
+				//prepare new datasetOut with data from datasetTemp
 				bitsPerPixel = 8;
 				dims = new long[]{width, height, numLabels};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
@@ -1280,8 +1289,17 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 						numLabels = pixelValue;
 						//System.out.println("Csaj2DPreprocessor: New label number: " + numLabels);
 					}
-				}	
+				}
 				
+				//scale rai to [0,255] for the preview 
+				cursor = Views.iterable(rai).cursor();
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					cursor.get().setReal((int) Math.round((double)pixelValue/(double)numLabels*255.0));
+				}
+				
+				//prepare new datasetOut with data from datasetTemp
 				bitsPerPixel = 8;
 				dims = new long[]{width, height, 3, numLabels};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
