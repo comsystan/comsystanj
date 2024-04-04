@@ -56,15 +56,15 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Preprocess
 - Preprocessing of images
-- 8-bit grey or RGB color images
 - Auto crop borders ACP
+  - 8-bit grey or RGB color images
   - Useful for e.g. computing fractal dimensions of ojects rather than images
   - Black or white background can be choosen
-- Particles to stack PTS
-  - Paricles in a binary [0, >0] image are separated to an image stack
+- Particles to stack
+  - Single 8-bit binary image
+  - Paricles in a binary image [0, >0] are separated to an image stack
   - Useful to e.g. analyze each particle itself instead of all particles together
   - Only for a single input image
-  - Black or white background can be choosen
 
 ### Surrogates
 - Computes surrogate images
