@@ -56,12 +56,6 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.labeling.ConnectedComponents;
 import net.imglib2.algorithm.labeling.ConnectedComponents.StructuringElement;
 import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.roi.RealMask;
-import net.imglib2.roi.labeling.ImgLabeling;
-import net.imglib2.roi.labeling.LabelingMapping;
-import net.imglib2.roi.labeling.Labelings;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -1194,16 +1188,17 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 				
 				//ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
 				ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //With preview
+				//WARNING: ConncetedComponents works only up to 255 components!
 				
 				//rai is now             a single labeled image (each particle with a distinct number, 1,2,3,4......)
-				//rai will not be changed
+				//rai will not be changed in the following steps
 				//datasetOut is now also a single labeled image (each particle with a distinct number, 1,2,3,4......)
 				//Make a duplicate to generate a new datasetOut (image stack)	
 				Dataset datasetTemp = datasetOut.duplicate();
 							
 				width  = datasetOut.getWidth();
 				height = datasetOut.getHeight();
-				int numLabels = 0;
+				long numLabels = 0;
 				
 				//datasetTemp is a labeled image - ever particle has a number
 				//get number of labels (find highest value)
@@ -1214,10 +1209,11 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 					pixelValue = ((UnsignedByteType) cursor.get()).get();
 					if (pixelValue > numLabels) {
 						numLabels = pixelValue;
-						//System.out.println("Csaj2DPreprocessor: New label number: " + numLabels);
+						//System.out.println("Csaj2DPreprocess: New label number: " + numLabels);
 					}
 				}	
-		
+				logService.info(this.getClass().getName() + " Number of labels: " + numLabels);
+				
 				//scale rai to [0,255] for the preview
 				cursor = Views.iterable(rai).cursor();
 				while (cursor.hasNext()) {
@@ -1267,9 +1263,10 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 							
 				//ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
 				ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //With preview
+				//WARNING: ConncetedComponents works only up to 255 components!
 				
 				//rai is now             a single labeled image (each particle with a distinct number, 1,2,3,4......)
-				//rai will not be changed
+				//rai will not be changed in the following steps
 				//datasetOut is now also a single labeled image (each particle with a distinct number, 1,2,3,4......)
 				//Make a duplicate to generate a new datasetOut (image stack)	
 				Dataset datasetTemp = datasetOut.duplicate();
@@ -1290,6 +1287,7 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 						//System.out.println("Csaj2DPreprocessor: New label number: " + numLabels);
 					}
 				}
+				logService.info(this.getClass().getName() + " Number of labels: " + numLabels);
 				
 				//scale rai to [0,255] for the preview 
 				cursor = Views.iterable(rai).cursor();
