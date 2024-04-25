@@ -63,7 +63,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Particles to stack
   - Single 8-bit binary image
   - Particles in a binary image [0, >0] are separated to an image stack
-  - Maximum connected particles number is 255
+  - Maximum connected particles number is 65535
   - Useful to e.g. analyze each particle itself instead of all particles together
   - Only for a single input image
 
