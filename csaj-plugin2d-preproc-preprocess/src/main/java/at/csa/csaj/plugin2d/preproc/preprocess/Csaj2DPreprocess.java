@@ -56,8 +56,12 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.labeling.ConnectedComponents;
 import net.imglib2.algorithm.labeling.ConnectedComponents.StructuringElement;
 import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.AbstractIntegerType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
@@ -129,7 +133,7 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 	private static int cropMaxX;
 	private static int cropMaxY;
 	
-	private static Img<UnsignedByteType> labeledParticles;
+	private static Img<UnsignedShortType> labeledParticles;
 	
 	private WaitingDialogWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -1181,73 +1185,70 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 				if (neighborhood.equals("4")) se = ConnectedComponents.StructuringElement.FOUR_CONNECTED;
 				if (neighborhood.equals("8")) se = ConnectedComponents.StructuringElement.EIGHT_CONNECTED;
 				
-//				long[] dimensions = new long[2];
-//				dimensions[0] = rai.dimension(0);
-//				dimensions[1] = rai.dimension(1);
-//				labeledParticles = ArrayImgs.unsignedBytes(dimensions);
-				
-				//ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
-				ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //With preview
-				//WARNING: ConncetedComponents works only up to 255 components!
-				
-				//rai is now             a single labeled image (each particle with a distinct number, 1,2,3,4......)
-				//rai will not be changed in the following steps
-				//datasetOut is now also a single labeled image (each particle with a distinct number, 1,2,3,4......)
-				//Make a duplicate to generate a new datasetOut (image stack)	
-				Dataset datasetTemp = datasetOut.duplicate();
-							
-				width  = datasetOut.getWidth();
-				height = datasetOut.getHeight();
-				long numLabels = 0;
-				
-				//datasetTemp is a labeled image - ever particle has a number
+				long[] dimensions = new long[2];
+				dimensions[0] = rai.dimension(0);
+				dimensions[1] = rai.dimension(1);
+				//labeledParticles = ArrayImgs.unsignedBytes(dimensions); //only 255 components
+				labeledParticles = ArrayImgs.unsignedShorts(dimensions); //65535 components!
+				ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
+				//ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //Only up to 255 components because target rai is ByteType [0,255]!
+									
+				//labeledParticles is a labeled image - ever particle has a number
 				//get number of labels (find highest value)
-				//for Grey and RGB
-				Cursor<RealType<?>> cursor = datasetTemp.cursor();
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					pixelValue = ((UnsignedByteType) cursor.get()).get();
-					if (pixelValue > numLabels) {
-						numLabels = pixelValue;
+				long numLabels = 0;
+				short shortValue;
+				Cursor<UnsignedShortType> cursorShort = labeledParticles.cursor();
+				while (cursorShort.hasNext()) {
+					cursorShort.fwd();
+					shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
+					if (shortValue > numLabels) {
+						numLabels = shortValue;
 						//System.out.println("Csaj2DPreprocess: New label number: " + numLabels);
 					}
 				}	
 				logService.info(this.getClass().getName() + " Number of labels: " + numLabels);
 				
 				//scale rai to [0,255] for the preview
-				cursor = Views.iterable(rai).cursor();
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					pixelValue = ((UnsignedByteType) cursor.get()).get();
-					cursor.get().setReal((int) Math.round((double)pixelValue/(double)numLabels*255.0));
+				cursorShort = labeledParticles.cursor();
+				RandomAccess<RealType<?>> ra = rai.randomAccess();
+				long[] pos = new long[2];
+				while (cursorShort.hasNext()) {
+					cursorShort.fwd();
+					cursorShort.localize(pos);
+					shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
+					ra.setPosition(pos[0], 0);
+					ra.setPosition(pos[1], 1);
+					ra.get().setReal((int) Math.round((double)shortValue/(double)numLabels*255.0));
 				}
 						
-				//prepare new datasetOut with data from datasetTemp
+				//prepare new datasetOut which is a stack
+				width  = datasetOut.getWidth();
+				height = datasetOut.getHeight();
 				bitsPerPixel = 8;
 				dims = new long[]{width, height, numLabels};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
 			
-				long[] posTemp = new long[2];
+				long[] posShort = new long[2];
 				long[] posOut = new long[3];
 				//read from datasetTemp
-				cursor = datasetTemp.cursor();
+				cursorShort = labeledParticles.cursor();
 				//write to datasetOut
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					pixelValue = ((UnsignedByteType) cursor.get()).get();
-					if (pixelValue > 0) {
-						cursor.localize(posTemp);
-						posOut[0] = posTemp[0];
-						posOut[1] = posTemp[1];
-						posOut[2] = pixelValue - 1; //Stack position corresponds to label number 
+				ra = datasetOut.randomAccess();
+				while (cursorShort.hasNext()) {
+					cursorShort.fwd();
+					shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
+					if (shortValue > 0) {
+						cursorShort.localize(posShort);
+						posOut[0] = posShort[0];
+						posOut[1] = posShort[1];
+						posOut[2] = shortValue - 1; //Stack position corresponds to label number 
 						ra.setPosition(posOut);
 						ra.get().setReal(255);			
 					}
 				}	
 				//datasetOut = datasetTemp; //just for debugging
-				datasetTemp = null;
+				labeledParticles = null;
 									
 			} else if (imageType.equals("RGB")) {  //rai should have 3 dimensions	
 				
@@ -1255,67 +1256,65 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 				if (neighborhood.equals("4")) se = ConnectedComponents.StructuringElement.FOUR_CONNECTED;
 				if (neighborhood.equals("8")) se = ConnectedComponents.StructuringElement.EIGHT_CONNECTED;
 				
-//				long[] dimensions = new long[3];
-//				dimensions[0] = rai.dimension(0);
-//				dimensions[1] = rai.dimension(1);
-//				dimensions[2] = rai.dimension(2);
-//				labeledParticles = ArrayImgs.unsignedBytes(dimensions);
-							
-				//ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
-				ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //With preview
-				//WARNING: ConncetedComponents works only up to 255 components!
-				
-				//rai is now             a single labeled image (each particle with a distinct number, 1,2,3,4......)
-				//rai will not be changed in the following steps
-				//datasetOut is now also a single labeled image (each particle with a distinct number, 1,2,3,4......)
-				//Make a duplicate to generate a new datasetOut (image stack)	
-				Dataset datasetTemp = datasetOut.duplicate();
-							
-				width  = datasetOut.getWidth();
-				height = datasetOut.getHeight();
-				int numLabels = 0;
-				
-				//datasetTemp is a labeled image - ever particle has a number
+				long[] dimensions = new long[3];
+				dimensions[0] = rai.dimension(0);
+				dimensions[1] = rai.dimension(1);
+				dimensions[3] = rai.dimension(3);
+				//labeledParticles = ArrayImgs.unsignedBytes(dimensions); //only 255 components
+				labeledParticles = ArrayImgs.unsignedShorts(dimensions); //65535 components!
+				ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
+				//ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //Only up to 255 components because target rai is ByteType [0,255]!
+									
+				//labeledParticles is a labeled image - ever particle has a number
 				//get number of labels (find highest value)
-				//for Grey and RGB
-				Cursor<RealType<?>> cursor = datasetTemp.cursor();
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					pixelValue = ((UnsignedByteType) cursor.get()).get();
-					if (pixelValue > numLabels) {
-						numLabels = pixelValue;
-						//System.out.println("Csaj2DPreprocessor: New label number: " + numLabels);
+				long numLabels = 0;
+				short shortValue;
+				Cursor<UnsignedShortType> cursorShort = labeledParticles.cursor();
+				while (cursorShort.hasNext()) {
+					cursorShort.fwd();
+					shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
+					if (shortValue > numLabels) {
+						numLabels = shortValue;
+						//System.out.println("Csaj2DPreprocess: New label number: " + numLabels);
 					}
-				}
+				}	
 				logService.info(this.getClass().getName() + " Number of labels: " + numLabels);
 				
-				//scale rai to [0,255] for the preview 
-				cursor = Views.iterable(rai).cursor();
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					pixelValue = ((UnsignedByteType) cursor.get()).get();
-					cursor.get().setReal((int) Math.round((double)pixelValue/(double)numLabels*255.0));
+				//scale rai to [0,255] for the preview
+				cursorShort = labeledParticles.cursor();
+				RandomAccess<RealType<?>> ra = rai.randomAccess();
+				long[] pos = new long[3];
+				while (cursorShort.hasNext()) {
+					cursorShort.fwd();
+					cursorShort.localize(pos);
+					shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
+					ra.setPosition(pos[0], 0);
+					ra.setPosition(pos[1], 1);
+					ra.setPosition(pos[2], 2);
+					ra.get().setReal((int) Math.round((double)shortValue/(double)numLabels*255.0));
 				}
 				
 				//prepare new datasetOut with data from datasetTemp
 				bitsPerPixel = 8;
+				width  = datasetOut.getWidth();
+				height = datasetOut.getHeight();
 				dims = new long[]{width, height, 3, numLabels};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
 			
-				long[] posTemp = new long[3];
+				long[] posShort = new long[3];
 				long[] posOut = new long[4];
 				//read from datasetTemp
-				cursor = datasetTemp.cursor();
+				cursor = labeledParticles.cursor();
 				//write to datasetOut
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
+				ra = datasetOut.randomAccess();
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					pixelValue = ((UnsignedByteType) cursor.get()).get();
 					if (pixelValue > 0) {
-						cursor.localize(posTemp);
-						posOut[0] = posTemp[0];
-						posOut[1] = posTemp[1];
+						cursor.localize(posShort);
+						posOut[0] = posShort[0];
+						posOut[1] = posShort[1];
 						posOut[2] = 0; //R
 						posOut[3] = pixelValue - 1; //Stack position corresponds to label number 
 						ra.setPosition(posOut);
@@ -1331,7 +1330,7 @@ public class Csaj2DPreprocess<T extends RealType<T>> extends ContextCommand impl
 					}
 				}	
 				//datasetOut = datasetTemp; //just for debugging		
-				datasetTemp = null;
+				labeledParticles = null;
 			} //RGB	
 		} // Particles to stack
 		
