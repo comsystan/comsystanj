@@ -100,8 +100,9 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Blanket or Variation method with grey value dilation/erosion
 - The number of dilation/erosion steps can be set
 - The shape of the morphological structuring element can be set
-- Linear regression parameters of the double log plot can be set 
-- Peleg et al., IEEE-TPAMI, 1984, [DOI 10.1109/TPAMI.1984.4767557](https://doi.org/10.1109/TPAMI.1984.4767557)
+- Linear regression parameters of the double log plot can be set
+- Ahammer et al., Physica D, 2008, [DOI 10.1016/j.physd.2007.09.016](https://doi.org/10.1016/j.physd.2007.09.016)
+- Dubuc et al., Proc. R. Soc. Lond. A425113–127, 1989, [DOI 10.1098/rspa.1989.0101](https://doi.org/10.1098/rspa.1989.0101)
 
 ### Correlation dimension
 - Fractal correlation dimension
