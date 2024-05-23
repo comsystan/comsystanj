@@ -60,6 +60,14 @@
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
+### 3D Entropy analyses - 3D Generalised entropies
+- SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
+- Probabilities are computed with plain pixel grey values
+- 8-bit grey image volume
+- A plot of Renyi entropies can be shown
+- Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108)
+- Tsallis, Introduction to Nonextensive Statistical Mechanics, Springer, 2009
+
 ### 3D Fractal analyses - 3D Box counting dimension
 - Fractal dimension with 3D box counting
 - This is a direct expansion of the 2D algorithm
