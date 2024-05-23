@@ -34,7 +34,12 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
-### Filter
+### Preprocessing/Auto crop borders
+  - 8-bit grey or RGB color images
+  - Useful for e.g. computing fractal dimensions of ojects rather than images
+  - Black or white background can be choosen
+
+### Preprocessing/Filter
 - Image filtering
 - 8-bit grey or RGB color images
 - Gaussian blur
@@ -44,7 +49,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Low-pass, High-pass with FFT
   - Radius (Cutoff frequency) can be set
 
-### Noise
+### Preprocessing/Noise
 - Adding noise
 - 8-bit grey or RGB color images
 - Shot, Salt&Pepper
@@ -54,26 +59,41 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
-### Preprocess
-- Preprocessing of images
-- Auto crop borders ACP
-  - 8-bit grey or RGB color images
-  - Useful for e.g. computing fractal dimensions of ojects rather than images
-  - Black or white background can be choosen
-- Particles to stack
+### Preprocessing/Particles to stack
   - Single 8-bit binary image
   - Particles in a binary image [0, >0] are separated to an image stack
   - Maximum connected particles number is 65535
   - Useful to e.g. analyze each particle itself instead of all particles together
   - Only for a single input image
 
-### Surrogates
+### Preprocessing/Surrogates
 - Computes surrogate images
 - 8-bit grey or RGB color images
 - Shuffle, Gaussian, Random phase, AAFT
 - FFT windowing can be set
+- 
+### Complexity analyses/Kolmogorov complexity and Logical depth
+- KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB) or
+- KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW, PNG, J2K, JPG) - slow!
+- 8-bit grey images
+- RGB color images may also work, but not tested
+- Lossless and lossy algorithms can be chosen
+- Lossless algorithms are recommended.
+- LD is estimated by the decompression time of the compressed data bytes (ZIP, ZLIB, GZIB) or
+- LD is estimated by the opening time of the compressed image (TIFF-LZW, PNG, J2K, JPG)
+- Iterations should be set to as high a value as possible.
+- LD values should be taken with caution, as computers are not well suited to measure times
+- Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
-### Box counting dimension
+### Entropy analyses/Generalised entropies
+- SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
+- Probabilities are computed with plain pixel grey values
+- 8-bit grey images
+- A plot of Renyi entropies can be shown
+- Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108)
+- Tsallis, Introduction to Nonextensive Statistical Mechanics, Springer, 2009
+
+### Fractal analyses/Box counting dimension
 - Fractal dimension with box counting
 - 8-bit binary or grey images
 - Binary [0, >0] counting or DBC and RDBC
@@ -83,40 +103,20 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Sarkar & Chauduri, Pattern Recognit., 1992, [DOI 10.1016/0031-3203(92)90066-R](https://doi.org/10.1016/0031-3203(92)90066-R)
 - Jin et al., Pattern Recognit. Lett., 1995, [DOI  10.1016/0167-8655(94)00119-N](https://doi.org/10.1016/0167-8655(94)00119-N)
 
-### Pyramid dimension
-- Fractal dimension by using image pyramids
-- 8-bit binary images
-- Binary [0, >0] algorithm
-- Linear regression parameters of the double log plot can be set
-- Number of object pixels is counted for subsequently size reduced images
-- Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
-- For other sizes it yields more reliable results, because box truncation is not necessary
-- Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [DOI 10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
-
-### Minkowski dimension
-- Fractal dimension with morphological dilations and erosions
-- 8-bit binary or grey images
-- Binary [0, >0] dilation
-- Blanket or Variation method with grey value dilation/erosion
-- The number of dilation/erosion steps can be set
-- The shape of the morphological structuring element can be set
-- Linear regression parameters of the double log plot can be set
-- Ahammer et al., Physica D, 2008, [DOI 10.1016/j.physd.2007.09.016](https://doi.org/10.1016/j.physd.2007.09.016)
-- Dubuc et al., Proc. R. Soc. Lond. A425113–127, 1989, [DOI 10.1098/rspa.1989.0101](https://doi.org/10.1098/rspa.1989.0101)
-
-### Correlation dimension
+### Fractal analyses/Correlation dimension
 - Fractal correlation dimension
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
-- Raster box scanning or
-- Classical pair wise occurrence counting (Sliding box scanning)
-- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
+- Raster box scanning (approximation but fast) or
+- Sliding box scanning (classical pair wise occurrence counting)
+- Computation times can be lowered by decreasing the Pixel% (% of randomly chosen object pixels)
 - or by using a fixed grid estimation of summing up squared counts (Raster box scanning)
+- Sliding algorithm is quite similar to Mass radius dimension (center point is included for the mass)
 - The number of boxes with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
 - Grassberger & Procaccia, Physica D, 1983, [DOI 10.1016/0167-2789(83)90298-1](https:/doi.org/10.1016/0167-2789(83)90298-1)
 
-### Directional correlation dimension
+### Fractal analyses/Directional correlation dimension
 - A directional dependent fractal correlation dimension
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
@@ -127,34 +127,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - The number of distances with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
 
-### Generalized dimensions
-- 8-bit binary or grey images
-- Binary [0, >0] or grey value mass algorithm
-- Raster or sliding box scanning
-- NOTE: Fast sliding box using convolution ist still in beta
-- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
-- Dq and f-spectrum plots can be shown
-- The number of boxes with distinct sizes according to the power of 2 can be set
-- Linear regression parameters of the double log plot can be set 
-- Ahammer et al., Physica D, 2003, [DOI 10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
-
-### Higuchi dimension 1D
-- Fractal dimension for 1D grey value profiles extracted from an image
-- 8-bit grey images
-- Several extraction methods can be chosen
-- Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
-- Radial lines (grey value profiles) are length corrected and grey values are interpolated
-- Linear regression parameters of the double log plot can be set
-- Ahammer, PLoS ONE, 2011, [DOI 10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
-
-### Higuchi dimension 2D
-- Fractal dimension with Higuchi inspired 2D algorithms
-- 8-bit grey or RGB color images
-- Several options can be chosen
-- Linear regression parameters of the double log plot can be set
-- Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
-
-### FFT dimension
+### Fractal analyses/FFT dimension
 - Fractal dimension with FFT algorithm
 - 8-bit grey images
 - Several windowing filters can be set
@@ -166,51 +139,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - For circular averaging, the number of regression points is higher than k itself and additionally, will be automatically lowered to the number of averages.  
 - Anguiano et al., Journal of Microscopy, 1993, [DOI 10.1111/j.1365-2818.1993.tb03416.x](https://doi.org/10.1111/j.1365-2818.1993.tb03416.x)
 
-### Tug of war dimension
-- Fractal dimension by using a tug of war algorithm
-- 8-bit binary images
-- Binary [0, >0] algorithm
-- The number of boxes with distinct sizes according to the power of 2 can be set
-- Linear regression parameters of the double log plot can be set 
-- The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
-- In the original paper accuracy=30 and confidence=5  
-- But it is recommended to set accuracy and confidence as high as computation times allow
-- Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
-
-### Lacunarity
-- Lacunarity of a binary image  
-- 8-bit binary or grey images
-- The number of boxes with distinct sizes can be set
-- Shows a double logarithmic plot of lacunarities
-- Raster/Sliding box scanning or Tug of war method
-- Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
-- Grey value algortihm for Raster/Sliding box
-- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
-- \<L\>-R&P... Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [DOI10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
-- \<L\>-S&V... Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [DOI 10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
-- The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
-- In the original paper accuracy=30 and confidence=5  
-- But it is recommended to set accuracy and confidence as high as computation times allow
-- Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
-
-### Succolarity
-- Succolarity by flooding the black pixels of a binary image  
-- 8-bit binary images
-- Binary [0, >0] algorithm
-- The number of boxes with distinct sizes can be set
-- Shows a double logarithmic plot of succolarities 
-- Raster box or Sliding box scanning
-- Flooding can be set to Top2Down, Down2Top, Left2Right or Right2L
-- Mean computes the average of all four flooding directions
-- Anisotropy is ABS( (L2R+R2L)/2 - (T2D+D2T)/2 )
-- Succolarity reservoir is the largest possible flooding area (#black pixels)/(#total pixels)
-- Delta succolarity is Succolarity reservoir - Succolarity
-- de Melo & Conci, 15th International Conference on Systems, Signals and Image Processing, 2008, [DOI 10.1109/IWSSIP.2008.4604424](https://doi.org/10.1109/IWSSIP.2008.4604424)
-- de Melo & Conci, Telecommunication Systems, 2013, [DOI 10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
-- Andronache, Land, 2024, [DOI 10.3390/land13020138](https://doi.org/10.3390/land13020138)
-
-
-### Fractal fragmentation indices
+### Fractal analyses/Fractal fragmentation indices
 - FFI -  Fractal fragmentation index
 - FFDI - Fractal fragmentation and disorder index
 - FTI -  Fractal tentacularity index
@@ -227,23 +156,107 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 - Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
-### Generalised entropies
-- SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
-- Probabilities are computed with plain pixel grey values
-- 8-bit grey images
-- A plot of Renyi entropies can be shown
-- Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108)
-- Tsallis, Introduction to Nonextensive Statistical Mechanics, Springer, 2009
+### Fractal analyses/Generalized dimensions
+- 8-bit binary or grey images
+- Binary [0, >0] or grey value mass algorithm
+- Raster or sliding box scanning
+- NOTE: Fast sliding box using convolution ist still in beta
+- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixels)
+- Dq and f-spectrum plots can be shown
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set 
+- Ahammer et al., Physica D, 2003, [DOI 10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
 
-### Kolmogorov complexity and Logical depth
-- KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB) or
-- KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW, PNG, J2K, JPG) - slow!
+### Fractal analyses/Higuchi dimension 1D
+- Fractal dimension for 1D grey value profiles extracted from an image
 - 8-bit grey images
-- RGB color images may also work, but not tested
-- Lossless and lossy algorithms can be chosen
-- Lossless algorithms are recommended.
-- LD is estimated by the decompression time of the compressed data bytes (ZIP, ZLIB, GZIB) or
-- LD is estimated by the opening time of the compressed image (TIFF-LZW, PNG, J2K, JPG)
-- Iterations should be set to as high a value as possible.
-- LD values should be taken with caution, as computers are not well suited to measure times
-- Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+- Several extraction methods can be chosen
+- Single centered row/column, Single meander row/column, Mean of all rows/columns, 4 radial lines [0-180°], 180 radial lines [0-180°] 
+- Radial lines (grey value profiles) are length corrected and grey values are interpolated
+- Linear regression parameters of the double log plot can be set
+- Ahammer, PLoS ONE, 2011, [DOI 10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
+
+### Fractal analyses/Higuchi dimension 2D
+- Fractal dimension with Higuchi inspired 2D algorithms
+- 8-bit grey or RGB color images
+- Several options can be chosen
+- Linear regression parameters of the double log plot can be set
+- Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
+
+### Fractal analyses/Lacunarity
+- Lacunarity of a binary image  
+- 8-bit binary or grey images
+- The number of boxes with distinct sizes can be set
+- Shows a double logarithmic plot of lacunarities
+- Raster/Sliding box scanning or Tug of war method
+- Binary [0, >0] algorithm for Raster/Sliding box and Tug of war method
+- Grey value algortihm for Raster/Sliding box
+- Sliding box computation times can be lowered by decreasing the Pixel% (% of randomly chosen image pixel)
+- \<L\>-R&P... Weighted mean lacunarity according to Roy & Perfect, Fractals, 2014, [DOI10.1142/S0218348X14400039](https://doi.org/10.1142/S0218348X14400039)
+- \<L\>-S&V... Weighted mean lacunarity according to Sengupta & Vinoy, Fractals, 2006, [DOI 10.1142/S0218348X06003313](https://doi.org/10.1142/S0218348X06003313)
+- The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
+- In the original paper accuracy=30 and confidence=5  
+- But it is recommended to set accuracy and confidence as high as computation times allow
+- Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+
+### Fractal analyses/Mass radius dimension
+- Fractal mass radius dimension
+- 8-bit binary or grey images
+- Binary [0, >0] or grey value mass algorithm
+- Discs over center of mass (fast) or
+- Sliding box scanning over object pixels
+- Sliding computation times can be lowered by decreasing the Pixel% (% of randomly chosen object pixels)
+- Sliding algorithm is quite similar to Correlation dimension (center point is included for the mass)
+- The number of discs with distinct radii according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set 
+- Landini & Rippin, Bioinformatics, 1993, [DOI 10.1093/bioinformatics/9.5.547](https:/doi.org/10.1093/bioinformatics/9.5.547)
+
+### Fractal analyses/Minkowski dimension
+- Fractal dimension with morphological dilations and erosions
+- 8-bit binary or grey images
+- Binary [0, >0] dilation
+- Blanket or Variation method with grey value dilation/erosion
+- The number of dilation/erosion steps can be set
+- The shape of the morphological structuring element can be set
+- Linear regression parameters of the double log plot can be set
+- Ahammer et al., Physica D, 2008, [DOI 10.1016/j.physd.2007.09.016](https://doi.org/10.1016/j.physd.2007.09.016)
+- Dubuc et al., Proc. R. Soc. Lond. A425113–127, 1989, [DOI 10.1098/rspa.1989.0101](https://doi.org/10.1098/rspa.1989.0101)
+
+### Fractal analyses/Pyramid dimension
+- Fractal dimension by using image pyramids
+- 8-bit binary images
+- Binary [0, >0] algorithm
+- Linear regression parameters of the double log plot can be set
+- Number of object pixels is counted for subsequently size reduced images
+- Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
+- For other sizes it yields more reliable results, because box truncation is not necessary
+- Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [DOI 10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
+
+### Fractal analyses/Succolarity
+- Succolarity by flooding the black pixels of a binary image  
+- 8-bit binary images
+- Binary [0, >0] algorithm
+- The number of boxes with distinct sizes can be set
+- Shows a double logarithmic plot of succolarities 
+- Raster box or Sliding box scanning
+- Flooding can be set to Top2Down, Down2Top, Left2Right or Right2L
+- Mean computes the average of all four flooding directions
+- Anisotropy is ABS( (L2R+R2L)/2 - (T2D+D2T)/2 )
+- Succolarity reservoir is the largest possible flooding area (#black pixels)/(#total pixels)
+- Delta succolarity is Succolarity reservoir - Succolarity
+- de Melo & Conci, 15th International Conference on Systems, Signals and Image Processing, 2008, [DOI 10.1109/IWSSIP.2008.4604424](https://doi.org/10.1109/IWSSIP.2008.4604424)
+- de Melo & Conci, Telecommunication Systems, 2013, [DOI 10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
+- Andronache, Land, 2024, [DOI 10.3390/land13020138](https://doi.org/10.3390/land13020138)
+
+### Fractal analyses/Tug of war dimension
+- Fractal dimension by using a tug of war algorithm
+- 8-bit binary images
+- Binary [0, >0] algorithm
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set 
+- The ToW algorithm is a statistical approach and is dependent on the accuracy and confidence settings
+- In the original paper accuracy=30 and confidence=5  
+- But it is recommended to set accuracy and confidence as high as computation times allow
+- Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+  
+
