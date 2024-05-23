@@ -48,15 +48,9 @@ Medical University of Graz, Division of Medical Physics & Biophysics
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
   
-**Signal plugins with Fiji <2.9.0 do not work.**
+**It is recommended to use the latest Fiji version from the download archive [https://downloads.imagej.net/fiji/archive](https://downloads.imagej.net/fiji/archive)**
 
-**Signal plugins with Fiji 2.9.0: check that the file scijava-plugins-io-table-x.x.x.jar in the jars folder is at least version 0.4.0.**
-
-**Signal plugins with Fiji >2.9.0: scijava-plugins-io-table.jar file is obsolete.**
-
-**It is recommended to use the latest Fiji version from the download archive [https://downloads.imagej.net/fiji/archive](https://downloads.imagej.net/fiji/archive). Updating is not mandatory.**
-
-**Please note that updating an older Fiji version is sometimes not successful to get the latest version.**
+**Signal plugins do not work with Fiji <=2.9.0.**
 
 It is recommended to use both ComsystanJ and Fiji with the same pom-scijava version number.
 The pom-scijava version number of ComsystanJ can be viewed directly on the download site [Downloads](https://github.com/comsystan/comsystanj/releases).
