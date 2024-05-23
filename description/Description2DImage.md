@@ -34,12 +34,12 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
-### Preprocessing/Auto crop borders
+### Preprocessing - Auto crop borders
   - 8-bit grey or RGB color images
   - Useful for e.g. computing fractal dimensions of ojects rather than images
   - Black or white background can be choosen
 
-### Preprocessing/Filter
+### Preprocessing - Filter
 - Image filtering
 - 8-bit grey or RGB color images
 - Gaussian blur
@@ -49,7 +49,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Low-pass, High-pass with FFT
   - Radius (Cutoff frequency) can be set
 
-### Preprocessing/Noise
+### Preprocessing - Noise
 - Adding noise
 - 8-bit grey or RGB color images
 - Shot, Salt&Pepper
@@ -59,20 +59,20 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
-### Preprocessing/Particles to stack
+### Preprocessing - Particles to stack
   - Single 8-bit binary image
   - Particles in a binary image [0, >0] are separated to an image stack
   - Maximum connected particles number is 65535
   - Useful to e.g. analyze each particle itself instead of all particles together
   - Only for a single input image
 
-### Preprocessing/Surrogates
+### Preprocessing - Surrogates
 - Computes surrogate images
 - 8-bit grey or RGB color images
 - Shuffle, Gaussian, Random phase, AAFT
 - FFT windowing can be set
 - 
-### Complexity analyses/Kolmogorov complexity and Logical depth
+### Complexity analyses - Kolmogorov complexity and Logical depth
 - KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB) or
 - KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW, PNG, J2K, JPG) - slow!
 - 8-bit grey images
@@ -85,7 +85,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
-### Entropy analyses/Generalised entropies
+### Entropy analyses - Generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
 - Probabilities are computed with plain pixel grey values
 - 8-bit grey images
@@ -93,7 +93,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108)
 - Tsallis, Introduction to Nonextensive Statistical Mechanics, Springer, 2009
 
-### Fractal analyses/Box counting dimension
+### Fractal analyses - Box counting dimension
 - Fractal dimension with box counting
 - 8-bit binary or grey images
 - Binary [0, >0] counting or DBC and RDBC
@@ -103,7 +103,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Sarkar & Chauduri, Pattern Recognit., 1992, [DOI 10.1016/0031-3203(92)90066-R](https://doi.org/10.1016/0031-3203(92)90066-R)
 - Jin et al., Pattern Recognit. Lett., 1995, [DOI  10.1016/0167-8655(94)00119-N](https://doi.org/10.1016/0167-8655(94)00119-N)
 
-### Fractal analyses/Correlation dimension
+### Fractal analyses - Correlation dimension
 - Fractal correlation dimension
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
@@ -116,7 +116,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 - Grassberger & Procaccia, Physica D, 1983, [DOI 10.1016/0167-2789(83)90298-1](https:/doi.org/10.1016/0167-2789(83)90298-1)
 
-### Fractal analyses/Directional correlation dimension
+### Fractal analyses - Directional correlation dimension
 - A directional dependent fractal correlation dimension
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
@@ -127,7 +127,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - The number of distances with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
 
-### Fractal analyses/FFT dimension
+### Fractal analyses - FFT dimension
 - Fractal dimension with FFT algorithm
 - 8-bit grey images
 - Several windowing filters can be set
@@ -139,7 +139,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - For circular averaging, the number of regression points is higher than k itself and additionally, will be automatically lowered to the number of averages.  
 - Anguiano et al., Journal of Microscopy, 1993, [DOI 10.1111/j.1365-2818.1993.tb03416.x](https://doi.org/10.1111/j.1365-2818.1993.tb03416.x)
 
-### Fractal analyses/Fractal fragmentation indices
+### Fractal analyses - Fractal fragmentation indices
 - FFI -  Fractal fragmentation index
 - FFDI - Fractal fragmentation and disorder index
 - FTI -  Fractal tentacularity index
@@ -156,7 +156,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 - Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
-### Fractal analyses/Generalized dimensions
+### Fractal analyses - Generalized dimensions
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Raster or sliding box scanning
@@ -167,7 +167,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 - Ahammer et al., Physica D, 2003, [DOI 10.1016/S0167-2789(03)00099-X](https://doi.org/10.1016/S0167-2789(03)00099-X)
 
-### Fractal analyses/Higuchi dimension 1D
+### Fractal analyses - Higuchi dimension 1D
 - Fractal dimension for 1D grey value profiles extracted from an image
 - 8-bit grey images
 - Several extraction methods can be chosen
@@ -176,14 +176,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set
 - Ahammer, PLoS ONE, 2011, [DOI 10.1371/journal.pone.0024796](https://doi.org/10.1371/journal.pone.0024796)
 
-### Fractal analyses/Higuchi dimension 2D
+### Fractal analyses - Higuchi dimension 2D
 - Fractal dimension with Higuchi inspired 2D algorithms
 - 8-bit grey or RGB color images
 - Several options can be chosen
 - Linear regression parameters of the double log plot can be set
 - Ahammer et al., Chaos, 2015, [DOI 10.1063/1.4923030](https://doi.org/10.1063/1.4923030)
 
-### Fractal analyses/Lacunarity
+### Fractal analyses - Lacunarity
 - Lacunarity of a binary image  
 - 8-bit binary or grey images
 - The number of boxes with distinct sizes can be set
@@ -199,7 +199,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - But it is recommended to set accuracy and confidence as high as computation times allow
 - Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
-### Fractal analyses/Mass radius dimension
+### Fractal analyses - Mass radius dimension
 - Fractal mass radius dimension
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
@@ -211,7 +211,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 - Landini & Rippin, Bioinformatics, 1993, [DOI 10.1093/bioinformatics/9.5.547](https:/doi.org/10.1093/bioinformatics/9.5.547)
 
-### Fractal analyses/Minkowski dimension
+### Fractal analyses - Minkowski dimension
 - Fractal dimension with morphological dilations and erosions
 - 8-bit binary or grey images
 - Binary [0, >0] dilation
@@ -222,7 +222,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Ahammer et al., Physica D, 2008, [DOI 10.1016/j.physd.2007.09.016](https://doi.org/10.1016/j.physd.2007.09.016)
 - Dubuc et al., Proc. R. Soc. Lond. A425113–127, 1989, [DOI 10.1098/rspa.1989.0101](https://doi.org/10.1098/rspa.1989.0101)
 
-### Fractal analyses/Pyramid dimension
+### Fractal analyses - Pyramid dimension
 - Fractal dimension by using image pyramids
 - 8-bit binary images
 - Binary [0, >0] algorithm
@@ -232,7 +232,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - For other sizes it yields more reliable results, because box truncation is not necessary
 - Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [DOI 10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
 
-### Fractal analyses/Succolarity
+### Fractal analyses - Succolarity
 - Succolarity by flooding the black pixels of a binary image  
 - 8-bit binary images
 - Binary [0, >0] algorithm
@@ -248,7 +248,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - de Melo & Conci, Telecommunication Systems, 2013, [DOI 10.1007/s11235-011-9657-3](https://doi.org/10.1007/s11235-011-9657-3)
 - Andronache, Land, 2024, [DOI 10.3390/land13020138](https://doi.org/10.3390/land13020138)
 
-### Fractal analyses/Tug of war dimension
+### Fractal analyses - Tug of war dimension
 - Fractal dimension by using a tug of war algorithm
 - 8-bit binary images
 - Binary [0, >0] algorithm
