@@ -9,12 +9,12 @@
 - [Downloads](https://github.com/comsystan/comsystanj/releases)
 
 ### Installation
-- Unzip the ComsystanJ-x.x.x.zip file and copy the folder to the Fiji's plugins folder. Alternatively, the .jar files can be imported using the Fiji command Plugins/Install. 
+- Copy the ComsystanJ-x.x.x.jar file to the Fiji's plugins folder. Alternatively, the jar file can be imported using the Fiji command Plugins/Install. 
 
 ### Project descriptions
-- Processing 1D signals [- Description of plugins](description/Description1DSignal.md) 
-- Processing 2D images [- Description of plugins](description/Description2DImage.md) 
-- Processing 3D image volumes [- Description of plugins](description/Description3DVolume.md) 
+- 1D signals [- Description of 1D plugins](description/Description1DSignal.md) 
+- 2D images [- Description of 2D plugins](description/Description2DImage.md) 
+- 3D image volume [- Description of 3D plugins](description/Description3DVolume.md) 
 
 ### Citing ComsystanJ 
 If you use ComsystanJ plugins and publish your work, please cite following publication:
