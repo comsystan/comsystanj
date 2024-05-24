@@ -160,7 +160,7 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Peng et al., 1994, Phys.Rev.E., [DOI 10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
-### Complexity analyses - Generalized DFA
+### Complexity analyses - Generalised DFA
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Multifractal detrended fluctuation analysis
