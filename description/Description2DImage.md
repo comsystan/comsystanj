@@ -156,7 +156,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Linear regression parameters of the double log plot can be set 
 - Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
-### Fractal analyses - Generalized dimensions
+### Fractal analyses - Generalised dimensions
 - 8-bit binary or grey images
 - Binary [0, >0] or grey value mass algorithm
 - Raster or sliding box scanning
