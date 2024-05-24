@@ -115,8 +115,8 @@
 - Linear regression parameters of the double log plot can be set 
 - Andronache et al., Chaos, Solitons & Fractals, 2016, [DOI 10.1016/j.chaos.2016.06.013](https://doi.org/10.1016/j.chaos.2016.06.013)
 
-### 3D Fractal analyses - 3D Generalized dimensions
-- 3D Generalized fractal dimensions
+### 3D Fractal analyses - 3D Generalised dimensions
+- 3D Generalised fractal dimensions
 - 8-bit binary or grey image volume
 - Binary [0, >0] or grey value mass algorithm
 - Raster box scanning
