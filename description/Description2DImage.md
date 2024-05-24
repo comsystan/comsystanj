@@ -222,13 +222,22 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Ahammer et al., Physica D, 2008, [DOI 10.1016/j.physd.2007.09.016](https://doi.org/10.1016/j.physd.2007.09.016)
 - Dubuc et al., Proc. R. Soc. Lond. A425113–127, 1989, [DOI 10.1098/rspa.1989.0101](https://doi.org/10.1098/rspa.1989.0101)
 
+### Fractal analyses - Perimeter area dimension
+- Fractal perimeter area dimension with box counting
+- 8-bit binary images
+- Binary [0, >0] counting
+- Raster box scanning
+- The number of boxes with distinct sizes according to the power of 2 can be set
+- Linear regression parameters of the double log plot can be set
+- Mandelbrot, The Fractal Geometry of Nature, 1982
+
 ### Fractal analyses - Pyramid dimension
 - Fractal dimension by using image pyramids
 - 8-bit binary images
 - Binary [0, >0] algorithm
 - Linear regression parameters of the double log plot can be set
 - Number of object pixels is counted for subsequently size reduced images
-- Results are identical to the common Box Counting algorithm for quadratic images with size 2^n
+- Results are identical to the common Box counting algorithm for quadratic images with size 2^n
 - For other sizes it yields more reliable results, because box truncation is not necessary
 - Mayrhofer-Reinhartshuber & Ahammer, Chaos, 2016, [DOI 10.1063/1.4958709](https://doi.org/10.1063/1.4958709)
 
