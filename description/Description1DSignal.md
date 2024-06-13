@@ -497,7 +497,7 @@
 - Intended for 2D images!
 - Input columns are expected to be x,y coordinates of a contour in a 2D image
 - Only for even number of columns (pairwise x,y coordinates)
-- Regression paramters can be set
+- Regression parameters can be set
 - Sequences should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
