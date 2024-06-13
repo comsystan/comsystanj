@@ -1,0 +1,74 @@
+ComsystanJ change log
+
+Version numbering
+1st digit: major release number
+2nd digit: pom-scijava change
+3rd digit: subsequent changes
+
+
+**************************************************************
+Version 1.?.?
+pom-scijava ??.?.?
+2024-??-??
+
+--------------------------------------------------------------
+New plugins:
+1D Porta Guzik Ehler indices
+1D Fragmentation dimension, thanks to Ion Andronache
+1D Walking divider dimension, thanks to Ion Andronache
+1D Generalised DFA, thanks to Fabián Labra-Spröhnle
+
+2D Perimeter area dimension, thanks to Ion Andronache
+2D Mass radius dimension, thanks to Ion Andronache
+--------------------------------------------------------------
+Plugin changes:
+2D Succolarity: code optimisation, thanks to Ion Andronache
+2D Succolarity: added Succolarity reservoir, Delta succolarities and Anisotropy indices, thanks to Ion Andronache
+2D Preprocess: added option Paticles to stack, thanks to Ion Andronache
+
+Miscellaneous:
+Grouped class paths of various plugins
+Grouped plugins to new submenues
+Merged all Maven plugin projects to a single ComsystanJ Maven project
+Target is now a single jar file instead of a plugin folder
+Improved error handling during initialisation
+Improved workflow of getting data and writing to a table
+**************************************************************
+Version 1.1.2
+pom-scijava 36.0.0
+2023-12-23
+
+--------------------------------------------------------------
+New plugins:
+1D Hurst coefficient (HK, RS, SP), thanks to Fabián Labra-Spröhnle
+2D Preprocess (Auto crop borders), thanks to Ion Andronache
+--------------------------------------------------------------
+Plugin changes:
+1D Hurst coefficient changed to 1D Hurst coefficient (PSD)
+
+
+**************************************************************
+Version 1.1.1
+pom-scijava 36.0.0
+2023-08-25
+
+--------------------------------------------------------------
+New plugin:
+1D Recurrence quantification analysis
+
+--------------------------------------------------------------
+Plugin extension:
+1D Generator: Lorenz attractor
+
+
+**************************************************************
+Version 1.1.0
+pom-scijava 36.0.0
+2023-07-18
+
+
+**************************************************************
+Version 1.0.0 initial official release
+pom-scijava 33.2.0
+2023-03-14
+
