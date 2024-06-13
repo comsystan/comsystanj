@@ -492,3 +492,17 @@
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
+  
+  ### Fractal analyses - Walking divider dimension
+- Intended for 2D images!
+- Input columns are expected to be x,y coordinates of a contour in a 2D image
+- Only for even number of columns (pairwise x,y coordinates)
+- Regression paramters can be set
+- Sequences should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - The box size should not be larger than 1/3 of the sequence length 
+  - The number of subsequent boxes is (sequence length)/(box size)
+  - The number of gliding boxes is (sequence length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
