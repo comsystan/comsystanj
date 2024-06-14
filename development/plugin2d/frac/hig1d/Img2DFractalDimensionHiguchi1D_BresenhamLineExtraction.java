@@ -86,7 +86,7 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.plugin2d.frac.dim.hig1d.util.Higuchi;
 import at.csa.csaj.commons.plot.RegressionPlotFrame;
-import at.csa.csaj.commons.dialog.WaitingDialogWithProgressBar;
+import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import io.scif.DefaultImageMetadata;
@@ -141,7 +141,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 	
 	private static final String tableOutName = "Table - Higuchi dimension";
 	
-	private WaitingDialogWithProgressBar dlgProgress;
+	private Dialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -587,7 +587,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 	*/
 	protected void startWorkflowForSingleImage() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
 					logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -610,7 +610,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 	*/
 	protected void startWorkflowForAllImages() {
 	
-		dlgProgress = new WaitingDialogWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 

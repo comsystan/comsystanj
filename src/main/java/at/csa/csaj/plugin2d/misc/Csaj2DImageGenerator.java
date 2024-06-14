@@ -2920,7 +2920,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
     @Override
     public void run() {
     	
-    	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Generating 2D image(s), please wait...<br>Open console window for further info.</html>");
+    	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating 2D image(s), please wait...<br>Open console window for further info.</html>");
 		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Generating 2D image(s), please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 

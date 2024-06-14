@@ -132,7 +132,7 @@ public class Csaj2DOpener<T extends RealType<T>> extends ContextCommand { //moda
     @Override
     public void run() {
     	
-    	//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Computing 3D fractal, please wait...<br>Open console window for further info.</html>");
+    	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Computing 3D fractal, please wait...<br>Open console window for further info.</html>");
 		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Opening images, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 

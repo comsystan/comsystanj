@@ -1472,7 +1472,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
     	   		
     	long startTimeAll = System.currentTimeMillis();
    
-    	//dlgProgress = new WaitingDialogWithProgressBar("<html>Sequence generation, please wait...<br>Open console window for further info.</html>");
+    	//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Sequence generation, please wait...<br>Open console window for further info.</html>");
 		dlgProgress = new Dialog_WaitingWithProgressBar("Sequence generation, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 

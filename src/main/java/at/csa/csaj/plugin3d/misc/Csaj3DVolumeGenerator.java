@@ -2285,7 +2285,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
      */
     @Override
     public void run() {
-    	//dlgProgress = new WaitingDialogWithProgressBar("<html>Generating a 3D image volume, please wait...<br>Open console window for further info.</html>");
+    	//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating a 3D image volume, please wait...<br>Open console window for further info.</html>");
 		dlgProgress = new Dialog_WaitingWithProgressBar("Generating a 3D image volume, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 

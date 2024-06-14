@@ -244,7 +244,7 @@ public class Csaj1DDetectQRSPeaks  extends ContextCommand implements Previewable
 		exec = Executors.newSingleThreadExecutor();
 		
 		//QRSPeaksDetector task = new QRSPeaksDetector(logService, statusService, files, offSet, sampleRate, oseaMethod, outputOption, saveFile); 
-		//WaitingDialogWithProgressBar dlgProgress = new WaitingDialogWithProgressBar("<html>Detecting QRS peaks and RR intervals, please wait...<br>Open console window for further info.</html>");
+		//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Detecting QRS peaks and RR intervals, please wait...<br>Open console window for further info.</html>");
 		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Detecting QRS peaks and RR intervals, please wait... Open console window for further info.",
 																					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown );
 		//dlgProgress.updatePercent("");
