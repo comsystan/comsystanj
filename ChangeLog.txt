@@ -33,6 +33,7 @@ Merged all Maven plugin projects to a single ComsystanJ Maven project
 Target is now a single jar file instead of a plugin folder
 Improved error handling during initialisation
 Improved workflow of getting data and writing to a table
+Added FracLac link to 2D Fractal plugins
 **************************************************************
 Version 1.1.2
 pom-scijava 36.0.0

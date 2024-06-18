@@ -229,6 +229,17 @@
 					</execution>
 				</executions>
 			</plugin>
+        	<plugin>
+    			<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+    				<excludes>
+						<!--Exclude dummy GUI.class and package folders for runtime-->
+        				<exclude>fraclac/gui/*.*</exclude>
+        				<exclude>fraclac/*</exclude>
+        				<exclude>fraclac</exclude>
+    				</excludes>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>
