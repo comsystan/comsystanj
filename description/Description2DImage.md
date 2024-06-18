@@ -136,8 +136,14 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Integrated line scans (k should be restricted to low values - frequencies)
 - Dt=2, Topological dimension is assumed to be 2
 - Linear regression parameters of the double log plot can be set
-- For circular averaging, the number of regression points is higher than k itself and additionally, will be automatically lowered to the number of averages.  
+- For circular averaging, the number of regression points is higher than k itself and additionally, will be automatically lowered to the number of averages. 
 - Anguiano et al., Journal of Microscopy, 1993, [DOI 10.1111/j.1365-2818.1993.tb03416.x](https://doi.org/10.1111/j.1365-2818.1993.tb03416.x)
+
+### Fractal analyses - FracLac
+- Link to the FracLac package
+- The Frac_Lac.jar file must be in the plugins folder
+- [FracLac for ImageJ](https://imagej.net/ij/plugins/fraclac/FLHelp/Introduction.htm)
+- [FracLac download](https://imagej.net/ij/plugins/fraclac/Frac_Lac.jar)
 
 ### Fractal analyses - Fractal fragmentation indices
 - FFI -  Fractal fragmentation index
