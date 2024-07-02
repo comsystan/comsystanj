@@ -14,17 +14,18 @@ pom-scijava ??.?.?
 --------------------------------------------------------------
 New plugins:
 1D Porta Guzik Ehler indices
-1D Fragmentation dimension, thanks to Ion Andronache
-1D Walking divider dimension, thanks to Ion Andronache
-1D Generalised DFA, thanks to Fabián Labra-Spröhnle
+1D Fragmentation dimension, ICW Ion Andronache
+1D Walking divider dimension, ICW Ion Andronache
+1D Generalised DFA, ICW Fabián Labra-Spröhnle
 
-2D Perimeter area dimension, thanks to Ion Andronache
-2D Mass radius dimension, thanks to Ion Andronache
+2D Perimeter area dimension, ICW Ion Andronache
+2D Mass radius dimension, ICW Ion Andronache
 --------------------------------------------------------------
 Plugin changes:
-2D Succolarity: code optimisation, thanks to Ion Andronache
-2D Succolarity: added Succolarity reservoir, Delta succolarities and Anisotropy indices, thanks to Ion Andronache
-2D Preprocess: added option Paticles to stack, thanks to Ion Andronache
+2D Succolarity: code optimisation, ICW Ion Andronache
+2D Succolarity: added Succolarity reservoir, Delta succolarities and Anisotropy indices, ICW Ion Andronache
+2D Walking divider dimension, ICW Ion Andronache
+2D Preprocess: added option Particles to stack, ICW Ion Andronache
 
 Miscellaneous:
 Grouped class paths of various plugins
@@ -34,6 +35,7 @@ Target is now a single jar file instead of a plugin folder
 Improved error handling during initialisation
 Improved workflow of getting data and writing to a table
 Added FracLac link to 2D Fractal plugins
+
 **************************************************************
 Version 1.1.2
 pom-scijava 36.0.0

@@ -57,7 +57,7 @@ public class Regression_Linear {
 		parameters[1] = simpleReg.getSlope();
 		parameters[2] = simpleReg.getInterceptStdErr();
 		parameters[3] = simpleReg.getSlopeStdErr();
-		parameters[4] = simpleReg.getRSquare();       //R^2 Bestimmheitsmaß
+		parameters[4] = simpleReg.getRSquare();       //R^2 Bestimmtheitsmaß
 		return parameters;
 	}
 	

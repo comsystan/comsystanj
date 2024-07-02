@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimBoxCounting.java
+ * File: Csaj2DFracDimWalkingDivider.java
  * 
  * $Id$
  * $HeadURL$
@@ -49,13 +49,19 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
+import net.imagej.roi.ROIService;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealPoint;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.roi.geom.real.Polygon2D;
+import net.imglib2.roi.geom.real.Polyshape;
 import net.imglib2.type.Type;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -84,19 +90,19 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Regression_Linear;
+import at.csa.csaj.plugin1d.frac.util.WalkingDivider;
 import at.csa.csaj.commons.Container_ProcessMethod;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
 /**
  * A {@link ContextCommand} plugin computing
- * <the fractal box counting dimension </a>
- * of an image.
+ * <the fractal walking divider dimension </a>
+ * of the contour of an object in an image.
  */
 @Plugin(type = ContextCommand.class, 
         headless = true,
-	    label = "Box counting dimension",
+	    label = "Walking divider dimension",
 	    initializer = "initialPluginLaunch",
 	    iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 	    menu = {
@@ -104,11 +110,11 @@ import io.scif.MetaTable;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-        @Menu(label = "Box counting dimension")})
-//public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
-public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+        @Menu(label = "Walking divider dimension")})
+//public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends InteractiveCommand { //non blocking GUI
+public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with box counting</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with walking divider algorithm</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -117,6 +123,7 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
+	private static Img<BitType> imgBit;
 	RandomAccessibleInterval<?> raiBox;
 	Cursor<?> cursor = null;
 	private static String datasetName;
@@ -127,10 +134,12 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 	private static long numSlices = 0;
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
-	private static int  numBoxes = 0;
+	private static int  numRulers = 0;
+	private static double[] sequenceX;
+	private static double[] sequenceY;
 	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = new ArrayList<Plot_RegressionFrame>();
 	
-	private static final String tableOutName = "Table - Box counting dimension";
+	private static final String tableOutName = "Table - Walking divider dimension";
 	
 	private Dialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -152,6 +161,9 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 	
 	@Parameter
 	private UIService uiService;
+	
+	@Parameter
+	private ROIService roiService;
 	
 	@Parameter
 	private ImageDisplayService imageDisplayService;
@@ -187,16 +199,16 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "Number of boxes",
-    		   description = "Number of distinct box sizes with the power of 2",
+    @Parameter(label = "Number of rulers",
+    		   description = "Number of distinct ruler sizes with the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
 	           persist = false,  //restore previous value default = true
-	           initializer = "initialNumBoxes",
-	           callback    = "callbackNumBoxes")
-    private int spinnerInteger_NumBoxes;
+	           initializer = "initialNumRulers",
+	           callback    = "callbackNumRulers")
+    private int spinnerInteger_NumRulers;
     
     @Parameter(label = "Regression Start",
     		   description = "Minimum x value of linear regression",
@@ -224,23 +236,14 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Scanning method",
-    		    description = "Type of box scanning",
-    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-      		    choices = {"Raster box"}, //"Sliding box" does not give the right dimension values
-      		    persist = true,  //restore previous value default = true
-    		    initializer = "initialScanningType",
-                callback = "callbackScanningType")
-     private String choiceRadioButt_ScanningType;
-     
-     @Parameter(label = "Color model",
- 		    description = "Type of image and computation",
- 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Binary", "DBC", "RDBC"},
-   		    persist = true,  //restore previous value default = true
- 		    initializer = "initialColorModelType",
-             callback = "callbackColorModelType")
-     private String choiceRadioButt_ColorModelType;
+     @Parameter(label = "Scaling option",
+			   description = "Radial distance scaling or coordinates (x,y) scaling",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Radial distance", "Coordinates"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialScalingType",
+			   callback = "callbackScalingType")
+	private String choiceRadioButt_ScalingType;
      
  	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -291,16 +294,16 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 	protected void initialPluginLaunch() {
 		checkItemIOIn();
 	}
-    protected void initialNumBoxes() {
+    protected void initialNumRulers() {
     	
     	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image = null");
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numRulers = getMaxRulerNumber(datasetIn);
     	}
-      	spinnerInteger_NumBoxes = numBoxes;
+      	spinnerInteger_NumRulers = numRulers;
     }
     protected void initialNumRegStart() {
     	spinnerInteger_NumRegStart = 1;
@@ -311,16 +314,13 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numRulers = getMaxRulerNumber(datasetIn);
     	}
-    	spinnerInteger_NumRegEnd =  numBoxes;
+    	spinnerInteger_NumRegEnd =  numRulers;
     }
-    protected void initialScanningType() {
-    	choiceRadioButt_ScanningType = "Raster box";
-    }
-    protected void initialColorModelType() {
-    	choiceRadioButt_ColorModelType = "Binary";
-    }
+    protected void initialScalingType() {
+		choiceRadioButt_ScalingType = "Radial distance";
+	}
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
@@ -333,25 +333,25 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
     
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
-	protected void callbackNumBoxes() {
+	/** Executed whenever the {@link #spinnerInteger_NumRulers} parameter changes. */
+	protected void callbackNumRulers() {
 		
-		if  (spinnerInteger_NumBoxes < 3) {
-			spinnerInteger_NumBoxes = 3;
+		if  (spinnerInteger_NumRulers < 3) {
+			spinnerInteger_NumRulers = 3;
 		}
-		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
-		if (spinnerInteger_NumBoxes > numMaxBoxes) {
-			spinnerInteger_NumBoxes = numMaxBoxes;
+		int numMaxRulers = getMaxRulerNumber(datasetIn);	
+		if (spinnerInteger_NumRulers > numMaxRulers) {
+			spinnerInteger_NumRulers = numMaxRulers;
 		};
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumBoxes) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumBoxes;
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumRulers) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumRulers;
 		}
 		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
 			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
 		}
 
-		numBoxes = spinnerInteger_NumBoxes;
-		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
+		numRulers = spinnerInteger_NumRulers;
+		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumRulers);
 	}
     /** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
 	protected void callbackNumRegStart() {
@@ -368,23 +368,16 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
 			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
 		}		
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumBoxes) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumBoxes;
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumRulers) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumRulers;
 		}
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
-	protected void callbackScanningType() {
-		logService.info(this.getClass().getName() + " Scanning method set to " + choiceRadioButt_ScanningType);
-		
-	}
-	
-	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
-	protected void callbackColorModelType() {
-		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
-		
+	/** Executed whenever the {@link #spinnerInteger_ScalingType} parameter changes. */
+	protected void callbackScalingType() {
+		logService.info(this.getClass().getName() + " Scaling type set to " + choiceRadioButt_ScalingType);
 	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -574,7 +567,7 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 	*/
 	protected void startWorkflowForSingleImage() {
 				
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Box dimension, please wait... Open console window for further info.",
+		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Walking divider dimension, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -597,7 +590,7 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 	*/
 	protected void startWorkflowForAllImages() {
 				
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Walking divider dimensions, please wait... Open console window for further info.",
 						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 			
@@ -694,12 +687,47 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		}
 	}
 	
-	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height) { 
-		float boxWidth = 1f;
-		int number = 1; 
-		while ((boxWidth <= width) && (boxWidth <= height)) {
-			boxWidth = boxWidth * 2;
+	/** This method computes the maximal number of possible rulers*/
+	private int getMaxRulerNumber(Dataset datasetIn) { 
+		
+		//Get contour ROI around already binarised object
+		//get BitType rai
+		imgBit = new ArrayImgFactory<>(new BitType()).create(datasetIn.dimension(0), datasetIn.dimension(1));
+		Cursor<BitType> cursor = imgBit.localizingCursor();
+		long[] pos = new long[2];
+		
+		int s = 0; //first image
+		RandomAccessibleInterval<?> rai = null;	
+		if( (s==0) && (numSlices == 1) && (numDimensions == 2) ) { // for only one 2D image;
+			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
+
+		} else if ( (numSlices > 1) && (numDimensions == 3) ){ // for a stack of 2D images
+			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
+		
+		}
+		RandomAccess<UnsignedByteType> ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+		while (cursor.hasNext()){
+			cursor.fwd();
+			cursor.localize(pos);
+			ra.setPosition(pos);
+			if (ra.get().get() > 0) cursor.get().setOne(); //0, >0
+		}
+		
+		Polygon2D roi = opService.geom().contour(imgBit, true);
+//		//or equivalently (tested)
+//		DefaultContour dc = new DefaultContour();
+//		Polygon2D roi = dc.calculate(imgBit);
+		
+//		RealPoint origin2D = new RealPoint(0, 0);
+//		logService.info(this.getClass().getName() + " Does it contain (0, 0)? "     + roi.test(origin2D));
+//		logService.info(this.getClass().getName() + " Does it contain (100, 100)? " + roi.test(new RealPoint(100, 100)));
+
+		int numDataPoints = ((Polyshape) roi).numVertices();	
+		
+		float rulerLength = 1f;
+		int number = 0; 
+		while (rulerLength <= numDataPoints) {
+			rulerLength = rulerLength * 2;
 			number = number + 1;
 		}
 		return number - 1;
@@ -828,24 +856,22 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
-		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
+		IntColumn columnMaxNumRulers       = new IntColumn("# Rulers");
 		GenericColumn columnNumRegStart    = new GenericColumn("Reg Start");
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
-		GenericColumn columnScanType       = new GenericColumn("Scanning type");
-		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		DoubleColumn columnDp              = new DoubleColumn("Db");
+		GenericColumn columnScalingType    = new GenericColumn("Scaling type");
+		DoubleColumn columnDwd             = new DoubleColumn("Dwd");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 		
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnSliceName);
-		tableOut.add(columnMaxNumBoxes);
+		tableOut.add(columnMaxNumRulers);
 		tableOut.add(columnNumRegStart);
 		tableOut.add(columnNumRegEnd);
-		tableOut.add(columnScanType);
-		tableOut.add(columnColorModelType);
-		tableOut.add(columnDp);
+		tableOut.add(columnScalingType);
+		tableOut.add(columnDwd);
 		tableOut.add(columnR2);
 		tableOut.add(columnStdErr);
 	}
@@ -862,26 +888,22 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 	
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
-		int numBoxes         = spinnerInteger_NumBoxes;
-		String scanningType   = choiceRadioButt_ScanningType;	
-		String colorModelType = choiceRadioButt_ColorModelType;	
-		if ((!colorModelType.equals("Binary")) && (numRegStart == 1)){
-			numRegStart = 2; //numRegStart == 1 (single pixel box is not possible for DBC algorithms)
-		}	
+		int numRulers         = spinnerInteger_NumRulers;
+		String scalingType    = choiceRadioButt_ScalingType;	
+		
 		int row = numRow;
 	    int s = numSlice;	
 		//fill table with values
 		tableOut.appendRow();
 		tableOut.set("File name",   	row, datasetName);	
 		if (sliceLabels != null) 	    tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-		tableOut.set("# Boxes",    	    row, numBoxes);	
+		tableOut.set("# Rulers",    	row, numRulers);	
 		tableOut.set("Reg Start",       row, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
 		tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegStart)epsRegStart
-		tableOut.set("Scanning type",   row, scanningType);	
-		tableOut.set("Color model",     row, colorModelType);	
-		tableOut.set("Db",          	row, containerPM.item1_Values[1]);
-		tableOut.set("R2",          	row, containerPM.item1_Values[4]);
-		tableOut.set("StdErr",      	row, containerPM.item1_Values[3]);		
+		tableOut.set("Scaling type",    row, scalingType);		
+		tableOut.set("Dwd",          	row, containerPM.item1_Values[0]);
+		tableOut.set("R2",          	row, containerPM.item1_Values[1]);
+		tableOut.set("StdErr",      	row, containerPM.item1_Values[2]);		
 	}
 	
 							
@@ -896,14 +918,11 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
-		int numBoxes          = spinnerInteger_NumBoxes;
-		String scanningType   = choiceRadioButt_ScanningType;	
-		String colorModelType = choiceRadioButt_ColorModelType;	 //binary  DBC   RDBC
+		int numRulers         = spinnerInteger_NumRulers;
+		String scalingType    = choiceRadioButt_ScalingType;	
+		String colorModelType = "Binary"; //choiceRadioButt_ColorModelType;	 //binary
 		
-		if ((!colorModelType.equals("Binary")) && (numRegStart == 1)){
-			numRegStart = 2; //numRegStart == 1 (single pixel box is not possible for DBC algorithms)
-		}
-		
+	
 		boolean optShowPlot    = booleanShowDoubleLogPlot;
 		
 		long width  = rai.dimension(0);
@@ -911,9 +930,10 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		
 		String imageType = "8-bit";  //  "RGB"....
 	
-		double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
-		double[] regressionParams = null;
-		double[] resultValues = null;
+		double[] epsRegStartEnd    = new double[2];  // epsRegStart, epsRegEnd
+		double[] regressionParams  = new double[3];  // Intercept, slope, .......
+		double[] resultValues      = new double[3];  // Dim, R2, StdErr
+		for (int i = 0; i < resultValues.length; i++) resultValues[i] = Double.NaN;
 		
 		//Convert image to float
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
@@ -921,206 +941,96 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		//IterableInterval ii = dataset.getImgPlus();
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
 		
-
-		double[] totals = new double[numBoxes];
+		double[] totals = new double[numRulers];
 		// double[] totalsMax = new double[numBands]; //for binary images
-		double[] eps = new double[numBoxes];
+		double[] eps = new double[numRulers];
 		
 		// definition of eps
-		for (int n = 0; n < numBoxes; n++) {	
+		for (int n = 0; n < numRulers; n++) {	
 			eps[n] = Math.pow(2, n);
 			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);	
 		}		
 		
 		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		if (colorModelType.equals("Binary")) {//{"Binary", "DBC", "RDBC"}
-			//Box counting
-			//n=0  2^0 = 1 ... single pixel
-			// Loop through all pixels.
-		
-			cursor = Views.iterable(rai).localizingCursor();	
-			while (cursor.hasNext()) {
+		if (colorModelType.equals("Binary")) {//{"Binary"}
+			//ImgLib2 and ROIs
+			//https://forum.image.sc/t/from-inside-plugin-obtaining-random-access-to-selection-from-context/12265/4
+			//https://gist.github.com/ctrueden/d4ab1996c63ba4d4fcd2a97e121fff3b
+			
+			//Get contour ROI around already binarised object
+			//get BitType rai
+			imgBit = new ArrayImgFactory<>(new BitType()).create(rai.dimension(0), rai.dimension(1));
+			Cursor<BitType> cursor = imgBit.localizingCursor();
+			long[] pos = new long[2];
+			RandomAccess<UnsignedByteType> ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+			while (cursor.hasNext()){
 				cursor.fwd();
-				//cursor.localize(pos);			
-				if (((UnsignedByteType) cursor.get()).get() > 0) totals[0] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-				//totals[n][b] = totals[n][b]; // / totalsMax[b];
+				cursor.localize(pos);
+				ra.setPosition(pos);
+				if (ra.get().get() > 0) cursor.get().setOne(); //0, >0
 			}
+			
+			Polygon2D roi = opService.geom().contour(imgBit, true);
+//			//or equivalently (tested)
+//			DefaultContour dc = new DefaultContour();
+//			Polygon2D roi = dc.calculate(imgBit);
+			
+			RealPoint origin2D = new RealPoint(0, 0);
+			logService.info(this.getClass().getName() + " Does it contain (0, 0)? "     + roi.test(origin2D));
+			logService.info(this.getClass().getName() + " Does it contain (100, 100)? " + roi.test(new RealPoint(100, 100)));
+
+			int numDataPoints = ((Polyshape) roi).numVertices();	
+			sequenceX = new double[numDataPoints];
+			sequenceY = new double[numDataPoints];
+			for (int n = 0; n < numDataPoints; n++) {
+				sequenceX[n] = Double.NaN;
+				sequenceY[n] = Double.NaN;
+			}
+			
+			if (roi instanceof Polygon2D) { //should always be the case
+				logService.info(this.getClass().getName() + " Polygon: vertex count = " + ((Polyshape) roi).numVertices());
+				RealLocalizable vertex;
+				for (int v = 0; v < ((Polyshape) roi).numVertices(); v++) {
+					vertex = ((Polyshape) roi).vertex(v);
+					sequenceX[v] = vertex.getFloatPosition(0);
+					sequenceY[v] = vertex.getFloatPosition(1);
+					//logService.info(this.getClass().getName() + "\t[" + v + "]: " + Util.printCoordinates(vertex));
+				}
+			}
+			
+			WalkingDivider walkDivider;
+			double[] pathLengths;
+			double[] regressionValues = null;	
+			
+			if (sequenceX.length > (numRulers * 2)) { // only data series which are large enough
+				walkDivider = new WalkingDivider(scalingType);
+				pathLengths = walkDivider.calcLengths(sequenceX, sequenceY, numRulers);
+				regressionValues = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+			
+				epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
+				epsRegStartEnd[1] = walkDivider.getEps()[numRegEnd-1];   //epsRegEnd
 				
-			int boxSize;		
-			int delta = 0;
-			for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes		
-				boxSize = (int) Math.pow(2, n);		
-				if      (scanningType.equals("Raster box"))  delta = boxSize;
-				else if (scanningType.equals("Sliding box")) delta = 1;
-				for (int x =0; x <= (width-boxSize); x=x+delta){
-					for (int y =0;  y<= (height-boxSize); y=y+delta){
-						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-						boolean isGreaterZeroFound = false;
-						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
-						while (cursor.hasNext()) { //Box
-							cursor.fwd();
-							//cursorF.localize(pos);				
-							if (((UnsignedByteType) cursor.get()).get() > 0) {
-								totals[n] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-								//totals[n] = totals[n]; // / totalsMax[b];
-								isGreaterZeroFound = true;
-							}			
-							if (isGreaterZeroFound) break; //do not search in this box any more
-						}//while Box
-					} //y	
-				} //x                                          
-			} //n	
+				boolean isLineVisible = false; //?
+				if (optShowPlot) {
+					String preName = "";
+					if (numSlices > 1) {
+						preName = "Slice-"+String.format("%03d", plane) +"-";
+					}
+					Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(walkDivider.getLnDataX(), walkDivider.getLnDataY(), isLineVisible,"Double log plot - Walking divider dimension", 
+							preName + datasetName, "ln(Ruler)", "ln(Length)", "",
+							numRegStart, numRegEnd);
+					doubleLogPlotList.add(doubleLogPlot);	
+				}	
+				resultValues[0] = 1.0-regressionValues[1]; // Dwd = 1-slope
+				resultValues[1] = regressionValues[4]; //R2
+				resultValues[2] = regressionValues[3]; //StdErr
+			} 
 		}
 		//*******************************Grey Value Image
-		if (colorModelType.equals("DBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
-			//Box counting
-			//n=0  2^0 = 1 ... single pixel
-			double greyMax = 0.0;
-			double greyMin = Double.MAX_VALUE;
-			double greyValue = Double.NaN;
-			double depthZ = Double.NaN;
-			double l = Double.NaN;
-			double k = Double.NaN;	
-			
-			//single pixel box
-			totals[0] = Double.NaN; //new in ComsystanJ
-			
-			int boxSize = (int) Math.pow(2, 0);		
-			int delta = 0;
-			
-			for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
-				boxSize = (int) Math.pow(2, n);	
-				if      (scanningType.equals("Raster box"))  delta = boxSize;
-				else if (scanningType.equals("Sliding box")) delta = 1;
-				for (int x =0; x <= (width-boxSize); x=x+delta){
-					for (int y =0;  y<= (height-boxSize); y=y+delta){
-						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-						greyMax = 0.0;
-						greyMin = Double.MAX_VALUE;
-						greyValue = Double.NaN;
-						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
-						while (cursor.hasNext()) { //Box
-							cursor.fwd();
-							//cursorF.localize(pos);
-							greyValue =((UnsignedByteType) cursor.get()).get();
-							if (greyValue > greyMax) greyMax = greyValue;
-							if (greyValue < greyMin) greyMin = greyValue;			
-						}//while Box
-						depthZ = boxSize * 255/((width + height) / 2.0); // epsilonZ/255 = epsilon/imageSize
-						l = greyMax/depthZ; // number of boxes in z direction
-						k = greyMin/depthZ;
-						l = Math.ceil(l);
-						k = Math.ceil(k);
-						totals[n] = totals[n] + (l - k + 1);
-					} //y	
-				} //x		                                           
-			}//n
+		if (colorModelType.equals("????")) {//grey value image
+		
 		}
-		//***********************************Grey value Image
-		if (colorModelType.equals("RDBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
-			//Box counting
-			//n=0  2^0 = 1 ... single pixel
-			double greyMax = 0.0;
-			double greyMin = Double.MAX_VALUE;
-			double greyValue = Double.NaN;
-			double depthZ = Double.NaN;
-			double l = Double.NaN;
-			double k = Double.NaN;	
-		
-			//single pixel box
-			totals[0] = Double.NaN; //new in ComsystanJ
-
-			int boxSize = (int) Math.pow(2, 0);		
-			int delta = 0;
-		
-			for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
-				boxSize = (int) Math.pow(2, n);	
-				if      (scanningType.equals("Raster box"))  delta = boxSize;
-				else if (scanningType.equals("Sliding box")) delta = 1;
-				for (int x =0; x <= (width-boxSize); x=x+delta){
-					for (int y =0;  y<= (height-boxSize); y=y+delta){
-						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-						greyMax = 0.0;
-						greyMin = Double.MAX_VALUE;
-						greyValue = Double.NaN;
-						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
-						while (cursor.hasNext()) { //Box
-							cursor.fwd();
-							//cursorF.localize(pos);
-							greyValue =((UnsignedByteType) cursor.get()).get();
-							if (greyValue > greyMax) greyMax = greyValue;
-							if (greyValue < greyMin) greyMin = greyValue;			
-						}//while Box
-						depthZ = boxSize * 255/((width + height) / 2.0); // epsilonZ/255 = epsilon/imageSize
-						double diff = greyMax-greyMin;  //only these three lines are different from DBC
-						diff = Math.ceil(diff/depthZ);
-						totals[n] = totals[n] + diff;
-					} //y	
-				} //x		                                           
-			}//n
-		}
-		
-		//Computing log values for plot 
-		//Change sequence of entries to start with a pixel
-		double[] lnTotals = new double[numBoxes];
-		double[] lnEps    = new double[numBoxes];
-	
-		for (int n = 0; n < numBoxes; n++) {				
-			if (totals[n] == 0) {
-				lnTotals[n] = Math.log(Double.MIN_VALUE);
-			} else if (Double.isNaN(totals[n])) {
-				lnTotals[n] = Double.NaN;
-			} else {
-				lnTotals[n] = Math.log(totals[n]);
-			}
-			lnEps[n] = Math.log(eps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n]);
-		}
-		
-		//Create double log plot
-		boolean isLineVisible = false; //?
-			
-		// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		double[] lnDataX = new double[numBoxes];
-		double[] lnDataY = new double[numBoxes];
-			
-		for (int n = 0; n < numBoxes; n++) {	
-			lnDataY[n] = lnTotals[n];		
-			lnDataX[n] = lnEps[n];
-		}
-		// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
-		// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
-	
-		if (optShowPlot) {			
-			String preName = "";
-			if (numSlices > 1) {
-				preName = "Slice-"+String.format("%03d", plane) +"-";
-			}
-			Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Box counting dimension", 
-					preName + datasetName, "ln(Box width)", "ln(Count)", "",
-					numRegStart, numRegEnd);
-			doubleLogPlotList.add(doubleLogPlot);
-		}
-		
-		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
-		regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
-		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		
-		//Compute result values
-		resultValues = regressionParams;
-		double dim = Double.NaN;
-		dim = - regressionParams[1]; //dim = -slope
-		resultValues[1] = dim;
-		logService.info(this.getClass().getName() + " Box counting dimension: " + dim);
-		
-		epsRegStartEnd[0] = eps[numRegStart-1];
-		epsRegStartEnd[1] = eps[numRegEnd-1];
 		
 		return new Container_ProcessMethod(resultValues, epsRegStartEnd);
 		//Output
@@ -1199,7 +1109,6 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		return pl;		
 	}
 	
-	
 	/**
 	 * 
 	 * This methods creates a Img<FloatType>
@@ -1228,7 +1137,7 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		return imgFloat;
 	}
 	
-
+	
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
 		try {
@@ -1247,8 +1156,8 @@ public class Csaj2DFracDimBoxCounting<T extends RealType<T>> extends ContextComm
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(Csaj2DFracDimBoxCounting.class, true).get().getOutput("image");
-		ij.command().run(Csaj2DFracDimBoxCounting.class, true);
+		//ij.command().run(Csaj2DFracDimWalkingDivider.class, true).get().getOutput("image");
+		ij.command().run(Csaj2DFracDimWalkingDivider.class, true);
 	}
 }
 

@@ -336,7 +336,7 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 		spinnerInteger_NumRegEnd = numRulers;
 	}
 	protected void initialScalingType() {
-		choiceRadioButt_ScalingType = "Coordinates";
+		choiceRadioButt_ScalingType = "Radial distance";
 	}
 	protected void initialSequenceRange() {
 		choiceRadioButt_SequenceRange = "Entire sequence";
