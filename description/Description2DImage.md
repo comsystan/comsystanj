@@ -275,10 +275,11 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Reiss et al., Chaos, 2016, [DOI 10.1063/1.4966539](https://doi.org/10.1063/1.4966539)
 
 ### Fractal analyses - Walking divider dimension
-- Fractal dimension with walking divider algorithm
+- Fractal dimension of the object's contour
 - 8-bit binary images
 - Binary [0, >0] algorithm
 - A single, well segmented and binarised object is expected
+- FD is determined for the object's contour
 - For several objects (particles) use Preprocessing/Particles to stack before
 - The number of rulers with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set 
