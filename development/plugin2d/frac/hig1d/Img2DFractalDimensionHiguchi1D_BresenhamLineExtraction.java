@@ -1187,7 +1187,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 				RandomAccess<?> ra=  rai.randomAccess();
 				Higuchi hig;
 				double[] L;
-				double[] regressionValues;
+				double[] regressionParams;
 				
 			
 				// Dh-row Single Row--------------------------------------------------------------------------------
@@ -1204,7 +1204,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 					numActualRows += 1;
 					hig = new Higuchi();
 					L = hig.calcLengths(sequence1D, numKMax);
-					regressionValues = hig.calcDimension(L, numRegStart, numRegEnd);
+					regressionParams = hig.calcDimension(L, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					if (optShowPlot) {
@@ -1212,9 +1212,9 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, numRegStart, numRegEnd);
 					}
 					
-					resultValues[0] = -regressionValues[1]; // Dh = -slope
-					resultValues[1] = regressionValues[4];
-					resultValues[2] = regressionValues[3];
+					resultValues[0] = -regressionParams[1]; // Dh = -slope
+					resultValues[1] = regressionParams[4];
+					resultValues[2] = regressionParams[3];
 				}
 				
 				// Dh-col Single Column---------------------------------------------------------------------------------
@@ -1233,7 +1233,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 					numActualColumns += 1;
 					hig = new Higuchi();
 					L = hig.calcLengths(sequence1D, numKMax);
-					regressionValues = hig.calcDimension(L, numRegStart, numRegEnd);
+					regressionParams = hig.calcDimension(L, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					if (optShowPlot) {
@@ -1241,9 +1241,9 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, numRegStart, numRegEnd);
 					}
 					
-					resultValues[3] = -regressionValues[1]; // Dh = -slope
-					resultValues[4] = regressionValues[4];
-					resultValues[5] = regressionValues[3];
+					resultValues[3] = -regressionParams[1]; // Dh = -slope
+					resultValues[4] = regressionParams[4];
+					resultValues[5] = regressionParams[3];
 				}
 				//Dh --------------------------------------------------------------------------------------------------
 				resultValues[6] = (resultValues[0] + resultValues[3]) / 2.0; // Dh = (Dh-row + Dh-col)/2
@@ -1260,7 +1260,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 				RandomAccess<?> ra=  rai.randomAccess();
 				Higuchi hig;
 				double[] L;
-				double[] regressionValues;
+				double[] regressionParams;
 				
 			
 				// Dh-row Rows---------------------------------------------------------------------------------
@@ -1278,7 +1278,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 					if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough
 						hig = new Higuchi();
 						L = hig.calcLengths(sequence1D, numKMax);
-						regressionValues = hig.calcDimension(L, numRegStart, numRegEnd);
+						regressionParams = hig.calcDimension(L, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						if (optShowPlot) {
@@ -1288,11 +1288,11 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 							}
 						} //if
 						
-						if (regressionValues[4] > 0.9) {
+						if (regressionParams[4] > 0.9) {
 							numActualRows += 1;
-							resultValues[0] += -regressionValues[1]; // Dh = -slope
-							resultValues[1] += regressionValues[4];
-							resultValues[2] += regressionValues[3];
+							resultValues[0] += -regressionParams[1]; // Dh = -slope
+							resultValues[1] += regressionParams[4];
+							resultValues[2] += regressionParams[3];
 						}
 					} //if
 				} //for h
@@ -1316,7 +1316,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 					if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough
 						hig = new Higuchi();
 						L = hig.calcLengths(sequence1D, numKMax);
-						regressionValues = hig.calcDimension(L, numRegStart, numRegEnd);
+						regressionParams = hig.calcDimension(L, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						if (optShowPlot) {
@@ -1326,11 +1326,11 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 							}
 						} // IF
 						
-						if (regressionValues[4] > 0.9) { //R2 >0.9
+						if (regressionParams[4] > 0.9) { //R2 >0.9
 							numActualColumns += 1;
-							resultValues[3] += -regressionValues[1]; // Dh = -slope
-							resultValues[4] += regressionValues[4];
-							resultValues[5] += regressionValues[3];
+							resultValues[3] += -regressionParams[1]; // Dh = -slope
+							resultValues[4] += regressionParams[4];
+							resultValues[5] += regressionParams[3];
 						}//
 					} //if
 				} //for w
@@ -1352,7 +1352,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 				RandomAccess<?> ra=  rai.randomAccess();
 				Higuchi hig;
 				double[] L;
-				double[] regressionValues;
+				double[] regressionParams;
 				
 			
 				// Dh-row Single meander row---------------------------------------------------------------------------------
@@ -1382,7 +1382,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 					numActualRows += 1;
 					hig = new Higuchi();
 					L = hig.calcLengths(sequence1D, numKMax);
-					regressionValues = hig.calcDimension(L, numRegStart, numRegEnd);
+					regressionParams = hig.calcDimension(L, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					if (optShowPlot) {
@@ -1390,9 +1390,9 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, numRegStart, numRegEnd);
 					}
 					
-					resultValues[0] = -regressionValues[1]; // Dh = -slope
-					resultValues[1] = regressionValues[4];
-					resultValues[2] = regressionValues[3];
+					resultValues[0] = -regressionParams[1]; // Dh = -slope
+					resultValues[1] = regressionParams[4];
+					resultValues[2] = regressionParams[3];
 	
 				}
 				
@@ -1423,7 +1423,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 					numActualColumns += 1;
 					hig = new Higuchi();
 					L = hig.calcLengths(sequence1D, numKMax);
-					regressionValues = hig.calcDimension(L, numRegStart, numRegEnd);
+					regressionParams = hig.calcDimension(L, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					if (optShowPlot) {
@@ -1431,9 +1431,9 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, numRegStart, numRegEnd);
 					}
 					
-					resultValues[3] = -regressionValues[1]; // Dh = -slope
-					resultValues[4] = regressionValues[4];
-					resultValues[5] = regressionValues[3];		
+					resultValues[3] = -regressionParams[1]; // Dh = -slope
+					resultValues[4] = regressionParams[4];
+					resultValues[5] = regressionParams[3];		
 				}
 				//Dh --------------------------------------------------------------------------------------------------
 				resultValues[6] = (resultValues[0] + resultValues[3]) / 2.0; // Dh = (Dh-row + Dh-col)/2
@@ -1450,7 +1450,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 				
 				Higuchi hig;
 				double[] L;
-				double[] regressionValues;
+				double[] regressionParams;
 				int numAngles = 0;
 				int indexAngle_0  = 0;
 				int indexAngle_90 = 0;
@@ -1746,7 +1746,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 					if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough		
 						hig = new Higuchi();
 						L = hig.calcLengths(sequence1D, numKMax);
-						regressionValues = hig.calcDimension(L, numRegStart, numRegEnd);
+						regressionParams = hig.calcDimension(L, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						if (optShowPlot) {
@@ -1759,14 +1759,14 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 								showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, plane, numRegStart, numRegEnd);
 							}
 						}					
-						double dim = -regressionValues[1];
+						double dim = -regressionParams[1];
 						if (dim == 0.0) dim = Double.NaN;
-						if (regressionValues[4] > 0.9) { //R2 >0.9
+						if (regressionParams[4] > 0.9) { //R2 >0.9
 							if (a < (numAngles - 1)) { // Mean only from 4 bzw. 180 angles
 								numActualRadialLines += 1;
 								resultValues[6] += dim; // Dh = -slope
-								resultValues[7] += regressionValues[4];
-								resultValues[8] += regressionValues[3];
+								resultValues[7] += regressionParams[4];
+								resultValues[8] += regressionParams[3];
 							}
 							if ( a == indexAngle_0)  Dh_0  = dim;
 							if ( a == indexAngle_90) Dh_90 = dim;

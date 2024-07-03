@@ -915,7 +915,7 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 		
 		DFA dfa;
 		double[] F;
-		double[] regressionValues = null;
+		double[] regressionParams = null;
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
@@ -933,7 +933,7 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 			if (sequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 				dfa = new DFA(logService);
 				F = dfa.computeFluctuationFunction(sequence1D, numWinSizeMax);
-				regressionValues = dfa.computeAlpha(F, numRegStart, numRegEnd);
+				regressionParams = dfa.computeAlpha(F, numRegStart, numRegEnd);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 				epsRegStartEnd[0] = dfa.getEps()[numRegStart-1]; //epsRegStart
@@ -943,9 +943,9 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 					String preName = sequenceColumn.getHeader();
 					showPlot(dfa.getLnDataX(), dfa.getLnDataY(), preName, col, numRegStart, numRegEnd);
 				}	
-				resultValues[0] = regressionValues[1]; //Alpha = -slope
-				resultValues[1] = regressionValues[4];  //R2
-				resultValues[2] = regressionValues[3];  //StdErr
+				resultValues[0] = regressionParams[1]; //Alpha = -slope
+				resultValues[1] = regressionParams[4];  //R2
+				resultValues[2] = regressionParams[3];  //StdErr
 				int lastMainResultsIndex = 2;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
@@ -965,14 +965,14 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 				
 						dfa = new DFA(logService);
 						F = dfa.computeFluctuationFunction(surrSequence1D, numWinSizeMax);
-						regressionValues = dfa.computeAlpha(F, numRegStart, numRegEnd);
+						regressionParams = dfa.computeAlpha(F, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						resultValues[lastMainResultsIndex + 4 + s]                    = regressionValues[1];
-						resultValues[lastMainResultsIndex + 4 + numSurrogates + s]    = regressionValues[4];
-						resultValues[lastMainResultsIndex + 4 + (2*numSurrogates) +s] = regressionValues[3];
-						sumDims   += regressionValues[1];
-						sumR2s    += regressionValues[4];
-						sumStdErr += regressionValues[3];
+						resultValues[lastMainResultsIndex + 4 + s]                    = regressionParams[1];
+						resultValues[lastMainResultsIndex + 4 + numSurrogates + s]    = regressionParams[4];
+						resultValues[lastMainResultsIndex + 4 + (2*numSurrogates) +s] = regressionParams[3];
+						sumDims   += regressionParams[1];
+						sumR2s    += regressionParams[4];
+						sumStdErr += regressionParams[3];
 					}
 					resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
 					resultValues[lastMainResultsIndex + 2] = sumR2s/numSurrogates;
@@ -998,7 +998,7 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 				if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					dfa = new DFA(logService);
 					F = dfa.computeFluctuationFunction(subSequence1D, numWinSizeMax);
-					regressionValues = dfa.computeAlpha(F, numRegStart, numRegEnd);
+					regressionParams = dfa.computeAlpha(F, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = dfa.getEps()[numRegStart-1]; //epsRegStart
@@ -1009,8 +1009,8 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
 						showPlot(dfa.getLnDataX(), dfa.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = regressionValues[1]; //Alpha = slope;
-					resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                             = regressionParams[1]; //Alpha = slope;
+					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				} 
 				//***********************************************************************
 			}	
@@ -1033,7 +1033,7 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 				if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					dfa = new DFA(logService);
 					F = dfa.computeFluctuationFunction(subSequence1D, numWinSizeMax);
-					regressionValues = dfa.computeAlpha(F, numRegStart, numRegEnd);
+					regressionParams = dfa.computeAlpha(F, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = dfa.getEps()[numRegStart-1]; //epsRegStart
@@ -1044,8 +1044,8 @@ public class Csaj1DDFA<T extends RealType<T>> extends ContextCommand implements 
 						String preName = sequenceColumn.getHeader() + "-Box #" + (i+1);
 						showPlot(dfa.getLnDataX(), dfa.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}	
-					resultValues[i]                          = regressionValues[1]; // Alpha = slope;
-					resultValues[(int)(i + numGlidingBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                          = regressionParams[1]; // Alpha = slope;
+					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
 				}
 				//***********************************************************************
 			}

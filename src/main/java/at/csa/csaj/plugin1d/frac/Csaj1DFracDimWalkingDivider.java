@@ -967,7 +967,7 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 		
 		WalkingDivider walkDivider;
 		double[] pathLengths;
-		double[] regressionValues = null;
+		double[] regressionParams = null;
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
@@ -986,7 +986,7 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 			if (sequenceX.length > (numRulers * 2)) { // only data series which are large enough
 				walkDivider = new WalkingDivider(scalingType);
 				pathLengths = walkDivider.calcLengths(sequenceX, sequenceY, numRulers);
-				regressionValues = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+				regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			
 				epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
@@ -996,9 +996,9 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 					String preName = sequenceColumnX.getHeader() + "," + sequenceColumnY.getHeader();
 					showPlot(walkDivider.getLnDataX(), walkDivider.getLnDataY(), preName, col, numRegStart, numRegEnd);
 				}	
-				resultValues[0] = 1.0-regressionValues[1]; // Dwd = 1-slope
-				resultValues[1] = regressionValues[4]; //R2
-				resultValues[2] = regressionValues[3]; //StdErr
+				resultValues[0] = 1.0-regressionParams[1]; // Dwd = 1-slope
+				resultValues[1] = regressionParams[4]; //R2
+				resultValues[2] = regressionParams[3]; //StdErr
 				int lastMainResultsIndex = 2;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
@@ -1031,14 +1031,14 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 				
 						walkDivider = new WalkingDivider(scalingType);
 						pathLengths = walkDivider.calcLengths(surrSequenceX, surrSequenceY, numRulers);
-						regressionValues = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+						regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						resultValues[lastMainResultsIndex + 4 + s]                   = 1.0-regressionValues[1];
-						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionValues[4];
-						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionValues[3];
-						sumDims    += 1.0-regressionValues[1];
-						sumR2s     +=  regressionValues[4];
-						sumStdErr  +=  regressionValues[3];
+						resultValues[lastMainResultsIndex + 4 + s]                   = 1.0-regressionParams[1];
+						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionParams[4];
+						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionParams[3];
+						sumDims    += 1.0-regressionParams[1];
+						sumR2s     +=  regressionParams[4];
+						sumStdErr  +=  regressionParams[3];
 					}
 					resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
 					resultValues[lastMainResultsIndex + 2] = sumR2s/numSurrogates;
@@ -1067,7 +1067,7 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 				if (subSequenceX.length > (numRulers * 2)) { // only data series which are large enough
 					walkDivider = new WalkingDivider(scalingType);
 					pathLengths = walkDivider.calcLengths(subSequenceX, subSequenceX, numRulers);
-					regressionValues = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+					regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
@@ -1078,8 +1078,8 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 						String preName = sequenceColumnX.getHeader() + "-Box#" + (i+1);
 						showPlot(walkDivider.getLnDataX(), walkDivider.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = 1.0-regressionValues[1]; // Dwd = 1-slope;
-					resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                             = 1.0-regressionParams[1]; // Dwd = 1-slope;
+					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				} 
 				//***********************************************************************
 			}	
@@ -1105,7 +1105,7 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 				if (subSequenceX.length > (numRulers * 2)) { // only data series which are large enough
 					walkDivider = new WalkingDivider(scalingType);
 					pathLengths = walkDivider.calcLengths(subSequenceX, subSequenceY, numRulers);
-					regressionValues = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+					regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
@@ -1116,8 +1116,8 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 						String preName = sequenceColumnX.getHeader() + "-Box #" + (i+1);
 						showPlot(walkDivider.getLnDataX(), walkDivider.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}	
-					resultValues[i]                          = 1.0-regressionValues[1]; // Dwd = 1-slope;
-					resultValues[(int)(i + numGlidingBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                          = 1.0-regressionParams[1]; // Dwd = 1-slope;
+					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
 				}
 				//***********************************************************************
 			}

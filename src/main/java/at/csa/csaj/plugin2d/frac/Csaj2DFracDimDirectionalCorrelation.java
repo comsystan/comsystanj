@@ -1229,12 +1229,12 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 	
 	/**
 	 * Compute directional correlations
-	 * @return double[] regressionValues
+	 * @return double[] regressionParams
 	 */
 	private double[] computeRegressionValues(RandomAccessibleInterval<?> rai, int numBoxes, int numRegStart, int numRegEnd, String colorModelType, int pixelPercentage, 
 																	  double angle1, double angle2, boolean optShowPlot, int plane) {
 		//WARNING: Output is only the last band!!	
-		double[] regressionValues = null; //output of this method
+		double[] regressionParams = null; //output of this method
 		double[] totals = new double[numBoxes];
 		// double[] totalsMax = new double[numBands]; //for binary images
 		int[] eps = new int[numBoxes];
@@ -1411,14 +1411,14 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		}
 		// Compute regression
 		Regression_Linear lr = new Regression_Linear();
-		regressionValues = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
+		regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			
 		epsRegStartEnd = new double [2];
 		epsRegStartEnd[0] = eps[numRegStart-1];
 		epsRegStartEnd[1] = eps[numRegEnd-1];
 		
-		return regressionValues; //output is only the last band
+		return regressionParams; //output is only the last band
 	}
 	
 

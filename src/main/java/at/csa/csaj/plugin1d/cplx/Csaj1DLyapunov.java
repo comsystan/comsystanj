@@ -1072,7 +1072,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 		double[]   divergencesDirect     = null;
 		double[]   divergencesRosenstein = null; //Divergences
 		double[][] divergencesKantz      = null;
-		double[]   regressionValues      = null;
+		double[]   regressionParams      = null;
 	
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
@@ -1093,7 +1093,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 			
 				if (algorithm.equals("Rosenstein")) {
 					divergencesRosenstein = lya.calcDivergencesRosenstein(sequence1D, embDim, tau, periodMean, numKMax);
-					regressionValues 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
+					regressionParams 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1107,7 +1107,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 				}
 				else if (algorithm.equals("Kantz")) {
 					divergencesKantz = lya.calcDivergencesKantz(sequence1D, embDim, tau, periodMean, numKMax, numPointPairs);
-					regressionValues = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
+					regressionParams = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1121,7 +1121,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 				}
 				else if (algorithm.equals("Direct")) {
 					divergencesDirect = lya.calcLyaDirect(sequence1D, eps, numKMax);		
-					regressionValues  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
+					regressionParams  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1134,9 +1134,9 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 					}
 				}	
 					
-				resultValues[0] = regressionValues[1]*sampFrequ; // slope
-				resultValues[1] = regressionValues[4]; //R2
-				resultValues[2] = regressionValues[3]; //StdErr
+				resultValues[0] = regressionParams[1]*sampFrequ; // slope
+				resultValues[1] = regressionParams[4]; //R2
+				resultValues[2] = regressionParams[3]; //StdErr
 				int lastMainResultsIndex = 2;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
@@ -1157,26 +1157,26 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 						
 						if (algorithm.equals("Rosenstein")) {
 							divergencesRosenstein = lya.calcDivergencesRosenstein(surrSequence1D, embDim, tau, periodMean, numKMax);
-							regressionValues 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
+							regressionParams 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
 							// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						}
 						else if (algorithm.equals("Kantz")) {
 							divergencesKantz = lya.calcDivergencesKantz(surrSequence1D, embDim, tau, periodMean, numKMax, numPointPairs);
-							regressionValues = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
+							regressionParams = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
 							// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						}
 						else if (algorithm.equals("Direct")) {
 							divergencesDirect = lya.calcLyaDirect(surrSequence1D, eps, numKMax);		
-							regressionValues  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
+							regressionParams  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
 							// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						}	
 						
-						resultValues[lastMainResultsIndex + 4 +                 + s] = regressionValues[1]*sampFrequ;
-						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionValues[4];
-						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionValues[3];
-						sumLyas   += regressionValues[1]*sampFrequ;
-						sumR2s    += regressionValues[4];
-						sumStdErr += regressionValues[3];
+						resultValues[lastMainResultsIndex + 4 +                 + s] = regressionParams[1]*sampFrequ;
+						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionParams[4];
+						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionParams[3];
+						sumLyas   += regressionParams[1]*sampFrequ;
+						sumR2s    += regressionParams[4];
+						sumStdErr += regressionParams[3];
 					}
 					resultValues[lastMainResultsIndex + 1] = sumLyas/numSurrogates;
 					resultValues[lastMainResultsIndex + 2] = sumR2s/numSurrogates;
@@ -1204,7 +1204,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 					
 					if (algorithm.equals("Rosenstein")) {
 						divergencesRosenstein = lya.calcDivergencesRosenstein(subSequence1D, embDim, tau, periodMean, numKMax);
-						regressionValues 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
+						regressionParams 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1212,7 +1212,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 					}
 					else if (algorithm.equals("Kantz")) {
 						divergencesKantz = lya.calcDivergencesKantz(subSequence1D, embDim, tau, periodMean, numKMax, numPointPairs);
-						regressionValues = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
+						regressionParams = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1220,7 +1220,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 					}
 					else if (algorithm.equals("Direct")) {
 						divergencesDirect = lya.calcLyaDirect(subSequence1D, eps, numKMax);		
-						regressionValues  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
+						regressionParams  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1233,8 +1233,8 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 						//showPlot(lya.getLnDataX(), lya.getLnDataY(), preName, col, numRegStart, numRegEnd);
 						showPlot(lya.getEps(), lya.getDataY(), preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = regressionValues[1]*sampFrequ; // slope;
-					resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                             = regressionParams[1]*sampFrequ; // slope;
+					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				} 
 				//***********************************************************************
 			}	
@@ -1259,7 +1259,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 					
 					if (algorithm.equals("Rosenstein")) {
 						divergencesRosenstein = lya.calcDivergencesRosenstein(subSequence1D, embDim, tau, periodMean, numKMax);
-						regressionValues 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
+						regressionParams 	  = lya.calcRegression(divergencesRosenstein, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1267,7 +1267,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 					}
 					else if (algorithm.equals("Kantz")) {
 						divergencesKantz = lya.calcDivergencesKantz(subSequence1D, embDim, tau, periodMean, numKMax, numPointPairs);
-						regressionValues = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
+						regressionParams = lya.calcRegressionsMean(divergencesKantz, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1275,7 +1275,7 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 					}
 					else if (algorithm.equals("Direct")) {
 						divergencesDirect = lya.calcLyaDirect(subSequence1D, eps, numKMax);		
-						regressionValues  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
+						regressionParams  = lya.calcRegression(divergencesDirect, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 						epsRegStartEnd[0] = lya.getEps()[numRegStart-1]; //epsRegStart
@@ -1288,8 +1288,8 @@ public class Csaj1DLyapunov<T extends RealType<T>> extends ContextCommand implem
 						//showPlot(lya.getLnDataX(), lya.getLnDataY(), preName, col, numRegStart, numRegEnd);
 						showPlot(lya.getEps(), lya.getDataY(), preName, col, numRegStart, numRegEnd);
 					}	
-					resultValues[i]                          = regressionValues[1]*sampFrequ; // slope;
-					resultValues[(int)(i + numGlidingBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                          = regressionParams[1]*sampFrequ; // slope;
+					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
 				}
 				//***********************************************************************
 			}

@@ -994,7 +994,7 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 		
 		GeneralisedDFA genDfa;
 		double[][] F; //[q][]
-		double[][] regressionValues = null; //[q][]
+		double[][] regressionParams = null; //[q][]
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
@@ -1009,17 +1009,17 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 				if (sequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralisedDFA(logService);
 					F = genDfa.computeFluctuationFunctions(sequence1D, numWinSizeMax, minQ, numQ);
-					regressionValues = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
+					regressionParams = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = genDfa.getEps()[numRegStart-1]; //epsRegStart
 					epsRegStartEnd[1] = genDfa.getEps()[numRegEnd-1];   //epsRegEnd
 					
-					//			resultValues[0] = regressionValues[1]; //Alpha = -slope
-					//			resultValues[1] = regressionValues[4];  //R2
-					//			resultValues[2] = regressionValues[3];  //StdErr
+					//			resultValues[0] = regressionParams[1]; //Alpha = -slope
+					//			resultValues[1] = regressionParams[4];  //R2
+					//			resultValues[2] = regressionParams[3];  //StdErr
 										
-					for (int q = 0; q < resultValues.length; q++) resultValues[q] = regressionValues[q][1];	
+					for (int q = 0; q < resultValues.length; q++) resultValues[q] = regressionParams[q][1];	
 					
 					if (optShowPlot) {
 						String preName = sequenceColumn.getHeader();
@@ -1073,10 +1073,10 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 				if (sequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralisedDFA(logService);
 					F = genDfa.computeFluctuationFunctions(sequence1D, numWinSizeMax, minQ, numQ);
-					regressionValues = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
+					regressionParams = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 							
-					resultValues[0] = regressionValues[0][1]; //Take the value for minQ	
+					resultValues[0] = regressionParams[0][1]; //Take the value for minQ	
 						
 					int lastMainResultsIndex = 0;
 					
@@ -1094,13 +1094,13 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 				
 						genDfa = new GeneralisedDFA(logService);
 						F = genDfa.computeFluctuationFunctions(surrSequence1D, numWinSizeMax, minQ, numQ);
-						regressionValues = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
+						regressionParams = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
-						resultValues[lastMainResultsIndex + 2 + s]                    = regressionValues[0][1]; //Value for minQ
-						//resultValues[lastMainResultsIndex + 2 + numSurrogates + s]    = regressionValues[4];
-						//resultValues[lastMainResultsIndex + 2 + (2*numSurrogates) +s] = regressionValues[3];
-						sumAlphas   += regressionValues[0][1]; //Value for minQ
+						resultValues[lastMainResultsIndex + 2 + s]                    = regressionParams[0][1]; //Value for minQ
+						//resultValues[lastMainResultsIndex + 2 + numSurrogates + s]    = regressionParams[4];
+						//resultValues[lastMainResultsIndex + 2 + (2*numSurrogates) +s] = regressionParams[3];
+						sumAlphas   += regressionParams[0][1]; //Value for minQ
 					}
 					resultValues[lastMainResultsIndex + 1] = sumAlphas/numSurrogates;
 				}	
@@ -1125,7 +1125,7 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 				if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralisedDFA(logService);
 					F = genDfa.computeFluctuationFunctions(subSequence1D, numWinSizeMax, minQ, numQ);
-					regressionValues = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
+					regressionParams = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 					epsRegStartEnd[0] = genDfa.getEps()[numRegStart-1]; //epsRegStart
@@ -1136,8 +1136,8 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
 						showPlot(genDfa.getLnDataX(), genDfa.getLnDataY()[0], preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = regressionValues[0][1]; //Alpha = slope;
-					//resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                             = regressionParams[0][1]; //Alpha = slope;
+					//resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				} 
 				//***********************************************************************
 			}	
@@ -1160,7 +1160,7 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 				if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					genDfa = new GeneralisedDFA(logService);
 					F = genDfa.computeFluctuationFunctions(subSequence1D, numWinSizeMax, minQ, numQ);
-					regressionValues = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
+					regressionParams = genDfa.computeExponents(F, numRegStart, numRegEnd, numQ); //h[q]
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 					epsRegStartEnd[0] = genDfa.getEps()[numRegStart-1]; //epsRegStart
@@ -1171,8 +1171,8 @@ public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends ContextCommand 
 						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
 						showPlot(genDfa.getLnDataX(), genDfa.getLnDataY()[0], preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = regressionValues[0][1]; //Alpha = slope;
-					//resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                             = regressionParams[0][1]; //Alpha = slope;
+					//resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				}
 				//***********************************************************************
 			}

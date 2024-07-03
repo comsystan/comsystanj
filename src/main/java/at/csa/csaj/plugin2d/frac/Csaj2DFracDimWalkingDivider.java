@@ -931,8 +931,8 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 		String imageType = "8-bit";  //  "RGB"....
 	
 		double[] epsRegStartEnd    = new double[2];  // epsRegStart, epsRegEnd
-		double[] regressionParams  = new double[3];  // Intercept, slope, .......
-		double[] resultValues      = new double[3];  // Dim, R2, StdErr
+		double[] regressionParams  = null;  // Intercept, slope, .......
+		double[] resultValues      = null;  // Dim, R2, StdErr
 		for (int i = 0; i < resultValues.length; i++) resultValues[i] = Double.NaN;
 		
 		//Convert image to float
@@ -975,9 +975,9 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 //			DefaultContour dc = new DefaultContour();
 //			Polygon2D roi = dc.calculate(imgBit);
 			
-			RealPoint origin2D = new RealPoint(0, 0);
-			logService.info(this.getClass().getName() + " Does it contain (0, 0)? "     + roi.test(origin2D));
-			logService.info(this.getClass().getName() + " Does it contain (100, 100)? " + roi.test(new RealPoint(100, 100)));
+//			RealPoint origin2D = new RealPoint(0, 0);
+//			logService.info(this.getClass().getName() + " Does it contain (0, 0)? "     + roi.test(origin2D));
+//			logService.info(this.getClass().getName() + " Does it contain (100, 100)? " + roi.test(new RealPoint(100, 100)));
 
 			int numDataPoints = ((Polyshape) roi).numVertices();	
 			sequenceX = new double[numDataPoints];
@@ -1000,12 +1000,11 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 			
 			WalkingDivider walkDivider;
 			double[] pathLengths;
-			double[] regressionValues = null;	
 			
 			if (sequenceX.length > (numRulers * 2)) { // only data series which are large enough
 				walkDivider = new WalkingDivider(scalingType);
 				pathLengths = walkDivider.calcLengths(sequenceX, sequenceY, numRulers);
-				regressionValues = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+				regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			
 				epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
@@ -1021,10 +1020,14 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 							preName + datasetName, "ln(Ruler)", "ln(Length)", "",
 							numRegStart, numRegEnd);
 					doubleLogPlotList.add(doubleLogPlot);	
-				}	
-				resultValues[0] = 1.0-regressionValues[1]; // Dwd = 1-slope
-				resultValues[1] = regressionValues[4]; //R2
-				resultValues[2] = regressionValues[3]; //StdErr
+				}
+				double dim = Double.NaN;
+				dim = 1.0-regressionParams[1]; // Dwd = 1-slope
+				resultValues[0] = dim; // Dwd
+				resultValues[1] = regressionParams[4]; //R2
+				resultValues[2] = regressionParams[3]; //StdErr
+				
+				logService.info(this.getClass().getName() + " Walking divider dimension: " + dim);
 			} 
 		}
 		//*******************************Grey Value Image

@@ -879,7 +879,7 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
 		
 		FragmentationDimension fragD;
-		double[] regressionValues = null;
+		double[] regressionParams = null;
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
@@ -896,7 +896,7 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 			
 			if (sequence1D.length > 2) { // only data series which are large enough
 				fragD = new FragmentationDimension();
-				regressionValues = fragD.calcRegression(sequence1D, numRegStart, numRegEnd);
+				regressionParams = fragD.calcRegression(sequence1D, numRegStart, numRegEnd);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 				epsRegStartEnd[0] = fragD.getEps()[numRegStart-1]; //epsRegStart
@@ -906,9 +906,9 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 					String preName = sequenceColumn.getHeader();
 					showPlot(fragD.getLnDataX(), fragD.getLnDataY(), preName, col, numRegStart, numRegEnd);
 				}	
-				resultValues[0] = -regressionValues[1]; // D= -slope
-				resultValues[1] = regressionValues[4]; //R2
-				resultValues[2] = regressionValues[3]; //StdErr
+				resultValues[0] = -regressionParams[1]; // D= -slope
+				resultValues[1] = regressionParams[4]; //R2
+				resultValues[2] = regressionParams[3]; //StdErr
 				int lastMainResultsIndex = 2;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
@@ -927,14 +927,14 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 						if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
 						fragD = new FragmentationDimension();
-						regressionValues = fragD.calcRegression(surrSequence1D, numRegStart, numRegEnd);
+						regressionParams = fragD.calcRegression(surrSequence1D, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						resultValues[lastMainResultsIndex + 4 + s]                   = -regressionValues[1];
-						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionValues[4];
-						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionValues[3];
-						sumDims    += -regressionValues[1];
-						sumR2s     +=  regressionValues[4];
-						sumStdErr  +=  regressionValues[3];
+						resultValues[lastMainResultsIndex + 4 + s]                   = -regressionParams[1];
+						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionParams[4];
+						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionParams[3];
+						sumDims    += -regressionParams[1];
+						sumR2s     +=  regressionParams[4];
+						sumStdErr  +=  regressionParams[3];
 					}
 					resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
 					resultValues[lastMainResultsIndex + 2] = sumR2s/numSurrogates;
@@ -959,7 +959,7 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 				//Compute specific values************************************************
 				if (subSequence1D.length > 2) { // only data series which are large enough
 					fragD = new FragmentationDimension();
-					regressionValues = fragD.calcRegression(subSequence1D, numRegStart, numRegEnd);
+					regressionParams = fragD.calcRegression(subSequence1D, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						
 					epsRegStartEnd[0] = fragD.getEps()[numRegStart-1]; //epsRegStart
@@ -970,8 +970,8 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
 						showPlot(fragD.getLnDataX(), fragD.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = -regressionValues[1]; //D = -slope;
-					resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                             = -regressionParams[1]; //D = -slope;
+					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				} 
 				//***********************************************************************
 			}	
@@ -993,7 +993,7 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 				//Compute specific values************************************************
 				if (subSequence1D.length > 2) { // only data series which are large enough
 					fragD = new FragmentationDimension();
-					regressionValues = fragD.calcRegression(subSequence1D, numRegStart, numRegEnd);
+					regressionParams = fragD.calcRegression(subSequence1D, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = fragD.getEps()[numRegStart-1]; //epsRegStart
@@ -1004,8 +1004,8 @@ public class Csaj1DFracDimFragmentation<T extends RealType<T>> extends ContextCo
 						String preName = sequenceColumn.getHeader() + "-Box #" + (i+1);
 						showPlot(fragD.getLnDataX(), fragD.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}	
-					resultValues[i]                          = -regressionValues[1]; //D = -slope;
-					resultValues[(int)(i + numGlidingBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                          = -regressionParams[1]; //D = -slope;
+					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
 				}
 				//***********************************************************************
 			}

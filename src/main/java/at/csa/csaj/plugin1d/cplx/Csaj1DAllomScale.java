@@ -862,7 +862,7 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 		
 		AllometricScaling allomScale;
 		double[][] meansAndVars;  //[0][] means [1][] variances
-		double[] regressionValues = null;
+		double[] regressionParams = null;
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
@@ -880,7 +880,7 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 			//if (sequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 				allomScale = new AllometricScaling(logService);
 				meansAndVars = allomScale.calcMeansAndVariances(sequence1D);
-				regressionValues = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
+				regressionParams = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
 				epsRegStartEnd[0] = allomScale.getEps()[numRegStart-1]; //epsRegStart
@@ -893,9 +893,9 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 				//According to West: FD = 2 - slope/2
 				//But this did not match theoretical values.
 				//So we take simple the slope
-				resultValues[0] = regressionValues[1]; 
-				resultValues[1] = regressionValues[4];  //R2
-				resultValues[2] = regressionValues[3];  //StdErr
+				resultValues[0] = regressionParams[1]; 
+				resultValues[1] = regressionParams[4];  //R2
+				resultValues[2] = regressionParams[3];  //StdErr
 				int lastMainResultsIndex = 2;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
@@ -915,17 +915,17 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 				
 						allomScale = new AllometricScaling(logService);
 						meansAndVars = allomScale.calcMeansAndVariances(surrSequence1D);
-						regressionValues = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
+						regressionParams = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 						//According to West: FD = 2 - slope/2
 						//But this did not match theoretical values.
 						//So we take simple the slope
-						resultValues[lastMainResultsIndex + 4 + s]                    = regressionValues[1];
-						resultValues[lastMainResultsIndex + 4 + numSurrogates + s]    = regressionValues[4];
-						resultValues[lastMainResultsIndex + 4 + (2*numSurrogates) +s] = regressionValues[3];
-						sumDims   += regressionValues[1];
-						sumR2s    += regressionValues[4];
-						sumStdErr += regressionValues[3];
+						resultValues[lastMainResultsIndex + 4 + s]                    = regressionParams[1];
+						resultValues[lastMainResultsIndex + 4 + numSurrogates + s]    = regressionParams[4];
+						resultValues[lastMainResultsIndex + 4 + (2*numSurrogates) +s] = regressionParams[3];
+						sumDims   += regressionParams[1];
+						sumR2s    += regressionParams[4];
+						sumStdErr += regressionParams[3];
 					}
 					resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
 					resultValues[lastMainResultsIndex + 2] = sumR2s/numSurrogates;
@@ -952,7 +952,7 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 				//if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					allomScale = new AllometricScaling(logService);
 					meansAndVars = allomScale.calcMeansAndVariances(subSequence1D);
-					regressionValues = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
+					regressionParams = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = allomScale.getEps()[numRegStart-1]; //epsRegStart
@@ -963,8 +963,8 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
 						showPlot(allomScale.getLnDataX(), allomScale.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = regressionValues[1]; //slope;
-					resultValues[(int)(i + numSubsequentBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                             = regressionParams[1]; //slope;
+					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				//} 
 				//***********************************************************************
 			}	
@@ -988,7 +988,7 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 				//if (subSequence1D.length > (numWinSizeMax * 2)) { // only data series which are large enough
 					allomScale = new AllometricScaling(logService);
 					meansAndVars = allomScale.calcMeansAndVariances(subSequence1D);
-					regressionValues = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
+					regressionParams = allomScale.calcLogRegression(meansAndVars, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
 					epsRegStartEnd[0] = allomScale.getEps()[numRegStart-1]; //epsRegStart
@@ -999,8 +999,8 @@ public class Csaj1DAllomScale<T extends RealType<T>> extends ContextCommand impl
 						String preName = sequenceColumn.getHeader() + "-Box #" + (i+1);
 						showPlot(allomScale.getLnDataX(), allomScale.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}	
-					resultValues[i]                          = regressionValues[1];  //slope;
-					resultValues[(int)(i + numGlidingBoxes)] = regressionValues[4];  //R2		
+					resultValues[i]                          = regressionParams[1];  //slope;
+					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
 				//}
 				//***********************************************************************
 			}
