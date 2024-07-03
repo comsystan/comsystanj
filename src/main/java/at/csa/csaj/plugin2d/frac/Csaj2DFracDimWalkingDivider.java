@@ -932,7 +932,7 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 	
 		double[] epsRegStartEnd    = new double[2];  // epsRegStart, epsRegEnd
 		double[] regressionParams  = null;  // Intercept, slope, .......
-		double[] resultValues      = null;  // Dim, R2, StdErr
+		double[] resultValues      = new double[3];  // Dim, R2, StdErr
 		for (int i = 0; i < resultValues.length; i++) resultValues[i] = Double.NaN;
 		
 		//Convert image to float
