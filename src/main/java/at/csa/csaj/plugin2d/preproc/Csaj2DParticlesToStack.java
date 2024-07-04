@@ -529,17 +529,23 @@ public class Csaj2DParticlesToStack<T extends RealType<T>> extends ContextComman
 	*/
 	protected void startWorkflowForAllImages() {
 
-		dlgProgress = new Dialog_WaitingWithProgressBar("Preprocessing, please wait... Open console window for further info.",
-							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-	
-		deleteExistingDisplays();
-    	logService.info(this.getClass().getName() + " Processing all available images");
-		processAllInputImages();
-		dlgProgress.addMessage("Processing finished!");
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
+//		dlgProgress = new Dialog_WaitingWithProgressBar("Preprocessing, please wait... Open console window for further info.",
+//							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+//		dlgProgress.setVisible(true);
+//	
+//		deleteExistingDisplays();
+//    	logService.info(this.getClass().getName() + " Processing all available images");
+//		processAllInputImages();
+//		dlgProgress.addMessage("Processing finished!");
+//		dlgProgress.setVisible(false);
+//		dlgProgress.dispose();
+//		Toolkit.getDefaultToolkit().beep();
+		
+		//NOTE
+		//The usual workflow for all images in a stack is not possible
+		//Output of several datasetOut is currently not supported
+		//Therefore, only the current image is processed
+		startWorkflowForSingleImage();
 	}
 
 
