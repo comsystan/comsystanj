@@ -284,6 +284,6 @@ For binary images black pixels are the background. White pixels are the foregrou
 - The number of rulers with distinct sizes according to the power of 2 can be set
 - Linear regression parameters of the double log plot can be set
 - Note: The regression end is estimated from the first image in a stack
-- If subsequent images contain fewer object pixels, the regression end may be too high and an error message is thrown
+- If subsequent images contain fewer object pixels, the regression end may be too high and an ArrayIndexOutOfBoundsException is thrown
   
 
