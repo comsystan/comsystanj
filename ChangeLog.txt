@@ -7,10 +7,9 @@ Version numbering
 
 
 **************************************************************
-Version 1.?.?
-pom-scijava ??.?.?
-2024-??-??
-
+Version 1.1.3
+pom-scijava 36.0.0
+2024-07-07
 --------------------------------------------------------------
 New plugins:
 1D Porta Guzik Ehler indices
@@ -40,7 +39,6 @@ Added FracLac link to 2D Fractal plugins
 Version 1.1.2
 pom-scijava 36.0.0
 2023-12-23
-
 --------------------------------------------------------------
 New plugins:
 1D Hurst coefficient (HK, RS, SP), thanks to Fabián Labra-Spröhnle
@@ -49,26 +47,21 @@ New plugins:
 Plugin changes:
 1D Hurst coefficient changed to 1D Hurst coefficient (PSD)
 
-
 **************************************************************
 Version 1.1.1
 pom-scijava 36.0.0
 2023-08-25
-
 --------------------------------------------------------------
 New plugin:
 1D Recurrence quantification analysis
-
 --------------------------------------------------------------
 Plugin extension:
 1D Generator: Lorenz attractor
-
 
 **************************************************************
 Version 1.1.0
 pom-scijava 36.0.0
 2023-07-18
-
 
 **************************************************************
 Version 1.0.0 initial official release
