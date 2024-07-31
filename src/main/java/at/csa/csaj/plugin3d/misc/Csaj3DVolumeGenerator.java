@@ -196,7 +196,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     		   choices = {"Random", "Gaussian", "Constant", 
     				      "Fractal volume - FFT", "Fractal volume - MPD",
     				      "Fractal IFS - Menger", "Fractal IFS - Sierpinski1", "Fractal IFS - Sierpinski2", "Fractal IFS - Sierpinski3",
-    				      "Fractal IFS - Mandelbrot island",
+    				      "Fractal IFS - Mandelbulb", "Fractal IFS - Mandelbrot island",
     				     },
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialVolumeType",
@@ -251,6 +251,17 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   callback = "changedFracDim")
     private float spinnerFloat_FracDim;
     
+    @Parameter(label = "(Mandelbulb) Order",
+	   	       description = "Order of spherical transformation for Mandelbulb, default = 8",
+	  		   style = NumberWidget.SPINNER_STYLE,
+	  		   min = "1",
+	  		   max = "999999999999999999999",
+	  		   stepSize = "1",
+	  		   persist = true,  //restore previous value default = true
+	  		   initializer = "initialOrderMandelbulb",
+	  		   callback = "changedOrderMandelbulb")
+    private int spinnerInteger_OrderMandelbulb;
+    
     @Parameter(label = "(IFS) #",
 	   	       description = "Number of iteration for IFS algorithms",
 	  		   style = NumberWidget.SPINNER_STYLE,
@@ -260,9 +271,8 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialNumIterations",
 	  		   callback = "changedNumIterations")
- private int spinnerInteger_NumIterations;
- 
-    
+    private int spinnerInteger_NumIterations;
+        
     //---------------------------------------------------------------------
     //The following initializer functions set initial values	
     protected void initialWidth() {
@@ -300,6 +310,10 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	protected void initialFracDim() {
 	 	//round to one decimal after the comma
 	 	spinnerFloat_FracDim = 3.5f;
+	}
+	
+	protected void initialOrderMandelbulb() {
+		spinnerInteger_OrderMandelbulb = 8;
 	}
 	
 	protected void initialNumIterations() {
@@ -352,6 +366,12 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	 	//spinnerFloat_FracDim = Math.round(spinnerFloat_FracDim * 10f)/10f;
 	 	spinnerFloat_FracDim = Precision.round(spinnerFloat_FracDim, 1);
 	 	logService.info(this.getClass().getName() + " FD changed to " + spinnerFloat_FracDim);
+	}
+	
+	
+	/** Executed whenever the {@link #spinnerInteger_OrderMandelbulb} parameter changes. */
+	protected void changedOrderMandelbulb() {
+		logService.info(this.getClass().getName() + " Order of Mandelbulb changed to " + spinnerInteger_OrderMandelbulb);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumIterations} parameter changes. */
@@ -553,8 +573,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 					real = volFFT[(int)pos[2]][(int)pos[1]][(int)(2*pos[0])];
 					real = rf * (real - min); //Rescale to 0  - greyMax
 					cursor.get().setReal((int)(Math.round(real)));	
-				}	
-				
+				}				
 			}//b 	
 		}//RGB	
 		
@@ -573,8 +592,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	//datasetOut.dimension(2) is three for RGB
-    	int depth  = (int)datasetOut.dimension(3);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
     	long[] pos;
     	
     	//create empty volume
@@ -782,8 +807,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	   	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	//datasetOut.dimension(2)  = 3 for RGB
-    	int depth  = (int)datasetOut.dimension(3);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
     	//resultVolume = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth);
     
     	//Hurst exponent
@@ -1281,8 +1312,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	//datasetOut.dimension(2) is three for RGB
-    	int depth  = (int)datasetOut.dimension(3);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
 
        	height = depth = width; //All sizes must be equal
     	
@@ -1433,8 +1470,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     	
 		int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	//datasetOut.dimension(2) is three for RGB
-    	int depth  = (int)datasetOut.dimension(3);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
     	
     	height = depth = width; //All sizes must be equal for quadratic pyramid
     	double size = width;
@@ -1668,8 +1711,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     	
 		int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	//datasetOut.dimension(2) is three for RGB
-    	int depth  = (int)datasetOut.dimension(3);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
     	
     	height = depth = width; //All sizes must be equal for quadratic pyramid
     	double size = width;
@@ -1907,8 +1956,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     	
 		int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	//datasetOut.dimension(2) is three for RGB
-    	int depth  = (int)datasetOut.dimension(3);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
     	
     	height = depth = width; //All sizes must be equal for quadratic pyramid
     	double size = width;
@@ -2136,7 +2191,187 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		volInitialPyramid = null;
     }
     
-    //This methods computes a Mandelbrot island
+    //This methods computes a Mandelbulb (3D Mandelbrot set)
+    //https://www.spektrum.de/magazin/mandelbrot-dreidimensional/1023388
+    //Mathematics see: https://www.skytopia.com/project/fractal/2mandelbulb.html
+    //https://en.wikipedia.org/wiki/Mandelbulb
+    //orderMandelbulb 1..sphere, ....... 8 default
+    private void compute3DFracMandelbulb(int numIterations, int greyMaxR, int greyMaxG, int greyMaxB, int orderMandelbulb) {	
+    	
+    	dlgProgress.setBarIndeterminate(false);
+    	int percent;
+    	int width  = (int)datasetOut.dimension(0);
+    	int height = (int)datasetOut.dimension(1);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
+        float greyValue;
+        
+		volIFS = new ArrayImgFactory<>(new FloatType()).create(width, height, depth);	
+		raF = volIFS.randomAccess();
+
+		double xmin = -1.3;
+	    double xmax = 1.3;
+	    double ymin = -1.3;
+	    double ymax = 1.3;
+	    double zmin = -1.3;
+	    double zmax = 1.3;
+	        
+	    double cx, cy, cz;
+	    double zx, zy, zz;
+	    
+	    double r; //radius
+	    double theta;
+	    double phi;
+	    int iterations;
+	    
+		percent = 1;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(percent, 100, "Initializing finished");
+
+		for (int x = 0; x < width; x++) {
+			percent = (int)Math.max(Math.round(  ((float)x)/((float)width) *100.f   ), percent);
+			dlgProgress.updatePercent(String.valueOf(percent+"%"));
+			dlgProgress.updateBar(percent);
+			//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+			statusService.showStatus((x+1), width, "Processing " + (x+1) + "/" + width);
+		
+			for (int y = 0; y < height; y++) {
+				for (int z = 0; z < depth; z++) {	
+					cx = xmin + (xmax - xmin) * x/width;
+			        cy = ymin + (ymax - ymin) * y/height;
+			        cz = zmin + (zmax - zmin) * z/depth;
+			        zx = 0.0;
+			        zy = 0.0;
+			        zz = 0.0;
+			        r     = 0.0;
+			        theta = 0.0;
+			        phi   = 0.0;
+			        iterations = 0;
+			          
+			        while (r < 4 && iterations < numIterations) {
+			        	
+			        	//Transform spherical coordinates**************************
+					    r = Math.pow(r, orderMandelbulb);    //orderMandelbulb 1..sphere, ....... 8 default
+					    theta = theta*orderMandelbulb;
+					    phi = phi*orderMandelbulb;
+					    
+			        	//back to Cartesian coordinates and add c
+			        	zx = r*Math.sin(theta)*Math.cos(phi) + cx;
+			        	zy = r*Math.sin(theta)*Math.sin(phi) + cy;
+			        	zz = r*Math.cos(theta) + cz;
+			        	
+			          	//Get spherical coordinates
+			        	r = Math.sqrt(zx*zx + zy*zy + zz*zz);
+					    theta = Math.atan2(Math.sqrt(zx*zx+zy*zy), zz);
+					    phi   = Math.atan2(zy, zx);
+			        	//**********************************************************
+			        	
+//			        	//Quintic formula*******************************************
+//			        	//https://en.wikipedia.org/wiki/Mandelbulb
+//			        	int A = 0, B=0, C=2, D = 0;
+//			        	zx = zx*zx*zx*zx*zx-10*zx*zx*zx*(zy*zy+A*zy*zz+zz*zz)+5*zx*(zy*zy*zy*zy+B*zy*zy*zy*zz+C*zy*zy*zz*zz+B*zy*zz*zz*zz+zz*zz*zz*zz)+D*zx*zx*zy*zz*(zy+zz) + cx;
+//		        	    zy = zy*zy*zy*zy*zy-10*zy*zy*zy*(zz*zz+A*zx*zz+zx*zx)+5*zy*(zz*zz*zz*zz+B*zz*zz*zz*zx+C*zz*zz*zx*zx+B*zz*zx*zx*zx+zx*zx*zx*zx)+D*zy*zy*zz*zx*(zz+zx) + cy;
+//			        	zz = zz*zz*zz*zz*zz-10*zz*zz*zz*(zx*zx+A*zx*zy+zy*zy)+5*zz*(zx*zx*zx*zx+B*zx*zx*zx*zy+C*zx*zx*zy*zy+B*zx*zy*zy*zy+zy*zy*zy*zy)+D*zz*zz*zx*zy*(zx+zy) + cz;		        	
+//			         	r = Math.sqrt(zx*zx + zy*zy + zz*zz);
+//						//***********************************************************		
+
+//			        	//Quintic formula*******************************************
+//			        	//https://en.wikipedia.org/wiki/Mandelbulb
+//			         	//z->-z^5
+//			        	int A = 0, B=0, C=2, D = 0;
+//			        	zx = -(zx*zx*zx*zx*zx-10*zx*zx*zx*(zy*zy+A*zy*zz+zz*zz)+5*zx*(zy*zy*zy*zy+B*zy*zy*zy*zz+C*zy*zy*zz*zz+B*zy*zz*zz*zz+zz*zz*zz*zz)+D*zx*zx*zy*zz*(zy+zz)) + cx;
+//		        	    zy = -(zy*zy*zy*zy*zy-10*zy*zy*zy*(zz*zz+A*zx*zz+zx*zx)+5*zy*(zz*zz*zz*zz+B*zz*zz*zz*zx+C*zz*zz*zx*zx+B*zz*zx*zx*zx+zx*zx*zx*zx)+D*zy*zy*zz*zx*(zz+zx)) + cy;
+//			        	zz = -(zz*zz*zz*zz*zz-10*zz*zz*zz*(zx*zx+A*zx*zy+zy*zy)+5*zz*(zx*zx*zx*zx+B*zx*zx*zx*zy+C*zx*zx*zy*zy+B*zx*zy*zy*zy+zy*zy*zy*zy)+D*zz*zz*zx*zy*(zx+zy)) + cz;		        	
+//			         	r = Math.sqrt(zx*zx + zy*zy + zz*zz);
+//						//***********************************************************	
+			         	
+//			        	//Power nine formula*****************************************
+//			        	//https://en.wikipedia.org/wiki/Mandelbulb
+//			         	zx = Math.pow(zx,9)-36.0*Math.pow(zx,7)*(zy*zy+zz*zz)+126.0*Math.pow(zx,5)*Math.pow((zy*zy+zz*zz),2)-84.0*Math.pow(zx,3)*Math.pow(zy*zy+zz+zz,3)+9.0*zx*Math.pow(zy*zy+zz*zz,4) + cx;
+//			         	zy = Math.pow(zy,9)-36.0*Math.pow(zy,7)*(zz*zz+zx*zx)+126.0*Math.pow(zy,5)*Math.pow((zz*zz+zx*zx),2)-84.0*Math.pow(zy,3)*Math.pow(zz*zz+zx+zx,3)+9.0*zy*Math.pow(zz*zz+zx*zx,4) + cy;
+//			         	zz = Math.pow(zz,9)-36.0*Math.pow(zz,7)*(zx*zx+zy*zy)+126.0*Math.pow(zz,5)*Math.pow((zx*zx+zy*zy),2)-84.0*Math.pow(zz,3)*Math.pow(zx*zx+zy+zy,3)+9.0*zz*Math.pow(zx*zx+zy*zy,4) + cz;
+//			           	r = Math.sqrt(zx*zx + zy*zy + zz*zz);
+//			         	//***********************************************************		
+			         	
+			            iterations++;		       
+			        }	
+			        if (iterations >= numIterations) {
+			        	 // weiß, wenn innerhalb der Menge
+			        	raF.setPosition(x, 0);
+						raF.setPosition(y, 1);
+						raF.setPosition(z, 2);
+						raF.get().setReal(greyMaxR);
+			        } 
+//			        else {
+//			        	////int color = (int) ((1 - (iterations / (double) numIterations)) * greyMax);
+//	                    ////img.setRGB(x, y, color | (color << 8) | (color << 16)); // Farbe je nach Anzahl von Iterationen
+//			            greyValue = (float) (((double)iterations/(double)numIterations) * greyMaxR);
+//			        	////System.out.println("Csaj3DVolumeGenerator: greyValue:" + greyValue);
+//			            //// grau, wenn außerhalb der Menge
+//			        	raF.setPosition(x, 0);
+//						raF.setPosition(y, 1);
+//						raF.setPosition(z, 2);
+//						raF.get().setReal(greyValue);
+//			        }	        
+				}
+		    }
+		}
+	
+			
+		// Convert and write to Output---------------------------------------
+		
+		if (colorModelType.equals("Grey-8bit")) {
+		
+			cursor = datasetOut.cursor(); //3D (Grey)
+			raF = volIFS.randomAccess();  //raF always 3D
+			long[] pos = new long[3];
+		
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raF.setPosition(pos);			
+				cursor.get().setReal((int)(Math.round(raF.get().getRealFloat())));				
+			}  
+					
+		} else if (colorModelType.equals("Color-RGB")) {
+	
+			raF = volIFS.randomAccess();  //always 3D
+			int numBands = 3;
+			int greyMax = 0;
+			long[] pos = new long[3];
+			
+			for (int b = 0; b < numBands; b++) {//RGB
+				
+				if      (b == 0) greyMax = greyMaxR;
+				else if (b == 1) greyMax = greyMaxG;
+				else if (b == 2) greyMax = greyMaxB;
+				
+			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
+				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+			
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					raF.setPosition(pos);
+					//raF always 3D but does not matter here, only the three first positions are taken
+					if (raF.get().getRealFloat() > 0) cursor.get().setReal(greyMax);
+					//cursor.get().setReal((int)Math.round(raF.get().getRealFloat()));		
+				}  	
+			}//RGB
+		}		
+		volIFS     = null;
+		volIFSCopy = null;
+	}
+
+	//This methods computes a Mandelbrot island
     //See Mandelbrot book page 118 oder Seite 130
     private void compute3DFracMandelbrotIsland(int numIterations, int greyMaxR, int greyMaxG, int greyMaxB) {
 	    	
@@ -2144,8 +2379,14 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     	int percent;
     	int width  = (int)datasetOut.dimension(0);
     	int height = (int)datasetOut.dimension(1);
-    	//datasetOut.dimension(2) is three for RGB
-    	int depth  = (int)datasetOut.dimension(3);
+    	int depth = 0;
+    	if (colorModelType.equals("Grey-8bit")) {
+    		depth  = (int)datasetOut.dimension(2);
+    	}
+    	if (colorModelType.equals("Color-RGB")) {
+	    	//datasetOut.dimension(2) is three for RGB
+	    	depth  = (int)datasetOut.dimension(3);
+    	}
     	
        	height = depth = width; //All sizes must be equal for quadratic pyramid
 
@@ -2320,6 +2561,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		int greyG   			= spinnerInteger_G;
 		int greyB   			= spinnerInteger_B;
 		float fracDim 			= spinnerFloat_FracDim;
+		int orderMandelbulb		= spinnerInteger_OrderMandelbulb;
 		int numIterations		= spinnerInteger_NumIterations;
 	
 		// Create an image.
@@ -2334,6 +2576,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		else if (volumeType.equals("Fractal IFS - Sierpinski1"))				name = "3D Fractal IFS - Sierpinski1";
 		else if (volumeType.equals("Fractal IFS - Sierpinski2"))				name = "3D Fractal IFS - Sierpinski2";
 		else if (volumeType.equals("Fractal IFS - Sierpinski3"))				name = "3D Fractal IFS - Sierpinski3";
+		else if (volumeType.equals("Fractal IFS - Mandelbulb"))	        		name = "3D Fractal IFS - Mandelbulb";
 		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))			name = "3D Fractal IFS - Mandelbrot island";
 				
 		AxisType[] axes  = null;
@@ -2348,14 +2591,12 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
 		
 		if (colorModelType.equals("Grey-8bit")) {
-
 				bitsPerPixel = 8;
 				dims = new long[]{width, height, depth};
 				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
 				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
 					
-		} else if (colorModelType.equals("Color-RGB")) {
-			
+		} else if (colorModelType.equals("Color-RGB")) {		
 			bitsPerPixel = 8;
 			dims = new long[]{width, height, 3, depth};
 			axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
@@ -2376,6 +2617,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		else if (volumeType.equals("Fractal IFS - Sierpinski1")) 		compute3DFracSierpinski1(numIterations, greyR, greyG, greyB);
 		else if (volumeType.equals("Fractal IFS - Sierpinski2")) 		compute3DFracSierpinski2(numIterations, greyR, greyG, greyB);
 		else if (volumeType.equals("Fractal IFS - Sierpinski3")) 		compute3DFracSierpinski3(numIterations, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Mandelbulb"))     	compute3DFracMandelbulb(numIterations, greyR, greyG, greyB, orderMandelbulb);
 		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))	compute3DFracMandelbrotIsland(numIterations, greyR, greyG, greyB);
 	
 		int percent = 0;

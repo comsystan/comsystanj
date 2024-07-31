@@ -43,6 +43,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 
+import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -188,7 +189,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
     				   "Fractal surface - FFT", "Fractal surface - MPD", "Fractal surface - Sum of sine", "Fractal - HRM",
     				   "Fractal random shapes - Lines", "Fractal random shapes - Circles", "Fractal random shapes - Squares", "Fractal random shapes - Filled circles", "Fractal random shapes - Filled squares",
     				   "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
-    				   "Fractal IFS - Mandelbrot island-1", "Fractal IFS - Mandelbrot island-2",
+    				   "Fractal IFS - Mandelbrot set", "Fractal IFS - Mandelbrot island-1", "Fractal IFS - Mandelbrot island-2",
     				   "Fractal IFS - Mandelbrot island&lake-1", "Fractal IFS - Mandelbrot island&lake-2", 
     				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon"
     				  },
@@ -1570,8 +1571,92 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 		ifsRaster = null;
 	}
     
-    private void computeFracMandelbrotIsland1(int numIterations, int greyMax) {
-	   //See Mandelbrot book page 118 oder Seite 130
+    private void computeFracMandelbrotSet(int numIterations, int greyMax) {
+		   //See
+	    	
+	//		numIterations = 10; // iteration
+		 	int width  = (int)datasetOut.dimension(0);
+	    	int height = (int)datasetOut.dimension(1);
+	    	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+	    	//RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
+	    	
+	    	int ifsWidth  = width;
+	    	int ifsHeight = height;
+	    	
+	    	int greyValue;
+	
+			ifsBuffImg = new BufferedImage(ifsWidth, ifsHeight, BufferedImage.TYPE_BYTE_GRAY);
+			ifsRaster  = ifsBuffImg.getRaster();
+			
+	        double xmin = -2.1;
+	        double xmax = 0.7;
+	        double ymin = -1.5;
+	        double ymax = 1.5;
+	        
+	        Complex c;
+	        Complex z;
+	        int iterations;
+	
+			for (int x = 0; x < ifsWidth; x++) {
+				for (int y = 0; y < ifsHeight; y++) {
+					c = new Complex(xmin + (xmax - xmin) * x/ifsWidth, ymin + (ymax - ymin) * y/ifsHeight);
+					z = new Complex(0, 0);   
+			        iterations = 0;
+			        while (z.abs() < 2 && iterations < numIterations) {
+			        	
+			        	z = z.multiply(z).add(c);                 //z^2 //Original
+			        	//z = (z.multiply(z)).multiply(z).add(c); //z^3 //Contains the original Mandelbrot set
+			        	//z = ((z.multiply(z)).multiply(z)).multiply(c).add(c); //z^4 //Contains the original Mandelbrot set
+			            iterations++;
+			        }
+			
+			        if (iterations == numIterations) {
+			        	ifsRaster.setSample(x, y, 0, 0); // schwarz, wenn innerhalb der Menge
+			        } else {
+			        	//int color = (int) ((1 - (iterations / (double) numIterations)) * greyMax);
+	                    //img.setRGB(x, y, color | (color << 8) | (color << 16)); // Farbe je nach Anzahl von Iterationen
+			            greyValue = (int) (((double)iterations/(double)numIterations) * greyMax);
+			            ifsRaster.setSample(x, y, 0, greyValue); // grau, wenn außerhalb der Menge
+			        }
+			    }
+			}
+	
+	//		//rescale to original size if necessary	 
+	//		if ((width != ifsWidth) || (height != ifsHeight)) {
+	//			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
+	//		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
+	//		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
+	//		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
+	//		    graphics2D.dispose();	
+	//			ifsBuffImg = ifsBuffImgResized;
+	//			ifsBuffImgResized = null;
+	//			ifsRaster = ifsBuffImg.getRaster();
+	//		}
+			
+			 
+	//		//binarize e.g for bilinear interpolation
+	//    	for (int x = 0; x < width;  x++) {
+	//		for (int y = 0; y < height; y++) {	
+	//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
+	//			else ifsRaster.setSample(x,  y,  0,  0);
+	//		}
+	//    	}
+	    	
+			// Convert---------------------------------------
+			Cursor<UnsignedByteType> cursor = resultImg.cursor();
+	    	long[] pos = new long[2];
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
+			}  	
+			
+			ifsBuffImg = null;
+			ifsRaster = null;
+	    }
+
+	private void computeFracMandelbrotSetAlternative(int numIterations, int greyMax) {
+	   //See
     	
 //		numIterations = 10; // iteration
 	 	int width  = (int)datasetOut.dimension(0);
@@ -1579,96 +1664,72 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
     	//RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
     	
-		// this algorithm properly works only for image sizes
-		// 2*4*4*4*4.......
-		int ifsWidth  = 2;
-		int ifsHeight = 2;
-
-		while ((width > ifsWidth) && (height > ifsHeight)){
-			ifsWidth  = ifsWidth  * 4;
-			ifsHeight = ifsHeight * 4;
-		}
-
-		//System.out.println("ImageGenerator:     width:   " + width);
-		//System.out.println("ImageGenerator
-		int tileSizeX = ifsWidth/4;
-		int tileSizeY = ifsHeight/4;
+    	int ifsWidth  = width;
+    	int ifsHeight = height;
+    	
+    	int greyValue;
 
 		ifsBuffImg = new BufferedImage(ifsWidth, ifsHeight, BufferedImage.TYPE_BYTE_GRAY);
 		ifsRaster  = ifsBuffImg.getRaster();
-	
-		//ifsImg = new ArrayImgFactory<>(new UnsignedByteType()).create(tempWidth, tempHeight);
-		//RandomAccess<UnsignedByteType> ifsRa = ifsImg.randomAccess();
 		
-		// set initial centered square
-		int xMin = (int)Math.round((float) ifsWidth  /4.0);
-		int xMax = (int)Math.round((float) ifsWidth  /4.0*3.0);
-		int yMin = (int)Math.round((float) ifsHeight /4.0);
-		int yMax = (int)Math.round((float) ifsHeight /4.0*3.0);
+        double xmin = -2.5;
+        double xmax = 0.7;
+        double ymin = -1.5;
+        double ymax = 1.5;
+        
+        double cReal;
+        double cImag;
+        double zReal;
+        double zImag;
+        double zTempReal;
+        int iterations;
+
+		for (int x = 0; x < ifsWidth; x++) {
+			for (int y = 0; y < ifsHeight; y++) {
+				cReal = xmin + (xmax - xmin) * x/ifsWidth;
+		        cImag = ymin + (ymax - ymin) * y/ifsHeight;
+		        zReal = 0;
+		        zImag = 0;
+		        iterations = 0;
 		
-		for (int x = xMin ; x < xMax ; x++) {
-		for (int y = yMin ; y < yMax ; y++) {
-			ifsRaster.setSample(x, y, 0, greyMax);
-		}
+		        while (zReal * zReal + zImag * zImag < 4 && iterations < numIterations) {
+		        	zTempReal = zReal * zReal - zImag * zImag + cReal;
+		            zImag = 2 * zReal * zImag + cImag;
+		            zReal = zTempReal;
+		            iterations++;
+		        }
+		
+		        if (iterations == numIterations) {
+		        	ifsRaster.setSample(x, y, 0, 0); // schwarz, wenn innerhalb der Menge
+		        } else {
+		        	//int color = (int) ((1 - (iterations / (double) numIterations)) * greyMax);
+                    //img.setRGB(x, y, color | (color << 8) | (color << 16)); // Farbe je nach Anzahl von Iterationen
+		            greyValue = (int) (((double)iterations/(double)numIterations) * greyMax);
+		            ifsRaster.setSample(x, y, 0, greyValue); // grau, wenn außerhalb der Menge
+		        }
+		    }
 		}
 
-		// Affine transformation
-		//4 surrounding images with 1/4 size
-		AffineTransform at1 = new AffineTransform(1.0f / 4.0f, 0.0f, 0.0f, 1.0f / 4.0f, 0.0f * ifsWidth, 0.0f * ifsHeight);	
-		BufferedImage ifsBI1 = null;
-		WritableRaster ifsR1 = null;
-		AffineTransformOp op;
-		
-		int thres = greyMax/2;
-		int greyValue;
-		for (int i = 0; i < numIterations; i++) {
-		
-			op = new AffineTransformOp(at1, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-			ifsBI1 = op.filter(ifsBuffImg, null);
-			ifsR1 = ifsBI1.getRaster();
-			
-			//Stitch together 4 surrounding images	
-			for (int x = 0; x < tileSizeX; x++) { //ifsR1 has only 1/4 the size of ifsRaster
-			for (int y = 0; y < tileSizeY; y++) {
-				greyValue = ifsR1.getSample(x, y, 0);
-				ifsRaster.setSample(tileSizeX   + x,               y, 0, greyValue); //Island oben links		
-				ifsRaster.setSample(              x, tileSizeY*2 + y, 0, greyValue); //Island links unten
-				ifsRaster.setSample(tileSizeX*3 + x, tileSizeY   + y, 0, greyValue); //Island rechts oben			
-				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*3 + y, 0, greyValue); //Island unten rechts
-		
-			}
-			}
-			
-			//binarize if e.g. for bilinear interpolation
-//	    	for (int x = 0; x < ifsWidth;  x++) {
-//			for (int y = 0; y < ifsHeight; y++) {	
-//				//greyValue = ifsRaster.getSample(x, y, 0);
-//				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
-//				else ifsRaster.setSample(x,  y,  0,  0);
-//			}
-//	    	}
-		}
-
-		//rescale to original size if necessary	 
-		if ((width != ifsWidth) || (height != ifsHeight)) {
-			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
-		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
-		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
-		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
-		    graphics2D.dispose();	
-			ifsBuffImg = ifsBuffImgResized;
-			ifsBuffImgResized = null;
-			ifsRaster = ifsBuffImg.getRaster();
-		}
+//		//rescale to original size if necessary	 
+//		if ((width != ifsWidth) || (height != ifsHeight)) {
+//			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
+//		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
+//		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
+//		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
+//		    graphics2D.dispose();	
+//			ifsBuffImg = ifsBuffImgResized;
+//			ifsBuffImgResized = null;
+//			ifsRaster = ifsBuffImg.getRaster();
+//		}
 		
 		 
-		//binarize e.g for bilinear interpolation
-    	for (int x = 0; x < width;  x++) {
-		for (int y = 0; y < height; y++) {	
-			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
-			else ifsRaster.setSample(x,  y,  0,  0);
-		}
-    	}
+//		//binarize e.g for bilinear interpolation
+//    	for (int x = 0; x < width;  x++) {
+//		for (int y = 0; y < height; y++) {	
+//			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
+//			else ifsRaster.setSample(x,  y,  0,  0);
+//		}
+//    	}
     	
 		// Convert---------------------------------------
 		Cursor<UnsignedByteType> cursor = resultImg.cursor();
@@ -1681,12 +1742,125 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 		
 		ifsBuffImg = null;
 		ifsRaster = null;
-		
-		ifsBI1 = null;
-		ifsR1 = null;
-
     }
-   
+    
+    private void computeFracMandelbrotIsland1(int numIterations, int greyMax) {
+ 	   //See Mandelbrot book page 118 oder Seite 130
+     	
+// 		numIterations = 10; // iteration
+ 	 	int width  = (int)datasetOut.dimension(0);
+     	int height = (int)datasetOut.dimension(1);
+     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height);
+     	//RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
+     	
+ 		// this algorithm properly works only for image sizes
+ 		// 2*4*4*4*4.......
+ 		int ifsWidth  = 2;
+ 		int ifsHeight = 2;
+
+ 		while ((width > ifsWidth) && (height > ifsHeight)){
+ 			ifsWidth  = ifsWidth  * 4;
+ 			ifsHeight = ifsHeight * 4;
+ 		}
+
+ 		//System.out.println("ImageGenerator:     width:   " + width);
+ 		//System.out.println("ImageGenerator
+ 		int tileSizeX = ifsWidth/4;
+ 		int tileSizeY = ifsHeight/4;
+
+ 		ifsBuffImg = new BufferedImage(ifsWidth, ifsHeight, BufferedImage.TYPE_BYTE_GRAY);
+ 		ifsRaster  = ifsBuffImg.getRaster();
+ 	
+ 		//ifsImg = new ArrayImgFactory<>(new UnsignedByteType()).create(tempWidth, tempHeight);
+ 		//RandomAccess<UnsignedByteType> ifsRa = ifsImg.randomAccess();
+ 		
+ 		// set initial centered square
+ 		int xMin = (int)Math.round((float) ifsWidth  /4.0);
+ 		int xMax = (int)Math.round((float) ifsWidth  /4.0*3.0);
+ 		int yMin = (int)Math.round((float) ifsHeight /4.0);
+ 		int yMax = (int)Math.round((float) ifsHeight /4.0*3.0);
+ 		
+ 		for (int x = xMin ; x < xMax ; x++) {
+ 		for (int y = yMin ; y < yMax ; y++) {
+ 			ifsRaster.setSample(x, y, 0, greyMax);
+ 		}
+ 		}
+
+ 		// Affine transformation
+ 		//4 surrounding images with 1/4 size
+ 		AffineTransform at1 = new AffineTransform(1.0f / 4.0f, 0.0f, 0.0f, 1.0f / 4.0f, 0.0f * ifsWidth, 0.0f * ifsHeight);	
+ 		BufferedImage ifsBI1 = null;
+ 		WritableRaster ifsR1 = null;
+ 		AffineTransformOp op;
+ 		
+ 		int thres = greyMax/2;
+ 		int greyValue;
+ 		for (int i = 0; i < numIterations; i++) {
+ 		
+ 			op = new AffineTransformOp(at1, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+ 			ifsBI1 = op.filter(ifsBuffImg, null);
+ 			ifsR1 = ifsBI1.getRaster();
+ 			
+ 			//Stitch together 4 surrounding images	
+ 			for (int x = 0; x < tileSizeX; x++) { //ifsR1 has only 1/4 the size of ifsRaster
+ 			for (int y = 0; y < tileSizeY; y++) {
+ 				greyValue = ifsR1.getSample(x, y, 0);
+ 				ifsRaster.setSample(tileSizeX   + x,               y, 0, greyValue); //Island oben links		
+ 				ifsRaster.setSample(              x, tileSizeY*2 + y, 0, greyValue); //Island links unten
+ 				ifsRaster.setSample(tileSizeX*3 + x, tileSizeY   + y, 0, greyValue); //Island rechts oben			
+ 				ifsRaster.setSample(tileSizeX*2 + x, tileSizeY*3 + y, 0, greyValue); //Island unten rechts
+ 		
+ 			}
+ 			}
+ 			
+ 			//binarize if e.g. for bilinear interpolation
+// 	    	for (int x = 0; x < ifsWidth;  x++) {
+// 			for (int y = 0; y < ifsHeight; y++) {	
+// 				//greyValue = ifsRaster.getSample(x, y, 0);
+// 				if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
+// 				else ifsRaster.setSample(x,  y,  0,  0);
+// 			}
+// 	    	}
+ 		}
+
+ 		//rescale to original size if necessary	 
+ 		if ((width != ifsWidth) || (height != ifsHeight)) {
+ 			BufferedImage ifsBuffImgResized = new BufferedImage(width, height, ifsBuffImg.getType());
+ 		    Graphics2D graphics2D = ifsBuffImgResized.createGraphics();
+ 		    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);  
+ 		    graphics2D.drawImage(ifsBuffImg, 0, 0, width, height, null);
+ 		    graphics2D.dispose();	
+ 			ifsBuffImg = ifsBuffImgResized;
+ 			ifsBuffImgResized = null;
+ 			ifsRaster = ifsBuffImg.getRaster();
+ 		}
+ 		
+ 		 
+ 		//binarize e.g for bilinear interpolation
+     	for (int x = 0; x < width;  x++) {
+ 		for (int y = 0; y < height; y++) {	
+ 			if (ifsRaster.getSample(x, y, 0) >= thres) ifsRaster.setSample(x,  y,  0,  greyMax);
+ 			else ifsRaster.setSample(x,  y,  0,  0);
+ 		}
+     	}
+     	
+ 		// Convert---------------------------------------
+ 		Cursor<UnsignedByteType> cursor = resultImg.cursor();
+     	long[] pos = new long[2];
+ 		while (cursor.hasNext()) {
+ 			cursor.fwd();
+ 			cursor.localize(pos);
+ 			cursor.get().set(ifsRaster.getSample((int)pos[0], (int)pos[1], 0));
+ 		}  	
+ 		
+ 		ifsBuffImg = null;
+ 		ifsRaster = null;
+ 		
+ 		ifsBI1 = null;
+ 		ifsR1 = null;
+
+     }
+    
     private void computeFracMandelbrotIsland2(int numIterations, int greyMax) {
 	   //See Mandelbrot book page 118 oder Seite 130
     	
@@ -2985,6 +3159,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 		else if (imageType.equals("Fractal IFS - Menger"))						name = "Fractal IFS - Menger";
 		else if (imageType.equals("Fractal IFS - Sierpinski-1"))				name = "Fractal IFS - Sierpinski-1";
 		else if (imageType.equals("Fractal IFS - Sierpinski-2"))				name = "Fractal IFS - Sierpinski-2";
+		else if (imageType.equals("Fractal IFS - Mandelbrot set"))		     	name = "Fractal IFS - Mandelbrot set";
 		else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))			name = "Fractal IFS - Mandelbrot island-1";
 		else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))			name = "Fractal IFS - Mandelbrot island-2";
 		else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))	name = "Fractal IFS - Mandelbrot island&lake-1";
@@ -3030,6 +3205,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 				else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
@@ -3095,6 +3271,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
@@ -3164,6 +3341,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);
@@ -3238,6 +3416,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 						else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);

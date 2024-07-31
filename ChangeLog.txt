@@ -11,7 +11,8 @@ pom-scijava 36.0.0 Current working version, not yet finalized
 2024-??-??
 --------------------------------------------------------------
 Plugin changes:
-
+2D Image generator: added Mandelbrot set
+3D Volume generator: added 3D Mandelbulb
 Miscellaneous:
 
 **************************************************************
