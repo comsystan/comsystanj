@@ -35,7 +35,7 @@ import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.io.IOService;
 import org.scijava.log.LogService;
@@ -46,6 +46,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
+import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -57,10 +58,13 @@ import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 /**
- * This is an ImageJ {@link Command} plugin to generate single or multiple sequences.
+ * This is an ImageJ {@link InteractiveCommand} plugin to generate single or multiple sequences.
  * <p>
  * 
  * </p>
@@ -68,7 +72,7 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 	headless = true,
 	label = "Sequence generator",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
@@ -77,7 +81,16 @@ import javax.swing.UIManager;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "1D Sequence(s)"),
 	@Menu(label = "Sequence generator ", weight = 20)}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj1DGenerator<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL = "Generates single or multiple sequences";
 	private static final String SPACE_LABEL = "";
@@ -103,8 +116,8 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
     @Parameter
     private IOService ioService;
     
-    Dialog_WaitingWithProgressBar dlgProgress;
-    
+    Dialog_WaitingWithProgressBar dlgProgress; 
+    private ExecutorService exec;
     private double[] sequenceCantor;
     
     
@@ -121,7 +134,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
  		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
  		       choices = {"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Lorenz", "Henon", "Cubic", "Spence", "fGn", "fBm", "W-M", "Cantor"},
  		       initializer = "initialMethod",
-               callback = "changedMethod")
+               callback = "callbackMethod")
     private String choiceRadioButt_Method;
     
     @Parameter(label = "Number of sequences",
@@ -130,7 +143,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
     		   max = "999999999999",
     		   initializer = "initialNumSequences",
     		   stepSize = "1",
-    		   callback = "changedNumSequences")
+    		   callback = "callbackNumSequences")
     private int spinnerInteger_NumSequences;
     
     @Parameter(label = "Number of data values",
@@ -139,7 +152,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
     		   max = "9999999999999999999999999999999",
     		   initializer = "initialNumDataPoints",
     		   stepSize = "1",
-    		   callback = "changedNumDataPoints")
+    		   callback = "callbackNumDataPoints")
     private int spinnerInteger_NumDataPoints;
     
     @Parameter(label = "(Constant) Sequence level",
@@ -148,7 +161,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 	  		   max = "9999999999999999999999999999999",
 	  		   initializer = "initialConstant",
 	  		   stepSize = "1",
-	  		   callback = "changedConstant")
+	  		   callback = "callbackConstant")
     private int spinnerInteger_Constant;
     
     @Parameter(label = "(Sine) periods",
@@ -157,7 +170,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
  		       max = "32768",
  		       initializer = "initialNumPeriods",
  		       stepSize = "1",
- 		       callback = "changedNumPeriods")
+ 		       callback = "callbackNumPeriods")
     private int spinnerInteger_NumPeriods;
     
     @Parameter(label = "(Logistic/Henon/Cubic) a",
@@ -166,7 +179,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 		       max = "9999999999999999999999",
 		       initializer = "initialParamA",
 		       stepSize = "0.1",
-		       callback = "changedParamA")
+		       callback = "callbackParamA")
     private float spinnerFloat_ParamA;
     
     @Parameter(label = "(Henon) b",
@@ -175,7 +188,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 		       max = "9999999999999999999999",
 		       initializer = "initialParamB",
 		       stepSize = "0.1",
-		       callback = "changedParamB")
+		       callback = "callbackParamB")
     private float spinnerFloat_ParamB;
     
     @Parameter(label = "(fGn/fBm) Hurst [0,1]",
@@ -184,7 +197,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 		       max = "1",
 		       initializer = "initialHurst",
 		       stepSize = "0.1",
-		       callback = "changedHurst")
+		       callback = "callbackHurst")
     private float spinnerFloat_Hurst;
    
     @Parameter(label = "(W-M) Fractal dimension [1,2]",
@@ -193,7 +206,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 		       max = "2",
 		       initializer = "initialFractalDimWM",
 		       stepSize = "0.1",
-		       callback = "changedFractalDimWM")
+		       callback = "callbackFractalDimWM")
     private float spinnerFloat_FractalDimWM;
     
     @Parameter(label = "(Cantor) Fractal dimension [0,1]",
@@ -202,8 +215,17 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 		       max = "1",
 		       initializer = "initialFractalDimCantor",
 		       stepSize = "0.1",
-		       callback = "changedFractalDimCantor")
- private float spinnerFloat_FractalDimCantor;
+		       callback = "callbackFractalDimCantor")
+    private float spinnerFloat_FractalDimCantor;
+   
+    @Parameter(label = "Do not show signal(s)", persist = false,
+    		   description = "Recommended for large series to reduce memory demand",
+    		   initializer = "initialDoNotShowSignals",
+		       callback = "callbackDoNotShowSignals")
+	private boolean booleanDoNotShowSignals;
+    
+	@Parameter(label = "Process", callback = "callbackProcess")
+	private Button buttonProcess;
     //---------------------------------------------------------------------
     
     //The following initializer functions set initial values	
@@ -247,75 +269,104 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
     	spinnerFloat_FractalDimCantor = (float)(Math.log(2f)/Math.log(3f)); //0.6309..... 1/3
     }
     
+    protected void initialDoNotShowSignals() {
+    	booleanDoNotShowSignals = false;
+    }
+    
 	// ------------------------------------------------------------------------------
 	
 	/** Executed whenever the {@link #spinnerInteger_Width} parameter changes. */
 	
 	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
-	protected void changedMethod() {
+	protected void callbackMethod() {
 		logService.info(this.getClass().getName() + " Method changed to " + choiceRadioButt_Method);
 		if       (choiceRadioButt_Method.equals("Logistic")) {
 			spinnerFloat_ParamA = 4f;
-			changedParamA();
+			callbackParamA();
 		}
 		else if  (choiceRadioButt_Method.equals("Henon")) {
 			spinnerFloat_ParamA = 1.4f;
 			spinnerFloat_ParamB = 0.3f;
-			changedParamA();
-			changedParamB();
+			callbackParamA();
+			callbackParamB();
 		}
 		else if  (choiceRadioButt_Method.equals("Cubic")) {
 			spinnerFloat_ParamA = 3f;
-			changedParamA();
+			callbackParamA();
 		}
 	}
 	
-	protected void changedNumSequences() {
+	protected void callbackNumSequences() {
 		logService.info(this.getClass().getName() + " Number of sequences changed to " + spinnerInteger_NumSequences);
 	}
 	
-	protected void changedNumDataPoints() {
+	protected void callbackNumDataPoints() {
 		logService.info(this.getClass().getName() + " Number of data points changed to " + spinnerInteger_NumDataPoints);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_Constant} parameter changes. */
-	protected void changedConstant() {
+	protected void callbackConstant() {
 		logService.info(this.getClass().getName() + " Constant changed to " + spinnerInteger_Constant);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumPeriods} parameter changes. */
-	protected void changedNumPeriods() {
+	protected void callbackNumPeriods() {
 		logService.info(this.getClass().getName() + " Number of periods changed to " + spinnerInteger_NumPeriods);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_ParamA} parameter changes. */
-	protected void changedParamA() {
+	protected void callbackParamA() {
 		spinnerFloat_ParamA = Precision.round(spinnerFloat_ParamA, 2);
 		logService.info(this.getClass().getName() + " Parameter a changed to " + spinnerFloat_ParamA);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_ParamB} parameter changes. */
-	protected void changedParamB() {
+	protected void callbackParamB() {
 		spinnerFloat_ParamB = Precision.round(spinnerFloat_ParamB, 2);
 		logService.info(this.getClass().getName() + " Parameter b changed to " + spinnerFloat_ParamB);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_Hurst} parameter changes. */
-	protected void changedHurst() {
+	protected void callbackHurst() {
 		spinnerFloat_Hurst = Precision.round(spinnerFloat_Hurst, 2);
 		logService.info(this.getClass().getName() + " Hurst coefficient changed to " + spinnerFloat_Hurst);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_FractalDimWM} parameter changes. */
-	protected void changedFractalDimWM() {
+	protected void callbackFractalDimWM() {
 		spinnerFloat_FractalDimWM = Precision.round(spinnerFloat_FractalDimWM, 7);
 		logService.info(this.getClass().getName() + " W-M Fractal dimension changed to " + spinnerFloat_FractalDimWM);
 	}
 	
 	/** Executed whenever the {@link #spinFloat_FractalDimCantor} parameter changes. */
-	protected void changedFractalDimCantor() {
+	protected void callbackFractalDimCantor() {
 		spinnerFloat_FractalDimCantor= Precision.round(spinnerFloat_FractalDimCantor, 7);
 		logService.info(this.getClass().getName() + " Cantor Fractal dimension changed to " + spinnerFloat_FractalDimCantor);
+	}
+	
+	/** Executed whenever the {@link #booleanDoNotShowSignals()} parameter changes. */
+	protected void callbackDoNotShowSignals() {
+		logService.info(this.getClass().getName() + " Do not schow signal(s) changed to " + booleanDoNotShowSignals);
+	}
+	
+	
+	/**
+	 * Executed whenever the {@link #buttonProcess} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	protected void callbackProcess() {
+		//prepare  executer service
+		exec = Executors.newSingleThreadExecutor();
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflow();
+	    	   	uiService.show("Sequence(s)", defaultGenericTable);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 	
 	//--------------------------------------------------------------------------------------------------------
@@ -332,7 +383,137 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
  		logService.info(this.getClass().getName() + " ComsystanJ plugin canceled");
  	}
 
- 	/**
+ 	/** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
+	public void run() {
+		logService.info(this.getClass().getName() + " Run");
+// 			if (ij != null) { //might be null in Fiji
+// 				if (ij.ui().isHeadless()) {
+// 				}
+// 			}
+		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
+			startWorkflow();
+		}
+	}
+
+	/**
+	 * This method starts the workflow
+	 */
+	protected void startWorkflow() {
+		   		
+		long startTimeAll = System.currentTimeMillis();
+	
+		//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Sequence generation, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new Dialog_WaitingWithProgressBar("Sequence generation, please wait... Open console window for further info.",
+		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
+	
+		//dlgProgress.updatePercent("0%");
+		//dlgProgress.setBarIndeterminate(true);
+		//dlgProgress.updateBar(0);
+		dlgProgress.setVisible(true);
+	
+		//"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm"
+		//generate this.defaultGenericTable = new DefaultGenericTable();
+		if      (choiceRadioButt_Method.equals("Constant")) computeConstantSequences();
+		else if (choiceRadioButt_Method.equals("Sine"))     computeSineSequences();
+		else if (choiceRadioButt_Method.equals("Square"))   computeSquareSequences();
+		else if (choiceRadioButt_Method.equals("Triangle")) computeTriangleSequences();
+		else if (choiceRadioButt_Method.equals("SawTooth")) computeSawToothSequences();
+		else if (choiceRadioButt_Method.equals("Gaussian")) computeGaussianSequences();
+		else if (choiceRadioButt_Method.equals("Uniform"))  computeUniformSequences();
+		else if (choiceRadioButt_Method.equals("Logistic")) computeLogisticSequences();
+		else if (choiceRadioButt_Method.equals("Lorenz"))   computeLorenzSequences();
+		else if (choiceRadioButt_Method.equals("Henon"))    computeHenonSequences();
+		else if (choiceRadioButt_Method.equals("Cubic"))    computeCubicSequences();
+		else if (choiceRadioButt_Method.equals("Spence"))   computeSpenceSequences();
+		else if (choiceRadioButt_Method.equals("fGn"))      computefGnSequences();
+		else if (choiceRadioButt_Method.equals("fBm"))      computefBmSequences();
+		else if (choiceRadioButt_Method.equals("W-M"))      computeWMSequences();
+		else if (choiceRadioButt_Method.equals("Cantor"))   computeCantorSequences();
+	
+		int percent = (100);
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+		statusService.showStatus(100, 100, "Collecting data for table...");
+		logService.info(this.getClass().getName() + " Collecting data for table...");	
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+	
+		//show table----------------------------------------------------------
+		//uiService.show("Sequence(s)", defaultGenericTable);
+		//--------------------------------------------------------------------
+		
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	
+		statusService.showProgress(0, 100);
+		statusService.clearStatus();
+		
+		//*****************************************************************
+	    //int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+		//if (selectedOption == JOptionPane.YES_OPTION) {
+	 
+		if (!booleanDoNotShowSignals) {   		
+			int[] cols;
+			boolean isLineVisible = true;
+			String sequenceTitle = choiceRadioButt_Method + " sequence(s)";
+			String xLabel = "#";
+			String yLabel = "Value";
+			String[] seriesLabels;
+			
+			//EXCEPTION for Lorenz, always 3 sequences for X Y Z
+			if ((choiceRadioButt_Method.equals("Lorenz"))  ) {
+				cols = new int[3];
+				seriesLabels = new String[3];
+				for (int c = 0; c < 3; c++) {
+					cols[c] = c;
+					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
+				}
+			}
+			else { //for all others
+				cols         = new int[spinnerInteger_NumSequences];
+				seriesLabels = new String[spinnerInteger_NumSequences];
+				for (int c = 0; c < spinnerInteger_NumSequences; c++) {
+					cols[c] = c;
+					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
+				}
+			};
+			
+		
+			Plot_SequenceFrame pdf = new Plot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			pdf.setVisible(true);
+		}
+		
+			
+		//This might free some memory and would be nice for a large table
+		//defaultGenericTable = null;
+		Runtime.getRuntime().gc();
+		
+		long duration = System.currentTimeMillis() - startTimeAll;
+		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+		SimpleDateFormat sdf = new SimpleDateFormat();
+		sdf.applyPattern("HHH:mm:ss:SSS");
+		logService.info(this.getClass().getName() + " Elapsed total time: "+ sdf.format(duration));
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+	}
+
+	/**
  	 */
  	private void computeConstantSequences() {
  	        
@@ -1465,109 +1646,8 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
  		return sequence1D;
  	}
   
-	/**
-	 * This runs a sequence(s) generator routine
-     */
-    @Override
-    public void run() {
-    	   		
-    	long startTimeAll = System.currentTimeMillis();
-   
-    	//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Sequence generation, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new Dialog_WaitingWithProgressBar("Sequence generation, please wait... Open console window for further info.",
-		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
-
-		//dlgProgress.updatePercent("0%");
-		//dlgProgress.setBarIndeterminate(true);
-		//dlgProgress.updateBar(0);
-		dlgProgress.setVisible(true);
-	
-    	logService.info(this.getClass().getName() + " Processing all available images");
-    	//"Constant", "Sine", "Square", "Triangle", "SawTooth", "Gaussian", "Uniform", "Logistic", "Henon", "Cubic", "Spence", "fGn", "fBm"
-    	//generate this.defaultGenericTable = new DefaultGenericTable();
-		if      (choiceRadioButt_Method.equals("Constant")) computeConstantSequences();
-		else if (choiceRadioButt_Method.equals("Sine"))     computeSineSequences();
-		else if (choiceRadioButt_Method.equals("Square"))   computeSquareSequences();
-		else if (choiceRadioButt_Method.equals("Triangle")) computeTriangleSequences();
-		else if (choiceRadioButt_Method.equals("SawTooth")) computeSawToothSequences();
-		else if (choiceRadioButt_Method.equals("Gaussian")) computeGaussianSequences();
-		else if (choiceRadioButt_Method.equals("Uniform"))  computeUniformSequences();
-		else if (choiceRadioButt_Method.equals("Logistic")) computeLogisticSequences();
-		else if (choiceRadioButt_Method.equals("Lorenz"))   computeLorenzSequences();
-		else if (choiceRadioButt_Method.equals("Henon"))    computeHenonSequences();
-		else if (choiceRadioButt_Method.equals("Cubic"))    computeCubicSequences();
-		else if (choiceRadioButt_Method.equals("Spence"))   computeSpenceSequences();
-		else if (choiceRadioButt_Method.equals("fGn"))      computefGnSequences();
-		else if (choiceRadioButt_Method.equals("fBm"))      computefBmSequences();
-		else if (choiceRadioButt_Method.equals("W-M"))      computeWMSequences();
-		else if (choiceRadioButt_Method.equals("Cantor"))   computeCantorSequences();
-	
-		int percent = (100);
-		dlgProgress.updatePercent(String.valueOf(percent+"%"));
-		dlgProgress.updateBar(percent);
-		//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
-		statusService.showStatus(100, 100, "Collecting data for table...");
-		logService.info(this.getClass().getName() + " Collecting data for table...");	
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-	
-		//show table----------------------------------------------------------
-		uiService.show("Sequence(s)", defaultGenericTable);
-		//--------------------------------------------------------------------
-		
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
- 
-		statusService.showProgress(0, 100);
-		statusService.clearStatus();
-		
-        int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
-		if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols;
-			boolean isLineVisible = true;
-			String sequenceTitle = choiceRadioButt_Method + " sequence(s)";
-			String xLabel = "#";
-			String yLabel = "Value";
-			String[] seriesLabels;
-			
-			//EXCEPTION for Lorenz, always 3 sequences for X Y Z
-			if ((choiceRadioButt_Method.equals("Lorenz"))  ) {
-				cols = new int[3];
-				seriesLabels = new String[3];
-				for (int c = 0; c < 3; c++) {
-					cols[c] = c;
-					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
-				}
-			}
-			else { //for all others
-				cols         = new int[spinnerInteger_NumSequences];
-				seriesLabels = new String[spinnerInteger_NumSequences];
-				for (int c = 0; c < spinnerInteger_NumSequences; c++) {
-					cols[c] = c;
-					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
-				}
-			};
-			
-		
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
-			pdf.setVisible(true);
-		}
-		
-			
-		//This might free some memory and would be nice for a large table
-		defaultGenericTable = null;
-		Runtime.getRuntime().gc();
-		
-		long duration = System.currentTimeMillis() - startTimeAll;
-		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-		SimpleDateFormat sdf = new SimpleDateFormat();
-		sdf.applyPattern("HHH:mm:ss:SSS");
-		logService.info(this.getClass().getName() + " Elapsed total time: "+ sdf.format(duration));
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-    }
-
-	public static void main(final String... args) throws Exception {
+ 	
+ 	 public static void main(final String... args) throws Exception {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch(Throwable t) {

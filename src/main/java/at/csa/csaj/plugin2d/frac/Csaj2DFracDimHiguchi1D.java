@@ -70,7 +70,7 @@ import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -104,10 +104,10 @@ import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
 /**
- * A {@link ContextCommand} plugin computing <the Higuchi dimension by 1D sequences</a>
+ * A {@link InteractiveCommand} plugin computing <the Higuchi dimension by 1D sequences</a>
  * of an image.
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 		headless = true,
 		label = "Higuchi dimension 1D",
 		initializer = "initialPluginLaunch",
@@ -118,8 +118,16 @@ import io.scif.MetaTable;
         @Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
         @Menu(label = "Higuchi dimension 1D")})
-//public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with the Higuchi 1D algorithm</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -292,18 +300,15 @@ public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends ContextComman
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label   = "   Process single image #    ",
-		    	callback = "callbackProcessSingleImage")
+	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-//  @Parameter(label   = "Process single active image ",
-//   		    callback = "callbackProcessActiveImage")
+//  @Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
 
-//	@Parameter(label = "Process all available images",
-//				callback = "callbackProcessAllImages")
-//	private Button buttonProcessAllImages;
+	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
+	private Button buttonProcessAllImages;
 
 
 	// ---------------------------------------------------------------------

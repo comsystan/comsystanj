@@ -69,7 +69,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -100,10 +100,10 @@ import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
 /**
- * A {@link ContextCommand} plugin computing <3D Generalised entropies</a>
+ * A {@link InteractiveCommand} plugin computing <3D Generalised entropies</a>
  * of an image volume.
  * 
- * * A {@link ContextCommand} plugin computing <Generalised entropies</a>
+ * * A {@link InteractiveCommand} plugin computing <Generalised entropies</a>
  * of a sequence.
  * <li>according to a review of Amigó, J.M., Balogh, S.G., Hernández, S., 2018. A Brief Review of Generalised Entropies. Entropy 20, 813. https://doi.org/10.3390/e20110813
  * <li>and to: Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S105-106
@@ -121,7 +121,7 @@ import io.scif.MetaTable;
  * <li>SBeta   according to Amigo etal. and Shafee, F. Lambert function and a new non-extensive form of entropy. IMA J. Appl. Math. 2007, 72, 785–800.
  * <li>SGamma  according to Amigo etal. and Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S61
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 headless = true,
 label = "3D Generalised entropies",
 initializer = "initialPluginLaunch",
@@ -132,8 +132,16 @@ menu = {
 @Menu(label = "3D Volume"),
 @Menu(label = "3D Entropy analyses", weight = 5),
 @Menu(label = "3D Generalised Entropies")})
-//public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Computes 3D Generalised entropies</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -375,17 +383,14 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 //			   callback = "callbackNumImageSlice")
 //	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label   = "    Process single volume     ",
-		    	callback = "callbackProcessSingleVolume")
+	@Parameter(label = "    Process single volume     ", callback = "callbackProcessSingleVolume")
 	private Button buttonProcessSingleVolume;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-//@Parameter(label   = "Process single active image ",
-//		    callback = "callbackProcessActiveImage")
+//	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
 
-//	@Parameter(label = "Process all available images",
-//			callback = "callbackProcessAllImages")
+//	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
 //	private Button buttonProcessAllImages;
 	
 	// ---------------------------------------------------------------------	

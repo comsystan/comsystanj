@@ -45,7 +45,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.ItemIO;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.io.IOService;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -78,7 +78,7 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 /**
- * This is an ImageJ {@link Command} plugin to open multiple images as a volume.
+ * This is an ImageJ {@link InteractiveCommand} plugin to open multiple images as a volume.
  * <p>
  * 
  * </p>
@@ -86,15 +86,25 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 		label = "3D Image volume opener",
+		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "3D Volume"),
         @Menu(label = "3D Image volume opener", weight = 10)})
-public class Csaj3DOpener<T extends RealType<T>> extends ContextCommand { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj3DOpener<T extends RealType<T>> extends InteractiveCommand {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens multiple images</b></html>";
 	private static final String SPACE_LABEL  = "";
@@ -123,6 +133,39 @@ public class Csaj3DOpener<T extends RealType<T>> extends ContextCommand { //moda
     //Widget elements------------------------------------------------------
 	//No widget
 	
+    protected void initialPluginLaunch() {
+    	if (!this.getClass().getName().contains("Command")) { //Processing only if class is NOT a Csaj***Command.class
+			startWorkflow();
+		}
+  	}
+    
+    /** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
+	public void run() {
+		logService.info(this.getClass().getName() + " Run");
+// 			if (ij != null) { //might be null in Fiji
+// 				if (ij.ui().isHeadless()) {
+// 				}
+// 			}
+		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
+			startWorkflow();
+		}
+	}
+    
 	/**
      * This main function serves for development purposes.
      * It allows you to run the plugin immediately out of
@@ -130,9 +173,9 @@ public class Csaj3DOpener<T extends RealType<T>> extends ContextCommand { //moda
      *
      * @param args whatever, it's ignored
      * @throws Exception
-     */
-    @Override
-    public void run() {
+     * * This method starts the workflow
+	 */
+	protected void startWorkflow()  {
     	
     	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Computing 3D fractal, please wait...<br>Open console window for further info.</html>");
 		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Opening image volume, please wait... Open console window for further info.",

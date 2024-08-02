@@ -52,7 +52,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -76,14 +76,14 @@ import at.csa.csaj.commons.Algorithm_Surrogate1D;
 import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.Plot_SequenceFrame;
 import at.csa.csaj.commons.Container_ProcessMethod;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpener;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 
 /**
- * A {@link ContextCommand} plugin computing <FFT</a>
+ * A {@link InteractiveCommand} plugin computing <FFT</a>
  * of a sequence.
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 	headless = true,
 	label = "FFT ",
 	initializer = "initialPluginLaunch",
@@ -94,8 +94,16 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpener;
 	@Menu(label = "1D Sequence(s)"),
 	@Menu(label = "Linear analyses", weight = 3),
 	@Menu(label = "FFT ")}) //Space at the end of the label is necessary to avoid conflict with Fiji FFT plugin 
-//public class Csaj1DFFT<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj1DFFT<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj1DFFT<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL                = "<html><b>Fast Fourier TRansformation</b></html>";
 	private static final String SPACE_LABEL                 = "";
@@ -308,8 +316,8 @@ public class Csaj1DFFT<T extends RealType<T>> extends ContextCommand implements 
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-//	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
-//	private Button buttonProcessAllColumns;
+	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+	private Button buttonProcessAllColumns;
 
 	// ---------------------------------------------------------------------
 		
@@ -1344,7 +1352,7 @@ public class Csaj1DFFT<T extends RealType<T>> extends ContextCommand implements 
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

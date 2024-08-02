@@ -32,7 +32,7 @@ import net.imagej.ImageJ;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 
 import org.scijava.command.Previewable;
 import org.scijava.log.LogService;
@@ -57,7 +57,7 @@ import java.util.concurrent.Executors;
 
 import javax.swing.UIManager;
 /**
- * This is an ImageJ {@link Command} plugin to detect QRS complexes of a ecg file (Holter chan.raw file).
+ * This is an ImageJ {@link InteractiveCommand} plugin to detect QRS complexes of a ecg file (Holter chan.raw file).
  * <p>
  * The code here is using
  * </p>
@@ -65,7 +65,7 @@ import javax.swing.UIManager;
  * The {@link run} method implements the computations.
  * </p>
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 	headless = true,
 	label = "QRS peaks detection (from file)",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
@@ -75,7 +75,16 @@ import javax.swing.UIManager;
 	@Menu(label = "1D Sequence(s)"),
 	@Menu(label = "Detection", weight = 2),
 	@Menu(label = "QRS peaks detection (from file) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-public class Csaj1DDetectQRSPeaks  extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj1DDetectQRSPeaks  extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";
 	private static final String SPACE_LABEL = "";

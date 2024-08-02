@@ -56,7 +56,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.log.LogService;
@@ -75,14 +75,14 @@ import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.Algorithm_Surrogate1D;
 import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpener;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 
 /**
- * A {@link ContextCommand} plugin generating a <Symbolic aggregation</a>
+ * A {@link InteractiveCommand} plugin generating a <Symbolic aggregation</a>
  * of a sequence.
  */
-@Plugin(type = ContextCommand.class, 
+@Plugin(type = InteractiveCommand.class, 
 	headless = true,
 	label = "Symbolic aggregation",
 	initializer = "initialPluginLaunch",
@@ -93,8 +93,16 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpener;
 	@Menu(label = "1D Sequence(s)"),
 	@Menu(label = "Complexity analyses", weight = 4),
 	@Menu(label = "Symbolic aggregation ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-//public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL                      = "<html><b>Symbolic aggregation</b></html>";
 	private static final String SPACE_LABEL                       = "";
@@ -1486,7 +1494,7 @@ public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends ContextCom
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

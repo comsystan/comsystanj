@@ -49,7 +49,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DisplayService;
 import org.scijava.log.LogService;
@@ -58,6 +58,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
+import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -78,24 +79,35 @@ import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.UIManager;
 /**
- * This is an ImageJ {@link Command} plugin for generation of images.
+ * This is an ImageJ {@link InteractiveCommand} plugin for generation of images.
  * <p>
  * The {@link run} method implements the computations.
  * </p>
  * @param <C>
  */
-@Plugin(type = ContextCommand.class,
-		label = "Image generator",
+@Plugin(type = InteractiveCommand.class,
+		label = "2D Image generator",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
         @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
         @Menu(label = "ComsystanJ"),
         @Menu(label = "2D Image(s)"),
-        @Menu(label = "Image generator", weight = 20)})
-public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextCommand implements Previewable { //modal GUI with cancel
+        @Menu(label = "2D Image generator", weight = 20)})
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj2DImageGenerator<T extends RealType<T>, C> extends InteractiveCommand implements Previewable {
 		
 	private static final String PLUGIN_LABEL 			= "<html><b>Generates 2D images</b></html>";
 	private static final String SPACE_LABEL 			= "";
@@ -132,6 +144,8 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	private Img<UnsignedByteType> hrmImg; //HRM
 	private BufferedImage  ifsBuffImg; //IFS  Menger,....
 	private WritableRaster ifsRaster;
+	
+	private ExecutorService exec;
     
 	//Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
@@ -149,7 +163,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
     		   stepSize = "1",
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialWidth",
-    		   callback = "changedWidth")
+    		   callback = "callbackWidth")
     private int spinnerInteger_Width;
     
     @Parameter(label = "Height [pixel]",
@@ -160,7 +174,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
  		       stepSize = "1",
  		       persist = true,  //restore previous value default = true
  		       initializer = "initialHeight",
- 		       callback = "changedHeight")
+ 		       callback = "callbackHeight")
     private int spinnerInteger_Height;
     
     @Parameter(label = "Number of images",
@@ -171,7 +185,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialNumImages",  
-	  		   callback = "changedNumImages")
+	  		   callback = "callbackNumImages")
     private int spinnerInteger_NumImages;
     
     @Parameter(label = "Color model",
@@ -196,7 +210,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
     				  },
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialImageType",
-               callback = "changedImageType")
+               callback = "callbackImageType")
     private String choiceRadioButt_ImageType;
     
 	//-----------------------------------------------------------------------------------------------------
@@ -211,7 +225,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialR",  		 
-	  		   callback = "changedR")
+	  		   callback = "callbackR")
     private int spinnerInteger_R;
     
     @Parameter(label = "G",
@@ -222,7 +236,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialG",
-	  		   callback = "changedG")
+	  		   callback = "callbackG")
     private int spinnerInteger_G;
     
     @Parameter(label = "B",
@@ -233,7 +247,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true				
 	  		   initializer = "initialB",  		  
-	  		   callback = "changedB")
+	  		   callback = "callbackB")
     private int spinnerInteger_B;
     
     @Parameter(label = "(Fractal surface) Dimension",
@@ -244,7 +258,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "0.1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialFracDim",
-	  		   callback = "changedFracDim")
+	  		   callback = "callbackFracDim")
     private float spinnerFloat_FracDim;
     
     @Parameter(label = "(Sine/Sum of sine) Frequency",
@@ -255,7 +269,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialSineSumOfSineFrequency",
-	  		   callback = "changedSineSumOfSineFrequency")
+	  		   callback = "callbackSineSumOfSineFrequency")
     private float spinnerFloat_SineSumOfSineFrequency;
     
     @Parameter(label = "(Sum of sine) Amplitude",
@@ -266,7 +280,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
  	  	 	   stepSize = "1",
  	  		   persist = true,  //restore previous value default = true
  	  		   initializer = "initialSumOfSineAmplitude",
- 	  		   callback = "changedSumOfSineAmplitude")
+ 	  		   callback = "callbackSumOfSineAmplitude")
     private float spinnerFloat_SumOfSineAmplitude;
 
     @Parameter(label = "(Sum of sine/Random shapes/IFS) #",
@@ -277,7 +291,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialNumIterations",
-	  		   callback = "changedNumIterations")
+	  		   callback = "callbackNumIterations")
     private int spinnerInteger_NumIterations;
     
     @Parameter(label = "(Random shapes) Size",
@@ -288,7 +302,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialRandomShapeSize",
-	  		   callback = "changedRandomShapeSize")
+	  		   callback = "callbackRandomShapeSize")
     private int spinnerInteger_RandomShapeSize;
     
     @Parameter(label = "(Random shapes) Scaling",
@@ -300,7 +314,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
   	  	 	   stepSize = "0.1",
   	  		   persist = true,  //restore previous value default = true
   	  		   initializer = "initialRandomShapeScaling",
-  	  		   callback = "changedRandomShapeScaling")
+  	  		   callback = "callbackRandomShapeScaling")
     private float spinnerFloat_RandomShapeScaling;
       
     @Parameter(label = "(IFS-Koch) Number of polygons",
@@ -311,7 +325,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialNumPolygons",
-	  		   callback = "changedNumPolygons")
+	  		   callback = "callbackNumPolygons")
     private int spinnerInteger_NumPolygons;
     
     @Parameter(label = "(HRM) Probability 1",
@@ -322,7 +336,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
   	  		   stepSize = "0.01",
   	  		   persist = true,  //restore previous value default = true
   	  		   initializer = "initialHRMProbability1",
-  	  		   callback = "changedHRMProbability1")
+  	  		   callback = "callbackHRMProbability1")
     private float spinnerFloat_HRMProbability1;
     
     @Parameter(label = "(HRM) Probability 2",
@@ -333,7 +347,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "0.01",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialHRMProbability2",
-	  		   callback = "changedHRMProbability2")
+	  		   callback = "callbackHRMProbability2")
     private float spinnerFloat_HRMProbability2;
     
     @Parameter(label = "(HRM) Probability 3",
@@ -344,9 +358,11 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	  		   stepSize = "0.01",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialHRMProbability3",
-	  		   callback = "changedHRMProbability3")
+	  		   callback = "callbackHRMProbability3")
     private float spinnerFloat_HRMProbability3;
     
+	@Parameter(label = "Process", callback = "callbackProcess")
+	private Button buttonProcess;
   
     //---------------------------------------------------------------------
     
@@ -435,16 +451,16 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	// ------------------------------------------------------------------------------
 	
 	/** Executed whenever the {@link #spinnerInteger_Width} parameter changes. */
-	protected void changedWidth() {
+	protected void callbackWidth() {
 		logService.info(this.getClass().getName() + " Width changed to " + spinnerInteger_Width + " pixel");
 	}
 	/** Executed whenever the {@link #spinnerInteger_Height} parameter changes. */
-	protected void changedHeight() {
+	protected void callbackHeight() {
 		logService.info(this.getClass().getName() + " Height changed to " + spinnerInteger_Height + " pixel");
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumImages} parameter changes. */
-	protected void changedNumImages() {
+	protected void callbackNumImages() {
 		logService.info(this.getClass().getName() + " Number of images changed to " + spinnerInteger_NumImages);
 	}
 	
@@ -454,26 +470,26 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_ImageType} parameter changes. */
-	protected void changedImageType() {
+	protected void callbackImageType() {
 		logService.info(this.getClass().getName() + " Image type changed to " + choiceRadioButt_ImageType);
 	}
 		
 	/** Executed whenever the {@link #spinnerInteger_R} parameter changes. */
-	protected void changedR() {
+	protected void callbackR() {
 		logService.info(this.getClass().getName() + " Constant/Channel R changed to " + spinnerInteger_R);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_G} parameter changes. */
-	protected void changedG() {
+	protected void callbackG() {
 		logService.info(this.getClass().getName() + " Chanel G changed to " + spinnerInteger_G);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_B} parameter changes. */
-	protected void changedB() {
+	protected void callbackB() {
 		logService.info(this.getClass().getName() + " Channel B changed to " + spinnerInteger_B);
 	}
 	
-	protected void changedFracDim() {
+	protected void callbackFracDim() {
 		//logService.info(this.getClass().getName() + " FD changed to " + spinnerFloat_FracDim);
 	 	//round to one decimal after the comma
 	 	//spinnerFloat_FracDim = Math.round(spinnerFloat_FracDim * 10f)/10f;
@@ -481,7 +497,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	 	logService.info(this.getClass().getName() + " FD changed to " + spinnerFloat_FracDim);
 	}
 	
-	protected void changedSineSumOfSineFrequency() {
+	protected void callbackSineSumOfSineFrequency() {
 		//logService.info(this.getClass().getName() + " Sum of sine frequency changed to " + spinnerFloat_SineSumOfSineFrequency);
 	 	//round to ?? decimal after the comma
 	 	//spinnerFloat_SineSumOfSineFrequency = Math.round(spinnerFloat_SineSumOfSineFrequency * 1f)/1f;
@@ -489,7 +505,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	 	logService.info(this.getClass().getName() + " Sum of sine frequency changed to " + spinnerFloat_SineSumOfSineFrequency);
 	}
 	
-	protected void changedSumOfSineAmplitude() {
+	protected void callbackSumOfSineAmplitude() {
 		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_SumOfSineAmplitude);
 	 	//round to ?? decimal after the comma
 	 	//spinnerFloat_SumOfSineAmplitude = Math.round(spinnerFloat_SumOfSineAmplitude * 1f)/1f;
@@ -498,16 +514,16 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumIterations} parameter changes. */
-	protected void changedNumIterations() {
+	protected void callbackNumIterations() {
 		logService.info(this.getClass().getName() + " Iterations/Number changed to " + spinnerInteger_NumIterations);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_RandomShapeSize} parameter changes. */
-	protected void changedRandomShapeSize() {
+	protected void callbackRandomShapeSize() {
 		logService.info(this.getClass().getName() + " Random shape size changed to " + spinnerInteger_RandomShapeSize);
 	}
 	
-	protected void changedRandomShapeScaling() {
+	protected void callbackRandomShapeScaling() {
 		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_RandomShapeScaling);
 	 	//round to ?? decimal after the comma
 	 	//spinnerFloat_RandomShapeScaling = Math.round(spinnerFloat_RandomShapeScaling * 1f)/1f;
@@ -516,11 +532,11 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumPolygons} parameter changes. */
-	protected void changedNumPolygons() {
+	protected void callbackNumPolygons() {
 		logService.info(this.getClass().getName() + " Number of polygons changed to " + spinnerInteger_NumPolygons);
 	}
 	
-	protected void changedHRMProbability1() {
+	protected void callbackHRMProbability1() {
 		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_HRMProbability);
 	 	//round to ?? decimal after the comma
 	 	//spinnerFloat_HRMProbability = Math.round(spinnerFloat_HRMProbability * 1f)/1f;
@@ -528,7 +544,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	 	logService.info(this.getClass().getName() + " Probability 1 changed to " + spinnerFloat_HRMProbability1);
 	}
 	
-	protected void changedHRMProbability2() {
+	protected void callbackHRMProbability2() {
 		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_HRMProbability);
 	 	//round to ?? decimal after the comma
 	 	//spinnerFloat_HRMProbability = Math.round(spinnerFloat_HRMProbability * 1f)/1f;
@@ -536,12 +552,31 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 	 	logService.info(this.getClass().getName() + " Probability 2 changed to " + spinnerFloat_HRMProbability2);
 	}
 	
-	protected void changedHRMProbability3() {
+	protected void callbackHRMProbability3() {
 		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_HRMProbability);
 	 	//round to ?? decimal after the comma
 	 	//spinnerFloat_HRMProbability = Math.round(spinnerFloat_HRMProbability * 1f)/1f;
 	 	spinnerFloat_HRMProbability3 = Precision.round(spinnerFloat_HRMProbability3, 2);
 	 	logService.info(this.getClass().getName() + " Probability 3 changed to " + spinnerFloat_HRMProbability3);
+	}
+	
+	/**
+	 * Executed whenever the {@link #buttonProcess} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	protected void callbackProcess() {
+		//prepare  executer service
+		exec = Executors.newSingleThreadExecutor();
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflow();
+	    	   	uiService.show(datasetOut.getName(), datasetOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 	
     // You can control how previews work by overriding the "preview" method.
@@ -559,7 +594,410 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
  	}
  	
     
-    private void computeRandomImage(int greyMax) {
+    /** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
+	public void run() {
+		logService.info(this.getClass().getName() + " Run");
+//		if (ij != null) { //might be null in Fiji
+//			if (ij.ui().isHeadless()) {
+//			}
+//		}
+		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
+			startWorkflow();
+		}
+	}
+
+	/**
+     * This method starts the workflow
+     */
+    protected void startWorkflow() {
+    	
+    	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating 2D image(s), please wait...<br>Open console window for further info.</html>");
+		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Generating 2D image(s), please wait... Open console window for further info.",
+		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
+
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+		
+    	long startTimeAll = System.currentTimeMillis();
+         // create the ImageJ application context with all available services
+    	//final ImageJ ij = new ImageJ();
+    	//ij.ui().showUI();
+
+    	
+//    	final MessageType messageType = MessageType.QUESTION_MESSAGE;
+//		final OptionType optionType = OptionType.OK_CANCEL_OPTION;
+//
+//		// Prompt for confirmation.
+//		//final UIService uiService = getContext().getService(UIService.class);
+//		Result result = uiService.showDialog("Compute a 3D fractal?", "FractalCreation3D", messageType, optionType);
+//
+//		// Cancel the command execution if the user does not agree.
+//		//if (result != Result.YES_OPTION) System.exit(-1);
+//		if (result != Result.YES_OPTION) return;
+    		
+		//collect parameters
+		int width     			= spinnerInteger_Width;
+		int height    			= spinnerInteger_Height;
+		int numImages			= spinnerInteger_NumImages;
+		String colorModelType   = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
+		String imageType		= choiceRadioButt_ImageType;
+		int greyR   			= spinnerInteger_R;
+		int greyG   			= spinnerInteger_G;
+		int greyB   			= spinnerInteger_B;
+		float fracDim 			= spinnerFloat_FracDim;
+		float frequency  		= spinnerFloat_SineSumOfSineFrequency;
+		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
+		int numIterations		= spinnerInteger_NumIterations;
+		int randomShapeSize		= spinnerInteger_RandomShapeSize;
+		float randomShapeScaling= spinnerFloat_RandomShapeScaling;
+		int numPolygons			= spinnerInteger_NumPolygons;
+		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
+		
+	
+		// Create an image.
+		
+		String name = "2D image";
+		if 		(imageType.equals("Random"))   									name = "Random image(s)";
+		else if (imageType.equals("Gaussian")) 									name = "Gaussian image(s)";
+		else if (imageType.equals("Sine - radial")) 							name = "Radial sinusoidal image(s)";
+		else if (imageType.equals("Sine - horizontal")) 						name = "Horizontal sinusoidal image(s)";
+		else if (imageType.equals("Sine - vertical")) 							name = "Vertical sinusoidal image(s)";
+		else if (imageType.equals("Constant")) 									name = "Constant image(s)";
+		else if (imageType.equals("Fractal surface - FFT"))						name = "Fractal surface(s) - FFT";
+		else if (imageType.equals("Fractal surface - MPD"))						name = "Fractal surface(s) - MPD";
+		else if (imageType.equals("Fractal surface - Sum of sine"))			 	name = "Fractal surface(s) - Sum of sine";
+		else if (imageType.equals("Fractal - HRM"))								name = "Fractal - HRM";
+		else if (imageType.equals("Fractal random shapes - Lines"))				name = "Fractal random shapes - Lines";
+		else if (imageType.equals("Fractal random shapes - Circles"))			name = "Fractal random shapes - Circles";
+		else if (imageType.equals("Fractal random shapes - Squares"))			name = "Fractal random shapes - Squares";
+		else if (imageType.equals("Fractal random shapes - Filled circles"))	name = "Fractal random shapes - Filled circles";
+		else if (imageType.equals("Fractal random shapes - Filled squares"))	name = "Fractal random shapes - Filled squares";
+		else if (imageType.equals("Fractal IFS - Menger"))						name = "Fractal IFS - Menger";
+		else if (imageType.equals("Fractal IFS - Sierpinski-1"))				name = "Fractal IFS - Sierpinski-1";
+		else if (imageType.equals("Fractal IFS - Sierpinski-2"))				name = "Fractal IFS - Sierpinski-2";
+		else if (imageType.equals("Fractal IFS - Mandelbrot set"))		     	name = "Fractal IFS - Mandelbrot set";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))			name = "Fractal IFS - Mandelbrot island-1";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))			name = "Fractal IFS - Mandelbrot island-2";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))	name = "Fractal IFS - Mandelbrot island&lake-1";
+		else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))	name = "Fractal IFS - Mandelbrot island&lake-2";
+		else if (imageType.equals("Fractal IFS - Koch snowflake"))				name = "Fractal IFS - Koch snowflake";
+		else if (imageType.equals("Fractal IFS - Fern"))						name = "Fractal IFS - Fern";
+		else if (imageType.equals("Fractal IFS - Heighway dragon"))				name = "Fractal IFS - Heighway dragon";
+		
+			
+		AxisType[] axes  = null;
+		long[] dims 	 = null;
+		int bitsPerPixel = 0;
+		boolean signed   = false;
+		boolean floating = false;
+		boolean virtual  = false;
+
+		//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
+		//datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
+		//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
+		
+		if (colorModelType.equals("Grey-8bit")) {
+			if (numImages == 1) {
+				bitsPerPixel = 8;
+				dims = new long[]{width, height};
+				axes = new AxisType[]{Axes.X, Axes.Y};
+				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
+
+				if      (imageType.equals("Random"))   								computeRandomImage(greyR);
+				else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyR);
+				else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyR);
+				else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyR);
+				else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyR);
+				else if (imageType.equals("Constant")) 								computeConstantImage(greyR);
+				else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyR);
+				else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
+				else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
+				else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
+				else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "lines",  greyR);
+				else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
+				else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
+				else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
+				else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
+				else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
+				else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
+				
+				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
+				Cursor<UnsignedByteType> cursor = resultImg.cursor();
+				long[] pos = new long[2];
+				float value;
+				
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					cursor.localize(pos);
+					value= cursor.get().getRealFloat();
+					//value = rf * (value -min); //Rescale to 0  255
+					ra.setPosition(pos);
+					ra.get().setReal(value);
+				}
+			}
+			else if (numImages >= 1) {
+				bitsPerPixel = 8;
+				dims = new long[]{width, height, numImages};
+				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
+				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+					
+				RandomAccess<RealType<?>> ra;
+				Cursor<UnsignedByteType> cursor;
+				long[] pos2D;
+				long[] pos3D; 
+				float value;
+				long startTime;
+				long duration;
+				dlgProgress.setBarIndeterminate(false);
+				for (int n =0; n < numImages; n++) {
+					
+					int percent = (int)Math.round((  ((float)n)/((float)numImages)   *100.f   ));
+					dlgProgress.updatePercent(String.valueOf(percent+"%"));
+					dlgProgress.updateBar(percent);
+					//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+					statusService.showStatus((n+1), (int)numImages, "Generating " + (n+1) + "/" + (int)numImages);
+
+					startTime = System.currentTimeMillis();
+					logService.info(this.getClass().getName() + " Generating image number " + (n+1) + "(" + numImages + ")");
+					
+					if      (imageType.equals("Random"))   								computeRandomImage(greyR);
+					else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyR);
+					else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyR);
+					else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyR);
+					else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyR);
+					else if (imageType.equals("Constant")) 								computeConstantImage(greyR);
+					else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyR);
+					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
+					else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
+					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
+					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyR);
+					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
+					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
+					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
+					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
+					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
+					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
+						
+					ra = datasetOut.randomAccess();
+					cursor = resultImg.cursor();
+					pos2D = new long[2];
+					pos3D = new long[3];
+					
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						cursor.localize(pos2D);
+						value= cursor.get().getRealFloat();
+						//value = rf * (value -min); //Rescale to 0  255
+						pos3D = new long[] {pos2D[0], pos2D[1], n};
+						ra.setPosition(pos3D);
+						ra.get().setReal(value);
+					}
+					duration = System.currentTimeMillis() - startTime;
+					TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+					SimpleDateFormat sdf = new SimpleDateFormat();
+					sdf.applyPattern("HHH:mm:ss:SSS");
+					logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+				}			
+			}
+		}
+		else if (colorModelType.equals("Color-RGB")) {
+			if (numImages == 1) {
+				bitsPerPixel = 8;
+				dims = new long[]{width, height, 3};
+				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
+				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
+				datasetOut.setCompositeChannelCount(3);
+				datasetOut.setRGBMerged(true);
+				
+				//R G B
+				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
+				Cursor<UnsignedByteType> cursor;
+				long[] pos2D = new long[2];
+				float value;
+				int greyValue = 0;
+				for (int chan = 0; chan <= 2; chan++ ){
+					switch (chan){
+						case 0: greyValue = greyR; break;
+						case 1: greyValue = greyG; break;
+						case 2: greyValue = greyB; break;
+					}
+					if (imageType.equals("Random"))   			   						computeRandomImage(greyValue);
+					else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyValue);
+					else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyValue);
+					else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyValue);
+					else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyValue);
+					else if (imageType.equals("Constant")) 								computeConstantImage(greyValue);
+					else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyValue);
+					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
+					else if (imageType.equals("Fractal surface - Sum of sine"))			computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
+					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
+					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
+					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
+					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
+					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
+					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
+					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
+					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
+								
+					cursor = resultImg.cursor();
+					
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						cursor.localize(pos2D);
+						value= cursor.get().getRealFloat();
+						//value = rf * (value -min); //Rescale to 0  255
+						ra.setPosition(pos2D[0], 0);
+						ra.setPosition(pos2D[1], 1);
+						ra.setPosition(chan, 2); //R  G  B
+						ra.get().setReal(value);
+					}
+				} //RGB		
+			}
+			else if (numImages >= 1) {
+				bitsPerPixel = 8;
+				dims = new long[]{width, height, 3, numImages};
+				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
+				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+				datasetOut.setCompositeChannelCount(3);
+				datasetOut.setRGBMerged(true);
+					
+				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
+				Cursor<UnsignedByteType> cursor;
+				long[] pos2D;
+				float value;
+				int greyValue = 0;
+				long startTime;
+				long duration;
+				dlgProgress.setBarIndeterminate(false);
+				for (int n =0; n < numImages; n++) {
+					
+					int percent = (int)Math.round((  ((float)n)/((float)numImages)   *100.f   ));
+					dlgProgress.updatePercent(String.valueOf(percent+"%"));
+					dlgProgress.updateBar(percent);
+					//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
+					statusService.showStatus((n+1), (int)numImages, "Generating " + (n+1) + "/" + (int)numImages);
+
+					startTime = System.currentTimeMillis();
+					logService.info(this.getClass().getName() + " Generating image number " + (n+1) + "(" + numImages + ")");
+					
+					for (int chan = 0; chan <= 2; chan++ ){ //RGB
+						
+						switch (chan){
+						case 0: greyValue = greyR; break;
+						case 1: greyValue = greyG; break;
+						case 2: greyValue = greyB; break;
+					}
+						if (imageType.equals("Random"))   					    			computeRandomImage(greyValue);
+						else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyValue);
+						else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyValue);
+						else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyValue);
+						else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyValue);
+						else if (imageType.equals("Constant")) 								computeConstantImage(greyValue);
+						else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyValue);
+						else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
+						else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
+						else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
+						else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
+						else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
+						else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
+						else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
+						else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
+						else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
+						else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
+						
+						cursor = resultImg.cursor();
+						pos2D = new long[2];		
+						while (cursor.hasNext()) {
+							cursor.fwd();
+							cursor.localize(pos2D);
+							value= cursor.get().getRealFloat();
+							//value = rf * (value -min); //Rescale to 0  255
+							
+							ra.setPosition(new long[] {pos2D[0], pos2D[1], chan, n});
+							ra.get().setReal(value);
+						}
+					}//RGB
+					duration = System.currentTimeMillis() - startTime;
+					TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+					SimpleDateFormat sdf = new SimpleDateFormat();
+					sdf.applyPattern("HHH:mm:ss:SSS");
+					logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
+				}//n
+			}
+		}
+		
+		statusService.showProgress(0, 100);
+		statusService.clearStatus();
+		
+		dlgProgress.addMessage("Processing finished! Displaying image(s)...");
+		//not necessary because datasetOut is an IO type
+		//ij.ui().show("Image", datasetOut);
+		//if (choiceRadioButt_ImageType.equals("Random"))   uiService.show("Random",   datasetOut);
+		//if (choiceRadioButt_ImageType.equals("Constant")) uiService.show("Constant", datasetOut);
+		//uiService.show(datasetOut.getName(), datasetOut);
+		
+		long duration = System.currentTimeMillis() - startTimeAll;
+		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+		SimpleDateFormat sdf = new SimpleDateFormat();
+		sdf.applyPattern("HHH:mm:ss:SSS");
+		logService.info(this.getClass().getName() + " Elapsed time for all images: "+ sdf.format(duration));
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+    }
+
+	private void computeRandomImage(int greyMax) {
     
     	Random random = new Random();
     	resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1));
@@ -3088,389 +3526,7 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 		}	
 	}
 	
-	/**
-     * @param 
-     * @throws Exception
-     */
-    @Override
-    public void run() {
-    	
-    	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating 2D image(s), please wait...<br>Open console window for further info.</html>");
-		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Generating 2D image(s), please wait... Open console window for further info.",
-		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
-
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	long startTimeAll = System.currentTimeMillis();
-         // create the ImageJ application context with all available services
-    	//final ImageJ ij = new ImageJ();
-    	//ij.ui().showUI();
-
-    	
-//    	final MessageType messageType = MessageType.QUESTION_MESSAGE;
-//		final OptionType optionType = OptionType.OK_CANCEL_OPTION;
-//
-//		// Prompt for confirmation.
-//		//final UIService uiService = getContext().getService(UIService.class);
-//		Result result = uiService.showDialog("Compute a 3D fractal?", "FractalCreation3D", messageType, optionType);
-//
-//		// Cancel the command execution if the user does not agree.
-//		//if (result != Result.YES_OPTION) System.exit(-1);
-//		if (result != Result.YES_OPTION) return;
-    		
-		//collect parameters
-		int width     			= spinnerInteger_Width;
-		int height    			= spinnerInteger_Height;
-		int numImages			= spinnerInteger_NumImages;
-		String colorModelType   = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
-		String imageType		= choiceRadioButt_ImageType;
-		int greyR   			= spinnerInteger_R;
-		int greyG   			= spinnerInteger_G;
-		int greyB   			= spinnerInteger_B;
-		float fracDim 			= spinnerFloat_FracDim;
-		float frequency  		= spinnerFloat_SineSumOfSineFrequency;
-		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
-		int numIterations		= spinnerInteger_NumIterations;
-		int randomShapeSize		= spinnerInteger_RandomShapeSize;
-		float randomShapeScaling= spinnerFloat_RandomShapeScaling;
-		int numPolygons			= spinnerInteger_NumPolygons;
-		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
-		
-	
-		// Create an image.
-		
-		String name = "2D image";
-		if 		(imageType.equals("Random"))   									name = "Random image(s)";
-		else if (imageType.equals("Gaussian")) 									name = "Gaussian image(s)";
-		else if (imageType.equals("Sine - radial")) 							name = "Radial sinusoidal image(s)";
-		else if (imageType.equals("Sine - horizontal")) 						name = "Horizontal sinusoidal image(s)";
-		else if (imageType.equals("Sine - vertical")) 							name = "Vertical sinusoidal image(s)";
-		else if (imageType.equals("Constant")) 									name = "Constant image(s)";
-		else if (imageType.equals("Fractal surface - FFT"))						name = "Fractal surface(s) - FFT";
-		else if (imageType.equals("Fractal surface - MPD"))						name = "Fractal surface(s) - MPD";
-		else if (imageType.equals("Fractal surface - Sum of sine"))			 	name = "Fractal surface(s) - Sum of sine";
-		else if (imageType.equals("Fractal - HRM"))								name = "Fractal - HRM";
-		else if (imageType.equals("Fractal random shapes - Lines"))				name = "Fractal random shapes - Lines";
-		else if (imageType.equals("Fractal random shapes - Circles"))			name = "Fractal random shapes - Circles";
-		else if (imageType.equals("Fractal random shapes - Squares"))			name = "Fractal random shapes - Squares";
-		else if (imageType.equals("Fractal random shapes - Filled circles"))	name = "Fractal random shapes - Filled circles";
-		else if (imageType.equals("Fractal random shapes - Filled squares"))	name = "Fractal random shapes - Filled squares";
-		else if (imageType.equals("Fractal IFS - Menger"))						name = "Fractal IFS - Menger";
-		else if (imageType.equals("Fractal IFS - Sierpinski-1"))				name = "Fractal IFS - Sierpinski-1";
-		else if (imageType.equals("Fractal IFS - Sierpinski-2"))				name = "Fractal IFS - Sierpinski-2";
-		else if (imageType.equals("Fractal IFS - Mandelbrot set"))		     	name = "Fractal IFS - Mandelbrot set";
-		else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))			name = "Fractal IFS - Mandelbrot island-1";
-		else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))			name = "Fractal IFS - Mandelbrot island-2";
-		else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))	name = "Fractal IFS - Mandelbrot island&lake-1";
-		else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))	name = "Fractal IFS - Mandelbrot island&lake-2";
-		else if (imageType.equals("Fractal IFS - Koch snowflake"))				name = "Fractal IFS - Koch snowflake";
-		else if (imageType.equals("Fractal IFS - Fern"))						name = "Fractal IFS - Fern";
-		else if (imageType.equals("Fractal IFS - Heighway dragon"))				name = "Fractal IFS - Heighway dragon";
-		
-			
-		AxisType[] axes  = null;
-		long[] dims 	 = null;
-		int bitsPerPixel = 0;
-		boolean signed   = false;
-		boolean floating = false;
-		boolean virtual  = false;
-
-		//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
-		//datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
-		//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
-		
-		if (colorModelType.equals("Grey-8bit")) {
-			if (numImages == 1) {
-				bitsPerPixel = 8;
-				dims = new long[]{width, height};
-				axes = new AxisType[]{Axes.X, Axes.Y};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
-
-				if      (imageType.equals("Random"))   								computeRandomImage(greyR);
-				else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyR);
-				else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyR);
-				else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyR);
-				else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyR);
-				else if (imageType.equals("Constant")) 								computeConstantImage(greyR);
-				else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyR);
-				else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
-				else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
-				else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
-				else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "lines",  greyR);
-				else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
-				else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
-				else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
-				else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
-				else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
-				else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
-				
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
-				Cursor<UnsignedByteType> cursor = resultImg.cursor();
-				long[] pos = new long[2];
-				float value;
-				
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos);
-					value= cursor.get().getRealFloat();
-					//value = rf * (value -min); //Rescale to 0  255
-					ra.setPosition(pos);
-					ra.get().setReal(value);
-				}
-			}
-			else if (numImages >= 1) {
-				bitsPerPixel = 8;
-				dims = new long[]{width, height, numImages};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-					
-				RandomAccess<RealType<?>> ra;
-				Cursor<UnsignedByteType> cursor;
-				long[] pos2D;
-				long[] pos3D; 
-				float value;
-				long startTime;
-				long duration;
-				dlgProgress.setBarIndeterminate(false);
-				for (int n =0; n < numImages; n++) {
-					
-					int percent = (int)Math.round((  ((float)n)/((float)numImages)   *100.f   ));
-					dlgProgress.updatePercent(String.valueOf(percent+"%"));
-					dlgProgress.updateBar(percent);
-					//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
-					statusService.showStatus((n+1), (int)numImages, "Generating " + (n+1) + "/" + (int)numImages);
-
-					startTime = System.currentTimeMillis();
-					logService.info(this.getClass().getName() + " Generating image number " + (n+1) + "(" + numImages + ")");
-					
-					if      (imageType.equals("Random"))   								computeRandomImage(greyR);
-					else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyR);
-					else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyR);
-					else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyR);
-					else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyR);
-					else if (imageType.equals("Constant")) 								computeConstantImage(greyR);
-					else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyR);
-					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
-					else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
-					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
-					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyR);
-					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
-					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
-					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
-					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
-					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
-					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
-						
-					ra = datasetOut.randomAccess();
-					cursor = resultImg.cursor();
-					pos2D = new long[2];
-					pos3D = new long[3];
-					
-					while (cursor.hasNext()) {
-						cursor.fwd();
-						cursor.localize(pos2D);
-						value= cursor.get().getRealFloat();
-						//value = rf * (value -min); //Rescale to 0  255
-						pos3D = new long[] {pos2D[0], pos2D[1], n};
-						ra.setPosition(pos3D);
-						ra.get().setReal(value);
-					}
-					duration = System.currentTimeMillis() - startTime;
-					TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-					SimpleDateFormat sdf = new SimpleDateFormat();
-					sdf.applyPattern("HHH:mm:ss:SSS");
-					logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-				}			
-			}
-		}
-		else if (colorModelType.equals("Color-RGB")) {
-			if (numImages == 1) {
-				bitsPerPixel = 8;
-				dims = new long[]{width, height, 3};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
-				datasetOut.setCompositeChannelCount(3);
-				datasetOut.setRGBMerged(true);
-				
-				//R G B
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
-				Cursor<UnsignedByteType> cursor;
-				long[] pos2D = new long[2];
-				float value;
-				int greyValue = 0;
-				for (int chan = 0; chan <= 2; chan++ ){
-					switch (chan){
-						case 0: greyValue = greyR; break;
-						case 1: greyValue = greyG; break;
-						case 2: greyValue = greyB; break;
-					}
-					if (imageType.equals("Random"))   			   						computeRandomImage(greyValue);
-					else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyValue);
-					else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyValue);
-					else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyValue);
-					else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyValue);
-					else if (imageType.equals("Constant")) 								computeConstantImage(greyValue);
-					else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyValue);
-					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
-					else if (imageType.equals("Fractal surface - Sum of sine"))			computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
-					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
-					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
-					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
-					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
-					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
-					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
-					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
-					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
-								
-					cursor = resultImg.cursor();
-					
-					while (cursor.hasNext()) {
-						cursor.fwd();
-						cursor.localize(pos2D);
-						value= cursor.get().getRealFloat();
-						//value = rf * (value -min); //Rescale to 0  255
-						ra.setPosition(pos2D[0], 0);
-						ra.setPosition(pos2D[1], 1);
-						ra.setPosition(chan, 2); //R  G  B
-						ra.get().setReal(value);
-					}
-				} //RGB		
-			}
-			else if (numImages >= 1) {
-				bitsPerPixel = 8;
-				dims = new long[]{width, height, 3, numImages};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-				datasetOut.setCompositeChannelCount(3);
-				datasetOut.setRGBMerged(true);
-					
-				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
-				Cursor<UnsignedByteType> cursor;
-				long[] pos2D;
-				float value;
-				int greyValue = 0;
-				long startTime;
-				long duration;
-				dlgProgress.setBarIndeterminate(false);
-				for (int n =0; n < numImages; n++) {
-					
-					int percent = (int)Math.round((  ((float)n)/((float)numImages)   *100.f   ));
-					dlgProgress.updatePercent(String.valueOf(percent+"%"));
-					dlgProgress.updateBar(percent);
-					//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
-					statusService.showStatus((n+1), (int)numImages, "Generating " + (n+1) + "/" + (int)numImages);
-
-					startTime = System.currentTimeMillis();
-					logService.info(this.getClass().getName() + " Generating image number " + (n+1) + "(" + numImages + ")");
-					
-					for (int chan = 0; chan <= 2; chan++ ){ //RGB
-						
-						switch (chan){
-						case 0: greyValue = greyR; break;
-						case 1: greyValue = greyG; break;
-						case 2: greyValue = greyB; break;
-					}
-						if (imageType.equals("Random"))   					    			computeRandomImage(greyValue);
-						else if (imageType.equals("Gaussian")) 								computeGaussianImage(greyValue);
-						else if (imageType.equals("Sine - radial")) 						computeSineImage("radial",     frequency, greyValue);
-						else if (imageType.equals("Sine - horizontal")) 					computeSineImage("horizontal", frequency, greyValue);
-						else if (imageType.equals("Sine - vertical")) 						computeSineImage("vertical",   frequency, greyValue);
-						else if (imageType.equals("Constant")) 								computeConstantImage(greyValue);
-						else if (imageType.equals("Fractal surface - FFT"))					computeFrac2DFFT(fracDim, greyValue);
-						else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
-						else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
-						else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
-						else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
-						else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
-						else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
-						else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
-						else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
-						else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Mandelbrot set"))		    computeFracMandelbrotSet(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Mandelbrot island-1"))		computeFracMandelbrotIsland1(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Mandelbrot island-2"))		computeFracMandelbrotIsland2(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-1"))computeFracMandelbrotIslandLake1(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Mandelbrot island&lake-2"))computeFracMandelbrotIslandLake2(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
-						else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
-						
-						cursor = resultImg.cursor();
-						pos2D = new long[2];		
-						while (cursor.hasNext()) {
-							cursor.fwd();
-							cursor.localize(pos2D);
-							value= cursor.get().getRealFloat();
-							//value = rf * (value -min); //Rescale to 0  255
-							
-							ra.setPosition(new long[] {pos2D[0], pos2D[1], chan, n});
-							ra.get().setReal(value);
-						}
-					}//RGB
-					duration = System.currentTimeMillis() - startTime;
-					TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-					SimpleDateFormat sdf = new SimpleDateFormat();
-					sdf.applyPattern("HHH:mm:ss:SSS");
-					logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-				}//n
-			}
-		}
-		
-		statusService.showProgress(0, 100);
-		statusService.clearStatus();
-		
-		dlgProgress.addMessage("Processing finished! Displaying image(s)...");
-		//not necessary because datasetOut is an IO type
-		//ij.ui().show("Image", datasetOut);
-		//if (choiceRadioButt_ImageType.equals("Random"))   uiService.show("Random",   datasetOut);
-		//if (choiceRadioButt_ImageType.equals("Constant")) uiService.show("Constant", datasetOut);
-		uiService.show(datasetOut.getName(), datasetOut);
-		
-		long duration = System.currentTimeMillis() - startTimeAll;
-		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-		SimpleDateFormat sdf = new SimpleDateFormat();
-		sdf.applyPattern("HHH:mm:ss:SSS");
-		logService.info(this.getClass().getName() + " Elapsed time for all images: "+ sdf.format(duration));
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-    }
-
-   
-    
-   
-
-	public static void main(final String... args) throws Exception {
+	 public static void main(final String... args) throws Exception {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch(Throwable t) {

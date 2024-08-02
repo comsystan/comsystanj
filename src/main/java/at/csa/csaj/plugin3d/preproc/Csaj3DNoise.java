@@ -61,7 +61,7 @@ import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.io.IOService;
@@ -85,10 +85,10 @@ import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
 /**
- * A {@link ContextCommand} plugin for adding <noise</a>
+ * A {@link InteractiveCommand} plugin for adding <noise</a>
  * to an image volume.
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 headless = true,
 label = "3D Noise",
 initializer = "initialPluginLaunch",
@@ -99,8 +99,16 @@ menu = {
 @Menu(label = "3D Volume"),
 @Menu(label = "3D Preprocessing", weight = 1),
 @Menu(label = "3D Noise")})
-//public class Csaj3DNoise<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj3DNoise<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj3DNoise<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "3D Noise";
 	private static final String SPACE_LABEL             = "";
@@ -227,17 +235,14 @@ public class Csaj3DNoise<T extends RealType<T>> extends ContextCommand implement
 //			   callback = "callbackNumImageSlice")
 //	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label   = "    Process single volume     ",
-		    	callback = "callbackProcessSingleVolume")
+	@Parameter(label = "    Process single volume     ", callback = "callbackProcessSingleVolume")
 	private Button buttonProcessSingleVolume;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-//@Parameter(label   = "Process single active image ",
-//		    callback = "callbackProcessActiveImage")
+//	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
 
-//	@Parameter(label = "Process all available images",
-//			callback = "callbackProcessAllImages")
+//	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
 //	private Button buttonProcessAllImages;
 	
 	// ---------------------------------------------------------------------

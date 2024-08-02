@@ -60,7 +60,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DisplayService;
 import org.scijava.log.LogService;
@@ -69,6 +69,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
+import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
@@ -80,16 +81,19 @@ import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javax.swing.UIManager;
 
 /**
- * This is an ImageJ {@link Command} plugin for generation of §D image volumes.
+ * This is an ImageJ {@link InteractiveCommand} plugin for generation of §D image volumes.
  * <p>
  * The {@link run} method implements the computations.
  * </p>
  * @param <C>
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 		label = "3D Image volume generator",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
@@ -97,7 +101,16 @@ import javax.swing.UIManager;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "3D Volume"),
         @Menu(label = "3D Image volume generator", weight = 20)})
-public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends InteractiveCommand implements Previewable {
 		
 	private static final String PLUGIN_LABEL 			= "<html><b>Generates 3D image volumes</b></html>";
 	private static final String SPACE_LABEL 			= "";
@@ -141,6 +154,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	private String colorModelType;
 	
 	Dialog_WaitingWithProgressBar dlgProgress;
+	private ExecutorService exec;
 	
 	//Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
@@ -158,7 +172,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     		   stepSize = "1",
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialWidth",
-    		   callback = "changedWidth")
+    		   callback = "callbackWidth")
     private int spinnerInteger_Width;
     
     @Parameter(label = "Height [pixel]",
@@ -169,7 +183,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
  		       stepSize = "1",
  		       persist = true,  //restore previous value default = true
  		       initializer = "initialHeight",
- 		       callback = "changedHeight")
+ 		       callback = "callbackHeight")
     private int spinnerInteger_Height;
     
     @Parameter(label = "Depth [pixel]",
@@ -180,7 +194,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialDepth",  
-	  		   callback = "changedDepth")
+	  		   callback = "callbackDepth")
     private int spinnerInteger_Depth;
     
     @Parameter(label = "Color model",
@@ -202,7 +216,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
     				     },
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialVolumeType",
-               callback = "changedVolumeType")
+               callback = "callbackVolumeType")
     private String choiceRadioButt_VolumeType;
     
 	//-----------------------------------------------------------------------------------------------------
@@ -217,7 +231,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialR",  		 
-	  		   callback = "changedR")
+	  		   callback = "callbackR")
     private int spinnerInteger_R;
     
     @Parameter(label = "G",
@@ -228,7 +242,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialG",
-	  		   callback = "changedG")
+	  		   callback = "callbackG")
     private int spinnerInteger_G;
     
     @Parameter(label = "B",
@@ -239,7 +253,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true				
 	  		   initializer = "initialB",  		  
-	  		   callback = "changedB")
+	  		   callback = "callbackB")
     private int spinnerInteger_B;
     
     @Parameter(label = "(Fractal volume) Dimension",
@@ -250,7 +264,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   stepSize = "0.1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialFracDim",
-	  		   callback = "changedFracDim")
+	  		   callback = "callbackFracDim")
     private float spinnerFloat_FracDim;
     
     @Parameter(label = "(Mandelbulb) Order",
@@ -261,7 +275,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialOrderMandelbulb",
-	  		   callback = "changedOrderMandelbulb")
+	  		   callback = "callbackOrderMandelbulb")
     private int spinnerInteger_OrderMandelbulb;
     
     @Parameter(label = "(IFS) #",
@@ -272,9 +286,12 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
 	  		   initializer = "initialNumIterations",
-	  		   callback = "changedNumIterations")
+	  		   callback = "callbackNumIterations")
     private int spinnerInteger_NumIterations;
-        
+       
+	@Parameter(label = "Process", callback = "callbackProcess")
+	private Button buttonProcess;
+    
     //---------------------------------------------------------------------
     //The following initializer functions set initial values	
     protected void initialWidth() {
@@ -324,16 +341,16 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 
 	// ------------------------------------------------------------------------------	
 	/** Executed whenever the {@link #spinnerInteger_Width} parameter changes. */
-	protected void changedWidth() {
+	protected void callbackWidth() {
 		logService.info(this.getClass().getName() + " Width changed to " + spinnerInteger_Width + " pixel");
 	}
 	/** Executed whenever the {@link #spinnerInteger_Height} parameter changes. */
-	protected void changedHeight() {
+	protected void callbackHeight() {
 		logService.info(this.getClass().getName() + " Height changed to " + spinnerInteger_Height + " pixel");
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_Depth} parameter changes. */
-	protected void changedDepth() {
+	protected void callbackDepth() {
 		logService.info(this.getClass().getName() + " Depth changed to " + spinnerInteger_Depth);
 	}
 	
@@ -343,26 +360,26 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_VolumeType} parameter changes. */
-	protected void changedVolumeType() {
+	protected void callbackVolumeType() {
 		logService.info(this.getClass().getName() + " Volume type changed to " + choiceRadioButt_VolumeType);
 	}
 		
 	/** Executed whenever the {@link #spinnerInteger_R} parameter changes. */
-	protected void changedR() {
+	protected void callbackR() {
 		logService.info(this.getClass().getName() + " Constant/Channel R changed to " + spinnerInteger_R);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_G} parameter changes. */
-	protected void changedG() {
+	protected void callbackG() {
 		logService.info(this.getClass().getName() + " Chanel G changed to " + spinnerInteger_G);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_B} parameter changes. */
-	protected void changedB() {
+	protected void callbackB() {
 		logService.info(this.getClass().getName() + " Channel B changed to " + spinnerInteger_B);
 	}
 	
-	protected void changedFracDim() {
+	protected void callbackFracDim() {
 		//logService.info(this.getClass().getName() + " FD changed to " + spinnerFloat_FracDim);
 	 	//round to one decimal after the comma
 	 	//spinnerFloat_FracDim = Math.round(spinnerFloat_FracDim * 10f)/10f;
@@ -372,13 +389,32 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	
 	
 	/** Executed whenever the {@link #spinnerInteger_OrderMandelbulb} parameter changes. */
-	protected void changedOrderMandelbulb() {
+	protected void callbackOrderMandelbulb() {
 		logService.info(this.getClass().getName() + " Order of Mandelbulb changed to " + spinnerInteger_OrderMandelbulb);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumIterations} parameter changes. */
-	protected void changedNumIterations() {
+	protected void callbackNumIterations() {
 		logService.info(this.getClass().getName() + " Iterations/Number changed to " + spinnerInteger_NumIterations);
+	}
+	
+	/**
+	 * Executed whenever the {@link #buttonProcess} button is pressed.
+	 * It is not executed in the same exact manner such as run()
+	 * So a thread for displaying properly the Progressbar window is needed
+	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
+	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
+	 */
+	protected void callbackProcess() {
+		//prepare  executer service
+		exec = Executors.newSingleThreadExecutor();
+	   	exec.execute(new Runnable() {
+	        public void run() {
+	    	    startWorkflow();
+	    	   	uiService.show(datasetOut.getName(), datasetOut);
+	        }
+	    });
+	   	exec.shutdown(); //No new tasks
 	}
 		
     // You can control how previews work by overriding the "preview" method.
@@ -395,7 +431,151 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
  		logService.info(this.getClass().getName() + " ComsystanJ plugin canceled");
  	}
  	
-    private void compute3DRandom(int greyMaxR, int greyMaxG, int greyMaxB) {
+    /** 
+	 * The run method executes the command via a SciJava thread
+	 * by pressing the OK button in the UI or
+	 * by CommandService.run(Command.class, false, parameters) in a script  
+	 *  
+	 * The @Parameter ItemIO.INPUT  is automatically harvested 
+	 * The @Parameter ItemIO.OUTPUT is automatically shown 
+	 * 
+	 * A thread is not necessary in this method and should be avoided
+	 * Nevertheless a thread may be used to get a reference for canceling
+	 * But then the @Parameter ItemIO.OUTPUT would not be automatically shown and
+	 * CommandService.run(Command.class, false, parameters) in a script  would not properly work
+	 *
+	 * An InteractiveCommand (Non blocking dialog) has no automatic OK button and would call this method twice during start up
+	 */
+	@Override //Interface CommandService
+	public void run() {
+		logService.info(this.getClass().getName() + " Run");
+//		if (ij != null) { //might be null in Fiji
+//			if (ij.ui().isHeadless()) {
+//			}
+//		}
+		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
+			startWorkflow();
+		}
+	}
+
+	/**
+     * This method starts the workflow
+     */
+    protected void startWorkflow() {
+    	//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating a 3D image volume, please wait...<br>Open console window for further info.</html>");
+		dlgProgress = new Dialog_WaitingWithProgressBar("Generating a 3D image volume, please wait... Open console window for further info.",
+		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
+
+		dlgProgress.updatePercent("");
+		dlgProgress.setBarIndeterminate(true);
+		dlgProgress.setVisible(true);
+		
+    	long startTimeAll = System.currentTimeMillis();
+         // create the ImageJ application context with all available services
+    	//final ImageJ ij = new ImageJ();
+    	//ij.ui().showUI();
+
+    	
+//    	final MessageType messageType = MessageType.QUESTION_MESSAGE;
+//		final OptionType optionType = OptionType.OK_CANCEL_OPTION;
+//
+//		// Prompt for confirmation.
+//		//final UIService uiService = getContext().getService(UIService.class);
+//		Result result = uiService.showDialog("Compute a 3D fractal?", "FractalCreation3D", messageType, optionType);
+//
+//		// Cancel the command execution if the user does not agree.
+//		//if (result != Result.YES_OPTION) System.exit(-1);
+//		if (result != Result.YES_OPTION) return;
+    		
+		//collect parameters
+		int width     			= spinnerInteger_Width;
+		int height    			= spinnerInteger_Height;
+		int depth    			= spinnerInteger_Depth;
+		colorModelType          = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
+		String volumeType		= choiceRadioButt_VolumeType;
+		int greyR   			= spinnerInteger_R;
+		int greyG   			= spinnerInteger_G;
+		int greyB   			= spinnerInteger_B;
+		float fracDim 			= spinnerFloat_FracDim;
+		int orderMandelbulb		= spinnerInteger_OrderMandelbulb;
+		int numIterations		= spinnerInteger_NumIterations;
+	
+		// Create an image.
+		
+		String name = "3D image volume";
+		if 		(volumeType.equals("Random"))   								name = "3D Random image volume";
+		else if (volumeType.equals("Gaussian")) 								name = "3D Gaussian image volume";
+		else if (volumeType.equals("Constant")) 								name = "3D Constant image volume";
+		else if (volumeType.equals("Fractal volume - FFT"))						name = "3D Fractal volume - FFT";
+		else if (volumeType.equals("Fractal volume - MPD"))						name = "3D Fractal volume - MPD";
+		else if (volumeType.equals("Fractal IFS - Menger"))						name = "3D Fractal IFS - Menger";
+		else if (volumeType.equals("Fractal IFS - Sierpinski1"))				name = "3D Fractal IFS - Sierpinski1";
+		else if (volumeType.equals("Fractal IFS - Sierpinski2"))				name = "3D Fractal IFS - Sierpinski2";
+		else if (volumeType.equals("Fractal IFS - Sierpinski3"))				name = "3D Fractal IFS - Sierpinski3";
+		else if (volumeType.equals("Fractal IFS - Mandelbulb"))	        		name = "3D Fractal IFS - Mandelbulb";
+		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))			name = "3D Fractal IFS - Mandelbrot island";
+				
+		AxisType[] axes  = null;
+		long[] dims 	 = null;
+		int bitsPerPixel = 0;
+		boolean signed   = false;
+		boolean floating = false;
+		boolean virtual  = false;
+
+		//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
+		//datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
+		//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
+		
+		if (colorModelType.equals("Grey-8bit")) {
+				bitsPerPixel = 8;
+				dims = new long[]{width, height, depth};
+				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
+				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+					
+		} else if (colorModelType.equals("Color-RGB")) {		
+			bitsPerPixel = 8;
+			dims = new long[]{width, height, 3, depth};
+			axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
+			datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
+			datasetOut.setCompositeChannelCount(3);
+			datasetOut.setRGBMerged(true);
+		}
+
+		long startTime = System.currentTimeMillis();
+		logService.info(this.getClass().getName() + " Generating image volume");
+		
+		if      (volumeType.equals("Random"))   						compute3DRandom(greyR, greyG, greyB);
+		else if (volumeType.equals("Gaussian")) 						compute3DGaussian(greyR, greyG, greyB);
+		else if (volumeType.equals("Constant")) 						compute3DConstant(greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal volume - FFT"))				compute3DFracFFT(fracDim, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal volume - MPD")) 			compute3DFracMPD(fracDim, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Menger")) 			compute3DFracMenger(numIterations, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Sierpinski1")) 		compute3DFracSierpinski1(numIterations, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Sierpinski2")) 		compute3DFracSierpinski2(numIterations, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Sierpinski3")) 		compute3DFracSierpinski3(numIterations, greyR, greyG, greyB);
+		else if (volumeType.equals("Fractal IFS - Mandelbulb"))     	compute3DFracMandelbulb(numIterations, greyR, greyG, greyB, orderMandelbulb);
+		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))	compute3DFracMandelbrotIsland(numIterations, greyR, greyG, greyB);
+	
+		int percent = 0;
+		dlgProgress.updatePercent(String.valueOf(percent+"%"));
+		dlgProgress.updateBar(percent);
+		statusService.showProgress(0, 100);
+		statusService.clearStatus();
+		
+		dlgProgress.addMessage("Processing finished! Displaying image volume...");
+		//not necessary because datasetOut is an IO type
+		//uiService.show(datasetOut.getName(), datasetOut);
+		
+		long duration = System.currentTimeMillis() - startTimeAll;
+		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+		SimpleDateFormat sdf = new SimpleDateFormat();
+		sdf.applyPattern("HHH:mm:ss:SSS");
+		logService.info(this.getClass().getName() + " Elapsed time for all images: "+ sdf.format(duration));
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+    }
+
+	private void compute3DRandom(int greyMaxR, int greyMaxG, int greyMaxB) {
     	
     	dlgProgress.setBarIndeterminate(true);
 		Random random = new Random();
@@ -2522,126 +2702,7 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 	}
     
     
-    /**
-     * @param 
-     * @throws Exception
-     */
-    @Override
-    public void run() {
-    	//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating a 3D image volume, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new Dialog_WaitingWithProgressBar("Generating a 3D image volume, please wait... Open console window for further info.",
-		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
-
-		dlgProgress.updatePercent("");
-		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-		
-    	long startTimeAll = System.currentTimeMillis();
-         // create the ImageJ application context with all available services
-    	//final ImageJ ij = new ImageJ();
-    	//ij.ui().showUI();
-
-    	
-//    	final MessageType messageType = MessageType.QUESTION_MESSAGE;
-//		final OptionType optionType = OptionType.OK_CANCEL_OPTION;
-//
-//		// Prompt for confirmation.
-//		//final UIService uiService = getContext().getService(UIService.class);
-//		Result result = uiService.showDialog("Compute a 3D fractal?", "FractalCreation3D", messageType, optionType);
-//
-//		// Cancel the command execution if the user does not agree.
-//		//if (result != Result.YES_OPTION) System.exit(-1);
-//		if (result != Result.YES_OPTION) return;
-    		
-		//collect parameters
-		int width     			= spinnerInteger_Width;
-		int height    			= spinnerInteger_Height;
-		int depth    			= spinnerInteger_Depth;
-		colorModelType          = choiceRadioButt_ColorModelType;//"Grey-8bit", "Color-RGB"
-		String volumeType		= choiceRadioButt_VolumeType;
-		int greyR   			= spinnerInteger_R;
-		int greyG   			= spinnerInteger_G;
-		int greyB   			= spinnerInteger_B;
-		float fracDim 			= spinnerFloat_FracDim;
-		int orderMandelbulb		= spinnerInteger_OrderMandelbulb;
-		int numIterations		= spinnerInteger_NumIterations;
-	
-		// Create an image.
-		
-		String name = "3D image volume";
-		if 		(volumeType.equals("Random"))   								name = "3D Random image volume";
-		else if (volumeType.equals("Gaussian")) 								name = "3D Gaussian image volume";
-		else if (volumeType.equals("Constant")) 								name = "3D Constant image volume";
-		else if (volumeType.equals("Fractal volume - FFT"))						name = "3D Fractal volume - FFT";
-		else if (volumeType.equals("Fractal volume - MPD"))						name = "3D Fractal volume - MPD";
-		else if (volumeType.equals("Fractal IFS - Menger"))						name = "3D Fractal IFS - Menger";
-		else if (volumeType.equals("Fractal IFS - Sierpinski1"))				name = "3D Fractal IFS - Sierpinski1";
-		else if (volumeType.equals("Fractal IFS - Sierpinski2"))				name = "3D Fractal IFS - Sierpinski2";
-		else if (volumeType.equals("Fractal IFS - Sierpinski3"))				name = "3D Fractal IFS - Sierpinski3";
-		else if (volumeType.equals("Fractal IFS - Mandelbulb"))	        		name = "3D Fractal IFS - Mandelbulb";
-		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))			name = "3D Fractal IFS - Mandelbrot island";
-				
-		AxisType[] axes  = null;
-		long[] dims 	 = null;
-		int bitsPerPixel = 0;
-		boolean signed   = false;
-		boolean floating = false;
-		boolean virtual  = false;
-
-		//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
-		//datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);	
-		//RandomAccess<T> randomAccess = (RandomAccess<T>) dataset.getImgPlus().randomAccess();
-		
-		if (colorModelType.equals("Grey-8bit")) {
-				bitsPerPixel = 8;
-				dims = new long[]{width, height, depth};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-					
-		} else if (colorModelType.equals("Color-RGB")) {		
-			bitsPerPixel = 8;
-			dims = new long[]{width, height, 3, depth};
-			axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-			datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-			datasetOut.setCompositeChannelCount(3);
-			datasetOut.setRGBMerged(true);
-		}
-
-		long startTime = System.currentTimeMillis();
-		logService.info(this.getClass().getName() + " Generating image volume");
-		
-		if      (volumeType.equals("Random"))   						compute3DRandom(greyR, greyG, greyB);
-		else if (volumeType.equals("Gaussian")) 						compute3DGaussian(greyR, greyG, greyB);
-		else if (volumeType.equals("Constant")) 						compute3DConstant(greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal volume - FFT"))				compute3DFracFFT(fracDim, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal volume - MPD")) 			compute3DFracMPD(fracDim, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal IFS - Menger")) 			compute3DFracMenger(numIterations, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal IFS - Sierpinski1")) 		compute3DFracSierpinski1(numIterations, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal IFS - Sierpinski2")) 		compute3DFracSierpinski2(numIterations, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal IFS - Sierpinski3")) 		compute3DFracSierpinski3(numIterations, greyR, greyG, greyB);
-		else if (volumeType.equals("Fractal IFS - Mandelbulb"))     	compute3DFracMandelbulb(numIterations, greyR, greyG, greyB, orderMandelbulb);
-		else if (volumeType.equals("Fractal IFS - Mandelbrot island"))	compute3DFracMandelbrotIsland(numIterations, greyR, greyG, greyB);
-	
-		int percent = 0;
-		dlgProgress.updatePercent(String.valueOf(percent+"%"));
-		dlgProgress.updateBar(percent);
-		statusService.showProgress(0, 100);
-		statusService.clearStatus();
-		
-		dlgProgress.addMessage("Processing finished! Displaying image volume...");
-		//not necessary because datasetOut is an IO type
-		//uiService.show(datasetOut.getName(), datasetOut);
-		
-		long duration = System.currentTimeMillis() - startTimeAll;
-		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-		SimpleDateFormat sdf = new SimpleDateFormat();
-		sdf.applyPattern("HHH:mm:ss:SSS");
-		logService.info(this.getClass().getName() + " Elapsed time for all images: "+ sdf.format(duration));
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-    }
-
-	public static void main(final String... args) throws Exception {
+    public static void main(final String... args) throws Exception {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch(Throwable t) {

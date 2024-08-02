@@ -35,7 +35,7 @@ import net.imagej.ImageJ;
 import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.log.LogService;
 import org.scijava.menu.MenuConstants;
 import org.scijava.plugin.Menu;
@@ -48,11 +48,11 @@ import fraclac.gui.GUI;
 import ij.util.Java2;
 
 /**
- * A {@link ContextCommand} plugin computing
+ * A {@link InteractiveCommand} plugin computing
  * <the fractal dimension and lacunarity using FracLac</a>
  * of an image.
  */
-@Plugin(type = ContextCommand.class, 
+@Plugin(type = InteractiveCommand.class, 
         headless = true,
         initializer = "initialPluginLaunch",
         iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
@@ -62,7 +62,16 @@ import ij.util.Java2;
         @Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
         @Menu(label = "FracLac")})
-public class Csaj2DFracLacForComsystanJ<T extends RealType<T>> extends ContextCommand { //modal GUI
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj2DFracLacForComsystanJ<T extends RealType<T>> extends InteractiveCommand {
 
 	
 	private static final String PLUGIN_LABEL = "<html><b>Open FracLac</b></html>";

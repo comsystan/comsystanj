@@ -71,7 +71,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.log.LogService;
@@ -95,10 +95,10 @@ import io.scif.MetaTable;
 
 
 /**
- * A {@link ContextCommand} plugin for <automatic cropping image borders</a>
+ * A {@link InteractiveCommand} plugin for <automatic cropping image borders</a>
  * of an image.
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 		headless = true,
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
@@ -108,8 +108,16 @@ import io.scif.MetaTable;
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Preprocessing", weight = 1),
 		@Menu(label = "Auto crop borders")})
-//public class Csaj2DAutoCropBorders<T extends RealType<T>> extends InteractiveCommand { // non blocking  GUI
-public class Csaj2DAutoCropBorders<T extends RealType<T>> extends ContextCommand implements Previewable { //modal GUI with cancel
+/**
+ * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
+ * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
+ * Developer note:
+ * Develop the InteractiveCommand plugin Csaj***.java
+ * Hard copy it and rename to            Csaj***Command.java
+ * Eliminate complete menu entry
+ * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ */
+public class Csaj2DAutoCropBorders<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Aut crop borders</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -232,18 +240,15 @@ public class Csaj2DAutoCropBorders<T extends RealType<T>> extends ContextCommand
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label   = "   Process single image #    ",
-		    	callback = "callbackProcessSingleImage")
+	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
    
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-// @Parameter(label   = "Process single active image ",
-//  		    callback = "callbackProcessActiveImage")
+//  @Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
 	
-// @Parameter(label   = "Process all available images",
-//		        callback = "callbackProcessAllImages")
-//	private Button buttonProcessAllImages;
+	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
+	private Button buttonProcessAllImages;
 
 	// ---------------------------------------------------------------------
 
