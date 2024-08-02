@@ -561,9 +561,13 @@ public class Csaj1DFracDimWalkingDivider<T extends RealType<T>> extends ContextC
 	@Override //Interface CommandService
 	public void run() {
 		logService.info(this.getClass().getName() + " Run");
-		//if(ij.ui().isHeadless()){
-		//}	
-	    startWorkflowForAllColumns();
+		if (ij != null) { //might be null in Fiji
+			if (ij.ui().isHeadless()) {
+			}
+		}
+		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
+			startWorkflowForAllColumns();
+		}
 	}
 
 	public void checkItemIOIn() {

@@ -529,9 +529,13 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 	@Override //Interface CommandService
 	public void run() {
 		logService.info(this.getClass().getName() + " Run");
-		//if(ij.ui().isHeadless()){
-		//}	
-	    startWorkflowForAllImages();
+		if (ij != null) { //might be null in Fiji
+			if (ij.ui().isHeadless()) {
+			}
+		}
+		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
+			startWorkflowForAllImages();
+		}
 	}
 	
 	public void checkItemIOIn() {
