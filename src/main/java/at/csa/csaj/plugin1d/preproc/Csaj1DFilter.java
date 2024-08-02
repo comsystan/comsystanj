@@ -31,6 +31,7 @@ package at.csa.csaj.plugin1d.preproc;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
@@ -996,6 +997,6 @@ public class Csaj1DFilter<T extends RealType<T>> extends ContextCommand implemen
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DFilter.class, true);
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

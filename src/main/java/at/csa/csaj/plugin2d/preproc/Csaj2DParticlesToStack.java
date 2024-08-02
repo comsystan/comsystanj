@@ -30,6 +30,7 @@ package at.csa.csaj.plugin2d.preproc;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.TimeZone;
@@ -1095,8 +1096,7 @@ public class Csaj2DParticlesToStack<T extends RealType<T>> extends ContextComman
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		// ij.command().run(Csaj2DParticlesToStack.class,
-		// true).get().getOutput("image");
-		ij.command().run(Csaj2DParticlesToStack.class, true);
+		// ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

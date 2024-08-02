@@ -67,6 +67,7 @@ import io.scif.MetaTable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Map;
@@ -389,9 +390,6 @@ public class Csaj3DOpener<T extends RealType<T>> extends ContextCommand { //moda
 		statusService.clearStatus();
     }
 
-   
-   
-
 	public static void main(final String... args) throws Exception {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -413,12 +411,10 @@ public class Csaj3DOpener<T extends RealType<T>> extends ContextCommand { //moda
 //            ij.ui().show(dataset);
 //
 //            // invoke the plugin
-//            ij.command().run(FracCreate3D.class, true);
+//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj3DOpener.class, true);
-    	
+         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
     }
-
 }

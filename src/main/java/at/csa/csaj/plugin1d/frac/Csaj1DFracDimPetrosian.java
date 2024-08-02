@@ -29,6 +29,7 @@
 package at.csa.csaj.plugin1d.frac;
 
 import java.awt.Toolkit;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -1052,6 +1053,6 @@ public class Csaj1DFracDimPetrosian<T extends RealType<T>> extends ContextComman
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DFracDimPetrosian.class, true);
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

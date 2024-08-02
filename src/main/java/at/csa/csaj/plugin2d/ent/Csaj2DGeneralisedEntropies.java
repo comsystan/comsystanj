@@ -31,6 +31,7 @@ package at.csa.csaj.plugin2d.ent;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -1596,8 +1597,8 @@ public class Csaj2DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(Csaj2DGeneralisedEntropies.class, true).get().getOutput("image");
-		ij.command().run(Csaj2DGeneralisedEntropies.class, true);
+		//ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }
 

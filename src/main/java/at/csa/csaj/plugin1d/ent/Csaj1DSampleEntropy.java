@@ -29,6 +29,7 @@
 package at.csa.csaj.plugin1d.ent;
 
 import java.awt.Toolkit;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
@@ -1053,6 +1054,6 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends ContextCommand i
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DSampleEntropy.class, true);
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

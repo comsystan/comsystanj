@@ -53,6 +53,7 @@ import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.Plot_SequenceFrame;
 
 import java.awt.Toolkit;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
@@ -1587,11 +1588,11 @@ public class Csaj1DGenerator<T extends RealType<T>> extends ContextCommand imple
 //            ij.ui().show(dataset);
 //
 //            // invoke the plugin
-//            ij.command().run(FracCreate3D.class, true);
+//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj1DGenerator.class, true);
+         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
     	
     }
 

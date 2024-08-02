@@ -28,6 +28,8 @@
 package at.csa.csaj.plugin2d.frac;
 
 import java.io.File;
+import java.lang.invoke.MethodHandles;
+
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 import net.imglib2.type.numeric.RealType;
@@ -150,8 +152,8 @@ public class Csaj2DFracLacForComsystanJ<T extends RealType<T>> extends ContextCo
 		ij.ui().show(image);
 	
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(Csaj2DracLacForComsystanJ.class, true).get().getOutput("image");
-		ij.command().run(Csaj2DFracLacForComsystanJ.class, true);
+		//ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }
 

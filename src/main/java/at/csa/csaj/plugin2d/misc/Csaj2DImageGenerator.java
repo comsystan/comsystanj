@@ -74,6 +74,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
@@ -3490,11 +3491,11 @@ public class Csaj2DImageGenerator<T extends RealType<T>, C> extends ContextComma
 //            ij.ui().show(dataset);
 //
 //            // invoke the plugin
-//            ij.command().run(FracCreate3D.class, true);
+//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj2DImageGenerator.class, true);
+         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
     	
     }
 

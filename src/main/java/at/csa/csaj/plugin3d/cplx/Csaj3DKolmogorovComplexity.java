@@ -32,6 +32,7 @@ package at.csa.csaj.plugin3d.cplx;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
@@ -757,8 +758,7 @@ public class Csaj3DKolmogorovComplexity<T extends RealType<T>> extends ContextCo
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		// ij.command().run(Csaj3DKolmogorovComplexity.class,
-		// true).get().getOutput("image");
-		ij.command().run(Csaj3DKolmogorovComplexity.class, true);
+		// ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

@@ -32,6 +32,7 @@ package at.csa.csaj.plugin3d.preproc;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.TimeZone;
@@ -1688,8 +1689,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends ContextCommand implemen
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		// ij.command().run(Csaj3DFilter.class,
-		// true).get().getOutput("image");
-		ij.command().run(Csaj3DFilter.class, true);
+		// ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

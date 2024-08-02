@@ -75,6 +75,8 @@ import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_3D;
 import io.scif.services.DatasetIOService;
+
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.TimeZone;
@@ -2639,10 +2641,6 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 		dlgProgress.dispose();
     }
 
-   
-    
-   
-
 	public static void main(final String... args) throws Exception {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -2664,12 +2662,10 @@ public class Csaj3DVolumeGenerator<T extends RealType<T>, C> extends ContextComm
 //            ij.ui().show(dataset);
 //
 //            // invoke the plugin
-//            ij.command().run(FracCreate3D.class, true);
+//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj3DVolumeGenerator.class, true);
-    	
+         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);	
     }
-
 }

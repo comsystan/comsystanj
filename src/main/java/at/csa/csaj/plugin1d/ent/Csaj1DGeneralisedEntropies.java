@@ -29,6 +29,7 @@
 package at.csa.csaj.plugin1d.ent;
 
 import java.awt.Toolkit;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
@@ -1675,6 +1676,6 @@ public class Csaj1DGeneralisedEntropies<T extends RealType<T>> extends ContextCo
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DGeneralisedEntropies.class, true);
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

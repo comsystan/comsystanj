@@ -28,6 +28,7 @@
 package at.csa.csaj.plugin1d.frac;
 
 import java.awt.Toolkit;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -1248,6 +1249,6 @@ public class Csaj1DFracDimRSE<T extends RealType<T>> extends ContextCommand impl
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DFracDimRSE.class, true);
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

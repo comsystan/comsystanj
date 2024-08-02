@@ -67,6 +67,7 @@ import io.scif.MetaTable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Map;
@@ -412,11 +413,11 @@ public class Csaj2DOpener<T extends RealType<T>> extends ContextCommand { //moda
 //            ij.ui().show(dataset);
 //
 //            // invoke the plugin
-//            ij.command().run(FracCreate3D.class, true);
+//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj2DOpener.class, true);
+         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
     	
     }
 

@@ -1932,8 +1932,7 @@ public class Img2DFractalDimensionHiguchi1D_BresenhamLineExtraction<T extends Re
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		if (image != null) ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		// ij.command().run(Csaj2DFracDimHiguchi1D.class,
-		// true).get().getOutput("image");
-		ij.command().run(Csaj2DFracDimHiguchi1D_BresenhamLineExtraction.class, true);
+		// ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

@@ -49,6 +49,7 @@ import at.csa.csaj.plugin1d.detect.util.QRSPeaksDetectorFileOpenDialog;
 
 import java.awt.Toolkit;
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -317,11 +318,11 @@ public class Csaj1DDetectQRSPeaks  extends ContextCommand implements Previewable
 //            ij.ui().show(dataset);
 //
 //            // invoke the plugin
-//            ij.command().run(???????.class, true);
+//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 //        }
 //       
          //invoke the plugin
-         ij.command().run(Csaj1DDetectQRSPeaks.class, true);
+         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
     	
     }
 

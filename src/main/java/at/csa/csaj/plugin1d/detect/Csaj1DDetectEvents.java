@@ -30,6 +30,7 @@ package at.csa.csaj.plugin1d.detect;
 
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -2422,6 +2423,6 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends ContextCommand im
 		// open and display a sequence, waiting for the operation to finish.
 		ij.command().run(Csaj1DOpener.class, true).get().getOutput(tableInName);
 		//open and run Plugin
-		ij.command().run(Csaj1DDetectEvents.class, true);
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }
