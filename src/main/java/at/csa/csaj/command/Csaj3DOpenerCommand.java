@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DOpenerCommand.java
+ * File: Csaj3DOpener.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin3d.misc;
+package at.csa.csaj.command;
 
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -87,17 +87,18 @@ import javax.swing.UIManager;
  * </p>
  */
 @Plugin(type = ContextCommand.class,
-		label = "3D Image volume opener",
+		label = "3D image volume opener",
 		initializer = "initialPluginLaunch",
-		iconPath = "/icons/comsystan-logo-grey46-16x16.png") //Menu entry icon
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {})
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
  * Developer note:
  * Develop the InteractiveCommand plugin Csaj***.java
- * Hard copy it and rename to            Csaj***Command.java
- * Eliminate complete menu entry
- * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
+ *
+ *
  */
 public class Csaj3DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	

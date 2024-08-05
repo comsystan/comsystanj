@@ -81,7 +81,7 @@ import at.csa.csaj.plugin1d.detect.util.Osea4Java_OSEAFactory;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_QRSDetector;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_QRSDetector2;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_BeatDetectionAndClassification.BeatDetectAndClassifyResult;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
+import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 
 /**
@@ -104,9 +104,9 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
  * Developer note:
  * Develop the InteractiveCommand plugin Csaj***.java
- * Hard copy it and rename to            Csaj***Command.java
- * Eliminate complete menu entry
- * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
+ *
+ *
  */
 public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 

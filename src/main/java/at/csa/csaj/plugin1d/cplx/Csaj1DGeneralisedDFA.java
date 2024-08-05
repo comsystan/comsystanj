@@ -73,7 +73,7 @@ import at.csa.csaj.commons.Plot_RegressionFrame;
 import at.csa.csaj.commons.Plot_SequenceFrame;
 import at.csa.csaj.commons.Container_ProcessMethod;
 import at.csa.csaj.plugin1d.cplx.util.GeneralisedDFA;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
+import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 /**
  * A {@link InteractiveCommand} plugin computing <Generalised DFA</a>
@@ -98,9 +98,9 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
  * Developer note:
  * Develop the InteractiveCommand plugin Csaj***.java
- * Hard copy it and rename to            Csaj***Command.java
- * Eliminate complete menu entry
- * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
+ *
+ *
  */
 public class Csaj1DGeneralisedDFA<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 

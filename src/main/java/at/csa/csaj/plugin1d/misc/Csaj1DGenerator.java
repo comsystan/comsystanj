@@ -74,21 +74,21 @@ import javax.swing.UIManager;
  */
 @Plugin(type = InteractiveCommand.class,
 	headless = true,
-	label = "Sequence generator",
+	label = "1D sequence generator",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 	menu = {
 	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Sequence generator ", weight = 20)}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+	@Menu(label = "1D sequence generator ", weight = 20)}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
  * Developer note:
  * Develop the InteractiveCommand plugin Csaj***.java
- * Hard copy it and rename to            Csaj***Command.java
- * Eliminate complete menu entry
- * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
+ *
+ *
  */
 public class Csaj1DGenerator<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 

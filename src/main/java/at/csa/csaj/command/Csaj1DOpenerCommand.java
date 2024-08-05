@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DOpenerCommand.java
+ * File: Csaj1DOpener.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin1d.misc;
+package at.csa.csaj.command;
 
 
 import net.imagej.DatasetService;
@@ -69,17 +69,18 @@ import javax.swing.UIManager;
  */
 @Plugin(type = ContextCommand.class,
 	headless = true,
-	label = "Sequence opener",
+	label = "1D sequence opener",
 	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png") //Menu entry icon
+	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
  * Developer note:
  * Develop the InteractiveCommand plugin Csaj***.java
- * Hard copy it and rename to            Csaj***Command.java
- * Eliminate complete menu entry
- * Change 4x (incl. import) to ContextCommand instead of InteractiveCommand
+ * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
+ *
+ *
  */
 public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	
@@ -230,6 +231,8 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 			}
 			
 			int numColumns = defaultGenericTable.getColumnCount();
+			int numRows = defaultGenericTable.getRowCount();
+			int numElements = numColumns*numRows;
 			Plot_SequenceFrame pdf = null;
 			if (numColumns == 1) {
 				boolean isLineVisible = true;
@@ -237,11 +240,16 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 				String xLabel = "#";
 				String yLabel = defaultGenericTable.getColumnHeader(0);
 				String seriesLabel = null;
-					 
-				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
-				if (selectedOption == JOptionPane.YES_OPTION) {
+				
+				if (numElements < 1000000) {
 					pdf = new Plot_SequenceFrame(defaultGenericTable, 0, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel);
 					pdf.setVisible(true);
+				} else {
+					int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+					if (selectedOption == JOptionPane.YES_OPTION) {
+						pdf = new Plot_SequenceFrame(defaultGenericTable, 0, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel);
+						pdf.setVisible(true);
+					}
 				}
 				
 				//Show table after plot to set it as the active display
@@ -260,12 +268,17 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 					cols[c] = c;
 					seriesLabels[c] = defaultGenericTable.getColumnHeader(c);				
 				}
-							 
-				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
-				if (selectedOption == JOptionPane.YES_OPTION) {
+					
+				if (numElements < 1000000) {
 					pdf = new Plot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 					pdf.setVisible(true);
-				}		
+				} else {
+				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+					if (selectedOption == JOptionPane.YES_OPTION) {
+						pdf = new Plot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+						pdf.setVisible(true);
+					}	
+				}
 				
 				//Show table after plot to set it as the active display
 				//This is mandatory for launching a sequence processing plugin 

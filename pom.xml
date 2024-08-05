@@ -190,9 +190,30 @@
 			 <artifactId>imglib2-algorithm-gpl</artifactId>
 			 <version>${imglib2-algorithm-gpl.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.16.1</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.3.0</version>
+				 <executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>at.csa.csaj.command.CreateCommandFiles</mainClass><!--Creates and saves ContexCommand files from all InteractiveCommand Csaj plugins-->
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
