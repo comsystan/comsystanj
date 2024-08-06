@@ -138,6 +138,12 @@ public class CreateCommandFiles {
 				e.printStackTrace();
 			}
 			
+			//Change file header entry
+			int indexHeaderStart = fileContext.indexOf("* File: Csaj");
+			int indexHeaderEnd   = fileContext.indexOf(".java", indexHeaderStart);	
+			String subStringHeaderDetail = fileContext.substring(indexHeaderStart, indexHeaderEnd);
+			fileContext = fileContext.replace(subStringHeaderDetail, subStringHeaderDetail + "Command");
+				
 			//Change package
 			int indexPackageStart = fileContext.indexOf("package at.csa.csaj");
 			int indexPackageEnd   = fileContext.indexOf(";", indexPackageStart);	

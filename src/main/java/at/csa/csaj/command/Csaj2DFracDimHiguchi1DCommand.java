@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimHiguchi1D.java
+ * File: Csaj2DFracDimHiguchi1DCommand.java
  * 
  * $Id$
  * $HeadURL$

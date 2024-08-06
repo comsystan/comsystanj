@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DKolmogorovComplexity.java
+ * File: Csaj2DKolmogorovComplexityCommand.java
  * 
  * $Id$
  * $HeadURL$
@@ -117,7 +117,7 @@ import io.scif.config.SCIFIOConfig;
  * <the Kolmogorov complexity and Logical depth </a>
  * of an image.
  */
-@Plugin(type = Command.class,
+@Plugin(type = ContextCommand.class,
 	label = "KC and LD",
 	initializer = "initialPluginLaunch",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
