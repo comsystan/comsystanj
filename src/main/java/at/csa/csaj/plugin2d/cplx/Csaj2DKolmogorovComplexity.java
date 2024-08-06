@@ -117,7 +117,7 @@ import io.scif.config.SCIFIOConfig;
  * <the Kolmogorov complexity and Logical depth </a>
  * of an image.
  */
-@Plugin(type = Command.class,
+@Plugin(type = InteractiveCommand.class,
 	label = "KC and LD",
 	initializer = "initialPluginLaunch",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
