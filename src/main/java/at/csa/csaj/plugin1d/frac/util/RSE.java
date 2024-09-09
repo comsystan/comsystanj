@@ -37,8 +37,8 @@ import org.scijava.log.LogService;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericColumn;
 
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Regression_Linear;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajRegression_Linear;
 
 /**
  * Fractal Dimension using Roughness scaling extraction RSE
@@ -280,7 +280,7 @@ public class RSE {
 		}
 	
 		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 
 //		double[] dataXArray = new double[lnDataX.size()];
 //		double[] dataYArray = new double[lnDataY.size()];

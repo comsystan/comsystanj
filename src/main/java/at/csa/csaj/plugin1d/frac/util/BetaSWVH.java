@@ -30,7 +30,7 @@ package at.csa.csaj.plugin1d.frac.util;
 import java.util.Vector;
 import org.scijava.log.LogService;
 
-import at.csa.csaj.commons.Regression_Linear;
+import at.csa.csaj.commons.CsajRegression_Linear;
 
 /**
  * This method calculates H using scaled window variance according to Eke et al.
@@ -150,7 +150,7 @@ private LogService logService;
 		int numRegEnd = lnDataY.length;
 			
 		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 		double[] regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		

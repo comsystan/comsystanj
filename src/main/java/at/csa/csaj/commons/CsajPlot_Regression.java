@@ -70,7 +70,7 @@ import org.jfree.data.xy.XYSeriesCollection;
  * @since 2021 01 12
  * 
  */
-public class Plot_Regression extends Plot_DefaultXYLineChart implements
+public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 		ChangeListener {
 
 	/**
@@ -116,7 +116,7 @@ public class Plot_Regression extends Plot_DefaultXYLineChart implements
 	 * @param numRegEnd
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_Regression(double[] dataX, double[] dataY, boolean isLineVisible,
+	public CsajPlot_Regression(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xTitle, String yTitle, String legendLabel,
 			int numRegStart, int numRegEnd) {
 		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabel);
@@ -144,7 +144,7 @@ public class Plot_Regression extends Plot_DefaultXYLineChart implements
 	 * @param numRegEnd
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_Regression(double[] dataX, double[][] dataY, boolean isLineVisible,
+	public CsajPlot_Regression(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xTitle, String yTitle, String[] legendLabels,
 			int numRegStart, int numRegEnd) {
 		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabels);
@@ -354,7 +354,7 @@ public class Plot_Regression extends Plot_DefaultXYLineChart implements
 			regDataY.addElement((Double) series.getY(j));
 		}
 		
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 
 		double[] dataXArray = new double[regDataX.size()];
 		double[] dataYArray = new double[regDataY.size()];

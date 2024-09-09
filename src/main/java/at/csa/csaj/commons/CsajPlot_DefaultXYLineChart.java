@@ -62,7 +62,7 @@ import org.scijava.table.DefaultGenericTable;
  * @author Helmut Ahammer
  *
  */
-public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
+public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListener {
 
 	/**
 	 * The UID for serialization.
@@ -89,7 +89,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	private int delta = 1000 * 60 * 60 * 24 * 30;
 
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
+	public CsajPlot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
 
 		this.isLineVisible = isLineVisible;
 		this.imageTitle = imageTitle;
@@ -134,7 +134,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String imageTitle, String xLabel,
+	public CsajPlot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String imageTitle, String xLabel,
 			String yLabel, String[] colNames) {
 		
 		this.isLineVisible = isLineVisible;
@@ -181,7 +181,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int col,  boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
+	public CsajPlot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int col,  boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
 
 		this.isLineVisible = isLineVisible;
 		this.imageTitle = imageTitle;
@@ -226,7 +226,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String imageTitle, String xLabel,
+	public CsajPlot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String imageTitle, String xLabel,
 			String yLabel, String[] colNames) {
 		
 		this.isLineVisible = isLineVisible;
@@ -263,7 +263,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String imageTitle, String xLabel, String yLabel, String legendLabel) {
+	public CsajPlot_DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String imageTitle, String xLabel, String yLabel, String legendLabel) {
 
 		this.isLineVisible = isLineVisible;
 		this.imageTitle = imageTitle;
@@ -295,7 +295,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(double[] dataX, double[][] dataY, boolean isLineVisible, String imageTitle, String xLabel,
+	public CsajPlot_DefaultXYLineChart(double[] dataX, double[][] dataY, boolean isLineVisible, String imageTitle, String xLabel,
 			String yLabel, String[] legendLabels) {
 		
 		this.isLineVisible = isLineVisible;
@@ -328,7 +328,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(double[] dataX, double[] dataY, double[] dataX2, double[] dataY2, boolean isLineVisible,
+	public CsajPlot_DefaultXYLineChart(double[] dataX, double[] dataY, double[] dataX2, double[] dataY2, boolean isLineVisible,
 			String imageTitle, String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
 
 		this.isLineVisible = isLineVisible;
@@ -356,7 +356,7 @@ public class Plot_DefaultXYLineChart extends JPanel implements ChangeListener {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public Plot_DefaultXYLineChart(double[] dataX, double[][] dataY, double[] dataX2, double[][] dataY2, boolean isLineVisible,
+	public CsajPlot_DefaultXYLineChart(double[] dataX, double[][] dataY, double[] dataX2, double[][] dataY2, boolean isLineVisible,
 			String imageTitle, String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
 
 		this.isLineVisible = isLineVisible;

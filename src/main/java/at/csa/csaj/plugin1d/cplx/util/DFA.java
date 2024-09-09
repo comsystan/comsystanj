@@ -32,7 +32,7 @@ import javax.swing.JOptionPane;
 
 import org.scijava.log.LogService;
 
-import at.csa.csaj.commons.Regression_Linear;
+import at.csa.csaj.commons.CsajRegression_Linear;
 
 /**
  * 
@@ -154,7 +154,7 @@ public class DFA {
 		double[] segmentDataX;
 		int startIndex;  
 		int endIndex;	
-		Regression_Linear lr;
+		CsajRegression_Linear lr;
 		double[] residuals; 
 		double sum = 0.0;	
 		
@@ -174,7 +174,7 @@ public class DFA {
 				}
 					
 				//Compute fluctuation of segment	
-				lr = new Regression_Linear();
+				lr = new CsajRegression_Linear();
 				residuals = lr.calculateResiduals(segmentDataX, segmentDataY); //Simply the differences of the data y values and the computed regression y values.		
 				
 				sum = 0.0;		
@@ -236,7 +236,7 @@ public class DFA {
 		}
 		
 		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 		double[] regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
 		// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		return regressionParams;

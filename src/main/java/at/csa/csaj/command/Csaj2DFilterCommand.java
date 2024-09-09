@@ -87,7 +87,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_2D;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
@@ -136,7 +136,7 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	private static final String imagePreviewName = "Preview image";
 	private static Dataset datasetPreview;
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -577,7 +577,7 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	*/
 	protected void startWorkflowForSingleImage() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Filtering, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Filtering, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		
 		dlgProgress.updatePercent("");
@@ -600,7 +600,7 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	*/
 	protected void startWorkflowForAllImages() {
 
-		dlgProgress = new Dialog_WaitingWithProgressBar("Filtering, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Filtering, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 	

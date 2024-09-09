@@ -73,7 +73,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_3D;
 import io.scif.services.DatasetIOService;
 
@@ -149,7 +149,7 @@ public class Csaj3DVolumeGeneratorCommand<T extends RealType<T>, C> extends Cont
 	
 	private String colorModelType;
 	
-	Dialog_WaitingWithProgressBar dlgProgress;
+	CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	//Widget elements------------------------------------------------------
@@ -459,7 +459,7 @@ public class Csaj3DVolumeGeneratorCommand<T extends RealType<T>, C> extends Cont
      */
     protected void startWorkflow() {
     	//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating a 3D image volume, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new Dialog_WaitingWithProgressBar("Generating a 3D image volume, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Generating a 3D image volume, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 
 		dlgProgress.updatePercent("");

@@ -30,8 +30,8 @@ package at.csa.csaj.plugin1d.cplx.util;
 
 import org.scijava.log.LogService;
 
-import at.csa.csaj.commons.Regression_Linear;
-import at.csa.csaj.commons.Util_DoubleSort;
+import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajUtil_DoubleSort;
 
 /**
  * Lyapunov exponent from a sequence
@@ -467,7 +467,7 @@ public class Lyapunov {
 			}
 			
 			//Searching for the smallest distances	
-			Util_DoubleSort ds = new Util_DoubleSort(distances);
+			CsajUtil_DoubleSort ds = new CsajUtil_DoubleSort(distances);
 			sortedDoubles = ds.getSortedDoubles();
 			sortedIndxs   = ds.getSortedIndices(); 
 	
@@ -558,7 +558,7 @@ public class Lyapunov {
 		}
 	
 		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 
 		//double[] regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
 		double[] regressionParams = lr.calculateParameters(eps, dataY, numRegStart, numRegEnd);

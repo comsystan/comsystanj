@@ -77,9 +77,9 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 
@@ -130,7 +130,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	
 	private static final String tableOutName = "Table - Kolmogorov complexity";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -528,7 +528,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -549,7 +549,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing KC and LD, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -677,7 +677,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 		long startTime = System.currentTimeMillis();
 		
 		// Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, c); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 
 		logService.info(this.getClass().getName() + " KC: " + containerPM.item1_Values[1]);
 		logService.info(this.getClass().getName() + " Processing finished.");
@@ -696,7 +696,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -737,9 +737,9 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param in sequenceNumber column number of sequence from tableIn.
-	 * @param 	Container_ProcessMethod containerPM
+	 * @param 	CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int sequenceNumber, 	Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, int sequenceNumber, 	CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		int row = numRow;
 		int tableColStart = 0;
@@ -796,7 +796,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -899,7 +899,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 				
 				double sumKCs   = 0.0;
 				double sumLDs   = 0.0;
-				Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
 				String windowingType = "Rectangular";
 				for (int s = 0; s < numSurrogates; s++) {
 					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
@@ -1008,7 +1008,7 @@ public class Csaj1DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 				//***********************************************************************
 			}
 		}
-		return new Container_ProcessMethod(resultValues);
+		return new CsajContainer_ProcessMethod(resultValues);
 		// Output
 		// uiService.show(tableOutName, table);
 	}

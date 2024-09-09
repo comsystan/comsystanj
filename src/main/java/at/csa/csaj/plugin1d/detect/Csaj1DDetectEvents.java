@@ -72,9 +72,9 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_SequenceFrame;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_BeatDetectionAndClassification;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_ECGCODES;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_OSEAFactory;
@@ -152,10 +152,10 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveComman
 	private static ArrayList<Double> eventDataY2      = new ArrayList<Double>(); //events and for displaying points in extra frame
 	
 	private static final int numTableOutPreCols = 1; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
-	private static ArrayList<Plot_SequenceFrame> displayList = new ArrayList<Plot_SequenceFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame> displayList = new ArrayList<CsajPlot_SequenceFrame>();
 	private static final String tableOutName = "Table - Detect events";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -925,7 +925,7 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveComman
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Searching for events, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Searching for events, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -945,7 +945,7 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveComman
 	* This method starts the workflow for all columns of the active display
 	*/
 	protected void startWorkflowForAllColumns() {
-			dlgProgress = new Dialog_WaitingWithProgressBar("Searching for events, please wait... Open console window for further info.",
+			dlgProgress = new CsajDialog_WaitingWithProgressBar("Searching for events, please wait... Open console window for further info.",
 								logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 		
@@ -1184,7 +1184,7 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveComman
 				domainNew[i] = detectedDomain.get(i).doubleValue(); 
 			}
 			//display of detected events only 
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(domainNew, tableOut, cols, isLineVisible, "Events", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(domainNew, tableOut, cols, isLineVisible, "Events", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -1200,7 +1200,7 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveComman
 				eventX2[i] = eventDataX2.get(i).doubleValue();
 				eventY2[i] = eventDataY2.get(i).doubleValue(); 
 			}
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(domain1D, sequence1D, eventX2, eventY2, isLineVisible, 
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(domain1D, sequence1D, eventX2, eventY2, isLineVisible, 
 												"Detected events", tableIn.getColumnHeader(s) + " + Events", "Samples [a.u.]", "Values [a.u.]", tableIn.getColumnHeader(s), "Events");
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
@@ -1297,7 +1297,7 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveComman
 				domainNew[i] = i+1; 
 			}
 			//display of detected events only 
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(domainNew, tableOut, cols, isLineVisible, "Events", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(domainNew, tableOut, cols, isLineVisible, "Events", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -1504,7 +1504,7 @@ public class Csaj1DDetectEvents<T extends RealType<T>> extends InteractiveComman
 		if (sequenceRange.equals("Entire sequence")) {	//only this option is possible for FFT
 			
 			if (!surrType.equals("No surrogates")) {
-				Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();	
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();	
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 				String windowingType = "Rectangular";
 				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);

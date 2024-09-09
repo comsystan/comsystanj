@@ -30,7 +30,7 @@ package at.csa.csaj.plugin1d.frac.util;
 
 import org.scijava.log.LogService;
 
-import at.csa.csaj.commons.Regression_Linear;
+import at.csa.csaj.commons.CsajRegression_Linear;
 import net.imglib2.RandomAccess;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.Views;
@@ -262,7 +262,7 @@ public class TugOfWar {
 		}
 	
 		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 
 //		double[] dataXArray = new double[lnDataX.size()];
 //		double[] dataYArray = new double[lnDataY.size()];

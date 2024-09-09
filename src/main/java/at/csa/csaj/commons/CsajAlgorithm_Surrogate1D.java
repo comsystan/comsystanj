@@ -48,7 +48,7 @@ import org.apache.commons.math3.transform.TransformType;
  * @author Helmut Ahammer
  * @since   2012 11
  */
-public class Algorithm_Surrogate1D {
+public class CsajAlgorithm_Surrogate1D {
 
 	public final static int SURROGATE_SHUFFLE         = 0;
 	public final static int SURROGATE_GAUSSIAN        = 1;
@@ -64,7 +64,7 @@ public class Algorithm_Surrogate1D {
 	/**
 	 * This is the standard constructor
 	 */
-	public Algorithm_Surrogate1D(){
+	public CsajAlgorithm_Surrogate1D(){
 		
 	}
 

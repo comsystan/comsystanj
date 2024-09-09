@@ -28,7 +28,6 @@
 
 package at.csa.csaj.commons;
 
-import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -36,7 +35,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.ToolTipManager;
 
-import org.scijava.table.DefaultGenericTable;
 
 //import at.mug.iqm.api.Resources;
 //import at.mug.iqm.commons.util.CommonTools;
@@ -47,7 +45,7 @@ import org.scijava.table.DefaultGenericTable;
  * 
  * @author 2021 Helmut Ahammer,
  */
-public class Plot_CSAJFrame extends JFrame {
+public class CsajPlot_Frame extends JFrame {
 	
 	/**
 	 * 
@@ -58,7 +56,7 @@ public class Plot_CSAJFrame extends JFrame {
 	/**
 	 * The default constructor.
 	 */
-	public Plot_CSAJFrame() {
+	public CsajPlot_Frame() {
 		//this.setIconImage(new ImageIcon(Resources.getImageURL("icon.application.magenta.32x32")).getImage());
 		this.setIconImage(new ImageIcon(getClass().getResource("/icons/comsystan-logo-grey46-64x64.png")).getImage());
 		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -81,7 +79,7 @@ public class Plot_CSAJFrame extends JFrame {
 	 * 
 	 * @param frameTitle
 	 */
-	public Plot_CSAJFrame(String frameTitle) {
+	public CsajPlot_Frame(String frameTitle) {
 		this();
 		this.setTitle(frameTitle);
 	}

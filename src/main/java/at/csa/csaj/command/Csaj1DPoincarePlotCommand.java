@@ -64,10 +64,10 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 /**
@@ -117,7 +117,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	private static int numLag = 1;
 
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -490,7 +490,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	*/
 	protected void startWorkflowForSingleColumn() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Generating Poincare plot, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Generating Poincare plot, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -511,7 +511,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	*/
 	protected void startWorkflowForAllColumns() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Generating Poincare plot, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Generating Poincare plot, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -609,7 +609,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 		
 		long startTime = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM = process(tableIn, s); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, s); 
 		logService.info(this.getClass().getName() + " Processing finished.");
 		
 		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
@@ -625,7 +625,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 				cols[c] = c;
 				seriesLabels[c] = tableIn.getColumnHeader(s);					
 			}
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(sequence1D, containerPM.item1_Values, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels[0]);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(sequence1D, containerPM.item1_Values, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels[0]);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -650,7 +650,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 		long startTimeAll = System.currentTimeMillis();
 		double dataY[][] = new double[(int) numColumns][(int) numRows];
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -694,7 +694,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 				cols[c] = c;
 				seriesLabels[c] = tableIn.getColumnHeader(c);					
 			}
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(sequence1D, dataY, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(sequence1D, dataY, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -717,9 +717,9 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	 * collects current result and writes to table
 	 * 
 	 * @param int column number of single sequence.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
 
@@ -737,7 +737,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -799,7 +799,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 		if (sequenceRange.equals("Entire sequence")){	//only this option is possible for autocorrelation
 			
 			if (!surrType.equals("No surrogates")) {
-				Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();	
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();	
 				String windowingType = "Rectangular";
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
@@ -822,7 +822,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 		
 		}
 		
-		return new Container_ProcessMethod(resultValues);
+		return new CsajContainer_ProcessMethod(resultValues);
 		// Output
 		// uiService.show(tableOutName, table);
 	}

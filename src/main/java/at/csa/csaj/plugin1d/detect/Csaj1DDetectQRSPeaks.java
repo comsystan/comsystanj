@@ -43,7 +43,7 @@ import org.scijava.plugin.Plugin;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.plugin1d.detect.util.QRSPeaksDetector;
 import at.csa.csaj.plugin1d.detect.util.QRSPeaksDetectorFileOpenDialog;
 
@@ -255,7 +255,7 @@ public class Csaj1DDetectQRSPeaks  extends InteractiveCommand implements Preview
 		
 		//QRSPeaksDetector task = new QRSPeaksDetector(logService, statusService, files, offSet, sampleRate, oseaMethod, outputOption, saveFile); 
 		//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Detecting QRS peaks and RR intervals, please wait...<br>Open console window for further info.</html>");
-		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Detecting QRS peaks and RR intervals, please wait... Open console window for further info.",
+		CsajDialog_WaitingWithProgressBar dlgProgress = new CsajDialog_WaitingWithProgressBar("Detecting QRS peaks and RR intervals, please wait... Open console window for further info.",
 																					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown );
 		//dlgProgress.updatePercent("");
 		//dlgProgress.setBarIndeterminate(true);

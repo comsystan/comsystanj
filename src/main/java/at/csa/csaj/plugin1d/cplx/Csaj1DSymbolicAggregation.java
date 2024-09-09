@@ -73,8 +73,8 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 
@@ -134,7 +134,7 @@ public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	
 	private static final String datasetOutName = "Symbolic aggregation";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -618,7 +618,7 @@ public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -638,7 +638,7 @@ public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends Interactiv
 	*/
 	protected void startWorkflowForAllColumns() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Generating symbolic aggregation, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -943,7 +943,7 @@ public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends Interactiv
 		if (sequenceRange.equals("Entire sequence")){	//only this option is possible for FFT
 			
 			if (!surrType.equals("No surrogates")) {
-				Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();	
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();	
 				String windowingType = "Rectangular";
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);

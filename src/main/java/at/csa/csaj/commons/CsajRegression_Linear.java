@@ -34,7 +34,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
  * @update 2020-05
  *
  */
-public class Regression_Linear {
+public class CsajRegression_Linear {
 	/**
 	 * This method computes regression parameters
 	 * @param dataX

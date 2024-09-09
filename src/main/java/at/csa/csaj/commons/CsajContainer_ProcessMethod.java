@@ -27,7 +27,7 @@
  */
 package at.csa.csaj.commons;
 
-public class Container_ProcessMethod implements Container_Interface{
+public class CsajContainer_ProcessMethod implements CsajContainer_Interface{
 
 	public double[]   item1_Values;
 	public double[]   item2_Values;
@@ -86,29 +86,29 @@ public class Container_ProcessMethod implements Container_Interface{
 	}
 
 	
-	public Container_ProcessMethod() {
+	public CsajContainer_ProcessMethod() {
 		
 	}
 	
-	public Container_ProcessMethod( double[] item1_values) {
+	public CsajContainer_ProcessMethod( double[] item1_values) {
 		this.item1_Values = item1_values;
 	}
 	
-	public Container_ProcessMethod(double[] item1_values, double[] item2_values) {
+	public CsajContainer_ProcessMethod(double[] item1_values, double[] item2_values) {
 		this.item1_Values = item1_values;
 		this.item2_Values = item2_values;
 	}
 	
-	public Container_ProcessMethod(double[][] item1_matrix) {
+	public CsajContainer_ProcessMethod(double[][] item1_matrix) {
 		this.item1_Matrix = item1_matrix;
 	}
 	
-	public Container_ProcessMethod(double[][] item1_matrix, double[] item2_values) {
+	public CsajContainer_ProcessMethod(double[][] item1_matrix, double[] item2_values) {
 		this.item1_Matrix = item1_matrix;
 		this.item2_Values = item2_values;
 	}
 	
-	public Container_ProcessMethod(double[][] item1_matrix, double[][] item2_matrix, double[] item3_values) {
+	public CsajContainer_ProcessMethod(double[][] item1_matrix, double[][] item2_matrix, double[] item3_values) {
 		this.item1_Matrix = item1_matrix;
 		this.item2_Matrix = item2_matrix;
 		this.item3_Values = item3_values;

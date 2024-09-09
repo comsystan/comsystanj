@@ -52,7 +52,7 @@ import org.scijava.io.location.FileLocation;
 import org.scijava.log.LogService;
 import org.scijava.ui.UIService;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import io.scif.SCIFIO;
 import io.scif.codec.CompressionType;
 import io.scif.config.SCIFIOConfig;
@@ -92,7 +92,7 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 	private long height = 0;
 	private long depth = 0;
 	private double[] results = null;
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private StatusService statusService;
 	
 	private LogService logService;
@@ -117,7 +117,7 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public Kolmogorov3D_Grey(RandomAccessibleInterval<?> rai, String compressionType, boolean skipZeroes, int numIterations, LogService logService, UIService uiService, IOService ioService, DatasetService datasetService, Dialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
+	public Kolmogorov3D_Grey(RandomAccessibleInterval<?> rai, String compressionType, boolean skipZeroes, int numIterations, LogService logService, UIService uiService, IOService ioService, DatasetService datasetService, CsajDialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
 		this.rai               = rai;
 		this.width             = rai.dimension(0);
 		this.height            = rai.dimension(1);

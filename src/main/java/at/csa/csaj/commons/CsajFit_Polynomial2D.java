@@ -124,7 +124,7 @@ import Jama.Matrix;
 
 
 
-public class Fit_Polynomial2D {
+public class CsajFit_Polynomial2D {
 	
 	public double[][] calculateParameters(double[][] image, int polyOrderX, int polyOrderY ) {
 	    int nRows = image.length;

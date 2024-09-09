@@ -47,8 +47,8 @@ import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_SequenceFrame;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 
 import java.io.File;
 import java.io.IOException;
@@ -165,7 +165,7 @@ public class Csaj1DOpener<T extends RealType<T>> extends InteractiveCommand {
 	protected void startWorkflow() {
      	
     	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Opening sequences, please wait...<br>Open console window for further info.</html>");
-		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Opening sequences, please wait... Open console window for further info.",
+		CsajDialog_WaitingWithProgressBar dlgProgress = new CsajDialog_WaitingWithProgressBar("Opening sequences, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 
 		dlgProgress.updatePercent("");
@@ -237,7 +237,7 @@ public class Csaj1DOpener<T extends RealType<T>> extends InteractiveCommand {
 			int numColumns = defaultGenericTable.getColumnCount();
 			int numRows = defaultGenericTable.getRowCount();
 			int numElements = numColumns*numRows;
-			Plot_SequenceFrame pdf = null;
+			CsajPlot_SequenceFrame pdf = null;
 			if (numColumns == 1) {
 				boolean isLineVisible = true;
 				String sequenceTitle = files[0].getName();
@@ -246,12 +246,12 @@ public class Csaj1DOpener<T extends RealType<T>> extends InteractiveCommand {
 				String seriesLabel = null;
 				
 				if (numElements < 1000000) {
-					pdf = new Plot_SequenceFrame(defaultGenericTable, 0, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel);
+					pdf = new CsajPlot_SequenceFrame(defaultGenericTable, 0, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel);
 					pdf.setVisible(true);
 				} else {
 					int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 					if (selectedOption == JOptionPane.YES_OPTION) {
-						pdf = new Plot_SequenceFrame(defaultGenericTable, 0, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel);
+						pdf = new CsajPlot_SequenceFrame(defaultGenericTable, 0, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel);
 						pdf.setVisible(true);
 					}
 				}
@@ -274,12 +274,12 @@ public class Csaj1DOpener<T extends RealType<T>> extends InteractiveCommand {
 				}
 					
 				if (numElements < 1000000) {
-					pdf = new Plot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+					pdf = new CsajPlot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 					pdf.setVisible(true);
 				} else {
 				int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 					if (selectedOption == JOptionPane.YES_OPTION) {
-						pdf = new Plot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+						pdf = new CsajPlot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 						pdf.setVisible(true);
 					}	
 				}

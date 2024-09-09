@@ -76,8 +76,8 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate3D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate3D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -129,7 +129,7 @@ public class Csaj3DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	private static final String volumePreviewName = "Preview volume";
 	private static Dataset datasetPreview;
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -519,7 +519,7 @@ public class Csaj3DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("3D surrogate, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("3D surrogate, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -743,7 +743,7 @@ public class Csaj3DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 		//long height = rai.dimension(1);
 		//long depth  = rai.getDepth;
 		
-	Algorithm_Surrogate3D surrogate3D = new Algorithm_Surrogate3D();
+	CsajAlgorithm_Surrogate3D surrogate3D = new CsajAlgorithm_Surrogate3D();
 		
 		if (surrType.equals("Shuffle")) {
 			 rai = surrogate3D.calcSurrogateShuffle(rai);	

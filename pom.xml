@@ -211,7 +211,9 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>at.csa.csaj.command.CreateCommandFiles</mainClass><!--Creates and saves ContexCommand files from all InteractiveCommand Csaj plugins-->
+					<!--Creates and saves ContexCommand files from all InteractiveCommand Csaj plugins-->
+					<!--Must be called in the maven-build.bat-->
+					<mainClass>at.csa.csaj.command.CreateCommandFiles</mainClass>
 				</configuration>
 			</plugin>
 			<plugin>

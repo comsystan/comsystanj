@@ -67,11 +67,11 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.cplx.util.GeneralisedDFA;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
 
@@ -131,15 +131,15 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	private static int stepQ;
 	private static int numQ;
 	
-	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = new ArrayList<Plot_RegressionFrame>();
-	private static ArrayList<Plot_SequenceFrame>   genHPlotList      = new ArrayList<Plot_SequenceFrame>();
-	private static ArrayList<Plot_SequenceFrame>   fSpecPlotList     = new ArrayList<Plot_SequenceFrame>();
+	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame>   genHPlotList      = new ArrayList<CsajPlot_SequenceFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame>   fSpecPlotList     = new ArrayList<CsajPlot_SequenceFrame>();
 	
 	
 	
 	private static final String tableOutName = "Table - Generalised DFA";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -636,7 +636,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Generalised DFA, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised DFA, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -657,7 +657,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Generalised DFA, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised DFA, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -812,7 +812,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 		long startTime = System.currentTimeMillis();
 		
 		// Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, c); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 0 Alpha, 1 R2, 2 StdErr
 		logService.info(this.getClass().getName() + " Alpha: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
@@ -830,7 +830,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -871,9 +871,9 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param in sequenceNumber column number of sequence from tableIn.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int sequenceNumber, Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, int sequenceNumber, CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 			int row = numRow;
 		int tableColStart = 0;
@@ -933,7 +933,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -1041,7 +1041,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 						for (int q = 0; q < numQ; q++) {
 							legendLabels[q] = "q=" + (q + minQ); 
 						}
-						Plot_RegressionFrame doubleLogPlot = DisplayMultipleRegressionPlotXY(genDfa.getLnDataX(), genDfa.getLnDataY(), isLineVisible,"Double log plot - Generalised DFA", 
+						CsajPlot_RegressionFrame doubleLogPlot = DisplayMultipleRegressionPlotXY(genDfa.getLnDataX(), genDfa.getLnDataY(), isLineVisible,"Double log plot - Generalised DFA", 
 								preName, axisNameX, axisNameY, legendLabels,
 								numRegStart, numRegEnd);
 						doubleLogPlotList.add(doubleLogPlot);
@@ -1057,7 +1057,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 						// Compute q's
 						double [] qList   = new double[numQ];
 						for (int q = 0; q < numQ; q++) qList[q] = q + minQ;
-						Plot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, resultValues, isLineVisible, "Generalised DFA", 
+						CsajPlot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, resultValues, isLineVisible, "Generalised DFA", 
 								preName, axisNameX, axisNameY, "");
 						genHPlotList.add(dimGenPlot);
 					}
@@ -1068,7 +1068,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 						String axisNameY = "f";
 						double[] alphas = genDfa.computeAlphas(resultValues, minQ, numQ);
 						double[] fSpec  = genDfa.computeFSpectrum(resultValues, alphas, minQ, numQ);
-						Plot_SequenceFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
+						CsajPlot_SequenceFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
 								preName, axisNameX, axisNameY, "");
 						fSpecPlotList.add(fSpecPlot);
 					}
@@ -1091,7 +1091,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 					surrSequence1D = new double[sequence1D.length];
 					
 					double sumAlphas   = 0.0;
-					Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();
+					CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
 					String windowingType = "Rectangular";
 					for (int s = 0; s < numSurrogates; s++) {
 						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"},
@@ -1186,7 +1186,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 			}
 		}
 		
-		return new Container_ProcessMethod(resultValues, epsRegStartEnd);
+		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
 		// Dim, R2, StdErr
 		// Output
 		// uiService.show(tableOutName, table);
@@ -1220,7 +1220,7 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 			preName += "Col" + String.format("%03d", col) + "-";
 		}
 		boolean isLineVisible = false; // ?
-		Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
+		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
 				"Double log plot - DFA", preName + "-" + tableInName, "ln(k)", "ln(F)", "", numRegStart, numRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
@@ -1247,10 +1247,10 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	 * @param interpolType The type of interpolation
 	 * @return RegressionPlotFrame
 	 */			
-	private Plot_RegressionFrame DisplayMultipleRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
+	private CsajPlot_RegressionFrame DisplayMultipleRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabels, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
@@ -1278,10 +1278,10 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	 * @param numRegEnd
 	 * @return
 	 */
-	private Plot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+	private CsajPlot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
 		// jFreeChart
-		Plot_SequenceFrame pl = new Plot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_SequenceFrame pl = new CsajPlot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
@@ -1355,11 +1355,11 @@ public class Csaj1DGeneralisedDFACommand<T extends RealType<T>> extends ContextC
 	 * @param interpolType          The type of interpolation
 	 * @return RegressionPlotFrame
 	 */
-	private Plot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String  legendLabel,
 			int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

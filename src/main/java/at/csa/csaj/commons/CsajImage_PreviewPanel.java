@@ -60,7 +60,7 @@ import javax.swing.SwingWorker;
  * @author Helmut Ahammer
  * @since  2021
  */
-public class Image_PreviewPanel extends JPanel implements PropertyChangeListener {
+public class CsajImage_PreviewPanel extends JPanel implements PropertyChangeListener {
 
 	/**
 	 * The UID for serialization.
@@ -84,7 +84,7 @@ public class Image_PreviewPanel extends JPanel implements PropertyChangeListener
 	 * can be set as accessory using
 	 * {@link JFileChooser#setAccessory(javax.swing.JComponent)}.
 	 */
-	public Image_PreviewPanel() {
+	public CsajImage_PreviewPanel() {
 		setPreferredSize(new Dimension(ACCSIZE, -1));
 		bg = getBackground();
 		infoLabel = new JLabel("", null, JLabel.CENTER);

@@ -31,7 +31,7 @@ import java.util.List;
 import org.scijava.app.StatusService;
 import org.scijava.ui.UIService;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
@@ -79,7 +79,7 @@ public class Minkowski3D_Grey implements Minkowski3DMethods{
 	private String shapeType;
 	private String morphologicalType;
 	private boolean showLastMorphImg;
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private StatusService statusService;
 	
 	private UIService uiService;
@@ -110,7 +110,7 @@ public class Minkowski3D_Grey implements Minkowski3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public Minkowski3D_Grey(RandomAccessibleInterval<?> rai, int numDilations, String shapeType, String morphologicalType, boolean showLastMorphImg, UIService uiService, Dialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
+	public Minkowski3D_Grey(RandomAccessibleInterval<?> rai, int numDilations, String shapeType, String morphologicalType, boolean showLastMorphImg, UIService uiService, CsajDialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
 		this.rai               = rai;
 		this.width             = rai.dimension(0);
 		this.height            = rai.dimension(1);

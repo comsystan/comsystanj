@@ -65,9 +65,9 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 
@@ -123,9 +123,9 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 //	private static long numGlidingBoxes = 0;
 	
 	private static final String tableOutName = "Table - Cut out";
-	private static ArrayList<Plot_SequenceFrame> plotDisplayFrameList = new ArrayList<Plot_SequenceFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame> plotDisplayFrameList = new ArrayList<CsajPlot_SequenceFrame>();
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -516,7 +516,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 	* This method starts the workflow for a single column of the active display
 	*/
 	protected void startWorkflowForSingleColumn() {
-		dlgProgress = new Dialog_WaitingWithProgressBar("Cutting out a sub-sequence, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Cutting out a sub-sequence, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -537,7 +537,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Cutting out a sub-sequence, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Cutting out a sub-sequence, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -639,7 +639,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 		long startTime = System.currentTimeMillis();
 		
 		// Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, s); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, s); 
 		// 0 Entropy
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(s, containerPM);
@@ -660,7 +660,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 					cols[c] = c; 	
 					seriesLabels[c] = tableOut.getColumnHeader(c); 					
 				}
-				Plot_SequenceFrame pdf = new Plot_SequenceFrame(tableOut, cols, isLineVisible, "Sub-sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Sub-sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 				plotDisplayFrameList.add(pdf);
 				Point pos = pdf.getLocation();
 				pos.x = (int) (pos.getX() - 100);
@@ -698,7 +698,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -739,7 +739,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 				cols[c] = c;  
 				seriesLabels[c] = tableOut.getColumnHeader(c);				
 			}
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(tableOut, cols, isLineVisible, "Sub-sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Sub-sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			plotDisplayFrameList.add(pdf);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
@@ -759,9 +759,9 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 	 * collects current result and writes to table
 	 * 
 	 * @param int column number of active sequence.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int sequenceNumber,  Container_ProcessMethod containerPM) {
+	private void writeToTable(int sequenceNumber,  CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
 		if (containerPM == null) {
@@ -795,7 +795,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -859,7 +859,7 @@ public class Csaj1DCutOut<T extends RealType<T>> extends InteractiveCommand impl
 			else sequenceOut[i] = sequence1D[idx];
 		}		
 		
-		return new Container_ProcessMethod(sequenceOut);
+		return new CsajContainer_ProcessMethod(sequenceOut);
 		// 
 		// Output
 		// uiService.show(tableOutName, table);

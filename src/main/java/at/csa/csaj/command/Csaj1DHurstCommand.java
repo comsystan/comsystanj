@@ -70,11 +70,11 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
-import at.csa.csaj.commons.Util_GenerateInterval;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
+import at.csa.csaj.commons.CsajUtil_GenerateInterval;
 import at.csa.csaj.plugin1d.frac.util.HKprocess;
 import at.csa.csaj.plugin1d.frac.util.HurstRS;
 import at.csa.csaj.plugin1d.frac.util.HurstSP;
@@ -158,11 +158,11 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	double rsH; //Rescaled range R/S H
 	double spH; //Scaling property SP H
 	
-	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = new ArrayList<Plot_RegressionFrame>();
+	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
 	private static final String tableOutName = "Table - Hurst";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -534,7 +534,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			spinnerInteger_EpsN = spinnerInteger_EpsRegEnd - spinnerInteger_EpsRegStart + 1;
 		}
 		epsN = spinnerInteger_EpsN;
-		epsInterval = Util_GenerateInterval.getIntLogDistributedInterval(epsRegStart, epsRegEnd, epsN);
+		epsInterval = CsajUtil_GenerateInterval.getIntLogDistributedInterval(epsRegStart, epsRegEnd, epsN);
 		
 		if (epsInterval.length < epsN) {
 			logService.info(this.getClass().getName() + " Note: Eps interval is limited to a sequence of unique values");
@@ -737,7 +737,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	*/
 	protected void startWorkflowForSingleColumn() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Hurst value(s), please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Hurst value(s), please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -758,7 +758,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	*/
 	protected void startWorkflowForAllColumns() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Hurst values, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Hurst values, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -901,7 +901,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		long startTime = System.currentTimeMillis();
 		
 		// Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, c); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 0 D, 1 R2, 2 StdErr
 		//logService.info(this.getClass().getName() + " H (HK): " + containerPM.result1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
@@ -920,7 +920,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -961,9 +961,9 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param in sequenceNumber column number of sequence from tableIn.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int sequenceNumber, Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, int sequenceNumber, CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		int row = numRow;
 		int tableColStart = 0;
@@ -1037,7 +1037,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -1059,7 +1059,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		int numDataPoints     = dgt.getRowCount();
 		boolean skipZeroes    = booleanSkipZeroes;	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
-		epsInterval = Util_GenerateInterval.getIntLogDistributedInterval(epsRegStart, epsRegEnd, epsN);
+		epsInterval = CsajUtil_GenerateInterval.getIntLogDistributedInterval(epsRegStart, epsRegEnd, epsN);
 		
 		double[] resultValues = new double[3]; // hkH, rsH, spH
 		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
@@ -1157,7 +1157,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 				double H  = Double.NaN;
 				double sumHs  = 0.0;
 				
-				Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
 				String windowingType = "Rectangular";
 				for (int s = 0; s < numSurrogates; s++) {
 					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
@@ -1284,7 +1284,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			}
 		}
 		
-		return new Container_ProcessMethod(resultValues);
+		return new CsajContainer_ProcessMethod(resultValues);
 		// Dim, R2, StdErr
 		// Output
 		// uiService.show(tableOutName, table);
@@ -1317,7 +1317,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			preName += "Col" + String.format("%03d", col) + "-";
 		}
 		boolean isLineVisible = false; // ?
-		Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
+		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
 				"Double log plot - ", preName + "-" + tableInName, labelX, labelY, "", epsRegStart, epsRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
@@ -1384,11 +1384,11 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	 * @param interpolType          The type of interpolation
 	 * @return RegressionPlotFrame
 	 */
-	private Plot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel,
 			int epsRegStart, int epsRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel, epsRegStart, epsRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

@@ -1,0 +1,269 @@
+/*-
+ * #%L
+ * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
+ * File: Csaj2DKolmogorovComplexityDialog.java
+ * 
+ * $Id$
+ * $HeadURL$
+ * 
+ * This file is part of ComsystanJ software, hereinafter referred to as "this program".
+ * %%
+ * Copyright (C) 2024 Comsystan Software
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+package at.csa.csaj.plugin2d.cplx;
+
+import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import net.imagej.Dataset;
+import org.scijava.Context;
+import org.scijava.command.CommandModule;
+import org.scijava.command.CommandService;
+import org.scijava.log.LogService;
+import org.scijava.plugin.Parameter;
+import org.scijava.table.DefaultGenericTable;
+import org.scijava.ui.UIService;
+import at.csa.csaj.commons.CsajDialog_2DPlugin;
+/*
+ * This is a custom dialog for a CSAJ plugin
+ */
+public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
+
+	private static final long serialVersionUID = 7831666575090957096L;
+
+	@Parameter
+	private LogService logService;
+	
+	@Parameter
+	private CommandService commandService;	
+	
+	@Parameter
+	private UIService uiService;
+	
+  	private Dataset datasetIn;
+  	private String tableOutName;
+	private DefaultGenericTable tableOut;
+   
+  	private JComboBox<String> comboBoxCompression;
+	private String   choiceRadioButt_Compression;
+	
+	private JSpinner spinnerNumIterations;
+	private int      spinnerInteger_NumIterations;
+	
+	private JCheckBox checkBoxSkipZeroes;
+	private boolean   booleanSkipZeroes;
+
+	
+	/**Some default @Parameters are already defined in the super class
+	 * public JCheckBox checkBoxOverwriteDisplays;
+	 * public boolean   booleanOverwriteDisplays;
+	 * 
+	 * public JCheckBox checkBoxProcessImmediately;
+	 * public boolean	  booleanProcessImmediately;
+	 * 
+	 * public JSpinner spinnerNumImageSlice;
+	 * public int      spinnerInteger_NumImageSlice;
+	 * 
+	 * public JButton btnProcessSingleImage;
+	 * public JButton btnProcessAllImages;
+	 */
+	
+		
+	/**
+	 * Create the dialog.
+	 */
+	public Csaj2DKolmogorovComplexityDialog(Context context, Dataset datasetIn) {
+		
+		super(context, datasetIn);
+		
+		//This dialog has no context (@Parameter) possibility
+		//Context must be imported from caller class (ContextCommand)
+		//context.inject(this); //Important but already injected in super class
+		this.datasetIn = datasetIn;
+		
+		//RGB not allowed
+		if (!imageType.equals("Grey")) { 
+			logService.warn(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+			//cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+		}
+		
+		//Title of plugin
+		//Overwrite
+		setTitle("2D KC and LD");
+
+		//Add specific GUI elements according to Command @Parameter GUI elements
+	    //*****************************************************************************************		
+	    JLabel labelCompression = new JLabel("Compression");
+	    labelCompression.setToolTipText("Type of image compression for estimating KC");
+	    labelCompression.setHorizontalAlignment(JLabel.RIGHT);
+	    labelCompression.setPreferredSize(DIMENSION_ITEM_STANDARD);
+		
+		String options[] = {"ZIP (lossless)", "ZLIB (lossless)", "GZIP (lossless)", "TIFF-LZW (lossless)", "PNG (lossless)", "J2K (lossless)", "JPG (lossy)"}; //"PNG (lossless)" "ZIP (lossless)"
+		comboBoxCompression = new JComboBox<String>(options);
+		comboBoxCompression.setToolTipText("Type of image compression for estimating KC");
+		comboBoxCompression.setPreferredSize(DIMENSION_ITEM_STANDARD);
+	    comboBoxCompression.setEditable(false);
+	    comboBoxCompression.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				choiceRadioButt_Compression = (String)comboBoxCompression.getSelectedItem();
+				logService.info(this.getClass().getName() + " Compression method set to " + choiceRadioButt_Compression);
+				if (comboBoxCompression.getSelectedItem().equals("TIFF-LZW (lossless)") ||
+					comboBoxCompression.getSelectedItem().equals("PNG (lossless)")      ||	
+					comboBoxCompression.getSelectedItem().equals("J2K (lossless)")      ||
+					comboBoxCompression.getSelectedItem().equals("JPG (lossy)")) {
+					checkBoxSkipZeroes.setSelected(false);
+					booleanSkipZeroes = false;	
+					logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+				}
+				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+			}
+		});
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelCompression, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.WEST; //left 
+	    contentPanel.add(comboBoxCompression, gbc);
+	    //initialize command variable
+	    choiceRadioButt_Compression = (String)comboBoxCompression.getSelectedItem();
+	    
+	    //*****************************************************************************************
+	    JLabel labelIteration = new JLabel("Iterations for LD");
+	    labelIteration.setToolTipText("Number of compressions to compute averages");
+	    labelIteration.setHorizontalAlignment(JLabel.RIGHT);
+	    labelIteration.setPreferredSize(DIMENSION_ITEM_STANDARD);
+	    
+	    SpinnerNumberModel spinnerModelIteration = new SpinnerNumberModel(10, 1, 999999999, 1); // initial, min, max, step
+        spinnerNumIterations = new JSpinner(spinnerModelIteration);
+        spinnerNumIterations.setToolTipText("Number of compressions to compute averages");
+        spinnerNumIterations.setPreferredSize(DIMENSION_ITEM_STANDARD);
+        spinnerNumIterations.addChangeListener(new ChangeListener() {
+        	@Override
+            public void stateChanged(ChangeEvent e) {
+            	spinnerInteger_NumIterations = (int)spinnerNumIterations.getValue();
+                logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
+                if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+            }
+        });
+        gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
+	    gbc.gridy = 1;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelIteration, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 1;
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(spinnerNumIterations, gbc);	    
+	    
+	    //initialize command variable
+	    spinnerInteger_NumIterations = (int)spinnerNumIterations.getValue();
+	   
+	    //*****************************************************************************************
+	    JLabel labelSkipZero = new JLabel("Skip zero values");
+	    labelSkipZero.setToolTipText("Delete zeroes or not");
+	    labelSkipZero.setHorizontalAlignment(JLabel.RIGHT);
+	    labelSkipZero.setPreferredSize(DIMENSION_ITEM_STANDARD);
+	    
+		checkBoxSkipZeroes = new JCheckBox();
+		checkBoxSkipZeroes.setToolTipText("Delete zeroes or not");
+		checkBoxSkipZeroes.setSelected(false);
+		checkBoxSkipZeroes.addItemListener(new ItemListener() {
+			@Override
+		    public void itemStateChanged(ItemEvent e) {
+		    	booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
+		    	if (comboBoxCompression.getSelectedItem().equals("TIFF-LZW (lossless)") ||
+					comboBoxCompression.getSelectedItem().equals("PNG (lossless)")      ||	
+					comboBoxCompression.getSelectedItem().equals("J2K (lossless)")      ||
+					comboBoxCompression.getSelectedItem().equals("JPG (lossy)")) {
+		    		checkBoxSkipZeroes.setSelected(false);
+					booleanSkipZeroes = false;
+				}	
+		    	logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    }
+		});
+		gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
+	    gbc.gridy = 2;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelSkipZero, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 2;
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(checkBoxSkipZeroes, gbc);	
+	    //initialize command variable
+	    booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
+	    
+	    //*****************************************************************************************
+	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
+	    //*****************************************************************************************
+		//Do additional things
+	}
+		
+	/**
+	 * process by calling a command
+	 */
+	public void processCommand() {
+		//Following run initiates a "ProcessAllImages" 
+		Future<CommandModule> future = commandService.run(Csaj2DKolmogorovComplexityCommand.class, false,
+														"datasetIn",                    datasetIn, //is not automatically harvested in headless mode
+														"processAll",					processAll, //true for all
+														"choiceRadioButt_Compression",  choiceRadioButt_Compression,
+														"spinnerInteger_NumIterations", spinnerInteger_NumIterations,
+														"booleanSkipZeroes",            booleanSkipZeroes,
+														"booleanOverwriteDisplays",     booleanOverwriteDisplays,
+														"booleanProcessImmediately",	booleanProcessImmediately,
+														"spinnerInteger_NumImageSlice",	spinnerInteger_NumImageSlice
+														);
+		CommandModule commandModule = null;
+		try {
+			commandModule = future.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		tableOutName = (String)              commandModule.getOutput("tableOutName");
+		tableOut     = (DefaultGenericTable) commandModule.getOutput("tableOut");
+		
+//		final ImageJ ij = new ImageJ();
+//		final Module module = ij.module().waitFor(future);
+//		tableOutName = (String)              module..getOutput("tableOutName");
+//		tableOut     = (DefaultGenericTable) module.getOutput("tableOut");
+		
+		uiService.show(tableOutName, tableOut);
+	}
+}

@@ -79,10 +79,10 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Regression_Linear;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin3d.frac.util.Minkowski3DMethods;
 import at.csa.csaj.plugin3d.frac.util.Minkowski3D_Grey;
 import io.scif.DefaultImageMetadata;
@@ -132,11 +132,11 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 	private static long compositeChannelCount = 0;
 	private static String imageType = "";
 	private static int  numDilations = 0;
-	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = new ArrayList<Plot_RegressionFrame>();
+	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
 	private static final String tableOutName = "Table - 3D Minkowski dimension";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -579,7 +579,7 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing 3D Minkowski dimension, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Minkowski dimension, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -717,7 +717,7 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
 
 		// Compute regression parameters
-		Container_ProcessMethod containerPM = process(rai); //rai is 3D
+		CsajContainer_ProcessMethod containerPM = process(rai); //rai is 3D
 
 		writeToTable(containerPM);
 		
@@ -772,9 +772,9 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(Container_ProcessMethod containerPM) { 
+	private void writeToTable(CsajContainer_ProcessMethod containerPM) { 
 
 		int numRegStart  = spinnerInteger_NumRegStart;
 		int numRegEnd    = spinnerInteger_NumRegEnd;
@@ -801,7 +801,7 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
+	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
@@ -872,7 +872,7 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 		if (optShowPlot) {
 			if ((imageType.equals("Grey")) || (imageType.equals("RGB"))) { //both are OK
 				String preName = "Volume-";
-				Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnEps, lnTotals, isLineVisible, plot_method, 
+				CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnEps, lnTotals, isLineVisible, plot_method, 
 						preName + datasetName, xAxis, yAxis, "",
 						numRegStart, numRegEnd);
 				doubleLogPlotList.add(doubleLogPlot);
@@ -883,7 +883,7 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 		}
 		
 		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 
 		regressionParams = lr.calculateParameters(lnEps, lnTotals, numRegStart, numRegEnd);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
@@ -900,7 +900,7 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 		epsRegStartEnd[0] = eps[numRegStart-1];
 		epsRegStartEnd[1] = eps[numRegEnd-1];
 	
-		return new Container_ProcessMethod(resultValues, epsRegStartEnd);
+		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
 	
 		// Output
 		// uiService.show("Table - 3D Minkowski dimension", table);
@@ -932,7 +932,7 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 				preName = "Volume-";
 			}
 			boolean isLineVisible = false; // ?
-			Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
 					"Double log plot - 3D Minkowski dimension", preName + datasetName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
@@ -963,11 +963,11 @@ public class Csaj3DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 	 * @param interpolType          The type of interpolation
 	 * @return RegressionPlotFrame
 	 */
-	private Plot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel,String legendLabel,
 			int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

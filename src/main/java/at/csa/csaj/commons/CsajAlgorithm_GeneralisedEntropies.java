@@ -51,7 +51,7 @@ import org.apache.commons.math3.special.Gamma;
  * @author Helmut Ahammer
  * @since  2022 12
  */
-public class Algorithm_GeneralisedEntropies {
+public class CsajAlgorithm_GeneralisedEntropies {
 	
 	private double[] probabilities;
 	
@@ -66,14 +66,14 @@ public class Algorithm_GeneralisedEntropies {
 	/**
 	 * This is the standard constructor
 	 */
-	public Algorithm_GeneralisedEntropies(){
+	public CsajAlgorithm_GeneralisedEntropies(){
 		
 	}
 	
 	/**
 	 * This is the standard constructor
 	 */
-	public Algorithm_GeneralisedEntropies(double[] probabilities){	
+	public CsajAlgorithm_GeneralisedEntropies(double[] probabilities){	
 		setProbabilities(probabilities);
 	}
 	

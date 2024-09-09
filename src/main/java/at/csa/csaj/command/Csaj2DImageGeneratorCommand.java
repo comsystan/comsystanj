@@ -62,7 +62,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_2D;
 import io.scif.services.DatasetIOService;
 
@@ -623,7 +623,7 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
     protected void startWorkflow() {
     	
     	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Generating 2D image(s), please wait...<br>Open console window for further info.</html>");
-		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Generating 2D image(s), please wait... Open console window for further info.",
+		CsajDialog_WaitingWithProgressBar dlgProgress = new CsajDialog_WaitingWithProgressBar("Generating 2D image(s), please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 
 		dlgProgress.updatePercent("");

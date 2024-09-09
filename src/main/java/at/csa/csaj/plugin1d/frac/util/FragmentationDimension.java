@@ -34,7 +34,7 @@ import javax.swing.JOptionPane;
 
 import org.scijava.log.LogService;
 
-import at.csa.csaj.commons.Regression_Linear;
+import at.csa.csaj.commons.CsajRegression_Linear;
 
 
 
@@ -241,7 +241,7 @@ public class FragmentationDimension {
 		}
 	
 		// Compute regression
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 
 //		double[] dataXArray = new double[lnDataX.size()];
 //		double[] dataYArray = new double[lnDataY.size()];

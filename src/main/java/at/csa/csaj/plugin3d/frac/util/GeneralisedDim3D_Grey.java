@@ -30,7 +30,7 @@ package at.csa.csaj.plugin3d.frac.util;
 import org.scijava.app.StatusService;
 import org.scijava.plugin.Parameter;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.Interval;
@@ -74,7 +74,7 @@ public class GeneralisedDim3D_Grey implements GeneralisedDim3DMethods{
 	private String scanningType;
 	private String colorModelType;
 	private int pixelPercentage;
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private StatusService statusService;
 	
 
@@ -107,7 +107,7 @@ public class GeneralisedDim3D_Grey implements GeneralisedDim3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public GeneralisedDim3D_Grey(RandomAccessibleInterval<?> rai, int numBoxes, int minQ, int maxQ, String scanningType, String colorModelType, int pixelPercentage, Dialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
+	public GeneralisedDim3D_Grey(RandomAccessibleInterval<?> rai, int numBoxes, int minQ, int maxQ, String scanningType, String colorModelType, int pixelPercentage, CsajDialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
 		this.rai             = rai;
 		this.width           = rai.dimension(0);
 		this.height          = rai.dimension(1);

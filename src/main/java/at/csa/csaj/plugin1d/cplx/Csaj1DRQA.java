@@ -75,10 +75,10 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.cplx.util.Leshao_LimitedQueue;
 import at.csa.csaj.plugin1d.cplx.util.Leshao_RecurrentMatrix;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
@@ -138,13 +138,13 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 	//private static final int  numKMax = 1000;
 	
 	//private static ArrayList<RegressionPlotFrame> doubleLogPlotList = new ArrayList<RegressionPlotFrame>();
-	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = null;
+	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = null;
 	private static float[][] reccurentMatrix;
 	private static Img<UnsignedByteType> imgRecurrentMatrix;
 	
 	private static final String tableOutName = "Table - RQA";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -725,7 +725,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Recurrence quantification analysis, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Recurrence quantification analysis, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -746,7 +746,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Recurrence quantification analysis, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Recurrence quantification analysis, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -941,7 +941,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 		long startTime = System.currentTimeMillis();
 		
 		// Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, c); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 0 RR, 1 DET, 2 Lmean, 3 Lmax
 		if (containerPM != null) logService.info(this.getClass().getName() + " RR: " + containerPM.item1_Values[0]);
 			
@@ -961,7 +961,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -1002,9 +1002,9 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param in sequenceNumber column number of sequence from tableIn.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int sequenceNumber, Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, int sequenceNumber, CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
 		int row = numRow;
@@ -1069,7 +1069,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -1260,7 +1260,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 					double sumLAM   = 0.0;
 					double sumTT    = 0.0;
 					
-					Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();
+					CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
 					String windowingType = "Rectangular";
 					for (int s = 0; s < numSurrogates; s++) {
 						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
@@ -1398,7 +1398,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 			}
 		}
 		
-		return new Container_ProcessMethod(resultValues);
+		return new CsajContainer_ProcessMethod(resultValues);
 		// RR, LMax, Det
 		// Output
 		// uiService.show(tableOutName, table);
@@ -1431,7 +1431,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 			preName += "Col" + String.format("%03d", col) + "-";
 		}
 		boolean isLineVisible = false; // ?
-		Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(dataX, dataY, isLineVisible,
+		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(dataX, dataY, isLineVisible,
 				"Plot - RQA", preName + "-" + tableInName, "Delay k", "<ln(divergence)>", "", numRegStart, numRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
@@ -1466,7 +1466,7 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 		boolean isLineVisible = false; // ?
 		String[] legendLabels = new String[dataY.length];
 		for (int l = 0; l < dataY.length; l++) legendLabels[l] = String.valueOf(l+1);
-		Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(dataX, dataY, isLineVisible,
+		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(dataX, dataY, isLineVisible,
 				"Plot - RQqs", preName + "-" + tableInName, "Delay k", "<ln(divergence)>", legendLabels, numRegStart, numRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
@@ -1533,11 +1533,11 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 	 * @param interpolType          The type of interpolation
 	 * @return RegressionPlotFrame
 	 */
-	private Plot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel,
 			int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
@@ -1572,11 +1572,11 @@ public class Csaj1DRQA<T extends RealType<T>> extends InteractiveCommand impleme
 	 * @param interpolType          The type of interpolation
 	 * @return RegressionPlotFrame
 	 */
-	private Plot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY,
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels,
 			int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabels, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

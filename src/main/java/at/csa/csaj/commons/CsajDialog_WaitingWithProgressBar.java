@@ -55,7 +55,7 @@ import org.scijava.log.LogService;
  *
  */
 
-public class Dialog_WaitingWithProgressBar extends JDialog {
+public class CsajDialog_WaitingWithProgressBar extends JDialog {
 
 	/**
 	 * 
@@ -71,11 +71,11 @@ public class Dialog_WaitingWithProgressBar extends JDialog {
 	static final int MINIMUM = 0;
 	static final int MAXIMUM = 100;
 	
-	public Dialog_WaitingWithProgressBar(String message) {
-		new Dialog_WaitingWithProgressBar(message, null, false, null);
+	public CsajDialog_WaitingWithProgressBar(String message) {
+		new CsajDialog_WaitingWithProgressBar(message, null, false, null);
 	};
 
-	public Dialog_WaitingWithProgressBar(String message, LogService logService, boolean isCancelable, ExecutorService exec) {
+	public CsajDialog_WaitingWithProgressBar(String message, LogService logService, boolean isCancelable, ExecutorService exec) {
 
 		super();
 	
@@ -193,7 +193,7 @@ public class Dialog_WaitingWithProgressBar extends JDialog {
 	
 	 public static void main(String args[]) {
 
-		 final Dialog_WaitingWithProgressBar it = new Dialog_WaitingWithProgressBar("Message", null, false, null);
+		 final CsajDialog_WaitingWithProgressBar it = new CsajDialog_WaitingWithProgressBar("Message", null, false, null);
 
 		 it.setVisible(true);
 

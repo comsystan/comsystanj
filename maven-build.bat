@@ -1,12 +1,11 @@
 echo off
 
 @REM This executes CreateCommandFiles.java to generate ContextCommand files from all the InteractiveCommand Csaj plugins
-call mvn exec:java
-
-echo Part 1/2 finished
-pause
+@REM call mvn exec:java
+@REM echo Part 1/2 finished
+@REM pause
 
 @REM Usuall build
 call mvn clean install
-echo Part 2/2 finished
+@REM echo Part 2/2 finished
 pause

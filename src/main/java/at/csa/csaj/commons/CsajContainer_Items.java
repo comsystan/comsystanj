@@ -27,7 +27,7 @@
  */
 package at.csa.csaj.commons;
 
-public class Container_Items implements Container_Interface{
+public class CsajContainer_Items implements CsajContainer_Interface{
 
 	public double[]   item1_Values;
 	public double[]   item2_Values;
@@ -86,29 +86,29 @@ public class Container_Items implements Container_Interface{
 	}
 
 	
-	public Container_Items() {
+	public CsajContainer_Items() {
 		
 	}
 	
-	public Container_Items( double[] item1_values) {
+	public CsajContainer_Items( double[] item1_values) {
 		this.item1_Values = item1_values;
 	}
 	
-	public Container_Items(double[] item1_values, double[] item2_values) {
+	public CsajContainer_Items(double[] item1_values, double[] item2_values) {
 		this.item1_Values = item1_values;
 		this.item2_Values = item2_values;
 	}
 	
-	public Container_Items(double[][] item1_matrix) {
+	public CsajContainer_Items(double[][] item1_matrix) {
 		this.item1_Matrix = item1_matrix;
 	}
 	
-	public Container_Items(double[][] item1_matrix, double[] item2_values) {
+	public CsajContainer_Items(double[][] item1_matrix, double[] item2_values) {
 		this.item1_Matrix = item1_matrix;
 		this.item2_Values = item2_values;
 	}
 	
-	public Container_Items(double[][] item1_matrix, double[][] item2_matrix, double[] item3_values) {
+	public CsajContainer_Items(double[][] item1_matrix, double[][] item2_matrix, double[] item3_values) {
 		this.item1_Matrix = item1_matrix;
 		this.item2_Matrix = item2_matrix;
 		this.item3_Values = item3_values;

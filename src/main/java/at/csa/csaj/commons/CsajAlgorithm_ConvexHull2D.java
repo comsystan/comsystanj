@@ -40,7 +40,7 @@ import static java.util.Collections.emptyList;
  * Rosetta Code
  * https://rosettacode.org/wiki/Convex_hull
  */
-public class Algorithm_ConvexHull2D {
+public class CsajAlgorithm_ConvexHull2D {
    
     public List<Point> convexHull(List<Point> p) {
         if (p.isEmpty()) return emptyList();

@@ -30,7 +30,7 @@ package at.csa.csaj.plugin1d.cplx.util;
 
 import org.scijava.log.LogService;
 
-import at.csa.csaj.commons.Regression_Linear;
+import at.csa.csaj.commons.CsajRegression_Linear;
 
 /**
  * 
@@ -88,7 +88,7 @@ public class PortaGuzikEhler {
 	public double[] calcIndices(double[] data, int tau) {
 		int dataLength = data.length;
 		double[] dataY = new double[dataLength];
-		Regression_Linear lr;
+		CsajRegression_Linear lr;
 		double[] pgi = new double[3];
 		
 	

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Event_OperatorCancelled.java
+ * File: Container_Interface.java
  * 
  * $Id$
  * $HeadURL$
@@ -27,33 +27,17 @@
  */
 package at.csa.csaj.commons;
 
+public interface CsajContainer_Interface {
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-/**
- * This event is fired by operators during their execution. The
- * <code>StatusPanel</code> implements a standard {@link PropertyChangeListener}
- * for this event and handles the waiting dialog.
- * <p>
- * This event uses "<code>operatorCancelled</code>" as property name and any
- * listener must implement custom actions. The "<code>newValue</code>" object
- * will always be true.
- * 
- * @author Helmut Ahammer
- * 
- */
-
-public class Event_OperatorCancelled extends PropertyChangeEvent{
-
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6740788657837253850L;
-
-
-	public Event_OperatorCancelled(Object source) {
-		super(source, "operatorCancelled", false, true);
-	}
+	void setItem1_Values(double[] item1_values); 
+	void setItem2_Values(double[] item2_values);
+	void setItem3_Values(double[] item3_Values);
+	void setItem1_Matrix(double[][] item1_matrix);
+	void setItem2_Matrix(double[][] item2_Matrix);
+	
+	double[] getItem1_Values();
+	double[] getItem2_Values();
+	double[] getItem3_Values();
+	double[][] getItem1_Matrix();
+	double[][] getItem2_Matrix();
 }

@@ -91,11 +91,11 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_GeneralisedEntropies;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_GeneralisedEntropies;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -164,7 +164,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	private static long compositeChannelCount = 0;
 	private static String imageType = "";
 	private static int  numBoxes = 0;
-	private static ArrayList<Plot_SequenceFrame> genRenyiPlotList = new ArrayList<Plot_SequenceFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame> genRenyiPlotList = new ArrayList<CsajPlot_SequenceFrame>();
 	
 	private static final String tableOutName = "Table - 3D Generalised entropies";
 	
@@ -213,7 +213,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	
 	//double[] resultValues; //Entropy values
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -785,7 +785,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing 3D Generalised entropies, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Generalised entropies, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -935,7 +935,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
 
 		//Compute generalised entropies
-		Container_ProcessMethod containerPM = process(rai);	
+		CsajContainer_ProcessMethod containerPM = process(rai);	
 		//Gen entropies SE H1, H2, H3, .....
 					
 		writeToTable(containerPM);
@@ -995,9 +995,9 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(Container_ProcessMethod containerPM) { 
+	private void writeToTable(CsajContainer_ProcessMethod containerPM) { 
 
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -1022,7 +1022,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
+	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
@@ -1060,7 +1060,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		
 		//probabilities = compProbabilities(rai, lag, probType); //3D rai	grey
 		probabilities = compProbabilities2(rai, lag, probType); //faster  //3D grey	
-		Algorithm_GeneralisedEntropies ge = new Algorithm_GeneralisedEntropies(probabilities);
+		CsajAlgorithm_GeneralisedEntropies ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
 		
 		genEntSE      = ge.compSE();
 		genEntH       = ge.compH();	//H1 H2 H3 
@@ -1127,14 +1127,14 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			axisNameX = "q";
 			axisNameY = "Renyi";
 		
-			Plot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, entList, isLineVisible, "Generalised Renyi entropies", 
+			CsajPlot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, entList, isLineVisible, "Generalised Renyi entropies", 
 					preName + datasetName, axisNameX, axisNameY, "");
 			genRenyiPlotList.add(dimGenPlot);
 		}		
 			
 		logService.info(this.getClass().getName() + " Generalised entropy SE: " + resultValues[0]);
 		
-		return new Container_ProcessMethod(resultValues);
+		return new CsajContainer_ProcessMethod(resultValues);
 		//Output
 		//uiService.show(tableOutName, table);
 		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
@@ -1452,10 +1452,10 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	 * @param numRegEnd
 	 * @return
 	 */
-	private Plot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+	private CsajPlot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
 		// jFreeChart
-		Plot_SequenceFrame pl = new Plot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_SequenceFrame pl = new CsajPlot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
@@ -1555,11 +1555,11 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	 * @param interpolType          The type of interpolation
 	 * @return RegressionPlotFrame
 	 */
-	private Plot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel,String legendLabel,
 			int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

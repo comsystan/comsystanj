@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.cplx;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -103,8 +104,9 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 import io.scif.SCIFIO;
@@ -118,6 +120,7 @@ import io.scif.config.SCIFIOConfig;
  * of an image.
  */
 @Plugin(type = ContextCommand.class,
+	headless = true,
 	label = "KC and LD",
 	initializer = "initialPluginLaunch",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
@@ -152,10 +155,8 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	private static File kolmogorovComplexityDir;
 	private static double durationReference  = Double.NaN;
 	private static double megabytesReference = Double.NaN;
-	
-    private static final String tableOutName = "Table - KC and LD";
 		
-    private Dialog_WaitingWithProgressBar dlgProgress;
+    private CsajDialog_WaitingWithProgressBar dlgProgress;
     private ExecutorService exec;
     
 	@Parameter
@@ -196,10 +197,15 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
     //Input dataset which is updated in callback functions
   	@Parameter (type = ItemIO.INPUT)
   	private Dataset datasetIn;
-
 	
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+  	@Parameter(type = ItemIO.OUTPUT)
+	private String tableOutName = "Table - KC and LD";
+	
+  	@Parameter(type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
+	
+	@Parameter
+	private boolean processAll;
 
 	
    //Widget elements------------------------------------------------------
@@ -448,8 +454,21 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 			}
 		}
 		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllImages();
+			//Get input meta data
+			HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
+			if (processAll) startWorkflowForAllImages();
+			else            startWorkflowForSingleImage();
 		}
+		logService.info(this.getClass().getName() + " Run finished");
 	}
 		
 	public void checkItemIOIn() {
@@ -529,7 +548,7 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	 */
 	protected void startWorkflowForSingleImage() {
 			
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Kolmogorov complexity, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Kolmogorov complexity, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -553,7 +572,7 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	 */
 	protected void startWorkflowForAllImages() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Kolmogorov complexities, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Kolmogorov complexities, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 	
@@ -660,7 +679,7 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 		}
 
 		//Compute regression parameters
-		Container_ProcessMethod containerPM = process(rai, s);	
+		CsajContainer_ProcessMethod containerPM = process(rai, s);	
 		//0 Image size, 1 KC, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 	
 		writeToTable(0, s, containerPM); //write always to the first row
@@ -699,7 +718,7 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
 
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		//loop over all slices of stack
 		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
 			//if (!exec.isShutdown()) {
@@ -795,9 +814,9 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param int numSlice sclice number of images from datasetIn.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int numSlice, Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) {
 
 		String compressionType = choiceRadioButt_Compression;
 		int numIterations      = spinnerInteger_NumIterations;
@@ -822,7 +841,7 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	/** 
 	 * Processing 
 	 * */
-	private Container_ProcessMethod process(RandomAccessibleInterval<T> rai, int plane) { //plane plane (Image) number
+	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<T> rai, int plane) { //plane plane (Image) number
 		
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
@@ -1029,7 +1048,7 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 			deleteTempDirectory();
 		}
 		
-		return new Container_ProcessMethod(resultValues);
+		return new CsajContainer_ProcessMethod(resultValues);
 	}
 	//*******************************************************************************************************************
 	/**

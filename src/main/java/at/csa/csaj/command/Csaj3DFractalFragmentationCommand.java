@@ -91,13 +91,13 @@ import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.Cpol_GeoPoint;
 import at.csa.csaj.commons.Cpol_GeoPolygon;
 import at.csa.csaj.commons.Cpol_GeoPolygonProc;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.QuickHull3D;
 import at.csa.csaj.commons.QuickHull3D_Point3d;
-import at.csa.csaj.commons.Regression_Linear;
-import at.csa.csaj.commons.Container_Items;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajContainer_Items;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin3d.frac.util.BoxCounting3DMethods;
 import at.csa.csaj.plugin3d.frac.util.BoxCounting3D_Grey;
 import at.csa.csaj.plugin3d.frac.util.GeneralisedDim3DMethods;
@@ -153,11 +153,11 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 	private static long compositeChannelCount = 0;
 	private static String imageType = "";
 	private static int  numBoxes = 0;
-	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = new ArrayList<Plot_RegressionFrame>();
+	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
 	private static final String tableOutName = "Table - 3D FFI & FFDI";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -627,7 +627,7 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing 3D fractal fragmentation indices, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D fractal fragmentation indices, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -776,7 +776,7 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 		rai =  (RandomAccessibleInterval<T>) datasetIn.copy().getImgPlus(); //dim==3
 
 		// Compute regression parameters
-		Container_ProcessMethod containerPM = process(rai); //rai is 3D
+		CsajContainer_ProcessMethod containerPM = process(rai); //rai is 3D
 		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
 		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
 		//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
@@ -906,7 +906,7 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 		
 		// Compute regression parameters
 		logService.info(this.getClass().getName() + " Processing of convex hull volume.....");
-		Container_ProcessMethod containerPMCH = process(rai); //rai is 3D
+		CsajContainer_ProcessMethod containerPMCH = process(rai); //rai is 3D
 		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
 		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
 		//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
@@ -920,7 +920,7 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 			resultValues[15+i] = containerPMCH.item1_Values[i]; //Convex hull
 		}
 		
-		Container_Items containerItems = new Container_Items(resultValues, containerPM.item2_Values);
+		CsajContainer_Items containerItems = new CsajContainer_Items(resultValues, containerPM.item2_Values);
 		writeToTable(containerItems); //write always to the first row
 		
 		//Set/Reset focus to DatasetIn display
@@ -1000,9 +1000,9 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param Container_Items containerItems
+	 * @param CsajContainer_Items containerItems
 	 */
-	private void writeToTable(Container_Items containerItems) { 
+	private void writeToTable(CsajContainer_Items containerItems) { 
 
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
@@ -1044,7 +1044,7 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
+	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
 		logService.info(this.getClass().getName() + " Processing of volume started");
 		if (rai == null) {
@@ -1237,7 +1237,7 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 			legendLabels[1] = "D Mass";
 			legendLabels[2] = "D Boundary";
 			
-			Plot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - fractal fragmentation indices", 
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - fractal fragmentation indices", 
 					preName + datasetName, xAxisLabel, yAxisLabel, legendLabels,
 					numRegStart, numRegEnd);
 			doubleLogPlotList.add(doubleLogPlot);
@@ -1245,11 +1245,11 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 				
 		// Compute regressions
 		logService.info(this.getClass().getName() + " Computing of regressions.....");
-		Regression_Linear lr = new Regression_Linear();
+		CsajRegression_Linear lr = new CsajRegression_Linear();
 		double[] regressionParamsD1 = lr.calculateParameters(lnDataX, lnDataY[0], numRegStart, numRegEnd);
-		lr = new Regression_Linear();
+		lr = new CsajRegression_Linear();
 		double[] regressionParamsMass = lr.calculateParameters(lnDataX, lnDataY[1], numRegStart, numRegEnd);
-		lr = new Regression_Linear();
+		lr = new CsajRegression_Linear();
 		double[] regressionParamsPerim = lr.calculateParameters(lnDataX, lnDataY[2], numRegStart, numRegEnd);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		
@@ -1280,7 +1280,7 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 		epsRegStartEnd[0] = eps[numRegStart-1];
 		epsRegStartEnd[1] = eps[numRegEnd-1];
 	
-		return new Container_ProcessMethod(resultValues, epsRegStartEnd);
+		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
 		//Output
 		//uiService.show(tableOutName, table);
 		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
@@ -1308,10 +1308,10 @@ public class Csaj3DFractalFragmentationCommand<T extends RealType<T>> extends Co
 	 * @param interpolType The type of interpolation
 	 * @return RegressionPlotFrame
 	 */			
-	private Plot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabels, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

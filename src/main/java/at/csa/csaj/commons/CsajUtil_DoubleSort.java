@@ -28,7 +28,7 @@
 package at.csa.csaj.commons;
 
 
-public class Util_DoubleSort {
+public class CsajUtil_DoubleSort {
 	
 	int[]    indices;
 	double[] doubles;
@@ -39,7 +39,7 @@ public class Util_DoubleSort {
 	 * Constructor
 	 * @Param double[]
 	 */
-	public Util_DoubleSort(double[] ds) {
+	public CsajUtil_DoubleSort(double[] ds) {
 		int N = ds.length;
 		doubles = ds;
 		indices = new int[N];

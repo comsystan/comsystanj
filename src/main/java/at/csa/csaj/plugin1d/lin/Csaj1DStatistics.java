@@ -67,10 +67,10 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.command.Csaj1DOpenerCommand;
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 
 /**
  * A {@link InteractiveCommand} plugin computing <Statistics</a>
@@ -123,11 +123,11 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private static int  numBoxLength = 0;
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
-	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = new ArrayList<Plot_RegressionFrame>();
+	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 
 	private static final String tableOutName = "Table - Sequence statistics";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -471,7 +471,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing sequence statistics, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing sequence statistics, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -492,7 +492,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing sequence statistics, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing sequence statistics, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequences(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -637,7 +637,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 		long startTime = System.currentTimeMillis();
 		
 		//Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, c); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
 		logService.info(this.getClass().getName() + " Mean: " + containerPM.item1_Values[5]);
 		logService.info(this.getClass().getName() + " Processing finished.");
@@ -656,7 +656,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence columns
 			//if (!exec.isShutdown()) {
@@ -697,9 +697,9 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param in sequenceNumber column number of sequence from tableIn.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int sequenceNumber, Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, int sequenceNumber, CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		int row = numRow;
 		int tableColStart = 0;
@@ -757,7 +757,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -846,7 +846,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 				double sumMedians   = 0.0;
 				double sumMeans    = 0.0;
 				double sumSDs = 0.0;
-				Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
 				String windowingType = "Rectangular";
 				for (int s = 0; s < numSurrogates; s++) {
 					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
@@ -939,7 +939,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 			}
 		}
 	 	
-		return new Container_ProcessMethod(resultValues);
+		return new CsajContainer_ProcessMethod(resultValues);
 		// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
 		// Output
 		// uiService.show(tableOutName, table);

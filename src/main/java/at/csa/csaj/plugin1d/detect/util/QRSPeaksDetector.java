@@ -47,7 +47,7 @@ import javax.swing.SwingWorker;
 import org.scijava.app.StatusService;
 import org.scijava.log.LogService;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_BeatDetectionAndClassification.BeatDetectAndClassifyResult;
 
 /**
@@ -66,7 +66,7 @@ public class QRSPeaksDetector extends SwingWorker<Boolean, Void> {
 	/**
 	 * 
 	 */
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private LogService logService;
 	private StatusService statusService;
 	
@@ -108,7 +108,7 @@ public class QRSPeaksDetector extends SwingWorker<Boolean, Void> {
 	String stringTable = null;
 	
 	
-	public QRSPeaksDetector(Dialog_WaitingWithProgressBar dlgProgress, LogService logService, StatusService statusService, File[] files, int offset, int sampleRate, String oseaMethod, String outputOption, boolean saveFile) {
+	public QRSPeaksDetector(CsajDialog_WaitingWithProgressBar dlgProgress, LogService logService, StatusService statusService, File[] files, int offset, int sampleRate, String oseaMethod, String outputOption, boolean saveFile) {
 		this.dlgProgress = dlgProgress;
 		this.logService = logService;
 		this.statusService = statusService;

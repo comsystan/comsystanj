@@ -65,10 +65,10 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 
@@ -122,7 +122,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 	private static final int numTableOutPreCols = 1; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
 	private static final String tableOutName = "Table - Resampled";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -527,7 +527,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Resampling, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Resampling, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -548,7 +548,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 	*/
 	protected void startWorkflowForAllColumns() {
 				
-		dlgProgress = new Dialog_WaitingWithProgressBar("Resampling, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Resampling, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -654,7 +654,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 		long startTime = System.currentTimeMillis();
 		
 		// Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, s); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, s); 
 		// 0 Entropy
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(s, containerPM);
@@ -675,7 +675,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 					cols[c-numTableOutPreCols] = c; //- because of first text columns	
 					seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
 				}
-				Plot_SequenceFrame pdf = new Plot_SequenceFrame(tableOut, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 				pdf.setVisible(true);
 			}
 		//}
@@ -708,7 +708,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -749,7 +749,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
 				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//-because of first text columns				
 			}
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(tableOut, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		//}
 			
@@ -764,9 +764,9 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 	 * collects current result and writes to table
 	 * 
 	 * @param int column number of active sequence.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int sequenceNumber,  Container_ProcessMethod containerPM) {
+	private void writeToTable(int sequenceNumber,  CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
 		if (containerPM == null) {
@@ -807,7 +807,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -941,7 +941,7 @@ public class Csaj1DResamplingCommand<T extends RealType<T>> extends ContextComma
 		
 		//}
 		
-		return new Container_ProcessMethod(sequenceOut);
+		return new CsajContainer_ProcessMethod(sequenceOut);
 		// 
 		// Output
 		// uiService.show(tableOutName, table);

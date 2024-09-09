@@ -49,10 +49,8 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
@@ -60,8 +58,6 @@ import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 /**
  * This is an ImageJ {@link InteractiveCommand} plugin to generate single or multiple sequences.
@@ -116,7 +112,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends InteractiveCommand i
     @Parameter
     private IOService ioService;
     
-    Dialog_WaitingWithProgressBar dlgProgress; 
+    CsajDialog_WaitingWithProgressBar dlgProgress; 
     private ExecutorService exec;
     private double[] sequenceCantor;
     
@@ -418,7 +414,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends InteractiveCommand i
 		long startTimeAll = System.currentTimeMillis();
 	
 		//dlgProgress = new Dialog_WaitingWithProgressBar("<html>Sequence generation, please wait...<br>Open console window for further info.</html>");
-		dlgProgress = new Dialog_WaitingWithProgressBar("Sequence generation, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Sequence generation, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 	
 		//dlgProgress.updatePercent("0%");
@@ -495,7 +491,7 @@ public class Csaj1DGenerator<T extends RealType<T>> extends InteractiveCommand i
 			};
 			
 		
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(defaultGenericTable, cols, isLineVisible, "Sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			pdf.setVisible(true);
 		}
 		

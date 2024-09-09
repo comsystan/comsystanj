@@ -29,7 +29,7 @@ package at.csa.csaj.plugin3d.frac.util;
 
 import org.scijava.app.StatusService;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -57,7 +57,7 @@ public class CorrelationDim3D_Grey implements CorrelationDim3DMethods{
 	private String scanningType;
 	private String colorModelType;
 	private int pixelPercentage;
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private StatusService statusService;
 	
 	@Override
@@ -86,7 +86,7 @@ public class CorrelationDim3D_Grey implements CorrelationDim3DMethods{
 	 * 
 	 * @param operator the {@link AbstractOperator} firing progress updates
 	 */
-	public CorrelationDim3D_Grey(RandomAccessibleInterval<?> rai, int numBoxes, String scanningType, String colorModelType, int pixelPercentage, Dialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
+	public CorrelationDim3D_Grey(RandomAccessibleInterval<?> rai, int numBoxes, String scanningType, String colorModelType, int pixelPercentage, CsajDialog_WaitingWithProgressBar dlgProgress, StatusService statusService) {
 		this.rai             = rai;
 		this.width           = rai.dimension(0);
 		this.height          = rai.dimension(1);

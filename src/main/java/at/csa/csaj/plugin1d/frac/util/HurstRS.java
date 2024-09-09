@@ -37,7 +37,7 @@ import org.apache.commons.math3.fitting.WeightedObservedPoints;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 
-import at.csa.csaj.commons.Util_GenerateInterval;
+import at.csa.csaj.commons.CsajUtil_GenerateInterval;
 
 
 /**

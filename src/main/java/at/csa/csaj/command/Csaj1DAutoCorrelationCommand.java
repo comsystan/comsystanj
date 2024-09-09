@@ -71,10 +71,10 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Algorithm_Surrogate1D;
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.command.Csaj1DOpenerCommand;
 
 
@@ -127,7 +127,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	private static final int numTableOutPreCols = 2; //Number of text columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
 	private static final String tableOutName = "Table - Autocorrelation";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	
@@ -558,7 +558,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	*/
 	protected void startWorkflowForSingleColumn() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Autocorrelation, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Autocorrelation, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -579,7 +579,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Autocorrelation, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Autocorrelation, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -684,7 +684,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 		long startTime = System.currentTimeMillis();
 		
 		// Compute result values
-		Container_ProcessMethod containerPM = process(tableIn, s); 
+		CsajContainer_ProcessMethod containerPM = process(tableIn, s); 
 		// 0 Entropy
 		logService.info(this.getClass().getName() + " resultValues[0]: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
@@ -706,7 +706,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 					cols[c-numTableOutPreCols] = c; //- because of first text columns	
 					seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first text columns					
 				}
-				Plot_SequenceFrame pdf = new Plot_SequenceFrame(tableOut, cols, isLineVisible, "Autocorrelation sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Autocorrelation sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 				Point pos = pdf.getLocation();
 				pos.x = (int) (pos.getX() - 100);
 				pos.y = (int) (pos.getY() + 100);
@@ -743,7 +743,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 		
 		long startTimeAll = System.currentTimeMillis();
 		
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
@@ -784,7 +784,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 				cols[c-numTableOutPreCols] = c;  //- because of first text columns	
 				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//- because of first text columns				
 			}
-			Plot_SequenceFrame pdf = new Plot_SequenceFrame(tableOut, cols, isLineVisible, "Autocorrelation sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Autocorrelation sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -803,9 +803,9 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	 * collects current result and writes to table
 	 * 
 	 * @param int column number of active sequence.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int sequenceNumber,  Container_ProcessMethod containerPM) {
+	private void writeToTable(int sequenceNumber,  CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
 		
 		if (containerPM == null) {
@@ -845,7 +845,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	*
 	* Processing
 	*/
-	private Container_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -912,7 +912,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 		if (sequenceRange.equals("Entire sequence")){	//only this option is possible for autocorrelation
 			
 			if (!surrType.equals("No surrogates")) {
-				Algorithm_Surrogate1D surrogate1D = new Algorithm_Surrogate1D();	
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();	
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"},
 				String windowingType = "Rectangular";
 				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
@@ -1060,7 +1060,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 		
 		}
 		
-		return new Container_ProcessMethod(sequenceAuCorr);
+		return new CsajContainer_ProcessMethod(sequenceAuCorr);
 		// 
 		// Output
 		// uiService.show(tableOutName, table);

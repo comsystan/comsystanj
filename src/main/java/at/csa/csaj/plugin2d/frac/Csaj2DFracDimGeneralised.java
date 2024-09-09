@@ -92,11 +92,11 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Plot_RegressionFrame;
-import at.csa.csaj.commons.Plot_SequenceFrame;
-import at.csa.csaj.commons.Regression_Linear;
-import at.csa.csaj.commons.Container_ProcessMethod;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
@@ -153,13 +153,13 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
 	private static int  numBoxes = 0;
-	private static ArrayList<Plot_RegressionFrame> doubleLogPlotList = new ArrayList<Plot_RegressionFrame>();
-	private static ArrayList<Plot_SequenceFrame> genDimPlotList        = new ArrayList<Plot_SequenceFrame>();
-	private static ArrayList<Plot_SequenceFrame> fSpecPlotList         = new ArrayList<Plot_SequenceFrame>();
+	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame> genDimPlotList        = new ArrayList<CsajPlot_SequenceFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame> fSpecPlotList         = new ArrayList<CsajPlot_SequenceFrame>();
 		
 	private static final String tableOutName = "Table - Generalised dimensions";
 	
-	private Dialog_WaitingWithProgressBar dlgProgress;
+	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
 	@Parameter
@@ -693,7 +693,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 	*/
 	protected void startWorkflowForSingleImage() {
 		
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Generalised dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised dimensions, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -716,7 +716,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 	*/
 	protected void startWorkflowForAllImages() {
 	
-		dlgProgress = new Dialog_WaitingWithProgressBar("Computing Generalised dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised dimensions, please wait... Open console window for further info.",
 						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 	
@@ -864,7 +864,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 		}
 
 		//Compute regression parameters
-		Container_ProcessMethod containerPM = process(rai, s);	
+		CsajContainer_ProcessMethod containerPM = process(rai, s);	
 		//0 Intercept, 1 D, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		
 		writeToTable(0, s, containerPM); //write always to the first row
@@ -904,7 +904,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
 
-		Container_ProcessMethod containerPM;
+		CsajContainer_ProcessMethod containerPM;
 		//loop over all slices of stack
 		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
 			//if (!exec.isShutdown()) {
@@ -1009,9 +1009,9 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param int numSlice sclice number of images from datasetIn.
-	 * @param Container_ProcessMethod containerPM
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int numSlice, Container_ProcessMethod containerPM) {
+	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) {
 	
 		int numBoxes          = spinnerInteger_NumBoxes;
 		int numRegStart       = spinnerInteger_NumRegStart;
@@ -1048,7 +1048,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 	 * Processing ****************************************************************************************
 	 * 
 	 * */
-	private Container_ProcessMethod process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
+	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
@@ -1382,7 +1382,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 			for (int q = 0; q < numQ; q++) {
 				legendLabels[q] = "q=" + (q + minQ); 
 			}
-			Plot_RegressionFrame doubleLogPlot = DisplayMultipleRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Generalised dimensions", 
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayMultipleRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Generalised dimensions", 
 					preName + datasetName, axisNameX, axisNameY, legendLabels,
 					numRegStart, numRegEnd);
 			doubleLogPlotList.add(doubleLogPlot);
@@ -1390,7 +1390,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 		
 		// Compute regressions
 		for (int q = 0; q < numQ; q++) {
-			Regression_Linear lr = new Regression_Linear();
+			CsajRegression_Linear lr = new CsajRegression_Linear();
 			regressionParams[q] = lr.calculateParameters(lnDataX, lnDataY[q], numRegStart, numRegEnd);
 			//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 		}
@@ -1415,7 +1415,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 			axisNameX = "q";
 			axisNameY = "Dq";
 		
-			Plot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, genDimList, isLineVisible, "Generalised dimensions", 
+			CsajPlot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, genDimList, isLineVisible, "Generalised dimensions", 
 					preName + datasetName, axisNameX, axisNameY, "");
 			genDimPlotList.add(dimGenPlot);
 		}
@@ -1445,7 +1445,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 			for (int q = 0; q < numQ; q++) {
 				fSpec[q] = qList[q]*alphas[q] - ((qList[q]-1)*genDimList[q]);
 			}
-			Plot_SequenceFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
+			CsajPlot_SequenceFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
 					preName + datasetName, axisNameX, axisNameY, "");
 			fSpecPlotList.add(fSpecPlot);
 		}
@@ -1466,7 +1466,7 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 		epsRegStartEnd[0] = eps[numRegStart-1];
 		epsRegStartEnd[1] = eps[numRegEnd-1];
 		
-		return new Container_ProcessMethod(resultValues, epsRegStartEnd);
+		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
 		//Output
 		//uiService.show(tableOutName, table);
 		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
@@ -1542,10 +1542,10 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 	 * @param interpolType The type of interpolation
 	 * @return RegressionPlotFrame
 	 */			
-	private Plot_RegressionFrame DisplayMultipleRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
+	private CsajPlot_RegressionFrame DisplayMultipleRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
 		// jFreeChart
-		Plot_RegressionFrame pl = new Plot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabels, numRegStart, numRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
@@ -1573,10 +1573,10 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 	 * @param numRegEnd
 	 * @return
 	 */
-	private Plot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+	private CsajPlot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
 		// jFreeChart
-		Plot_SequenceFrame pl = new Plot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+		CsajPlot_SequenceFrame pl = new CsajPlot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();

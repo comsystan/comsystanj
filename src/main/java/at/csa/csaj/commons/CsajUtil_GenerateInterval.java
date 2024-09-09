@@ -34,7 +34,7 @@ import java.util.List;
  * This class is a helper class to construct vectors of interval values
  */
 
-public class Util_GenerateInterval {
+public class CsajUtil_GenerateInterval {
 	
 	/*
 	 * This method generates logarithmically distributed values in between an interval

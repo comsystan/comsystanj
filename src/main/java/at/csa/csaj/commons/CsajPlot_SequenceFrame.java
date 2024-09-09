@@ -51,7 +51,7 @@ import org.scijava.table.DefaultGenericTable;
  * 
  * @author 2021 Helmut Ahammer,
  */
-public class Plot_SequenceFrame extends Plot_CSAJFrame {
+public class CsajPlot_SequenceFrame extends CsajPlot_Frame {
 	
 	/**
 	 * 
@@ -64,11 +64,11 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * single data series.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
+	public CsajPlot_SequenceFrame(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xLabel, String yLabel) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(defaultGenericTable, col,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(defaultGenericTable, col,
 				isLineVisible, imageTitle, xLabel, yLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
@@ -87,12 +87,12 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(DefaultGenericTable defaultGenericTable, int[] cols,
+	public CsajPlot_SequenceFrame(DefaultGenericTable defaultGenericTable, int[] cols,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] seriesLabels) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(defaultGenericTable, cols,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(defaultGenericTable, cols,
 				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
@@ -111,11 +111,11 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * single data series.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
+	public CsajPlot_SequenceFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xLabel, String yLabel) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(dataX, defaultGenericTable, col,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(dataX, defaultGenericTable, col,
 				isLineVisible, imageTitle, xLabel, yLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
@@ -134,12 +134,12 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols,
+	public CsajPlot_SequenceFrame(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] seriesLabels) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(dataX, defaultGenericTable, cols,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(dataX, defaultGenericTable, cols,
 				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
@@ -158,12 +158,12 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(double dataX[], double[] dataY,
+	public CsajPlot_SequenceFrame(double dataX[], double[] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String legendLabel) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(dataX, dataY,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(dataX, dataY,
 				isLineVisible, imageTitle, xLabel, yLabel, legendLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
@@ -182,12 +182,12 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(double dataX[], double[][] dataY,
+	public CsajPlot_SequenceFrame(double dataX[], double[][] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] seriesLabels) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(dataX, dataY,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(dataX, dataY,
 				isLineVisible, imageTitle, xLabel, yLabel, seriesLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
@@ -206,12 +206,12 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(double dataX[], double[] dataY,  double[] dataX2, double[] dataY2,
+	public CsajPlot_SequenceFrame(double dataX[], double[] dataY,  double[] dataX2, double[] dataY2,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
 				isLineVisible, imageTitle, xLabel, yLabel, dataLegendLabel,  data2LegendLabel);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);
@@ -230,12 +230,12 @@ public class Plot_SequenceFrame extends Plot_CSAJFrame {
 	 * of various lengths in a single plot.
 	 */
 	@SuppressWarnings("rawtypes")
-	public Plot_SequenceFrame(double dataX[], double[][] dataY,  double[] dataX2, double[][] dataY2,
+	public CsajPlot_SequenceFrame(double dataX[], double[][] dataY,  double[] dataX2, double[][] dataY2,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
 		super(frameTitle);
 
-		Plot_DefaultXYLineChart chartPanel = new Plot_DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
+		CsajPlot_DefaultXYLineChart chartPanel = new CsajPlot_DefaultXYLineChart(dataX, dataY, dataX2, dataY2,
 				isLineVisible, imageTitle, xLabel, yLabel, dataLegendLabels, data2LegendLabels);
 
 		this.getContentPane().add(chartPanel, BorderLayout.CENTER);

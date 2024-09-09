@@ -34,10 +34,6 @@ import java.awt.Toolkit;
 
 import javax.swing.WindowConstants;
 
-/*
- 
-import java.util.Vector;
-
 /**
  * This method shows XY Data in an extra window. This class uses JFreeChart: a
  * free chart library for the Java(tm) platform http://www.jfree.org/jfreechart/
@@ -45,19 +41,19 @@ import java.util.Vector;
  * @author Helmut Ahammer
  */
 @SuppressWarnings("rawtypes")
-public class Plot_RegressionFrame extends Plot_CSAJFrame {
+public class CsajPlot_RegressionFrame extends CsajPlot_Frame {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -1736340059325958928L;
 
-	public Plot_RegressionFrame(double[] dataX, double[] dataY,
+	public CsajPlot_RegressionFrame(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String legendLabel, int numRegStart, int numRegEnd) {
 		super(frameTitle);
 
-		Plot_Regression rp = new Plot_Regression(dataX, dataY, isLineVisible,
+		CsajPlot_Regression rp = new CsajPlot_Regression(dataX, dataY, isLineVisible,
 				frameTitle, imageTitle, xLabel, yLabel, legendLabel, numRegStart, numRegEnd);
 
 		this.setContentPane(rp);
@@ -72,12 +68,12 @@ public class Plot_RegressionFrame extends Plot_CSAJFrame {
 	    this.setLocation(x, y);	
 	}
 
-	public Plot_RegressionFrame(double[] dataX, double[][] dataY,
+	public CsajPlot_RegressionFrame(double[] dataX, double[][] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
 			String xLabel, String yLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
 		super(frameTitle);
 
-		Plot_Regression rp = new Plot_Regression(dataX, dataY, isLineVisible,
+		CsajPlot_Regression rp = new CsajPlot_Regression(dataX, dataY, isLineVisible,
 				frameTitle, imageTitle, xLabel, yLabel, legendLabels, numRegStart, numRegEnd);
 
 		this.setContentPane(rp);

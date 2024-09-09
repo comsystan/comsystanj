@@ -53,8 +53,8 @@ import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.ui.UIService;
 
-import at.csa.csaj.commons.Dialog_WaitingWithProgressBar;
-import at.csa.csaj.commons.Image_PreviewPanel;
+import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajImage_PreviewPanel;
 
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
@@ -178,7 +178,7 @@ public class Csaj3DOpener<T extends RealType<T>> extends InteractiveCommand {
 	protected void startWorkflow()  {
     	
     	//Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("<html>Computing 3D fractal, please wait...<br>Open console window for further info.</html>");
-		Dialog_WaitingWithProgressBar dlgProgress = new Dialog_WaitingWithProgressBar("Opening image volume, please wait... Open console window for further info.",
+		CsajDialog_WaitingWithProgressBar dlgProgress = new CsajDialog_WaitingWithProgressBar("Opening image volume, please wait... Open console window for further info.",
 		                                                                             logService, false, null); //isCanceable = false, because no following method listens to exec.shutdown 
 
 		dlgProgress.updatePercent("");
@@ -201,7 +201,7 @@ public class Csaj3DOpener<T extends RealType<T>> extends InteractiveCommand {
 		// Add thumbnail preview
 		// Thanks to Jakob Hatzl, FH Joanneum Graz for this link:
 		// http://www.javalobby.org/java/forums/t49462.html
-		Image_PreviewPanel preview = new Image_PreviewPanel();
+		CsajImage_PreviewPanel preview = new CsajImage_PreviewPanel();
 		fc.setAccessory(preview);
 		fc.addPropertyChangeListener(preview);
 		
