@@ -66,8 +66,7 @@ public class CsajCheck_ItemIn {
 		HashMap<String, Object> info = new HashMap<>();	
 		//datasetIn = imageDisplayService.getActiveDataset();
 		if (datasetIn == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Input image = null");
-			//cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image");
 			return null;
 		}
 	
@@ -75,8 +74,7 @@ public class CsajCheck_ItemIn {
 	         (datasetIn.firstElement() instanceof FloatType) ){
 			//That is OK, proceed
 		} else {	
-			logService.warn(MethodHandles.lookup().lookupClass().getName() + " WARNING: Data type is not Byte or Float");
-			//cancel("ComsystanJ 2D plugin cannot be started - data type is not Byte or Float.");
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Data type is not byte or float");
 			return null;
 		}
 		

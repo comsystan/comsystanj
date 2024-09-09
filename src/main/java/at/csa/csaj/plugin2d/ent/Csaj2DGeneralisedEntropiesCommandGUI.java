@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.cplx;
+package at.csa.csaj.plugin2d.ent;
 
 
 import java.io.File;
@@ -52,17 +52,17 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "KC and LD",
+label = "Generalised entropies",
 initializer = "initialPluginLaunch",
 iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 menu = {
 @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
-@Menu(label = "Complexity analyses", weight = 4),
-@Menu(label = "Kolmogorov complexity and LD(NewDialog)")})
+@Menu(label = "Entropy analyses", weight = 5),
+@Menu(label = "Generalised entropies(New dialog)")})
 
-public class Csaj2DKolmogorovComplexityCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DGeneralisedEntropiesCommandGUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -70,7 +70,7 @@ public class Csaj2DKolmogorovComplexityCommandGUI extends ContextCommand impleme
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DKolmogorovComplexityDialog dialog = null;
+	private Csaj2DGeneralisedEntropiesDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -103,7 +103,7 @@ public class Csaj2DKolmogorovComplexityCommandGUI extends ContextCommand impleme
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DKolmogorovComplexityDialog(context(), datasetIn);
+						dialog = new Csaj2DGeneralisedEntropiesDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

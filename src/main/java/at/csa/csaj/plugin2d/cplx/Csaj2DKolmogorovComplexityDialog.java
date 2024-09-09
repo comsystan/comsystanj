@@ -86,7 +86,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	 * public boolean   booleanOverwriteDisplays;
 	 * 
 	 * public JCheckBox checkBoxProcessImmediately;
-	 * public boolean	  booleanProcessImmediately;
+	 * public boolean	booleanProcessImmediately;
 	 * 
 	 * public JSpinner spinnerNumImageSlice;
 	 * public int      spinnerInteger_NumImageSlice;
@@ -100,20 +100,14 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	 * Create the dialog.
 	 */
 	public Csaj2DKolmogorovComplexityDialog(Context context, Dataset datasetIn) {
-		
+			
 		super(context, datasetIn);
-		
+			
 		//This dialog has no context (@Parameter) possibility
 		//Context must be imported from caller class (ContextCommand)
 		//context.inject(this); //Important but already injected in super class
 		this.datasetIn = datasetIn;
-		
-		//RGB not allowed
-		if (!imageType.equals("Grey")) { 
-			logService.warn(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
-			//cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-		}
-		
+			
 		//Title of plugin
 		//Overwrite
 		setTitle("2D KC and LD");
