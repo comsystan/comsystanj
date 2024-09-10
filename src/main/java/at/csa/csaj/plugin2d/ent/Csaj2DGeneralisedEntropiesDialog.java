@@ -56,7 +56,6 @@ import at.csa.csaj.commons.CsajDialog_2DPlugin;
  */
 public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 
-	
 	private static final long serialVersionUID = -2493569616738191269L;
 
 	@Parameter
@@ -211,13 +210,13 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    spinnerInteger_Lag = (int)spinnerLag.getValue();
 	    //*****************************************************************************************
 	    JLabel labelMinQ = new JLabel("Min q");
-	    labelMinQ.setToolTipText("Minimum q for Renyi,Tsallis, SNorm and SEscort entropies");
+	    labelMinQ.setToolTipText("Minimum q for Renyi, Tsallis, SNorm and SEscort entropies");
 	    labelMinQ.setHorizontalAlignment(JLabel.RIGHT);
 	    labelMinQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMinQ = new SpinnerNumberModel(-5, -1000, 1000, 1); // initial, min, max, step
         spinnerMinQ = new JSpinner(spinnerModelMinQ);
-        spinnerMinQ.setToolTipText("Minimum q for Renyi,Tsallis, SNorm and SEscort entropies");
+        spinnerMinQ.setToolTipText("Minimum q for Renyi, Tsallis, SNorm and SEscort entropies");
         spinnerMinQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMinQ.addChangeListener(new ChangeListener() {
         	@Override
@@ -240,13 +239,13 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    spinnerInteger_MinQ = (int)spinnerMinQ.getValue();    
 	    //*****************************************************************************************
 	    JLabel labelMaxQ = new JLabel("Max q");
-	    labelMaxQ.setToolTipText("Maximum q for Renyi,Tsallis, SNorm and SEscort entropies");
+	    labelMaxQ.setToolTipText("Maximum q for Renyi, Tsallis, SNorm and SEscort entropies");
 	    labelMaxQ.setHorizontalAlignment(JLabel.RIGHT);
 	    labelMaxQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMaxQ = new SpinnerNumberModel(5, -1000, 1000, 1); // initial, min, max, step
         spinnerMaxQ = new JSpinner(spinnerModelMaxQ);
-        spinnerMaxQ.setToolTipText("Maximum q for Renyi,Tsallis, SNorm and SEscort entropies");
+        spinnerMaxQ.setToolTipText("Maximum q for Renyi, Tsallis, SNorm and SEscort entropies");
         spinnerMaxQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMaxQ.addChangeListener(new ChangeListener() {
         	@Override
@@ -585,6 +584,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	
 	    //initialize command variable
 	    booleanShowRenyiPlot = checkBoxShowRenyiPlot.isSelected();	 
+	    
+	    //*****************************************************************************************
+		//Change items defined in the super class(es)
+		
 	    //*****************************************************************************************
 	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
 	    //*****************************************************************************************
@@ -597,8 +600,8 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
 		Future<CommandModule> future = commandService.run(Csaj2DGeneralisedEntropiesCommand.class, false,
-														"datasetIn",                    datasetIn, //is not automatically harvested in headless mode
-														"processAll",					processAll, //true for all
+														"datasetIn",                        datasetIn,  //is not automatically harvested in headless mode
+														"processAll",					    processAll, //true for all
 														
 														"choiceRadioButt_ProbabilityType",	choiceRadioButt_ProbabilityType,
 														"spinnerInteger_Lag",				spinnerInteger_Lag,

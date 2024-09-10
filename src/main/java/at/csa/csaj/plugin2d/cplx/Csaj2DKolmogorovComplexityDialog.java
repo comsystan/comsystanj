@@ -220,6 +220,9 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	    booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
 	    
 	    //*****************************************************************************************
+	    //Change items defined in the super class(es)
+	    
+	    //*****************************************************************************************
 	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
 	    //*****************************************************************************************
 		//Do additional things
@@ -231,7 +234,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
 		Future<CommandModule> future = commandService.run(Csaj2DKolmogorovComplexityCommand.class, false,
-														"datasetIn",                    datasetIn, //is not automatically harvested in headless mode
+														"datasetIn",                    datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					processAll, //true for all
 														"choiceRadioButt_Compression",  choiceRadioButt_Compression,
 														"spinnerInteger_NumIterations", spinnerInteger_NumIterations,

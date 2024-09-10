@@ -222,7 +222,7 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 		gbc.gridx = 0;
 		gbc.gridwidth = 2;
-		gbc.gridy = 100;
+		gbc.gridy = 200;
 		gbc.weightx = 1.0; //IMPORTANT //This now sets the weight for the whole column 1 in the contentPanel, although gpc is reset
 		contentPanel.add(separator, gbc);
 		gbc.weightx = 0.0; //reset to default
@@ -246,11 +246,11 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		});
 		gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 110;
+	    gbc.gridy = 220;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelOverWriteDisplays, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 110;
+	    gbc.gridy = 220;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(checkBoxOverwriteDisplays, gbc);	
 	 
@@ -275,11 +275,11 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		});
 		gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 120;
+	    gbc.gridy = 230;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelProcessImmediate, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 120;
+	    gbc.gridy = 230;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(checkBoxProcessImmediately, gbc);	
 	
@@ -309,11 +309,11 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 130;
+	    gbc.gridy = 240;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelNumImage, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 130;   
+	    gbc.gridy = 240;   
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerNumImageSlice, gbc);	
 	  
