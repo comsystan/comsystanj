@@ -71,6 +71,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
   	private String tableOutName;
 	private DefaultGenericTable tableOut;
    
+	//Specific dialog items
   	private JComboBox<String> comboBoxCompression;
 	private String   choiceRadioButt_Compression;
 	

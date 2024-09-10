@@ -71,6 +71,7 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
   	private String tableOutName;
 	private DefaultGenericTable tableOut;
    
+	//Specific dialog items
   	private JComboBox<String> comboBoxProbabilityType;
 	private String   choiceRadioButt_ProbabilityType;
 	
