@@ -118,12 +118,10 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	    JLabel labelCompression = new JLabel("Compression");
 	    labelCompression.setToolTipText("Type of image compression for estimating KC");
 	    labelCompression.setHorizontalAlignment(JLabel.RIGHT);
-	    labelCompression.setPreferredSize(DIMENSION_ITEM_STANDARD);
 		
 		String options[] = {"ZIP (lossless)", "ZLIB (lossless)", "GZIP (lossless)", "TIFF-LZW (lossless)", "PNG (lossless)", "J2K (lossless)", "JPG (lossy)"}; //"PNG (lossless)" "ZIP (lossless)"
 		comboBoxCompression = new JComboBox<String>(options);
 		comboBoxCompression.setToolTipText("Type of image compression for estimating KC");
-		comboBoxCompression.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    comboBoxCompression.setEditable(false);
 	    comboBoxCompression.addActionListener(new ActionListener() {
 			@Override
@@ -157,12 +155,10 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	    JLabel labelIteration = new JLabel("Iterations for LD");
 	    labelIteration.setToolTipText("Number of compressions to compute averages");
 	    labelIteration.setHorizontalAlignment(JLabel.RIGHT);
-	    labelIteration.setPreferredSize(DIMENSION_ITEM_STANDARD);
-	    
+	
 	    SpinnerNumberModel spinnerModelIteration = new SpinnerNumberModel(10, 1, 999999999, 1); // initial, min, max, step
         spinnerNumIterations = new JSpinner(spinnerModelIteration);
         spinnerNumIterations.setToolTipText("Number of compressions to compute averages");
-        spinnerNumIterations.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerNumIterations.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -188,7 +184,6 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	    JLabel labelSkipZero = new JLabel("Skip zero values");
 	    labelSkipZero.setToolTipText("Delete zeroes or not");
 	    labelSkipZero.setHorizontalAlignment(JLabel.RIGHT);
-	    labelSkipZero.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 		checkBoxSkipZeroes = new JCheckBox();
 		checkBoxSkipZeroes.setToolTipText("Delete zeroes or not");

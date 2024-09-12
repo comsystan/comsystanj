@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Algorithm_Surrogate1D.java
+ * File: CsajAlgorithm_Surrogate1D.java
  * 
  * $Id$
  * $HeadURL$

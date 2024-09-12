@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DKolmogorovComplexityDialog.java
+ * File: Csaj2DFracDimCorrelationDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -125,7 +125,6 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	    JLabel labelScanningType = new JLabel("Scanning");
 	    labelScanningType.setToolTipText("Type of box scanning");
 	    labelScanningType.setHorizontalAlignment(JLabel.RIGHT);
-	    labelScanningType.setPreferredSize(DIMENSION_ITEM_STANDARD);
 		
 		buttonGroupScanningType = new ButtonGroup();
 		radioButtonRasterBox    = new JRadioButton("Raster box");
@@ -182,7 +181,6 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	    JLabel labelColorModelType = new JLabel("Color model");
 	    labelColorModelType.setToolTipText("Type of color model - binary or greyscale");
 	    labelColorModelType.setHorizontalAlignment(JLabel.RIGHT);
-	    labelColorModelType.setPreferredSize(DIMENSION_ITEM_STANDARD);
 		
 		buttonGroupColorModelType = new ButtonGroup();
 		radioButtonBinary = new JRadioButton("Binary");
@@ -231,13 +229,11 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	    labelPixelPercentage = new JLabel("Pixel %");
 	    labelPixelPercentage.setToolTipText("% of object pixels to be taken - Sliding disc option to lower computation times");
 	    labelPixelPercentage.setHorizontalAlignment(JLabel.RIGHT);
-	    labelPixelPercentage.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    labelPixelPercentage.setEnabled(false);
 	    
 	    SpinnerNumberModel spinnerModelPixelPercentage = new SpinnerNumberModel(10, 1, 100, 1); // initial, min, max, step
         spinnerPixelPercentage = new JSpinner(spinnerModelPixelPercentage);
         spinnerPixelPercentage.setToolTipText("% of object pixels to be taken - Sliding disc option to lower computation times");
-        spinnerPixelPercentage.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerPixelPercentage.setEnabled(false);
         spinnerPixelPercentage.addChangeListener(new ChangeListener() {
         	@Override

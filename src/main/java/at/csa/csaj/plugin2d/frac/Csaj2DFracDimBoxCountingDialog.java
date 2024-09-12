@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DKolmogorovComplexityDialog.java
+ * File: Csaj2DFracDimBoxCountingDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -122,7 +122,6 @@ public class Csaj2DFracDimBoxCountingDialog extends CsajDialog_2DPluginWithRegre
 	    JLabel labelScanningType = new JLabel("Scanning");
 	    labelScanningType.setToolTipText("Type of box scanning");
 	    labelScanningType.setHorizontalAlignment(JLabel.RIGHT);
-	    labelScanningType.setPreferredSize(DIMENSION_ITEM_STANDARD);
 		
 		buttonGroupScanningType = new ButtonGroup();
 		radioButtonRasterBox    = new JRadioButton("Raster box");
@@ -170,7 +169,6 @@ public class Csaj2DFracDimBoxCountingDialog extends CsajDialog_2DPluginWithRegre
 	    JLabel labelColorModelType = new JLabel("Color model");
 	    labelColorModelType.setToolTipText("Type of color model - binary or greyscale");
 	    labelColorModelType.setHorizontalAlignment(JLabel.RIGHT);
-	    labelColorModelType.setPreferredSize(DIMENSION_ITEM_STANDARD);
 		
 		buttonGroupColorModelType = new ButtonGroup();
 		radioButtonBinary = new JRadioButton("Binary");

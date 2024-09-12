@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Dialog_Csaj2DPlugin.java
+ * File: CsajDialog_2DPlugin.java
  * 
  * $Id$
  * $HeadURL$
@@ -82,14 +82,9 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	@Parameter
 	private UIService uiService;
 	
-	//Static variables
-	public static final Dimension DIMENSION_ITEM_STANDARD        = new Dimension(210, 35); //for GUI elements
-	public static final Dimension DIMENSION_ITEM_XHALVED         = new Dimension(105, 35); //for GUI elements
-	public static final Dimension DIMENSION_ITEM_XHALVEDYDOUBLED = new Dimension(105, 70); //for GUI elements
-	public static final Dimension DIMENSION_ITEM_YDOUBLED        = new Dimension(210, 70); //for GUI elements
-	
-	public Insets INSETS_STANDARD = new Insets(3, 3, 3, 3); //top left bottom right 
-	public Insets INSETS_HEADER   = new Insets(10, 3, 3, 3); //top left bottom right
+	//Static variables	
+	public static Insets INSETS_STANDARD = new Insets(3, 3, 3, 3); //top left bottom right 
+	public static Insets INSETS_HEADER   = new Insets(10, 3, 3, 3); //top left bottom right
 	
 	//Input image variables
 	public long width;
@@ -171,9 +166,6 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		labelInput = new JLabel(datasetName);
 		labelInput.setToolTipText("Name of input image");
 		labelInput.setHorizontalAlignment(JLabel.RIGHT);
-		labelInput.setPreferredSize(DIMENSION_ITEM_STANDARD);
-		//inputTextLabel.setMinimumSize(ITEMDIMENSION_STANDARD);
-		//inputTextLabel.setMaximumSize(ITEMDIMENSION_STANDARD);
 		labelInput.setToolTipText(datasetName);
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -184,11 +176,7 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		
 		//Show input button--------------------------------------------------------
 		btnShowInput = new JButton("Show input image");
-		btnShowInput.setToolTipText("Show input image in an extra window");
-		btnShowInput.setPreferredSize(DIMENSION_ITEM_STANDARD);
-		btnShowInput.setMaximumSize(DIMENSION_ITEM_STANDARD);
-		btnShowInput.setMaximumSize(DIMENSION_ITEM_STANDARD);
-		
+		btnShowInput.setToolTipText("Show input image in an extra window");	
 		btnShowInput.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
@@ -231,7 +219,6 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		JLabel labelOverWriteDisplays = new JLabel("Overwrite result display(s)");
 		labelOverWriteDisplays.setToolTipText("Overwrite already existing result images, plots or tables");
 		labelOverWriteDisplays.setHorizontalAlignment(JLabel.RIGHT);
-		labelOverWriteDisplays.setPreferredSize(DIMENSION_ITEM_STANDARD);
 		
 		checkBoxOverwriteDisplays = new JCheckBox();
 		checkBoxOverwriteDisplays.setToolTipText("Overwrite already existing result images, plots or tables");
@@ -261,7 +248,6 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	    JLabel labelProcessImmediate = new JLabel("Immediate processing");
 	    labelProcessImmediate.setToolTipText("Immediate processing of active image whenever a parameter is changed");
 	    labelProcessImmediate.setHorizontalAlignment(JLabel.RIGHT);
-	    labelProcessImmediate.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	  
 		checkBoxProcessImmediately = new JCheckBox();
 		checkBoxProcessImmediately.setToolTipText("Immediate processing of active image whenever a parameter is changed");
@@ -290,15 +276,10 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	    JLabel labelNumImage = new JLabel("Image #");
 	    labelNumImage.setToolTipText("Image slice number");
 	    labelNumImage.setHorizontalAlignment(JLabel.RIGHT);
-	    labelNumImage.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	  
 	    SpinnerNumberModel spinnerModelNumImageSlice= new SpinnerNumberModel(1, 1, (int)numSlices, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
         spinnerNumImageSlice = new JSpinner(spinnerModelNumImageSlice);
         spinnerNumImageSlice.setToolTipText("Image slice number");
-        spinnerNumImageSlice.setPreferredSize(DIMENSION_ITEM_STANDARD);
-        //spinnerNumImageSlice.setMinimumSize(ITEMDIMENSION_XHALVED);
-        //spinnerNumImageSlice.setMaximumSize(ITEMDIMENSION_XHALVED);
-        
         spinnerNumImageSlice.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -332,9 +313,6 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		//Process single button--------------------------------------------------------
 		btnProcessSingleImage = new JButton("Process single image #");
 		btnProcessSingleImage.setToolTipText("Process selected image");
-		btnProcessSingleImage.setPreferredSize(DIMENSION_ITEM_STANDARD);
-		//btnProcessSingleImage.setMinimumSize(ITEMDIMENSION_STANDARD);
-		//btnProcessSingleImage.setMaximumSize(ITEMDIMENSION_STANDARD);
 		btnProcessSingleImage.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
@@ -351,9 +329,6 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		//Process all button----------------------------------------------------------
 		btnProcessAllImages = new JButton("Pocess all images");
 		btnProcessAllImages.setToolTipText("Process all available images");
-		btnProcessAllImages.setPreferredSize(DIMENSION_ITEM_STANDARD);
-		//btnProcessAllImages.setMinimumSize(ITEMDIMENSION_STANDARD);
-		//btnProcessAllImages.setMaximumSize(ITEMDIMENSION_STANDARD);
 		btnProcessAllImages.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Dialog_Csaj2DPlugin.java
+ * File: CsajDialog_2DPluginWithRegression.java
  * 
  * $Id$
  * $HeadURL$
@@ -68,6 +68,8 @@ import net.imagej.Dataset;
  */
 public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 
+	private static final long serialVersionUID = -8680591800791470375L;
+
 	@Parameter
 	private LogService logService;
 	
@@ -132,7 +134,6 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    labelNumEps = new JLabel("Scales/Boxes/Eps #"); //Override text
 	    labelNumEps.setToolTipText("Number of distinct Scales/Boxes/Eps");
 	    labelNumEps.setHorizontalAlignment(JLabel.RIGHT);
-	    labelNumEps.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	   
 	    //Override
 	    //Model may be overwritten with new parameters (e.g.maximum) in sub class
@@ -140,7 +141,6 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	   
 	    spinnerNumEps = new JSpinner(spinnerModelNumEps);
         spinnerNumEps.setToolTipText("Number of distinct Scales/Boxes/Eps");
-        spinnerNumEps.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerNumEps.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {  		
@@ -185,12 +185,10 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    JLabel labelNumRegStart = new JLabel("Regresssion start");
 	    labelNumRegStart.setToolTipText("Minimum number of linear regression");
 	    labelNumRegStart.setHorizontalAlignment(JLabel.RIGHT);
-	    labelNumRegStart.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	   
 	    SpinnerNumberModel spinnerModelNumRegStart= new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
 	    spinnerNumRegStart = new JSpinner(spinnerModelNumRegStart);
         spinnerNumRegStart.setToolTipText("Minimum number of linear regression");
-        spinnerNumRegStart.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerNumRegStart.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -223,12 +221,10 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    JLabel labelNumRegEnd = new JLabel("Regresssion end");
 	    labelNumRegEnd.setToolTipText("Maximum number of linear regression");
 	    labelNumRegEnd.setHorizontalAlignment(JLabel.RIGHT);
-	    labelNumRegEnd.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	   
 	    SpinnerNumberModel spinnerModelNumRegEnd= new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
 	    spinnerNumRegEnd = new JSpinner(spinnerModelNumRegEnd);
         spinnerNumRegEnd.setToolTipText("Maximum number of linear regression");
-        spinnerNumRegEnd.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerNumRegEnd.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -262,7 +258,6 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    JLabel labelShowDoubleLogPlot = new JLabel("Show double log plot");
 	    labelShowDoubleLogPlot.setToolTipText("Show double log linear regression plot");
 	    labelShowDoubleLogPlot.setHorizontalAlignment(JLabel.RIGHT);
-	    labelShowDoubleLogPlot.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 		checkBoxShowDoubleLogPlot = new JCheckBox();
 		checkBoxShowDoubleLogPlot.setToolTipText("Show double log linear regression plot");

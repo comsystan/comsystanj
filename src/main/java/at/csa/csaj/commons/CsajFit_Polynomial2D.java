@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Fit_Polynomial2D.java
+ * File: CsajFit_Polynomial2D.java
  * 
  * $Id$
  * $HeadURL$

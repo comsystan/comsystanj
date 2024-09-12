@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Algorithm_ConvexHull2D.java
+ * File: CsajAlgorithm_ConvexHull2D.java
  * 
  * $Id$
  * $HeadURL$

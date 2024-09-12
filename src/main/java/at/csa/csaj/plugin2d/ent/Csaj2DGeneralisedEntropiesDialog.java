@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DKolmogorovComplexityDialog.java
+ * File: Csaj2DGeneralisedEntropiesDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -153,12 +153,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelProbabilityType = new JLabel("Probability type");
 	    labelProbabilityType.setToolTipText("Selection of probability type");
 	    labelProbabilityType.setHorizontalAlignment(JLabel.RIGHT);
-	    labelProbabilityType.setPreferredSize(DIMENSION_ITEM_STANDARD);
 		
 		String options[] = {"Grey values", "Pairwise differences"};// "Sum of differences", "SD"}, 
 		comboBoxProbabilityType = new JComboBox<String>(options);
 		comboBoxProbabilityType.setToolTipText("Selection of probability type");
-		comboBoxProbabilityType.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    comboBoxProbabilityType.setEditable(false);
 	    comboBoxProbabilityType.addActionListener(new ActionListener() {
 			@Override
@@ -184,12 +182,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelLag = new JLabel("Lag");
 	    labelLag.setToolTipText("(difference)delta between two data points");
 	    labelLag.setHorizontalAlignment(JLabel.RIGHT);
-	    labelLag.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelLag = new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step
         spinnerLag = new JSpinner(spinnerModelLag);
         spinnerLag.setToolTipText("(difference)delta between two data points");
-        spinnerLag.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerLag.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -213,12 +209,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMinQ = new JLabel("Min q");
 	    labelMinQ.setToolTipText("Minimum q for Renyi, Tsallis, SNorm and SEscort entropies");
 	    labelMinQ.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMinQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMinQ = new SpinnerNumberModel(-5, -1000, 1000, 1); // initial, min, max, step
         spinnerMinQ = new JSpinner(spinnerModelMinQ);
         spinnerMinQ.setToolTipText("Minimum q for Renyi, Tsallis, SNorm and SEscort entropies");
-        spinnerMinQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMinQ.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -242,12 +236,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMaxQ = new JLabel("Max q");
 	    labelMaxQ.setToolTipText("Maximum q for Renyi, Tsallis, SNorm and SEscort entropies");
 	    labelMaxQ.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMaxQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMaxQ = new SpinnerNumberModel(5, -1000, 1000, 1); // initial, min, max, step
         spinnerMaxQ = new JSpinner(spinnerModelMaxQ);
         spinnerMaxQ.setToolTipText("Maximum q for Renyi, Tsallis, SNorm and SEscort entropies");
-        spinnerMaxQ.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMaxQ.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -271,12 +263,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMinEta = new JLabel("Min eta");
 	    labelMinEta.setToolTipText("Minimum eta for SEta entropies");
 	    labelMinEta.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMinEta.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMinEta = new SpinnerNumberModel(0.1, 0.0, 1.0, 0.1); // initial, min, max, step
         spinnerMinEta = new JSpinner(spinnerModelMinEta);
         spinnerMinEta.setToolTipText("Minimum eta for SEta entropies");
-        spinnerMinEta.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMinEta.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -300,12 +290,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMaxEta = new JLabel("Max eta");
 	    labelMaxEta.setToolTipText("Maximum eta for SEta entropies");
 	    labelMaxEta.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMaxEta.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMaxEta = new SpinnerNumberModel(1.0, 0.0, 1.0, 0.1); // initial, min, max, step
         spinnerMaxEta = new JSpinner(spinnerModelMaxEta);
         spinnerMaxEta.setToolTipText("Maximum eta for SEta entropies");
-        spinnerMaxEta.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMaxEta.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -329,12 +317,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMinKappa = new JLabel("Min kappa");
 	    labelMinKappa.setToolTipText("Minimum kappa for SKappa entropies");
 	    labelMinKappa.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMinKappa.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMinKappa = new SpinnerNumberModel(0.1, 0.0, 1.0, 0.1); // initial, min, max, step
         spinnerMinKappa = new JSpinner(spinnerModelMinKappa);
         spinnerMinKappa.setToolTipText("Minimum kappa for SKappa entropies");
-        spinnerMinKappa.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMinKappa.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -358,12 +344,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMaxKappa = new JLabel("Max kappa");
 	    labelMaxKappa.setToolTipText("Maximum kappa for SKappa entropies");
 	    labelMaxKappa.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMaxKappa.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMaxKappa = new SpinnerNumberModel(0.9, 0.0, 1.0, 0.1); // initial, min, max, step
         spinnerMaxKappa = new JSpinner(spinnerModelMaxKappa);
         spinnerMaxKappa.setToolTipText("Maximum kappa for SKappa entropies");
-        spinnerMaxKappa.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMaxKappa.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -387,12 +371,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMinB = new JLabel("Min B");
 	    labelMinB.setToolTipText("Minimum B for SB entropies");
 	    labelMinB.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMinB.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMinB = new SpinnerNumberModel(1.0, 0.0, 100000.0, 1.0); // initial, min, max, step
         spinnerMinB = new JSpinner(spinnerModelMinB);
         spinnerMinB.setToolTipText("Minimum B for SB entropies");
-        spinnerMinB.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMinB.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -416,12 +398,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMaxB = new JLabel("Max B");
 	    labelMaxB.setToolTipText("Maximum B for SB entropies");
 	    labelMaxB.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMaxB.setPreferredSize(DIMENSION_ITEM_STANDARD);
-	    
+
 	    SpinnerNumberModel spinnerModelMaxB = new SpinnerNumberModel(10.0, 1.0, 100000.0, 1.0); // initial, min, max, step
         spinnerMaxB = new JSpinner(spinnerModelMaxB);
         spinnerMaxB.setToolTipText("Maximum B for SB entropies");
-        spinnerMaxB.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMaxB.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -445,12 +425,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMinBeta = new JLabel("Min beta");
 	    labelMinBeta.setToolTipText("Minimum beta for SBeta entropies");
 	    labelMinBeta.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMinBeta.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMinBeta = new SpinnerNumberModel(0.5, -100000.0, 100000.0, 0.1); // initial, min, max, step
         spinnerMinBeta = new JSpinner(spinnerModelMinBeta);
         spinnerMinBeta.setToolTipText("Minimum beta for SBeta entropies");
-        spinnerMinBeta.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMinBeta.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -474,12 +452,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMaxBeta = new JLabel("Max beta");
 	    labelMaxBeta.setToolTipText("Maximum beta for SBeta entropies");
 	    labelMaxBeta.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMaxBeta.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMaxBeta = new SpinnerNumberModel(1.5, -100000.0, 100000.0, 0.1); // initial, min, max, step
         spinnerMaxBeta = new JSpinner(spinnerModelMaxBeta);
         spinnerMaxBeta.setToolTipText("Maximum beta for SBeta entropies");
-        spinnerMaxBeta.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMaxBeta.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -503,12 +479,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMinGamma = new JLabel("Min gamma");
 	    labelMinGamma.setToolTipText("Minimum gamma for SGamma entropies");
 	    labelMinGamma.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMinGamma.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMinGamma = new SpinnerNumberModel(0.1, 0.0, 100000.0, 1.0); // initial, min, max, step
         spinnerMinGamma = new JSpinner(spinnerModelMinGamma);
         spinnerMinGamma.setToolTipText("Minimum gamma for SGamma entropies");
-        spinnerMinGamma.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMinGamma.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -532,12 +506,10 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelMaxGamma = new JLabel("Max gamma");
 	    labelMaxGamma.setToolTipText("Maximum gamma for SGamma entropies");
 	    labelMaxGamma.setHorizontalAlignment(JLabel.RIGHT);
-	    labelMaxGamma.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	    
 	    SpinnerNumberModel spinnerModelMaxGamma = new SpinnerNumberModel(1.0, 0.0, 100000.0, 1.0); // initial, min, max, step
         spinnerMaxGamma = new JSpinner(spinnerModelMaxGamma);
         spinnerMaxGamma.setToolTipText("Maximum gamma for SGamma entropies");
-        spinnerMaxGamma.setPreferredSize(DIMENSION_ITEM_STANDARD);
         spinnerMaxGamma.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -561,7 +533,6 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    JLabel labelShowRenyiPlot = new JLabel("Show Renyi plot");
 	    labelShowRenyiPlot.setToolTipText("Show Renyi plot");
 	    labelShowRenyiPlot.setHorizontalAlignment(JLabel.RIGHT);
-	    labelShowRenyiPlot.setPreferredSize(DIMENSION_ITEM_STANDARD);
 	  
 		checkBoxShowRenyiPlot = new JCheckBox();
 		checkBoxShowRenyiPlot.setToolTipText("Show Renyi plot");

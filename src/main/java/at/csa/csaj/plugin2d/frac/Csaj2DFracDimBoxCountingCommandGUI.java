@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DKolmogorovComplexityCommandGUI.java
+ * File: Csaj2DFracDimBoxCountingCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -31,11 +31,9 @@ package at.csa.csaj.plugin2d.frac;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
-import java.util.concurrent.Executors;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.WindowConstants;
 
 import org.scijava.ItemIO;
 import org.scijava.command.ContextCommand;

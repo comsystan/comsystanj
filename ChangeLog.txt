@@ -14,6 +14,7 @@ Plugin changes:
 2D Image generator: added Mandelbrot set
 3D Volume generator: added 3D Mandelbulb
 Miscellaneous:
+Changed ???????????????some/all???? plugins to non-modal custom UI dialogs
 
 **************************************************************
 Version 1.1.3
