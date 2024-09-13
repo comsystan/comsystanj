@@ -627,6 +627,7 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		dlgProgress.setVisible(true);
 		
 		deleteExistingDisplays();
+		computeAngles();
 		generateTableHeader();
 		int sliceIndex = spinnerInteger_NumImageSlice - 1;
 		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
@@ -649,6 +650,7 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 
     	logService.info(this.getClass().getName() + " Processing all available images");
 		deleteExistingDisplays();
+		computeAngles();
 		generateTableHeader();
 		processAllInputImages();
 	
@@ -965,6 +967,7 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
 		GenericColumn columnMethod         = new GenericColumn("Method");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
+		IntColumn     columnPixelPercent   = new IntColumn("Pixel %");
 		DoubleColumn columnDsRow      	   = new DoubleColumn("Dc-hor");
 		DoubleColumn columnDsCol      	   = new DoubleColumn("Dc-vert");
 		DoubleColumn columnDs         	   = new DoubleColumn("Dc");
@@ -985,6 +988,7 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		tableOut.add(columnNumRegEnd);
 		tableOut.add(columnMethod);
 		tableOut.add(columnColorModelType);
+		tableOut.add(columnPixelPercent);
 		tableOut.add(columnDsRow);
 		tableOut.add(columnDsCol);
 		tableOut.add(columnDs);
@@ -996,6 +1000,7 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		tableOut.add(columnStdErr);
 		tableOut.add(columnNumRadialLines);
 		tableOut.add(columnAnisotropyIndex);
+		
 		if (choiceRadioButt_Direction.equals("Mean of 180 radial directions [0-180°]") && (booleanGetAllRadialDsValues)){
 			for (int a = 0; a < 181; a++) {
 				tableOut.add(new DoubleColumn("Dc " +  anglesGrad[a] + "°"));
@@ -1022,6 +1027,7 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		int numRegEnd          = spinnerInteger_NumRegEnd;
 		String direction       = choiceRadioButt_Direction;
 		String colorModelType  = choiceRadioButt_ColorModelType;
+		int pixelPercent 	   = spinnerInteger_PixelPercentage;
 	
 		int row = numRow;
 		int s = numSlice;
@@ -1035,6 +1041,7 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		tableOut.set("Reg End",      	    row, "("+numRegEnd+")"   + epsRegStartEnd[1]); //(NumRegEnd)epsRegEnd
 		tableOut.set("Method",        	    row, direction);
 		tableOut.set("Color model",  		row, colorModelType);
+		tableOut.set("Pixel %",  			row, pixelPercent);
 		tableOut.set("Dc-hor",     		    row, containerPM.item1_Values[0]);
 		tableOut.set("Dc-vert",    		    row, containerPM.item1_Values[1]);
 		tableOut.set("Dc",      		    row, containerPM.item1_Values[2]);
@@ -1060,8 +1067,25 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 			}
 		}
 	}
-
-
+	
+	private void computeAngles() {
+		//define number of angles in the range of 0 - pi
+		int numAngles = 0; //= (180 + 1);  //maximal 180, maybe only 4 (0°, 45°, 90°, 135°, 180°)
+		if (choiceRadioButt_Direction.equals("Mean of 180 radial directions [0-180°]")) {
+			numAngles = (180 + 1); //range 0 - pi through the center of the image
+		}
+		if (choiceRadioButt_Direction.equals("Mean of     4 radial directions [0-180°]")) {
+			numAngles = (4 + 1);   //range 0 - pi through the center of the image
+		}
+						
+		anglesGrad = new double[numAngles];
+		for (int i = 0; i < numAngles; i++) {
+			//angles[i] = (i * Math.PI / (numAngles - 1) - (Math.PI / 2.0)); // -pi/2,...,0,...+pi/2
+			//anglesRad[i]  = (i * Math.PI / (numAngles - 1)); // simply Counterclockwise 
+			anglesGrad[i] = (i * 180/ (numAngles - 1)); // simply Counterclockwise 
+		}
+	}
+	
 	/**
 	*
 	* Processing
@@ -1125,24 +1149,9 @@ public class Csaj2DFracDimDirectionalCorrelation<T extends RealType<T>> extends 
 		//******************************************************************************************************************************************
 		else if (direction.equals("Mean of 180 radial directions [0-180°]") || direction.equals("Mean of     4 radial directions [0-180°]")) {
 			
-			int numAngles = 0;
+			int numAngles = anglesGrad.length;
 			double Ds_0   = Double.NaN;
 			double Ds_90  = Double.NaN; 
-			//define number of angles in the range of 0 - pi
-			//int numAngles = (180 + 1);  //maximal 180, maybe only 4 (0°, 45°, 90°, 135°, 180°)
-			if (direction.equals("Mean of 180 radial directions [0-180°]")) {
-				numAngles = (180 + 1); //range 0 - pi through the center of the image
-			}
-			if (direction.equals("Mean of     4 radial directions [0-180°]")) {
-				numAngles = (4 + 1);   //range 0 - pi through the center of the image
-			}
-							
-			anglesGrad = new double[numAngles];
-			for (int i = 0; i < numAngles; i++) {
-				//angles[i] = (i * Math.PI / (numAngles - 1) - (Math.PI / 2.0)); // -pi/2,...,0,...+pi/2
-				//anglesRad[i]  = (i * Math.PI / (numAngles - 1)); // simply Counterclockwise 
-				anglesGrad[i] = (i * 180/ (numAngles - 1)); // simply Counterclockwise 
-			}
 			
 			//Dc-radial--------------------------------------------------------------------------------------------------	
 			int numActualRadialDirections = 0; //some directions have too less pixels and may be thrown away later on

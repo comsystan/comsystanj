@@ -110,7 +110,7 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	public JCheckBox checkBoxOverwriteDisplays;
 	public boolean   booleanOverwriteDisplays;
 	
-	public JCheckBox checkBoxProcessImmediately;
+	public JCheckBox  checkBoxProcessImmediately;
 	public boolean	  booleanProcessImmediately;
 	
 	public JSpinner spinnerNumImageSlice;

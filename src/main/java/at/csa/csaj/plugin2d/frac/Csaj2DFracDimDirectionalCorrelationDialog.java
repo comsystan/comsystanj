@@ -31,10 +31,13 @@ package at.csa.csaj.plugin2d.frac;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -54,7 +57,7 @@ import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegression {
+public class Csaj2DFracDimDirectionalCorrelationDialog extends CsajDialog_2DPluginWithRegression {
 
 	private static final long serialVersionUID = -8968747711329420424L;
 
@@ -72,11 +75,12 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
-	private JPanel       panelScanningType;
-	private ButtonGroup  buttonGroupScanningType;
-    private JRadioButton radioButtonRasterBox;
-    private JRadioButton radioButtonSlidingDisc;
-	private String       choiceRadioButt_ScanningType;
+	private JPanel       panelDirection;
+	private ButtonGroup  buttonGroupDirection;
+    private JRadioButton radioButtonCross;
+    private JRadioButton radioButtonMeanOf4;
+    private JRadioButton radioButtonMeanOf180;
+	private String       choiceRadioButt_Direction;
 	
 	private JPanel       panelColorModelType;
 	private ButtonGroup  buttonGroupColorModelType;
@@ -87,6 +91,10 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	private JLabel   labelPixelPercentage;
 	private JSpinner spinnerPixelPercentage;
 	private int      spinnerInteger_PixelPercentage;
+	
+	private JLabel    labelGetAllRadialDsValues;
+	private JCheckBox checkBoxGetAllRadialDsValues;
+	private boolean   booleanGetAllRadialDsValues;
 	
 	
 	/**Some default @Parameters are already defined in the super class
@@ -107,7 +115,7 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DFracDimCorrelationDialog(Context context, Dataset datasetIn) {
+	public Csaj2DFracDimDirectionalCorrelationDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -118,64 +126,80 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Correlation dimension");
+		setTitle("2D Direction correlation dimension");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************
-	    JLabel labelScanningType = new JLabel("Scanning");
-	    labelScanningType.setToolTipText("Type of box scanning");
-	    labelScanningType.setHorizontalAlignment(JLabel.RIGHT);
+	    JLabel labelDirection = new JLabel("Direction");
+	    labelDirection.setToolTipText("Direction of counting pair-wise correlations");
+	    labelDirection.setHorizontalAlignment(JLabel.RIGHT);
 		
-		buttonGroupScanningType = new ButtonGroup();
-		radioButtonRasterBox    = new JRadioButton("Raster box");
-		radioButtonSlidingDisc  = new JRadioButton("Sliding disc");
-		radioButtonRasterBox.addActionListener(new ActionListener() {
+		buttonGroupDirection = new ButtonGroup();
+		radioButtonCross      = new JRadioButton("Horizontal and vertical direction");
+		radioButtonMeanOf4    = new JRadioButton("Mean of     4 radial directions [0-180°]");
+		radioButtonMeanOf180  = new JRadioButton("Mean of 180 radial directions [0-180°]");
+		radioButtonCross.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonRasterBox.isSelected()) {
-					choiceRadioButt_ScanningType = radioButtonRasterBox.getText();
-					labelPixelPercentage.setEnabled(false);
-					spinnerPixelPercentage.setEnabled(false);
-				}
-				 
-				logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
+				if (radioButtonCross.isSelected()) {
+					choiceRadioButt_Direction = radioButtonCross.getText();
+					labelGetAllRadialDsValues.setEnabled(false);
+					checkBoxGetAllRadialDsValues.setEnabled(false);
+					checkBoxGetAllRadialDsValues.setSelected(false);
+				}		 
+				logService.info(this.getClass().getName() + " Direction set to " + choiceRadioButt_Direction);
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
 		});
-		radioButtonSlidingDisc.addActionListener(new ActionListener() {
+		radioButtonMeanOf4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonSlidingDisc.isSelected()) {
-					choiceRadioButt_ScanningType = radioButtonSlidingDisc.getText();
-					labelPixelPercentage.setEnabled(true);
-					spinnerPixelPercentage.setEnabled(true);
+				if (radioButtonMeanOf4.isSelected()) {
+					choiceRadioButt_Direction = radioButtonMeanOf4.getText();
+					labelGetAllRadialDsValues.setEnabled(true);
+					checkBoxGetAllRadialDsValues.setEnabled(true);
 				}
-				logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
+				logService.info(this.getClass().getName() + " Direction set to " + choiceRadioButt_Direction);
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
 		});
-		buttonGroupScanningType.add(radioButtonRasterBox);
-		buttonGroupScanningType.add(radioButtonSlidingDisc);
-		radioButtonRasterBox.setSelected(true);
+		radioButtonMeanOf180.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				if (radioButtonMeanOf180.isSelected()) {
+					choiceRadioButt_Direction = radioButtonMeanOf180.getText();
+					labelGetAllRadialDsValues.setEnabled(true);
+					checkBoxGetAllRadialDsValues.setEnabled(true);
+				}
+				logService.info(this.getClass().getName() + " Direction set to " + choiceRadioButt_Direction);
+				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+			}
+		});
+		buttonGroupDirection.add(radioButtonCross);
+		buttonGroupDirection.add(radioButtonMeanOf4);
+		buttonGroupDirection.add(radioButtonMeanOf180);
+		radioButtonCross.setSelected(true);
 		
-		panelScanningType = new JPanel();
-		panelScanningType.setToolTipText("Type of box scanning");
-		panelScanningType.setLayout(new BoxLayout(panelScanningType, BoxLayout.Y_AXIS)); 
-	    panelScanningType.add(radioButtonRasterBox);
-	    panelScanningType.add(radioButtonSlidingDisc);
+		panelDirection = new JPanel();
+		panelDirection.setToolTipText("Direction of counting pair-wise correlations");
+		panelDirection.setLayout(new BoxLayout(panelDirection, BoxLayout.Y_AXIS)); 
+	    panelDirection.add(radioButtonCross);
+	    panelDirection.add(radioButtonMeanOf4);
+	    panelDirection.add(radioButtonMeanOf180);
 	    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
 	    gbc.gridy = 0;
 	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelScanningType, gbc);
+	    contentPanel.add(labelDirection, gbc);
 	    gbc.gridx = 1;
 	    gbc.gridy = 0;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
-	    contentPanel.add(panelScanningType, gbc);
+	    contentPanel.add(panelDirection, gbc);
 	    //initialize command variable
-		if (radioButtonRasterBox.isSelected())   choiceRadioButt_ScanningType = radioButtonRasterBox.getText();
-		if (radioButtonSlidingDisc.isSelected()) choiceRadioButt_ScanningType = radioButtonSlidingDisc.getText();
+		if (radioButtonCross.isSelected())     choiceRadioButt_Direction = radioButtonCross.getText();
+		if (radioButtonMeanOf4.isSelected())   choiceRadioButt_Direction = radioButtonMeanOf4.getText();
+		if (radioButtonMeanOf180.isSelected()) choiceRadioButt_Direction = radioButtonMeanOf180.getText();
 		
 	    //*****************************************************************************************
 	    JLabel labelColorModelType = new JLabel("Color model");
@@ -229,12 +253,12 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	    labelPixelPercentage = new JLabel("Pixel %");
 	    labelPixelPercentage.setToolTipText("% of object pixels to be taken - Sliding disc option to lower computation times");
 	    labelPixelPercentage.setHorizontalAlignment(JLabel.RIGHT);
-	    labelPixelPercentage.setEnabled(false);
+	    labelPixelPercentage.setEnabled(true);
 	    
 	    SpinnerNumberModel spinnerModelPixelPercentage = new SpinnerNumberModel(10, 1, 100, 1); // initial, min, max, step
         spinnerPixelPercentage = new JSpinner(spinnerModelPixelPercentage);
         spinnerPixelPercentage.setToolTipText("% of object pixels to be taken - Sliding disc option to lower computation times");
-        spinnerPixelPercentage.setEnabled(false);
+        spinnerPixelPercentage.setEnabled(true);
         spinnerPixelPercentage.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -258,9 +282,40 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	    spinnerInteger_PixelPercentage = (int)spinnerPixelPercentage.getValue();
 		
 		//*****************************************************************************************
+		labelGetAllRadialDsValues = new JLabel("Get Dc values of all radial directions");
+		labelGetAllRadialDsValues.setToolTipText("Get Dc values of all radial directions");
+		labelGetAllRadialDsValues.setHorizontalAlignment(JLabel.RIGHT);
+		labelGetAllRadialDsValues.setEnabled(false);
+		
+		checkBoxGetAllRadialDsValues = new JCheckBox();
+		checkBoxGetAllRadialDsValues.setToolTipText("Get Dc values of all radial directions");
+		checkBoxGetAllRadialDsValues.setEnabled(false);
+		checkBoxGetAllRadialDsValues.setSelected(false);
+		checkBoxGetAllRadialDsValues.addItemListener(new ItemListener() {
+			@Override
+		    public void itemStateChanged(ItemEvent e) {
+		    	booleanGetAllRadialDsValues = checkBoxGetAllRadialDsValues.isSelected();	    
+				logService.info(this.getClass().getName() + " Get Dc values set to " + booleanGetAllRadialDsValues);
+				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    }
+		});
+		gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
+	    gbc.gridy = 150;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelGetAllRadialDsValues, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 150;
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(checkBoxGetAllRadialDsValues, gbc);	
+	 
+	    //initialize command variable
+	    booleanGetAllRadialDsValues = checkBoxGetAllRadialDsValues.isSelected();	 
+	    
+		//*****************************************************************************************    
 		//Change/Override items defined in the super class(es)
-		labelNumEps.setText("Number of radii");
-		int numEpsMax = Csaj2DFracDimCorrelationCommand.getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+		labelNumEps.setText("Number of distances");
+		int numEpsMax = Csaj2DFracDimDirectionalCorrelationCommand.getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -278,10 +333,10 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimCorrelationCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimDirectionalCorrelationCommand.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
-														"choiceRadioButt_ScanningType",   choiceRadioButt_ScanningType,
+														"choiceRadioButt_Direction",      choiceRadioButt_Direction,
 														"choiceRadioButt_ColorModelType", choiceRadioButt_ColorModelType,
 														"spinnerInteger_PixelPercentage", spinnerInteger_PixelPercentage,
 					
@@ -289,7 +344,8 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 														"spinnerInteger_NumRegStart",     spinnerInteger_NumRegStart,
 														"spinnerInteger_NumRegEnd",       spinnerInteger_NumRegEnd,
 														"booleanShowDoubleLogPlot",       booleanShowDoubleLogPlot,
-	
+														"booleanGetAllRadialDsValues",    booleanGetAllRadialDsValues, 
+														
 														"booleanOverwriteDisplays",       booleanOverwriteDisplays,
 														"booleanProcessImmediately",	  booleanProcessImmediately,
 														"spinnerInteger_NumImageSlice",	  spinnerInteger_NumImageSlice
@@ -305,7 +361,7 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimCorrelationCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimDirectionalCorrelationCommand.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

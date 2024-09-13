@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.frac;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -34,8 +34,8 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,8 +66,6 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -75,9 +73,6 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
@@ -87,10 +82,9 @@ import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import ij.gui.PlotWindow;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
 
 /**
  * A {@link ContextCommand} plugin computing <Directional correlation dimension</a>
@@ -102,15 +96,7 @@ import io.scif.MetaTable;
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
+
 public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with directinal correlation</b></html>";
@@ -138,6 +124,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 	private static ArrayList<PlotWindow>          plotWindowList    = new ArrayList<PlotWindow>(); //ImageJ plot windows
 	
 	private double[] epsRegStartEnd = new double[2];
+
 	public static final String TABLE_OUT_NAME = "Table - Directional correlation dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
@@ -290,6 +277,12 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
 	
@@ -300,11 +293,29 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
 	private Button buttonProcessAllImages;
 
-
-	// ---------------------------------------------------------------------
-		
+	// ---------------------------------------------------------------------	
 	protected void initialPluginLaunch() {
-		checkItemIOIn();
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
+			//RGB not allowed
+			if (!imageType.equals("Grey")) { 
+				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
+				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+			}
+		}
 	}
 	
 	protected void initialNumBoxes() {
@@ -313,7 +324,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	}
 	    spinnerInteger_NumBoxes = numBoxes;
 	}
@@ -328,7 +339,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     		//numBoxes = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
     	}
 		spinnerInteger_NumRegEnd = numBoxes;
@@ -371,7 +382,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		if  (spinnerInteger_NumBoxes < 3) {
 			spinnerInteger_NumBoxes = 3;
 		}
-		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
+		int numMaxBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
 		if (spinnerInteger_NumBoxes > numMaxBoxes) {
 			spinnerInteger_NumBoxes = numMaxBoxes;
 		};
@@ -529,87 +540,35 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllImages();
-		}
-	}
-	
-	public void checkItemIOIn() {
-	
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image = null");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
-			return;
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
 
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
 		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 2D plugin cannot be started - data type is not Byte or Float.");
-			return;
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			//RGB not allowed
+			if (!imageType.equals("Grey")) { 
+				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+			} 
 		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions = datasetIn.numDimensions();
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-		
-		// get name of dataset
-		datasetName = datasetIn.getName();
-		
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-			sliceLabels = (String[]) metaTable.get("SliceLabels");
-			//eliminate additional image info delimited with \n (since pom-scijava 29.2.1)
-			for (int i = 0; i < sliceLabels.length; i++) {
-				String label = sliceLabels[i];
-				int index = label.indexOf("\n");
-				//if character has been found, otherwise index = -1
-				if (index > 0) sliceLabels[i] = label.substring(0, index);		
-			}
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-	            
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: " + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		
-		//RGB not allowed
-		if (!imageType.equals("Grey")) { 
-			logService.warn(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
-			cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-		}
-	}
 
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
 	/**
 	* This method starts the workflow for a single image of the active display
 	*/
@@ -622,6 +581,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		dlgProgress.setVisible(true);
 		
 		deleteExistingDisplays();
+		computeAngles();
 		generateTableHeader();
 		int sliceIndex = spinnerInteger_NumImageSlice - 1;
 		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
@@ -644,6 +604,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 
     	logService.info(this.getClass().getName() + " Processing all available images");
 		deleteExistingDisplays();
+		computeAngles();
 		generateTableHeader();
 		processAllInputImages();
 	
@@ -757,7 +718,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 
 	
 	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height) { 
+	public static int getMaxEpsNumber(long width, long height) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height)) {
@@ -960,6 +921,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
 		GenericColumn columnMethod         = new GenericColumn("Method");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
+		IntColumn     columnPixelPercent   = new IntColumn("Pixel %");
 		DoubleColumn columnDsRow      	   = new DoubleColumn("Dc-hor");
 		DoubleColumn columnDsCol      	   = new DoubleColumn("Dc-vert");
 		DoubleColumn columnDs         	   = new DoubleColumn("Dc");
@@ -980,6 +942,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		tableOut.add(columnNumRegEnd);
 		tableOut.add(columnMethod);
 		tableOut.add(columnColorModelType);
+		tableOut.add(columnPixelPercent);
 		tableOut.add(columnDsRow);
 		tableOut.add(columnDsCol);
 		tableOut.add(columnDs);
@@ -1017,6 +980,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		int numRegEnd          = spinnerInteger_NumRegEnd;
 		String direction       = choiceRadioButt_Direction;
 		String colorModelType  = choiceRadioButt_ColorModelType;
+		int pixelPercent 	   = spinnerInteger_PixelPercentage;
 	
 		int row = numRow;
 		int s = numSlice;
@@ -1030,6 +994,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		tableOut.set("Reg End",      	    row, "("+numRegEnd+")"   + epsRegStartEnd[1]); //(NumRegEnd)epsRegEnd
 		tableOut.set("Method",        	    row, direction);
 		tableOut.set("Color model",  		row, colorModelType);
+		tableOut.set("Pixel %",  			row, pixelPercent);
 		tableOut.set("Dc-hor",     		    row, containerPM.item1_Values[0]);
 		tableOut.set("Dc-vert",    		    row, containerPM.item1_Values[1]);
 		tableOut.set("Dc",      		    row, containerPM.item1_Values[2]);
@@ -1056,7 +1021,24 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		}
 	}
 
-
+	private void computeAngles() {
+		//define number of angles in the range of 0 - pi
+		int numAngles = 0; //= (180 + 1);  //maximal 180, maybe only 4 (0°, 45°, 90°, 135°, 180°)
+		if (choiceRadioButt_Direction.equals("Mean of 180 radial directions [0-180°]")) {
+			numAngles = (180 + 1); //range 0 - pi through the center of the image
+		}
+		if (choiceRadioButt_Direction.equals("Mean of     4 radial directions [0-180°]")) {
+			numAngles = (4 + 1);   //range 0 - pi through the center of the image
+		}
+						
+		anglesGrad = new double[numAngles];
+		for (int i = 0; i < numAngles; i++) {
+			//angles[i] = (i * Math.PI / (numAngles - 1) - (Math.PI / 2.0)); // -pi/2,...,0,...+pi/2
+			//anglesRad[i]  = (i * Math.PI / (numAngles - 1)); // simply Counterclockwise 
+			anglesGrad[i] = (i * 180/ (numAngles - 1)); // simply Counterclockwise 
+		}
+	}
+	
 	/**
 	*
 	* Processing
@@ -1120,25 +1102,10 @@ public class Csaj2DFracDimDirectionalCorrelationCommand<T extends RealType<T>> e
 		//******************************************************************************************************************************************
 		else if (direction.equals("Mean of 180 radial directions [0-180°]") || direction.equals("Mean of     4 radial directions [0-180°]")) {
 			
-			int numAngles = 0;
+			int numAngles = anglesGrad.length;
 			double Ds_0   = Double.NaN;
 			double Ds_90  = Double.NaN; 
-			//define number of angles in the range of 0 - pi
-			//int numAngles = (180 + 1);  //maximal 180, maybe only 4 (0°, 45°, 90°, 135°, 180°)
-			if (direction.equals("Mean of 180 radial directions [0-180°]")) {
-				numAngles = (180 + 1); //range 0 - pi through the center of the image
-			}
-			if (direction.equals("Mean of     4 radial directions [0-180°]")) {
-				numAngles = (4 + 1);   //range 0 - pi through the center of the image
-			}
-							
-			anglesGrad = new double[numAngles];
-			for (int i = 0; i < numAngles; i++) {
-				//angles[i] = (i * Math.PI / (numAngles - 1) - (Math.PI / 2.0)); // -pi/2,...,0,...+pi/2
-				//anglesRad[i]  = (i * Math.PI / (numAngles - 1)); // simply Counterclockwise 
-				anglesGrad[i] = (i * 180/ (numAngles - 1)); // simply Counterclockwise 
-			}
-			
+		
 			//Dc-radial--------------------------------------------------------------------------------------------------	
 			int numActualRadialDirections = 0; //some directions have too less pixels and may be thrown away later on
 	

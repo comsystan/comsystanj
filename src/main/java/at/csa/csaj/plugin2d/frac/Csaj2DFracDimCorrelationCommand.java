@@ -323,7 +323,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	}
       	spinnerInteger_NumBoxes = numBoxes;
     }
@@ -336,7 +336,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	}
     	spinnerInteger_NumRegEnd =  numBoxes;
     }
@@ -368,7 +368,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		if  (spinnerInteger_NumBoxes < 3) {
 			spinnerInteger_NumBoxes = 3;
 		}
-		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
+		int numMaxBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
 		if (spinnerInteger_NumBoxes > numMaxBoxes) {
 			spinnerInteger_NumBoxes = numMaxBoxes;
 		};
@@ -681,7 +681,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	}
 	
 	/** This method computes the maximal number of possible boxes*/
-	public static int getMaxBoxNumber(long width, long height) { 
+	public static int getMaxEpsNumber(long width, long height) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height)) {
