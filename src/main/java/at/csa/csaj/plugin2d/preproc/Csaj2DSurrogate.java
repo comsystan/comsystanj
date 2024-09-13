@@ -127,7 +127,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	private static RealMask realMask;  //ROI
 	
 	public static final String IMAGE_OUT_NAME = "Surrogate image(s)";
-	private static final String imagePreviewName = "Preview image";
+	private static final String IMAGE_PREVIEW_NAME = "Preview image";
 	private static Dataset datasetPreview;
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
@@ -305,7 +305,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleImage();
-	    		uiService.show(imagePreviewName, datasetPreview);   //Show result because it did not go over the run() method
+	    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -350,7 +350,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleImage();
-		    		uiService.show(imagePreviewName, datasetPreview);   //Show result because it did not go over the run() method
+		    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -481,7 +481,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 			//long[] dims = new long[]{width, height};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y};
-			datasetPreview = datasetService.create(dims, imagePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			
 			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
@@ -502,7 +502,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 			//long[] dims = new long[]{width, height, 3};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), 3};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
-			datasetPreview = datasetService.create(dims, imagePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			datasetPreview.setCompositeChannelCount(3);
 			datasetPreview.setRGBMerged(true);
 //			datasetPreview.setChannelMinimum(0, 0);
@@ -629,7 +629,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 					
-				} else if (frame.getTitle().contains(imagePreviewName)) {
+				} else if (frame.getTitle().contains(IMAGE_PREVIEW_NAME)) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 					datasetPreview = null;
