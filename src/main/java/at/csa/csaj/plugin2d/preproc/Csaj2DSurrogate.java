@@ -126,7 +126,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	private static String imageType = "";
 	private static RealMask realMask;  //ROI
 	
-	private static final String imageOutName = "Surrogate image(s)";
+	public static final String IMAGE_OUT_NAME = "Surrogate image(s)";
 	private static final String imagePreviewName = "Preview image";
 	private static Dataset datasetPreview;
 	
@@ -172,7 +172,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	@Parameter(type = ItemIO.INPUT)
 	private Dataset datasetIn;
 
-	@Parameter(label = imageOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = IMAGE_OUT_NAME, type = ItemIO.OUTPUT)
 	private Dataset datasetOut;
 	
 //	@Parameter
@@ -329,7 +329,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForAllImages();
-	    	   	uiService.show(imageOutName, datasetOut);
+	    	   	uiService.show(IMAGE_OUT_NAME, datasetOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -625,7 +625,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 				frame = listFrames[i];
 				//System.out.println("frame name: " + frame.getTitle());
-				if ((frame.getTitle().contains(imageOutName)) ) {
+				if ((frame.getTitle().contains(IMAGE_OUT_NAME)) ) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 					
@@ -704,7 +704,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 		//copy metadata
 		(datasetOut.getProperties()).putAll(datasetIn.getProperties());
 		//Map<String, Object> map = datasetOut.getProperties();
-		datasetOut.setName(imageOutName);
+		datasetOut.setName(IMAGE_OUT_NAME);
 		
 		if (imageType.equals("Grey")) {
 			//do nothing
@@ -787,7 +787,7 @@ public class Csaj2DSurrogate<T extends RealType<T>> extends InteractiveCommand i
 		//copy metadata
 		(datasetOut.getProperties()).putAll(datasetIn.getProperties());
 		//Map<String, Object> map = datasetOut.getProperties();
-		datasetOut.setName(imageOutName);
+		datasetOut.setName(IMAGE_OUT_NAME);
 		
 		if (imageType.equals("Grey")) {
 			//do nothing

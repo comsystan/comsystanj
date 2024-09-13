@@ -1265,7 +1265,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 		return singleImg;
 		// 
 		// Output
-		// uiService.show(imageOutName, resultImg);
+		// uiService.show(IMAGE_OUT_NAME, resultImg);
 	}
 
 	

@@ -1270,7 +1270,7 @@ public class Csaj1DSymbolicAggregation<T extends RealType<T>> extends Interactiv
 		return singleImg;
 		// 
 		// Output
-		// uiService.show(imageOutName, resultImg);
+		// uiService.show(IMAGE_OUT_NAME, resultImg);
 	}
 
 	
