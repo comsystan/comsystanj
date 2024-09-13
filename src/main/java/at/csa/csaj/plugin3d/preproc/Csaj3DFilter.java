@@ -134,8 +134,8 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 	private static long compositeChannelCount = 0;
 	private static String imageType = "";
 	
-	private static final String volumeOutName = "Filtered volume";
-	private static final String volumePreviewName = "Preview volume";
+	public static final String VOLUME_OUT_NAME = "Filtered volume";
+	private static final String VOLUME_PREVIEW_NAME = "Preview volume";
 	private static Dataset datasetPreview;
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
@@ -181,7 +181,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 	@Parameter
 	private IOService ioService;
 
-	@Parameter(label = volumeOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = VOLUME_OUT_NAME, type = ItemIO.OUTPUT)
 	private Dataset datasetOut;
 
 	// Widget elements------------------------------------------------------
@@ -347,7 +347,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleVolume();
-	    	   	uiService.show(volumeOutName, datasetOut);
+	    	   	uiService.show(VOLUME_OUT_NAME, datasetOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -371,7 +371,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForSingleVolume();
-	    	   	uiService.show(volumeOutName, datasetOut);
+	    	   	uiService.show(VOLUME_OUT_NAME, datasetOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -392,7 +392,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleVolume();
-		    	   	uiService.show(volumeOutName, datasetOut);   //Show volume because it did not go over the run() method
+		    	   	uiService.show(VOLUME_OUT_NAME, datasetOut);   //Show volume because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -523,7 +523,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 			//long[] dims = new long[]{width, height, depth};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), rai.dimension(2)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-			datasetPreview = datasetService.create(dims, volumePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetPreview = datasetService.create(dims, VOLUME_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			
 			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
@@ -543,7 +543,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 			int bitsPerPixel = 8;
 			long[] dims = new long[]{width, height, 3, depth};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-			datasetPreview = datasetService.create(dims, volumePreviewName, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetPreview = datasetService.create(dims, VOLUME_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			datasetPreview.setCompositeChannelCount(3);
 			datasetPreview.setRGBMerged(true);
 //			datasetPreview.setChannelMinimum(0, 0);
@@ -659,7 +659,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 				frame = listFrames[i];
 				//System.out.println("frame name: " + frame.getTitle());
-				if (frame.getTitle().contains(volumePreviewName) || frame.getTitle().contains(volumeOutName)) {
+				if (frame.getTitle().contains(VOLUME_PREVIEW_NAME) || frame.getTitle().contains(VOLUME_OUT_NAME)) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 				}
@@ -710,7 +710,7 @@ public class Csaj3DFilter<T extends RealType<T>> extends InteractiveCommand impl
 		//copy metadata
 		(datasetOut.getProperties()).putAll(datasetIn.getProperties());
 		//Map<String, Object> map = datasetOut.getProperties();
-		datasetOut.setName(volumeOutName);
+		datasetOut.setName(VOLUME_OUT_NAME);
 		
 		if (imageType.equals("Grey")) {
 			//do nothing
