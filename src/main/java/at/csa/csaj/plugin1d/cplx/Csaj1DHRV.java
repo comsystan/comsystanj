@@ -185,7 +185,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	
 	private static double[] diffSequence;
 	
-	private static final String tableOutName = "Table - HRV";
+	public static final String TABLE_OUT_NAME = "Table - HRV";
 	
 	CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -226,7 +226,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	private DefaultGenericTable tableIn;
 	
 
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
 
@@ -490,7 +490,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleColumn();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -514,7 +514,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForAllColumns();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -535,7 +535,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleColumn();
-		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -859,7 +859,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableOutName))
+				if (display.getName().contains(TABLE_OUT_NAME))
 					display.close();
 			}
 		}
@@ -987,7 +987,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableOut);
+		uiService.show(TABLE_OUT_NAME, tableOut);
 	}
 	
 	/**
@@ -1444,7 +1444,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		return new CsajContainer_ProcessMethod(resultValues);
 		// SampEn or AppEn
 		// Output
-		// uiService.show(tableOutName, table);
+		// uiService.show(TABLE_OUT_NAME, table);
 	}
 	
 	//------------------------------------------------------------------------------------------------------

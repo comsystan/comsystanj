@@ -128,7 +128,7 @@ public class Csaj3DFracDimBoxCountingCommand<T extends RealType<T>> extends Cont
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	private static final String tableOutName = "Table - 3D Box counting dimension";
+	public static final String TABLE_OUT_NAME = "Table - 3D Box counting dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -170,7 +170,7 @@ public class Csaj3DFracDimBoxCountingCommand<T extends RealType<T>> extends Cont
 	@Parameter
 	private DatasetService datasetService;
 
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
 
@@ -417,7 +417,7 @@ public class Csaj3DFracDimBoxCountingCommand<T extends RealType<T>> extends Cont
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleVolume();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -441,7 +441,7 @@ public class Csaj3DFracDimBoxCountingCommand<T extends RealType<T>> extends Cont
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForSingleVolume();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -462,7 +462,7 @@ public class Csaj3DFracDimBoxCountingCommand<T extends RealType<T>> extends Cont
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleVolume();
-		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -699,7 +699,7 @@ public class Csaj3DFracDimBoxCountingCommand<T extends RealType<T>> extends Cont
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableOutName)) display.close();
+				if (display.getName().contains(TABLE_OUT_NAME)) display.close();
 			}			
 		}
 	}

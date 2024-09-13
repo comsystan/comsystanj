@@ -305,7 +305,7 @@ public class Csaj2DFracDimCorrelationDialog extends CsajDialog_2DPluginWithRegre
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimCorrelationCommand.tableOutName;
+		tableOutName = Csaj2DFracDimCorrelationCommand.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

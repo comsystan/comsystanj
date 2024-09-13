@@ -272,7 +272,7 @@ public class Csaj2DFracDimBoxCountingDialog extends CsajDialog_2DPluginWithRegre
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimBoxCountingCommand.tableOutName;
+		tableOutName = Csaj2DFracDimBoxCountingCommand.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

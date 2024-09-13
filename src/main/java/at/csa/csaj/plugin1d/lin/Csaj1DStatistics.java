@@ -125,7 +125,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	private static long numGlidingBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 
-	private static final String tableOutName = "Table - Sequence statistics";
+	public static final String TABLE_OUT_NAME = "Table - Sequence statistics";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -164,7 +164,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	//@Parameter(type = ItemIO.INPUT)
 	//private DefaultGenericTable tableIn;
 
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
 
@@ -355,7 +355,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleColumn();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -379,7 +379,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForAllColumns();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -400,7 +400,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleColumn();
-		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -620,7 +620,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableOutName))
+				if (display.getName().contains(TABLE_OUT_NAME))
 					display.close();
 					//This might free some memory
 					display = null;
@@ -747,7 +747,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableOut);
+		uiService.show(TABLE_OUT_NAME, tableOut);
 		//This might free some memory
 		tableOut = null;
 	}
@@ -942,7 +942,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 		return new CsajContainer_ProcessMethod(resultValues);
 		// 0 numDataPoints 1 Min 2 Max 3 Median 4 QuMean 5 Mean 6 SD 7 Kurt 8 Skew 9 Sum 10 SumSqr
 		// Output
-		// uiService.show(tableOutName, table);
+		// uiService.show(TABLE_OUT_NAME, table);
 	}
 
 

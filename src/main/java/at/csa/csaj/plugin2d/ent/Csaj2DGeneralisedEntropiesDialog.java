@@ -607,7 +607,7 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DGeneralisedEntropiesCommand.tableOutName;
+		tableOutName = Csaj2DGeneralisedEntropiesCommand.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

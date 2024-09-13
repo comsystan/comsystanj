@@ -141,7 +141,7 @@ public class Csaj3DFracDimTugOfWar<T extends RealType<T>> extends InteractiveCom
 	private static double[] sequence;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 
-	private static final String tableOutName = "Table - 3D Tug of war dimension";
+	public static final String TABLE_OUT_NAME = "Table - 3D Tug of war dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -182,7 +182,7 @@ public class Csaj3DFracDimTugOfWar<T extends RealType<T>> extends InteractiveCom
 	@Parameter
 	private DatasetService datasetService;
 
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
 
@@ -429,7 +429,7 @@ public class Csaj3DFracDimTugOfWar<T extends RealType<T>> extends InteractiveCom
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleVolume();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -453,7 +453,7 @@ public class Csaj3DFracDimTugOfWar<T extends RealType<T>> extends InteractiveCom
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForSingleVolume();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -474,7 +474,7 @@ public class Csaj3DFracDimTugOfWar<T extends RealType<T>> extends InteractiveCom
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleVolume();
-		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -710,7 +710,7 @@ public class Csaj3DFracDimTugOfWar<T extends RealType<T>> extends InteractiveCom
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableOutName)) display.close();
+				if (display.getName().contains(TABLE_OUT_NAME)) display.close();
 			}			
 		}
 	}

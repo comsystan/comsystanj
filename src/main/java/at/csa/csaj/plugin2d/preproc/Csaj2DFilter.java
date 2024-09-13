@@ -702,7 +702,7 @@ public class Csaj2DFilter<T extends RealType<T>> extends InteractiveCommand impl
 //			for (int i = 0; i < list.size(); i++) {
 //				display = list.get(i);
 //				//System.out.println("display name: " + display.getName());
-//				if (display.getName().contains(tableOutName)) display.close();
+//				if (display.getName().contains(TABLE_OUT_NAME)) display.close();
 //			}			
 //		}
 	}

@@ -129,7 +129,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 //	private static long numGlidingBoxes = 0;
 	
 	private static final int numTableOutPreCols = 1; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
-	private static final String tableOutName = "Table - Filter";
+	public static final String TABLE_OUT_NAME = "Table - Filter";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -170,7 +170,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	private DefaultGenericTable tableIn;
 	
 
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
 
@@ -408,7 +408,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleColumn();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -432,7 +432,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForAllColumns();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -453,7 +453,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleColumn();
-		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -627,7 +627,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableOutName))
+				if (display.getName().contains(TABLE_OUT_NAME))
 					display.close();
 			}
 		}
@@ -804,7 +804,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableOut);
+		uiService.show(TABLE_OUT_NAME, tableOut);
 	}
 	
 	/**
@@ -927,7 +927,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		return new CsajContainer_ProcessMethod(sequenceOut);
 		// 
 		// Output
-		// uiService.show(tableOutName, table);
+		// uiService.show(TABLE_OUT_NAME, table);
 	}
 
 	

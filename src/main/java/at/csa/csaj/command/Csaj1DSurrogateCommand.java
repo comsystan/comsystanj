@@ -123,7 +123,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 //	private static long numGlidingBoxes = 0;
 	
 	private static final int numTableOutPreCols = 1; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
-	private static final String tableOutName = "Table - Surrogate";
+	public static final String TABLE_OUT_NAME = "Table - Surrogate";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -164,7 +164,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 	private DefaultGenericTable tableIn;
 	
 
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
 
@@ -413,7 +413,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleColumn();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -437,7 +437,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForAllColumns();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -458,7 +458,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleColumn();
-		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -634,7 +634,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 			for (int i = 0; i < list.size(); i++) {
 				Display<?> display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableOutName))
+				if (display.getName().contains(TABLE_OUT_NAME))
 					display.close();
 			}
 		}
@@ -817,7 +817,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 	 */
 	private void showTable() {
 		// Show table
-		uiService.show(tableOutName, tableOut);
+		uiService.show(TABLE_OUT_NAME, tableOut);
 	}
 	
 	/**
@@ -920,7 +920,7 @@ public class Csaj1DSurrogateCommand<T extends RealType<T>> extends ContextComman
 		return new CsajContainer_ProcessMethod(sequence1D);
 		// 
 		// Output
-		// uiService.show(tableOutName, table);
+		// uiService.show(TABLE_OUT_NAME, table);
 	}
 
 	

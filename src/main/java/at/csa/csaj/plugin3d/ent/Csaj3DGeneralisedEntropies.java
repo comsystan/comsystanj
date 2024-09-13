@@ -166,7 +166,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_SequenceFrame> genRenyiPlotList = new ArrayList<CsajPlot_SequenceFrame>();
 	
-	private static final String tableOutName = "Table - 3D Generalised entropies";
+	public static final String TABLE_OUT_NAME = "Table - 3D Generalised entropies";
 	
 	private static int   minQ;
 	private static int   maxQ;
@@ -253,7 +253,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	@Parameter
 	private DatasetService datasetService;
 
-	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
 
@@ -615,7 +615,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleVolume();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -639,7 +639,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForSingleVolume();
-	    	   	uiService.show(tableOutName, tableOut);
+	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -660,7 +660,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleVolume();
-		    	   	uiService.show(tableOutName, tableOut);   //Show table because it did not go over the run() method
+		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -904,7 +904,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
 				//System.out.println("display name: " + display.getName());
-				if (display.getName().contains(tableOutName)) display.close();
+				if (display.getName().contains(TABLE_OUT_NAME)) display.close();
 			}			
 		}
 	}
@@ -1136,7 +1136,7 @@ public class Csaj3DGeneralisedEntropies<T extends RealType<T>> extends Interacti
 		
 		return new CsajContainer_ProcessMethod(resultValues);
 		//Output
-		//uiService.show(tableOutName, table);
+		//uiService.show(TABLE_OUT_NAME, table);
 		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
 		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
