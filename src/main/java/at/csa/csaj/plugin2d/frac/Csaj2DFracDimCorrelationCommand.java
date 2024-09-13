@@ -123,6 +123,8 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
+	public static final String tableOutName = "Table - Correlation dimension";
+	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
@@ -161,14 +163,8 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	@Parameter (type = ItemIO.INPUT)
 	private Dataset datasetIn;
 	
-	@Parameter(type = ItemIO.OUTPUT)
-	private String tableOutName = "Table - Correlation dimension";
-	
-	@Parameter(type = ItemIO.OUTPUT)
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
-	
-	@Parameter
-	private boolean processAll;
 
    //Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
@@ -277,6 +273,12 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
+ 	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;

@@ -149,6 +149,8 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	private static double durationReference  = Double.NaN;
 	private static double megabytesReference = Double.NaN;
 		
+	public static final String tableOutName = "Table - KC and LD";
+	
     private CsajDialog_WaitingWithProgressBar dlgProgress;
     private ExecutorService exec;
     
@@ -189,17 +191,10 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 	
   	@Parameter (type = ItemIO.INPUT)
   	private Dataset datasetIn;
-	
-  	@Parameter(type = ItemIO.OUTPUT)
-	private String tableOutName = "Table - KC and LD";
-	
-  	@Parameter(type = ItemIO.OUTPUT)
+		
+  	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
-	
-	@Parameter
-	private boolean processAll;
 
-	
    //Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
     //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -269,6 +264,12 @@ public class Csaj2DKolmogorovComplexityCommand<T extends RealType<T>> extends Co
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
+	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;

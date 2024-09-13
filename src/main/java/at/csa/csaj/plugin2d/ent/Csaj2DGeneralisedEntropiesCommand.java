@@ -187,6 +187,8 @@ public class Csaj2DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
 	
+	public static final String tableOutName = "Table - Generalised entropies";
+	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
     private ExecutorService exec;
 	
@@ -224,16 +226,9 @@ public class Csaj2DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	
 	@Parameter (type = ItemIO.INPUT)
 	private Dataset datasetIn;
-	
-	@Parameter(type = ItemIO.OUTPUT)
-	private String tableOutName = "Table - Generalised entropies";
-	
-	@Parameter(type = ItemIO.OUTPUT)
+		
+	@Parameter(label = tableOutName, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
-	
-	@Parameter
-	private boolean processAll;
-
 	
 	 //Widget elements------------------------------------------------------
 		//-----------------------------------------------------------------------------------------------------
@@ -356,6 +351,12 @@ public class Csaj2DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
+	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;

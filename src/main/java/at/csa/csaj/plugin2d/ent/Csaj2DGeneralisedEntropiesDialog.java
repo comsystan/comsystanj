@@ -51,6 +51,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
 import at.csa.csaj.commons.CsajDialog_2DPlugin;
+import at.csa.csaj.plugin2d.frac.Csaj2DFracDimCorrelationCommand;
 /*
  * This is a custom dialog for a CSAJ plugin
  */
@@ -605,14 +606,9 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		tableOutName = (String)              commandModule.getOutput("tableOutName");
-		tableOut     = (DefaultGenericTable) commandModule.getOutput("tableOut");
-		
-//		final ImageJ ij = new ImageJ();
-//		final Module module = ij.module().waitFor(future);
-//		tableOutName = (String)              module..getOutput("tableOutName");
-//		tableOut     = (DefaultGenericTable) module.getOutput("tableOut");
-		
+		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
+		tableOutName = Csaj2DGeneralisedEntropiesCommand.tableOutName;
+		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}
 }
