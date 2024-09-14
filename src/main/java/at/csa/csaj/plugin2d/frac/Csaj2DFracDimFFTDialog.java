@@ -163,6 +163,15 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 			public void actionPerformed(final ActionEvent arg0) {
 				if (radioButtonCircularAverage.isSelected())  choiceRadioButt_PowerSpecType = radioButtonCircularAverage.getText();
 				logService.info(this.getClass().getName() + " Power spectrum type set to " + choiceRadioButt_PowerSpecType);
+				
+				int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
+				spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
+				spinnerNumEps.setModel(spinnerModelNumEps);
+				spinnerNumEps.setValue(numEpsMax);
+				spinnerNumRegEnd.setValue(numEpsMax);
+				spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
+				spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
+				
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
 		});
@@ -171,6 +180,15 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 			public void actionPerformed(final ActionEvent arg0) {
 				if (radioButtonMeanOfLineScans.isSelected())  choiceRadioButt_PowerSpecType = radioButtonMeanOfLineScans.getText();
 				logService.info(this.getClass().getName() + " Power spectrum type set to " + choiceRadioButt_PowerSpecType);
+				
+				int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
+				spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
+				spinnerNumEps.setModel(spinnerModelNumEps);
+				spinnerNumEps.setValue(numEpsMax);
+				spinnerNumRegEnd.setValue(numEpsMax);
+				spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
+				spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
+				
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
 		});
@@ -179,6 +197,15 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 			public void actionPerformed(final ActionEvent arg0) {
 				if (radioButtonIntegralOfLineScans.isSelected())  choiceRadioButt_PowerSpecType = radioButtonIntegralOfLineScans.getText();
 				logService.info(this.getClass().getName() + " Power spectrum type set to " + choiceRadioButt_PowerSpecType);
+				
+				int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
+				spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
+				spinnerNumEps.setModel(spinnerModelNumEps);
+				spinnerNumEps.setValue(numEpsMax);
+				spinnerNumRegEnd.setValue(numEpsMax);
+				spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
+				spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
+				
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
 		});
@@ -212,7 +239,7 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Maximal k");
-		int numEpsMax = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+		int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -223,36 +250,6 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
 	    //*****************************************************************************************
 		//Do additional things
-	}
-	
-	/**
-	 * This method computes the maximal number of possible k's
-	 * NOTE: Changes to this method must be mirrored to the Command class!!!!!!
-	 */
-	private int getMaxK(int width, int height) { //
-
-		int numOfK = 0;
-		int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
-		int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
-		
-		//All DFT axes must have the same size, otherwise lowest frequencies are not the same for anisotropic sizes
-		widthDFT  = (int)Math.max(widthDFT, heightDFT); 
-		heightDFT = widthDFT;
-		
-		if (choiceRadioButt_PowerSpecType != null) { //during startup it is null
-			//"Circular average", "Mean of line scans", "Integral of line scans"
-			if      (choiceRadioButt_PowerSpecType.equals("Circular average")) {			
-				numOfK = widthDFT * heightDFT; //Will be lowered later, after averaging		
-			}
-			else if ((choiceRadioButt_PowerSpecType.equals("Mean of line scans")) || (choiceRadioButt_PowerSpecType.equals("Integral of line scans"))) {				
-				//Will be lowered later, after averaging
-				numOfK = widthDFT/2 -1; 				
-			}
-		} else { //during startup it is null
-			numOfK = widthDFT * heightDFT;
-		}
-
-		return numOfK;
 	}
 		
 	/**

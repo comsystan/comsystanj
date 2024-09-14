@@ -339,7 +339,7 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numOfK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+    		numOfK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
     	}
       	spinnerInteger_MaxK = numOfK;
     }
@@ -352,7 +352,7 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numOfK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+    		numOfK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
     	}
     	spinnerInteger_NumRegEnd =  numOfK;
     }
@@ -366,7 +366,7 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numOfK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+    		numOfK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
     	}
 		spinnerInteger_MaxK   = numOfK;
 		spinnerInteger_NumRegEnd = numOfK;	
@@ -392,7 +392,7 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
 		if  (spinnerInteger_MaxK < 3) {
 			spinnerInteger_MaxK = 3;
 		}
-		int numMaxK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));	
+		int numMaxK = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);	
 		if (spinnerInteger_MaxK > numMaxK) {
 			spinnerInteger_MaxK = numMaxK;
 		};
@@ -435,7 +435,7 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
 	
 	/** Executed whenever the {@link #choiceRadioButt_PowerSpecType} parameter changes. */
 	protected void callbackPowerSpecType() {
-		int numOfK = getMaxK((int)width, (int)height);
+		int numOfK = getMaxK((int)width, (int)height, choiceRadioButt_PowerSpecType);
 		spinnerInteger_MaxK   = numOfK;
 		spinnerInteger_NumRegEnd = numOfK;	
 		logService.info(this.getClass().getName() + " Power spectrum type set to " + choiceRadioButt_PowerSpecType);
@@ -714,9 +714,8 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
 	
 	/**
 	 * This method computes the maximal number of possible k's
-	 * NOTE: Changes to this method must be mirrored to the Dialog class!!!!!!
 	 */
-	private int getMaxK(int width, int height) { //
+	public static int getMaxK(int width, int height, String choiceRadioButt_PowerSpecType) { //
 
 		int widthDFT  = width  == 1 ? 1 : Integer.highestOneBit(width  - 1) * 2;
 		int heightDFT = height == 1 ? 1 : Integer.highestOneBit(height - 1) * 2;
