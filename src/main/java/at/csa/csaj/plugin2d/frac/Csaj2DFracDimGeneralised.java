@@ -1175,8 +1175,12 @@ public class Csaj2DFracDimGeneralised<T extends RealType<T>> extends Interactive
 					if (scanningType.equals("Raster box"))  delta = boxSize;
 					if (scanningType.equals("Sliding box")) delta = 1;
 					for (int x = 0; x <= (width-boxSize); x = x+delta){
-						for (int y = 0;  y <= (height-boxSize); y = y+delta){		
-							random_number = (int) (Math.random()*max_random_number+1);
+						for (int y = 0;  y <= (height-boxSize); y = y+delta){	
+							
+							//Take always last and largest image, else take only percentage
+							if (n == numBoxes-1) random_number = 1;
+							else random_number = (int) (Math.random()*max_random_number+1); 
+							
 							if( random_number == 1 ){ // UPDATE 07.08.2013 
 								count = 0;
 								raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});

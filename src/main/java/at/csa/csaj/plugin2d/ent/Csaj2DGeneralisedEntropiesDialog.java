@@ -218,6 +218,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         	@Override
             public void stateChanged(ChangeEvent e) {
             	spinnerInteger_MinQ = (int)spinnerMinQ.getValue();
+            	spinnerInteger_MaxQ = (int)spinnerMaxQ.getValue();      
+            	if (spinnerInteger_MinQ >= spinnerInteger_MaxQ) {
+            		spinnerMinQ.setValue((int)spinnerMaxQ.getValue() - 1);
+            		spinnerInteger_MinQ = (int)spinnerMinQ.getValue();
+            	}	
                 logService.info(this.getClass().getName() + " MinQ set to " + spinnerInteger_MinQ);
                 if (booleanProcessImmediately) btnProcessSingleImage.doClick();
             }
@@ -245,6 +250,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         	@Override
             public void stateChanged(ChangeEvent e) {
             	spinnerInteger_MaxQ = (int)spinnerMaxQ.getValue();
+            	spinnerInteger_MinQ = (int)spinnerMinQ.getValue();
+            	if (spinnerInteger_MaxQ <= spinnerInteger_MinQ) {
+            		spinnerMaxQ.setValue((int)spinnerMinQ.getValue() + 1);
+            		spinnerInteger_MaxQ = (int)spinnerMaxQ.getValue();
+            	}
                 logService.info(this.getClass().getName() + " MaxQ set to " + spinnerInteger_MaxQ);
                 if (booleanProcessImmediately) btnProcessSingleImage.doClick();
             }

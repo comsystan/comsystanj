@@ -182,7 +182,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    spinnerInteger_NumEps = (int)spinnerNumEps.getValue();
 	    
 	    //*****************************************************************************************
-	    JLabel labelNumRegStart = new JLabel("Regresssion start");
+	    JLabel labelNumRegStart = new JLabel("Regression start");
 	    labelNumRegStart.setToolTipText("Minimum number of linear regression");
 	    labelNumRegStart.setHorizontalAlignment(JLabel.RIGHT);
 	   
@@ -218,7 +218,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    spinnerInteger_NumRegStart = (int)spinnerNumRegStart.getValue();
 	    
 	    //*****************************************************************************************
-	    JLabel labelNumRegEnd = new JLabel("Regresssion end");
+	    JLabel labelNumRegEnd = new JLabel("Regression end");
 	    labelNumRegEnd.setToolTipText("Maximum number of linear regression");
 	    labelNumRegEnd.setHorizontalAlignment(JLabel.RIGHT);
 	   
