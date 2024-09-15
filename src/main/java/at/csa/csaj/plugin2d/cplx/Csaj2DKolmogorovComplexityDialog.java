@@ -182,9 +182,9 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	    spinnerInteger_NumIterations = (int)spinnerNumIterations.getValue();
 	   
 	    //*****************************************************************************************
-	    JLabel labelSkipZero = new JLabel("Skip zero values");
-	    labelSkipZero.setToolTipText("Delete zeroes or not");
-	    labelSkipZero.setHorizontalAlignment(JLabel.RIGHT);
+	    JLabel labelSkipZeroes = new JLabel("Skip zero values");
+	    labelSkipZeroes.setToolTipText("Delete zeroes or not");
+	    labelSkipZeroes.setHorizontalAlignment(JLabel.RIGHT);
 	    
 		checkBoxSkipZeroes = new JCheckBox();
 		checkBoxSkipZeroes.setToolTipText("Delete zeroes or not");
@@ -208,7 +208,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
         gbc.gridx = 0;
 	    gbc.gridy = 2;
 	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelSkipZero, gbc);
+	    contentPanel.add(labelSkipZeroes, gbc);
 	    gbc.gridx = 1;
 	    gbc.gridy = 2;
 	    gbc.anchor = GridBagConstraints.WEST; //left

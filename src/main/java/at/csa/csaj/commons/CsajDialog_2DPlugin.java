@@ -208,6 +208,8 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		getContentPane().add(scrollPane, BorderLayout.CENTER);
 		
 		JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+		separator.setToolTipText("Process options");
+		separator.setName("Process options");
 		gbc.gridx = 0;
 		gbc.gridwidth = 2;
 		gbc.gridy = 200;

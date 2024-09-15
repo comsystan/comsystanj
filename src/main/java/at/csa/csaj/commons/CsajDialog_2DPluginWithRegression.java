@@ -28,30 +28,16 @@
 
 package at.csa.csaj.commons;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.HashMap;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.scijava.Context;
@@ -123,6 +109,8 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    //*****************************************************************************************
 		//Specific items are declared in the sub class
 		JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+		separator.setToolTipText("Regression parameters");
+		separator.setName("Regression parameters");
 		gbc.gridx = 0;
 		gbc.gridwidth = 2;
 		gbc.gridy = 100;

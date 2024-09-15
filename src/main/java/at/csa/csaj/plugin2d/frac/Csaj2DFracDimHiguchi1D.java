@@ -159,7 +159,7 @@ public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends InteractiveCo
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	private static ArrayList<PlotWindow>          plotWindowList    = new ArrayList<PlotWindow>(); //ImageJ plot windows
 	
-	public static final String TABLE_OUT_NAME = "Table - Higuchi dimension";
+	public static final String TABLE_OUT_NAME = "Table - Higuchi dimension 1D";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -323,7 +323,7 @@ public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends InteractiveCo
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numKMax = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
+    		numKMax = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
     	}
 		spinnerInteger_KMax = numKMax;
 	}
@@ -338,7 +338,7 @@ public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends InteractiveCo
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numKMax = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
+    		numKMax = getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
     	}
 		spinnerInteger_NumRegEnd = numKMax;
 	}
@@ -753,6 +753,11 @@ public class Csaj2DFracDimHiguchi1D<T extends RealType<T>> extends InteractiveCo
 				if (display.getName().contains(TABLE_OUT_NAME)) display.close();
 			}			
 		}
+	}
+	
+	public static int getMaxK(int width, int height) {
+		numKMax = (int) Math.floor((Math.min(width, height)) / 3.0);
+		return numKMax;
 	}
 
 	/** This method takes the active image and computes results. 
