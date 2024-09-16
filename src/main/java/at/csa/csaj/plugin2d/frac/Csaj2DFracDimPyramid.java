@@ -706,7 +706,7 @@ public class Csaj2DFracDimPyramid<T extends RealType<T>> extends InteractiveComm
 	}
 	
 	/** This method computes the maximal number of downscaled images*/
-	private int getMaxPyramidNumber(long width, long height) { // inclusive original image
+	public static int getMaxPyramidNumber(long width, long height) { // inclusive original image
 		float oldWidth = width;
 		float oldHeight = height;
 		int number = 1; // inclusive original image

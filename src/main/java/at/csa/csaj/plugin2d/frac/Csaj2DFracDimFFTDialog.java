@@ -57,7 +57,7 @@ import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
  */
 public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 
-	private static final long serialVersionUID = 455961109279140102L;
+	private static final long serialVersionUID = -2234350694592510601L;
 
 	@Parameter
 	private LogService logService;

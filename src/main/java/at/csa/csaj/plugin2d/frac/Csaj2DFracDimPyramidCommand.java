@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.frac;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -33,8 +33,8 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,7 +66,6 @@ import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 import org.scijava.ItemIO;
@@ -77,8 +76,6 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -86,20 +83,15 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
 
 /**
  * A {@link ContextCommand} plugin computing
@@ -112,15 +104,7 @@ import io.scif.MetaTable;
         initializer = "initialPluginLaunch",
         iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
         menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
+
 public class Csaj2DFracDimPyramidCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
 	
 	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with an image pyramid";
@@ -288,6 +272,12 @@ public class Csaj2DFracDimPyramidCommand<T extends RealType<T>> extends ContextC
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
+ 	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
@@ -302,8 +292,29 @@ public class Csaj2DFracDimPyramidCommand<T extends RealType<T>> extends ContextC
     //---------------------------------------------------------------------
     //The following initializer functions set initial values	
 	protected void initialPluginLaunch() {
-		checkItemIOIn();
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
+			//RGB not allowed
+			if (!imageType.equals("Grey")) { 
+				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
+				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+			}
+		}
 	}
+	
     protected void initialNumImages() {
     	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image = null");
@@ -492,88 +503,35 @@ public class Csaj2DFracDimPyramidCommand<T extends RealType<T>> extends ContextC
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllImages();
-		}
-	}
-	
-	public void checkItemIOIn() {
-	
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image = null");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
-			return;
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			//RGB not allowed
+			if (!imageType.equals("Grey")) { 
+				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+			} 
 		}
 
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
-		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 2D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//numSlices = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		
-		numDimensions = datasetIn.numDimensions();
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-		
-		// get name of dataset
-		datasetName = datasetIn.getName();
-		
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-			sliceLabels = (String[]) metaTable.get("SliceLabels");
-			//eliminate additional image info delimited with \n (since pom-scijava 29.2.1)
-			for (int i = 0; i < sliceLabels.length; i++) {
-				String label = sliceLabels[i];
-				int index = label.indexOf("\n");
-				//if character has been found, otherwise index = -1
-				if (index > 0) sliceLabels[i] = label.substring(0, index);		
-			}
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-		
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: " + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		
-		//RGB not allowed
-		if (!imageType.equals("Grey")) { 
-			logService.warn(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
-			cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-		}
-	}
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
 	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+		
 	/**
 	 * This method starts the workflow for a single image of the active display
 	 */
@@ -701,7 +659,7 @@ public class Csaj2DFracDimPyramidCommand<T extends RealType<T>> extends ContextC
 	}
 	
 	/** This method computes the maximal number of downscaled images*/
-	private int getMaxPyramidNumber(long width, long height) { // inclusive original image
+	public static int getMaxPyramidNumber(long width, long height) { // inclusive original image
 		float oldWidth = width;
 		float oldHeight = height;
 		int number = 1; // inclusive original image

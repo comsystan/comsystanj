@@ -121,7 +121,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D FFT dimension");
+		setTitle("2D Minkowski dimension");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************

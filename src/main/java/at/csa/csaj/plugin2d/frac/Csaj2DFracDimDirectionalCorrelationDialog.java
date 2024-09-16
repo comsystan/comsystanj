@@ -59,7 +59,7 @@ import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
  */
 public class Csaj2DFracDimDirectionalCorrelationDialog extends CsajDialog_2DPluginWithRegression {
 
-	private static final long serialVersionUID = -8968747711329420424L;
+	private static final long serialVersionUID = -3475871861446942774L;
 
 	@Parameter
 	private LogService logService;
