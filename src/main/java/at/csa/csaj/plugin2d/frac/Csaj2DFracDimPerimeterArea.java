@@ -80,10 +80,6 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
-import org.scijava.ui.DialogPrompt;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
@@ -715,7 +711,7 @@ public class Csaj2DFracDimPerimeterArea<T extends RealType<T>> extends Interacti
 	}
 	
 	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height) { 
+	public static int getMaxBoxNumber(long width, long height) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height)) {
