@@ -60,7 +60,7 @@ import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
  */
 public class Csaj2DFracDimHiguchi2DDialog extends CsajDialog_2DPluginWithRegression {
 
-	private static final long serialVersionUID = 8025805789017474802L;
+	private static final long serialVersionUID = -6615036589899474699L;
 
 	@Parameter
 	private LogService logService;
