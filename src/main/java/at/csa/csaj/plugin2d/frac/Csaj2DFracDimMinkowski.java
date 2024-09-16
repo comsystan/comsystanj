@@ -728,7 +728,7 @@ public class Csaj2DFracDimMinkowski<T extends RealType<T>> extends InteractiveCo
 	}
 	
 	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height) { 
+	public static int getMaxBoxNumber(long width, long height) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height)) {
