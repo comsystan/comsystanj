@@ -139,7 +139,7 @@ public class Csaj2DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	private static ArrayList<PlotWindow>          plotWindowList    = new ArrayList<PlotWindow>(); //ImageJ plot windows
 	
-	public static final String TABLE_OUT_NAME = "Table - Higuchi dimension 1D";
+	public static final String TABLE_OUT_NAME = "Table - Higuchi1D dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;

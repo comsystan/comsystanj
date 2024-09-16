@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimHiguchi1DDialog.java
+ * File: Csaj2DFracDimHiguchi2DDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -58,7 +58,7 @@ import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegression {
+public class Csaj2DFracDimHiguchi2DDialog extends CsajDialog_2DPluginWithRegression {
 
 	private static final long serialVersionUID = 8025805789017474802L;
 
@@ -78,21 +78,9 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 	//Specific dialog items
  	private JComboBox<String> comboBoxMethod;
 	private String            choiceRadioButt_Method;
-	
-	private JLabel    labelShowSomeRadialLinePlots;
-	private JCheckBox checkBoxShowSomeRadialLinePlots;
-	private boolean   booleanShowSomeRadialLinePlots;
-	
-	private JLabel    labelGetAllRadialDhValues;
-	private JCheckBox checkBoxGetAllRadialDhValues;
-	private boolean   booleanGetAllRadialDhValues;
-	
+
 	private JCheckBox checkBoxSkipZeroes;
 	private boolean   booleanSkipZeroes;
-
-	private JCheckBox checkBoxOnlyHighQualityRegressions;
-	private boolean   booleanOnlyHighQualityRegressions;
-	
 	
 	/**Some default @Parameters are already defined in the super class
 	 * public JCheckBox checkBoxOverwriteDisplays;
@@ -112,7 +100,7 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DFracDimHiguchi1DDialog(Context context, Dataset datasetIn) {
+	public Csaj2DFracDimHiguchi2DDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -123,50 +111,36 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Higuchi1D dimension");
+		setTitle("2D Higuchi2D dimension");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************
-	    JLabel labelMethod = new JLabel("1D Extraction method");
-	    labelMethod.setToolTipText("Type of 1D grey value profile extraction");
+	    JLabel labelMethod = new JLabel("2D method");
+	    labelMethod.setToolTipText("Type of 2D grey value algorithm");
 	    labelMethod.setHorizontalAlignment(JLabel.RIGHT);
 		
-		String options[] = {"Single centered row/column",
-							"Single meander row/column",
-							"Mean of all rows/columns",
-							"Mean of      4 radial lines [0-180°]",
-							"Mean of 180 radial lines [0-180°]"
+		String options[] = { "K-fold differences",
+				   			"Multiplicated differences",
+				   			"Multiplicated differences2",														   
+				   			"Squared differences",
+				   			"Direct differences",
+				   			"Triangle areas",
+				   			"RGB Diff - K-fold differences",
+				   			"RGB Diff - Multiplicated differences",	  
+				   			"RGB Diff - Squared differences",	
+				   			"RGB K-fold differences",	  
+				   			"RGB Multiplicated differences",	  
+				   			"RGB Squared differences",        //   "RGB - color weighted (alpha)",  "RGB - ROI color weighted (alpha)"},};
 		};
 		comboBoxMethod = new JComboBox<String>(options);
-		comboBoxMethod.setToolTipText("Type of 1D grey value profile extraction");
+		comboBoxMethod.setToolTipText("Type of 2D grey value algorithm");
 	    comboBoxMethod.setEditable(false);
-	    comboBoxMethod.setSelectedItem("Single meander row/column");
+	    comboBoxMethod.setSelectedItem("K-fold differences");
 	    comboBoxMethod.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_Method = (String)comboBoxMethod.getSelectedItem();
 				logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_Method);
-				if (choiceRadioButt_Method.equals("Mean of 180 radial lines [0-180°]") || choiceRadioButt_Method.equals("Mean of      4 radial lines [0-180°]")) {		
-					labelShowSomeRadialLinePlots.setEnabled(true);
-					checkBoxShowSomeRadialLinePlots.setEnabled(true);
-					//booleanShowSomeRadialLinePlots = true;
-					labelGetAllRadialDhValues.setEnabled(true);
-					checkBoxGetAllRadialDhValues.setEnabled(true);
-					//checkBoxGetAllRadialDhValues.setSelected(rue;)
-					//booleanGetAllRadialDhValues = true;		
-					//logService.info(this.getClass().getName() + "  set to " + ?);
-				} else {
-					labelShowSomeRadialLinePlots.setEnabled(false);
-					checkBoxShowSomeRadialLinePlots.setEnabled(false);
-					checkBoxShowSomeRadialLinePlots.setSelected(false);
-					booleanShowSomeRadialLinePlots = false;
-					logService.info(this.getClass().getName() + "  Show some radila line plots option set to " + booleanShowSomeRadialLinePlots);
-					labelGetAllRadialDhValues.setEnabled(false);
-					checkBoxGetAllRadialDhValues.setEnabled(false);
-					checkBoxGetAllRadialDhValues.setSelected(false);
-					booleanGetAllRadialDhValues = false;		
-					logService.info(this.getClass().getName() + "  Get all Dh values option set to " + booleanGetAllRadialDhValues);
-				}
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
 		});
@@ -213,99 +187,9 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 	    booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
 	    
 	    //*****************************************************************************************
-	  	labelShowSomeRadialLinePlots = new JLabel("Show some radial line plots");
-  		labelShowSomeRadialLinePlots.setToolTipText("Show some radial line plots");
-  		labelShowSomeRadialLinePlots.setHorizontalAlignment(JLabel.RIGHT);
-  		labelShowSomeRadialLinePlots.setEnabled(false);
-  		
-  		checkBoxShowSomeRadialLinePlots = new JCheckBox();
-  		checkBoxShowSomeRadialLinePlots.setToolTipText("Show some radial line plots");
-  		checkBoxShowSomeRadialLinePlots.setEnabled(false);
-  		checkBoxShowSomeRadialLinePlots.setSelected(false);
-  		checkBoxShowSomeRadialLinePlots.addItemListener(new ItemListener() {
-  			@Override
-  		    public void itemStateChanged(ItemEvent e) {
-  		    	booleanShowSomeRadialLinePlots = checkBoxShowSomeRadialLinePlots.isSelected();	    
-  				logService.info(this.getClass().getName() + " Show some radial line plots option set to " + booleanShowSomeRadialLinePlots);
-  				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
-  		    }
-  		});
-  		gbc.insets = INSETS_STANDARD;
-        gbc.gridx = 0;
-  	    gbc.gridy = 2;
-  	    gbc.anchor = GridBagConstraints.EAST; //right
-  	    contentPanel.add(labelShowSomeRadialLinePlots, gbc);
-  	    gbc.gridx = 1;
-  	    gbc.gridy = 2;
-  	    gbc.anchor = GridBagConstraints.WEST; //left
-  	    contentPanel.add(checkBoxShowSomeRadialLinePlots, gbc);	
-  	 
-  	    //initialize command variable
-  	    booleanShowSomeRadialLinePlots = checkBoxShowSomeRadialLinePlots.isSelected();	 
-	   
-		//*****************************************************************************************
-		labelGetAllRadialDhValues = new JLabel("Get Dh values of all radial directions");
-		labelGetAllRadialDhValues.setToolTipText("Get Dh values of all radial directions");
-		labelGetAllRadialDhValues.setHorizontalAlignment(JLabel.RIGHT);
-		labelGetAllRadialDhValues.setEnabled(false);
-		
-		checkBoxGetAllRadialDhValues = new JCheckBox();
-		checkBoxGetAllRadialDhValues.setToolTipText("Get Dh values of all radial directions");
-		checkBoxGetAllRadialDhValues.setEnabled(false);
-		checkBoxGetAllRadialDhValues.setSelected(false);
-		checkBoxGetAllRadialDhValues.addItemListener(new ItemListener() {
-			@Override
-		    public void itemStateChanged(ItemEvent e) {
-		    	booleanGetAllRadialDhValues = checkBoxGetAllRadialDhValues.isSelected();	    
-				logService.info(this.getClass().getName() + " Get Dh values option set to " + booleanGetAllRadialDhValues);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
-		    }
-		});
-		gbc.insets = INSETS_STANDARD;
-        gbc.gridx = 0;
-	    gbc.gridy = 3;
-	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelGetAllRadialDhValues, gbc);
-	    gbc.gridx = 1;
-	    gbc.gridy = 3;
-	    gbc.anchor = GridBagConstraints.WEST; //left
-	    contentPanel.add(checkBoxGetAllRadialDhValues, gbc);	
-	 
-	    //initialize command variable
-	    booleanGetAllRadialDhValues = checkBoxGetAllRadialDhValues.isSelected();	 
-	    
-	    //*****************************************************************************************
-	    JLabel labelOnlyHighQualityRegressions = new JLabel("Only high quality regressions");
-	    labelOnlyHighQualityRegressions.setToolTipText("Takes for multiple grey value profiles only those with a coefficient of determination > 0.9");
-	    labelOnlyHighQualityRegressions.setHorizontalAlignment(JLabel.RIGHT);
-	    
-		checkBoxOnlyHighQualityRegressions = new JCheckBox();
-		checkBoxOnlyHighQualityRegressions.setToolTipText("Takes for multiple grey value profiles only those with a coefficient of determination > 0.9");
-		checkBoxOnlyHighQualityRegressions.setSelected(true);
-		checkBoxOnlyHighQualityRegressions.addItemListener(new ItemListener() {
-			@Override
-		    public void itemStateChanged(ItemEvent e) {
-		    	booleanOnlyHighQualityRegressions = checkBoxOnlyHighQualityRegressions.isSelected();
-		    	logService.info(this.getClass().getName() + " Only high quality regressions option set to " + booleanOnlyHighQualityRegressions);
-		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
-		    }
-		});
-		gbc.insets = INSETS_STANDARD;
-        gbc.gridx = 0;
-	    gbc.gridy = 150;
-	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelOnlyHighQualityRegressions, gbc);
-	    gbc.gridx = 1;
-	    gbc.gridy = 150;
-	    gbc.anchor = GridBagConstraints.WEST; //left
-	    contentPanel.add(checkBoxOnlyHighQualityRegressions, gbc);	
-	    //initialize command variable
-	    booleanOnlyHighQualityRegressions = checkBoxOnlyHighQualityRegressions.isSelected();
-	      
-		//*****************************************************************************************    
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("k");
-		int numEpsMax = Csaj2DFracDimHiguchi1DCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+		int numEpsMax = Csaj2DFracDimHiguchi2DCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -323,20 +207,18 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimHiguchi1DCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimHiguchi2DCommand.class, false,
 														"datasetIn",                         datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					     processAll, //true for all
 														
 														"choiceRadioButt_Method",            choiceRadioButt_Method,
 														"booleanSkipZeroes", 				 booleanSkipZeroes,
-														"booleanShowSomeRadialLinePlots",    booleanShowSomeRadialLinePlots,
-														"booleanGetAllRadialDhValues",       booleanGetAllRadialDhValues, 
 							
 														"spinnerInteger_KMax",               spinnerInteger_NumEps, //WARNING: Exceptionally a different name
 														"spinnerInteger_NumRegStart",        spinnerInteger_NumRegStart,
 														"spinnerInteger_NumRegEnd",          spinnerInteger_NumRegEnd,
 														"booleanShowDoubleLogPlot",          booleanShowDoubleLogPlot,
-														"booleanOnlyHighQualityRegressions", booleanOnlyHighQualityRegressions,
+					
 														
 														"booleanOverwriteDisplays",          booleanOverwriteDisplays,
 														"booleanProcessImmediately",	     booleanProcessImmediately,
@@ -353,7 +235,7 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimHiguchi1DCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimHiguchi2DCommand.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}
