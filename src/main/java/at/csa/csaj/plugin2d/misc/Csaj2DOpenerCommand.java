@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.misc;
 
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -34,17 +34,12 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
-
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.ItemIO;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.io.IOService;
 import org.scijava.log.LogService;
@@ -52,19 +47,14 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.ui.UIService;
-
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajImage_PreviewPanel;
-
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
 import org.scijava.ui.DialogPrompt.Result;
-
 import io.scif.DefaultImageMetadata;
 import io.scif.DefaultMetaTable;
 import io.scif.MetaTable;
-
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -90,15 +80,7 @@ import javax.swing.UIManager;
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
+
 public class Csaj2DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens single or multiple images</b></html>";
@@ -129,9 +111,7 @@ public class Csaj2DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	//No widget
 	
     protected void initialPluginLaunch() {
-    	if (!this.getClass().getName().contains("Command")) { //Processing only if class is NOT a Csaj***Command.class
-			startWorkflow();
-		}
+			//startWorkflow();
 	}
     
     /** 
@@ -151,14 +131,9 @@ public class Csaj2DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-// 			if (ij != null) { //might be null in Fiji
-// 				if (ij.ui().isHeadless()) {
-// 				}
-// 			}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflow();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+		startWorkflow();
+		logService.info(this.getClass().getName() + " Finished command run");	
 	}
     
 	/**
@@ -248,9 +223,9 @@ public class Csaj2DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 				dlgProgress.dispose();
 				return;
 			}
-			//uiService.show(files[0].getName(), image);
-		    //datasetOut = datasetService.create(image);
-		    uiService.show(files[0].getName(), datasetOut);
+			////uiService.show(files[0].getName(), image);
+		    ////datasetOut = datasetService.create(image);
+		    //uiService.show(files[0].getName(), datasetOut);
 		}
 		
 		if (files.length > 1) {
@@ -395,7 +370,7 @@ public class Csaj2DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 				logService.info(this.getClass().getName() + " WARNING #IO23: It was not possible to read scifio metadata."); 
 			}
 	
-			uiService.show("Image Stack", datasetOut);
+			//uiService.show("Image Stack", datasetOut);
 		}
 	
 //NOT NEEDED			

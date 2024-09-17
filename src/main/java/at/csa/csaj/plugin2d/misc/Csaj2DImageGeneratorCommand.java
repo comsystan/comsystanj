@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.misc;
 
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
