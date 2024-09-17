@@ -73,12 +73,15 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	public JSpinner           spinnerNumEps;
 	public int                spinnerInteger_NumEps;
 	
+	public JLabel   labelNumRegStart;
 	public JSpinner spinnerNumRegStart;
 	public int      spinnerInteger_NumRegStart;
 	
+	public JLabel   labelNumRegEnd;
 	public JSpinner spinnerNumRegEnd;
 	public int      spinnerInteger_NumRegEnd;
 	
+	public JLabel    labelShowDoubleLogPlot;
 	public JCheckBox checkBoxShowDoubleLogPlot;
 	public boolean   booleanShowDoubleLogPlot;
 	
@@ -170,7 +173,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    spinnerInteger_NumEps = (int)spinnerNumEps.getValue();
 	    
 	    //*****************************************************************************************
-	    JLabel labelNumRegStart = new JLabel("Regression start");
+	    labelNumRegStart = new JLabel("Regression start");
 	    labelNumRegStart.setToolTipText("Minimum number of linear regression");
 	    labelNumRegStart.setHorizontalAlignment(JLabel.RIGHT);
 	   
@@ -206,7 +209,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    spinnerInteger_NumRegStart = (int)spinnerNumRegStart.getValue();
 	    
 	    //*****************************************************************************************
-	    JLabel labelNumRegEnd = new JLabel("Regression end");
+	    labelNumRegEnd = new JLabel("Regression end");
 	    labelNumRegEnd.setToolTipText("Maximum number of linear regression");
 	    labelNumRegEnd.setHorizontalAlignment(JLabel.RIGHT);
 	   
@@ -243,7 +246,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	    spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();
 	    
 	    //*****************************************************************************************
-	    JLabel labelShowDoubleLogPlot = new JLabel("Show double log plot");
+	    labelShowDoubleLogPlot = new JLabel("Show double log plot");
 	    labelShowDoubleLogPlot.setToolTipText("Show double log linear regression plot");
 	    labelShowDoubleLogPlot.setHorizontalAlignment(JLabel.RIGHT);
 	    
