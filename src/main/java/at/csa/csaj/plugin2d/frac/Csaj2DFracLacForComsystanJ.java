@@ -61,7 +61,7 @@ import ij.util.Java2;
         @Menu(label = "ComsystanJ"),
         @Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-        @Menu(label = "FracLac")})
+        @Menu(label = "FracLac-InteractiveCommand")})
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)

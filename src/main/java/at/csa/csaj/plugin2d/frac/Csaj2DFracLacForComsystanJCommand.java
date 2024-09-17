@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.frac;
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
@@ -53,19 +53,16 @@ import ij.util.Java2;
  * of an image.
  */
 @Plugin(type = ContextCommand.class, 
-        headless = true,
-        initializer = "initialPluginLaunch",
-        iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-        menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
+		headless = true,
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "2D Image(s)"),
+		@Menu(label = "Fractal analyses", weight = 6),
+		@Menu(label = "FracLac")})
+
 public class Csaj2DFracLacForComsystanJCommand<T extends RealType<T>> extends ContextCommand {
 
 	
