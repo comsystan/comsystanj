@@ -30,9 +30,7 @@ package at.csa.csaj.commons;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
-import org.scijava.Context;
 import org.scijava.log.LogService;
-import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
 import io.scif.DefaultImageMetadata;
@@ -66,7 +64,7 @@ public class CsajCheck_ItemIn {
 		HashMap<String, Object> info = new HashMap<>();	
 		//datasetIn = imageDisplayService.getActiveDataset();
 		if (datasetIn == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image");
+			if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image");
 			return null;
 		}
 	
@@ -74,7 +72,7 @@ public class CsajCheck_ItemIn {
 	         (datasetIn.firstElement() instanceof FloatType) ){
 			//That is OK, proceed
 		} else {	
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Data type is not byte or float");
+			if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Data type is not byte or float");
 			return null;
 		}
 		
@@ -117,13 +115,15 @@ public class CsajCheck_ItemIn {
 		} catch (NullPointerException npe) {
 			// TODO Auto-generated catch block
 			//npe.printStackTrace();
-			logService.info(MethodHandles.lookup().lookupClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
+			if (logService != null) logService.info(MethodHandles.lookup().lookupClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
 		}
 		
-		logService.info(MethodHandles.lookup().lookupClass().getName() + " Name: "              + datasetName); 
-		logService.info(MethodHandles.lookup().lookupClass().getName() + " Image size: "        + width+"x"+height); 
-		logService.info(MethodHandles.lookup().lookupClass().getName() + " Image type: "        + imageType); 
-		logService.info(MethodHandles.lookup().lookupClass().getName() + " Number of images = " + numSlices); 
+		if (logService != null) {
+			logService.info(MethodHandles.lookup().lookupClass().getName() + " Name: "              + datasetName); 
+			logService.info(MethodHandles.lookup().lookupClass().getName() + " Image size: "        + width+"x"+height); 
+			logService.info(MethodHandles.lookup().lookupClass().getName() + " Image type: "        + imageType); 
+			logService.info(MethodHandles.lookup().lookupClass().getName() + " Number of images = " + numSlices);
+		}
 		
 		info.put("width",  width);
 		info.put("height", height);
@@ -146,7 +146,7 @@ public class CsajCheck_ItemIn {
 			try {
 				tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
 			} catch (NullPointerException npe) {
-				logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: NullPointerException, input table = null");
+				if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: NullPointerException, input table = null");
 				//cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
 				return null;
 			}
@@ -157,10 +157,11 @@ public class CsajCheck_ItemIn {
 			numRows     = tableIn.getRowCount();
 			
 			columnLabels = new String[(int) numColumns];
-		      
-			logService.info(MethodHandles.lookup().lookupClass().getName() + " Name: "      + tableInName); 
-			logService.info(MethodHandles.lookup().lookupClass().getName() + " Columns #: " + numColumns);
-			logService.info(MethodHandles.lookup().lookupClass().getName() + " Rows #: "    + numRows); 
+			if (logService != null) {
+				logService.info(MethodHandles.lookup().lookupClass().getName() + " Name: "      + tableInName); 
+				logService.info(MethodHandles.lookup().lookupClass().getName() + " Columns #: " + numColumns);
+				logService.info(MethodHandles.lookup().lookupClass().getName() + " Rows #: "    + numRows); 
+			}
 			
 			info.put("tableInName", tableInName); 
 			info.put("numColumns", numColumns);

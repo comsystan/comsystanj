@@ -307,7 +307,7 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends Interact
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numRulers = getMaxRulerNumber(datasetIn);
+    		numRulers = getMaxRulerNumber(datasetIn,  opService);
     	}
       	spinnerInteger_NumRulers = numRulers;
     }
@@ -320,7 +320,7 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends Interact
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numRulers = getMaxRulerNumber(datasetIn);
+    		numRulers = getMaxRulerNumber(datasetIn,  opService);
     	}
     	spinnerInteger_NumRegEnd =  numRulers;
     }
@@ -345,7 +345,7 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends Interact
 		if  (spinnerInteger_NumRulers < 3) {
 			spinnerInteger_NumRulers = 3;
 		}
-		int numMaxRulers = getMaxRulerNumber(datasetIn);	
+		int numMaxRulers = getMaxRulerNumber(datasetIn, opService);	
 		if (spinnerInteger_NumRulers > numMaxRulers) {
 			spinnerInteger_NumRulers = numMaxRulers;
 		};
@@ -698,7 +698,7 @@ public class Csaj2DFracDimWalkingDivider<T extends RealType<T>> extends Interact
 	}
 	
 	/** This method computes the maximal number of possible rulers*/
-	private int getMaxRulerNumber(Dataset datasetIn) { 
+	public static int getMaxRulerNumber(Dataset datasetIn, OpService opService) { 
 		
 		//Get contour ROI around already binarised object
 		//get BitType rai
