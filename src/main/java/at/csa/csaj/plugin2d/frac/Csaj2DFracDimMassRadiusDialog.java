@@ -269,7 +269,7 @@ public class Csaj2DFracDimMassRadiusDialog extends CsajDialog_2DPluginWithRegres
 		spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
 		spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
 		//*****************************************************************************************
-	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
+	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
 	    //*****************************************************************************************
 		//Do additional things
 	}

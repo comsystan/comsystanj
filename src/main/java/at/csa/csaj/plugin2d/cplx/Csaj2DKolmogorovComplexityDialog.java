@@ -220,7 +220,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	    //Change items defined in the super class(es)
 	    
 	    //*****************************************************************************************
-	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
+	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
 	    //*****************************************************************************************
 		//Do additional things
 	}

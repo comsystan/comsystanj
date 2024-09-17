@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimPerimeterAreaDialog.java
+ * File: Csaj2DFracDimTugOfWarDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -39,7 +39,10 @@ import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.imagej.Dataset;
 import org.scijava.Context;
@@ -54,9 +57,9 @@ import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithRegression {
+public class Csaj2DFracDimTugOfWarDialog extends CsajDialog_2DPluginWithRegression {
 
-	private static final long serialVersionUID = 3168223874297613195L;
+	private static final long serialVersionUID = -5653778942913488303L;
 
 	@Parameter
 	private LogService logService;
@@ -72,17 +75,11 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
-	private JPanel       panelScanningType;
-	private ButtonGroup  buttonGroupScanningType;
-    private JRadioButton radioButtonRasterBox;
-    private JRadioButton radioButtonSlidingBox;
-	private String       choiceRadioButt_ScanningType;
+	public JSpinner spinnerNumAcurracy;
+	public int      spinnerInteger_NumAcurracy;
 	
-	private JPanel       panelColorModelType;
-	private ButtonGroup  buttonGroupColorModelType;
-    private JRadioButton radioButtonBinary;
-    private JRadioButton radioButtonGrey;
-	private String       choiceRadioButt_ColorModelType;
+	public JSpinner spinnerNumConfidence;
+	public int      spinnerInteger_NumConfidence;
 	
 	
 	/**Some default @Parameters are already defined in the super class
@@ -103,7 +100,7 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DFracDimPerimeterAreaDialog(Context context, Dataset datasetIn) {
+	public Csaj2DFracDimTugOfWarDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -114,108 +111,71 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Perimeter area dimension");
+		setTitle("2D Tug of war dimension");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************
-	    JLabel labelScanningType = new JLabel("Scanning");
-	    labelScanningType.setToolTipText("Type of box scanning");
-	    labelScanningType.setHorizontalAlignment(JLabel.RIGHT);
-		
-		buttonGroupScanningType = new ButtonGroup();
-		radioButtonRasterBox    = new JRadioButton("Raster box");
-		radioButtonSlidingBox   = new JRadioButton("Sliding box");
-		radioButtonRasterBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonRasterBox.isSelected())  choiceRadioButt_ScanningType = radioButtonRasterBox.getText();
-				logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
-			}
-		});
-		radioButtonSlidingBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonSlidingBox.isSelected())  choiceRadioButt_ScanningType = radioButtonSlidingBox.getText();
-				logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
-			}
-		});
-		buttonGroupScanningType.add(radioButtonRasterBox);
-		buttonGroupScanningType.add(radioButtonSlidingBox);
-		radioButtonRasterBox.setSelected(true);
-		
-		panelScanningType = new JPanel();
-		panelScanningType.setToolTipText("Type of box scanning");
-		panelScanningType.setLayout(new BoxLayout(panelScanningType, BoxLayout.Y_AXIS)); 
-	    panelScanningType.add(radioButtonRasterBox);
-	    //panelScanningType.add(radioButtonSlidingBox); //"Sliding box" not yet implemented
-	    
-	    gbc.insets = INSETS_STANDARD;
-	    gbc.gridx = 0;
+	    JLabel labelNumAcurracy = new JLabel("Accuracy");
+	    labelNumAcurracy.setToolTipText("Accuracy (default=90)");
+	    labelNumAcurracy.setHorizontalAlignment(JLabel.RIGHT);
+	   
+	    SpinnerNumberModel spinnerModelNumAcurracy= new SpinnerNumberModel(90, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerNumAcurracy = new JSpinner(spinnerModelNumAcurracy);
+        spinnerNumAcurracy.setToolTipText("Accuracy (default=90)"); //s1=30 Wang paper
+        spinnerNumAcurracy.addChangeListener(new ChangeListener() {
+        	@Override
+            public void stateChanged(ChangeEvent e) {
+    			spinnerInteger_NumAcurracy = (int)spinnerNumAcurracy.getValue();
+    			logService.info(this.getClass().getName() + " Accuracy set to " + spinnerInteger_NumAcurracy);
+                if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+            }
+        });
+        gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
 	    gbc.gridy = 0;
 	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelScanningType, gbc);
+	    contentPanel.add(labelNumAcurracy, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 0;
-	    gbc.anchor = GridBagConstraints.WEST; //left 
-	    contentPanel.add(panelScanningType, gbc);
+	    gbc.gridy = 0;   
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(spinnerNumAcurracy, gbc);	
+	  
 	    //initialize command variable
-		if (radioButtonRasterBox.isSelected())  choiceRadioButt_ScanningType = radioButtonRasterBox.getText();
-		if (radioButtonSlidingBox.isSelected()) choiceRadioButt_ScanningType = radioButtonSlidingBox.getText();
-		
+	    spinnerInteger_NumAcurracy = (int)spinnerNumAcurracy.getValue();
+	    
 	    //*****************************************************************************************
-	    JLabel labelColorModelType = new JLabel("Color model");
-	    labelColorModelType.setToolTipText("Type of color model - binary or greyscale");
-	    labelColorModelType.setHorizontalAlignment(JLabel.RIGHT);
-		
-		buttonGroupColorModelType = new ButtonGroup();
-		radioButtonBinary = new JRadioButton("Binary");
-		radioButtonGrey   = new JRadioButton("Grey");
-		radioButtonBinary.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonBinary.isSelected())  choiceRadioButt_ColorModelType = radioButtonBinary.getText();
-				logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
-			}
-		});
-		radioButtonGrey.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonGrey.isSelected())  choiceRadioButt_ColorModelType = radioButtonGrey.getText();
-				logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
-			}
-		});
-		buttonGroupColorModelType.add(radioButtonBinary);
-		buttonGroupColorModelType.add(radioButtonGrey);
-		radioButtonBinary.setSelected(true);
-		
-		panelColorModelType = new JPanel();
-		panelColorModelType.setToolTipText("Type of color model - binary or greyscale");
-		panelColorModelType.setLayout(new BoxLayout(panelColorModelType, BoxLayout.Y_AXIS)); 
-		
-	    panelColorModelType.add(radioButtonBinary);
-	    //panelColorModelType.add(radioButtonGrey); //"Grey" not yet implemented 
-	    
-	    gbc.insets = INSETS_STANDARD;
-	    gbc.gridx = 0;
+	    JLabel labelNumConfidence = new JLabel("Confidence");
+	    labelNumConfidence.setToolTipText("Confidence (default=15)");
+	    labelNumConfidence.setHorizontalAlignment(JLabel.RIGHT);
+	   
+	    SpinnerNumberModel spinnerModelNumConfidence= new SpinnerNumberModel(15, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerNumConfidence = new JSpinner(spinnerModelNumConfidence);
+        spinnerNumConfidence.setToolTipText("Confidence (default=15)"); //s2=5 Wang paper
+        spinnerNumConfidence.addChangeListener(new ChangeListener() {
+        	@Override
+            public void stateChanged(ChangeEvent e) {
+    			spinnerInteger_NumConfidence = (int)spinnerNumConfidence.getValue();
+    			logService.info(this.getClass().getName() + " Confidence set to " + spinnerInteger_NumConfidence);
+                if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+            }
+        });
+        gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
 	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelColorModelType, gbc);
+	    contentPanel.add(labelNumConfidence, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 1;
-	    gbc.anchor = GridBagConstraints.WEST; //left 
-	    contentPanel.add(panelColorModelType, gbc);
+	    gbc.gridy = 1;   
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(spinnerNumConfidence, gbc);	
+	  
 	    //initialize command variable
-		if (radioButtonBinary.isSelected())  choiceRadioButt_ColorModelType = radioButtonBinary.getText();
-		if (radioButtonGrey.isSelected())    choiceRadioButt_ColorModelType = radioButtonGrey.getText();
+	    spinnerInteger_NumConfidence = (int)spinnerNumConfidence.getValue();
 		
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of boxes");
-		int numBoxes = Csaj2DFracDimPerimeterAreaCommand.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+		int numBoxes = Csaj2DFracDimTugOfWarCommand.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numBoxes, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numBoxes);
@@ -233,11 +193,12 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimPerimeterAreaCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimTugOfWarCommand.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
-														"choiceRadioButt_ScanningType",   choiceRadioButt_ScanningType,
-														"choiceRadioButt_ColorModelType", choiceRadioButt_ColorModelType,
+													
+														"spinnerInteger_NumAcurracy",     spinnerInteger_NumAcurracy,
+														"spinnerInteger_NumConfidence",   spinnerInteger_NumConfidence,
 					
 														"spinnerInteger_NumBoxes",        spinnerInteger_NumEps, //WARNING: Exceptionally a different name
 														"spinnerInteger_NumRegStart",     spinnerInteger_NumRegStart,
@@ -259,7 +220,7 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimPerimeterAreaCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimTugOfWarCommand.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

@@ -712,7 +712,7 @@ public class Csaj2DFracDimTugOfWar<T extends RealType<T>> extends InteractiveCom
 	}
 	
 	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height) { 
+	public static int getMaxBoxNumber(long width, long height) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height)) {

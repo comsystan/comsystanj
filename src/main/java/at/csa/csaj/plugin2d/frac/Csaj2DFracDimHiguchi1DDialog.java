@@ -313,7 +313,7 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 		spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
 		spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
 		//*****************************************************************************************
-	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
+	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
 	    //*****************************************************************************************
 		//Do additional things
 	}

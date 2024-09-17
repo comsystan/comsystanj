@@ -152,7 +152,7 @@ public class Csaj2DFracDimPyramidDialog extends CsajDialog_2DPluginWithRegressio
 		spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
 		spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
 		//*****************************************************************************************
-	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
+	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
 	    //*****************************************************************************************
 		//Do additional things
 	}

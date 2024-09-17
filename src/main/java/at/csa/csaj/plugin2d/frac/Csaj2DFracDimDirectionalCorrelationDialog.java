@@ -323,7 +323,7 @@ public class Csaj2DFracDimDirectionalCorrelationDialog extends CsajDialog_2DPlug
 		spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
 		spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
 		//*****************************************************************************************
-	    pack(); //IMPORTANT //Otherwise some unexpected padding may occurs
+	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
 	    //*****************************************************************************************
 		//Do additional things
 	}
