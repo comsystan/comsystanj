@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimDirectionalCorrelationCommandUI.java
+ * File: Csaj2DImageGeneratorCommandUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,12 +25,9 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.frac;
+package at.csa.csaj.plugin2d.misc;
 
-
-import java.io.File;
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import org.scijava.ItemIO;
@@ -41,31 +38,28 @@ import org.scijava.menu.MenuConstants;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.widget.FileWidget;
-import at.csa.csaj.commons.CsajCheck_ItemIn;
+
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Directional correlation dimension",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {
-@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-@Menu(label = "ComsystanJ"),
-@Menu(label = "2D Image(s)"),
-@Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Directional correlation dimension(New Dialog)")})
+		label = "2D image generator",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "2D Image(s)"),
+		@Menu(label = "2D image generator(New Dialog)", weight = 20)})
 
-public class Csaj2DFracDimDirectionalCorrelationCommandUI extends ContextCommand implements Previewable{
+public class Csaj2DImageGeneratorCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
 	
-  	@Parameter(type = ItemIO.INPUT)
-  	private Dataset datasetIn;
+  	@Parameter(type = ItemIO.OUTPUT)
+  	private Dataset datasetOut;
 
-	private Csaj2DFracDimDirectionalCorrelationDialog dialog = null;
+	private Csaj2DImageGeneratorDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -84,27 +78,14 @@ public class Csaj2DFracDimDirectionalCorrelationCommandUI extends ContextCommand
 	@Override
 	public void run() {
 		
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			String imageType = (String)datasetInInfo.get("imageType");			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			} else {
-				SwingUtilities.invokeLater(() -> {
-					if (dialog == null) {
-						dialog = new Csaj2DFracDimDirectionalCorrelationDialog(context(), datasetIn);
-					}
-					dialog.setVisible(true);
-					dialog.btnProcessSingleImage.requestFocusInWindow();
-				});
+		SwingUtilities.invokeLater(() -> {
+			if (dialog == null) {
+				dialog = new Csaj2DImageGeneratorDialog(context());
 			}
-		}
+			dialog.setVisible(true);
+			dialog.btnGenerate.requestFocusInWindow();
+		});
+		
 	}
 	
 	/** The main method enables standalone testing of the command. */
@@ -122,9 +103,9 @@ public class Csaj2DFracDimDirectionalCorrelationCommandUI extends ContextCommand
 		ij.ui().showUI();
 
 		// open and display an image
-		final File imageFile = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE);
-		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
-		ij.ui().show(image);
+		//final File imageFile = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE);
+		//final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
+		//ij.ui().show(image);
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

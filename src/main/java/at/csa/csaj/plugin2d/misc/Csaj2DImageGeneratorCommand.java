@@ -297,9 +297,9 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 	  		   max = "999999999999999999999",
 	  		   stepSize = "1",
 	  		   persist = true,  //restore previous value default = true
-	  		   initializer = "initialRandomShapeSize",
-	  		   callback = "callbackRandomShapeSize")
-    private int spinnerInteger_RandomShapeSize;
+	  		   initializer = "initialShapeSize",
+	  		   callback = "callbackShapeSize")
+    private int spinnerInteger_ShapeSize;
     
     @Parameter(label = "(Random shapes) Scaling",
    		   	   description = "Scaling of exponential thickness/radius/size distribution [0, 1]", //0..without scaling, same thickness   1..maximal scaling
@@ -309,12 +309,12 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
   	  		   max = "1",
   	  	 	   stepSize = "0.1",
   	  		   persist = true,  //restore previous value default = true
-  	  		   initializer = "initialRandomShapeScaling",
-  	  		   callback = "callbackRandomShapeScaling")
-    private float spinnerFloat_RandomShapeScaling;
+  	  		   initializer = "initialShapeScaling",
+  	  		   callback = "callbackShapeScaling")
+    private float spinnerFloat_ShapeScaling;
       
     @Parameter(label = "(IFS-Koch) Number of polygons",
-	   	       description = "Starting number of polygons for Koch snowflake",
+	   	       description = "Number of polygons",
 	  		   style = NumberWidget.SPINNER_STYLE,
 	  		   min = "3",
 	  		   max = "999999999999999999999",
@@ -415,13 +415,13 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 		spinnerInteger_NumIterations = 3;
 	}
 	
-	protected void initialRandomShapeSize() {
-		spinnerInteger_RandomShapeSize = 10;
+	protected void initialShapeSize() {
+		spinnerInteger_ShapeSize = 10;
 	}
 	
-	protected void initialRandomShapeScaling() {
+	protected void initialShapeScaling() {
 	 	//round to one decimal after the comma
-	 	spinnerFloat_RandomShapeScaling = 0.1f;
+	 	spinnerFloat_ShapeScaling = 0.1f;
 	}
 	
 	protected void initialNumPolygons() {
@@ -514,17 +514,17 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 		logService.info(this.getClass().getName() + " Iterations/Number changed to " + spinnerInteger_NumIterations);
 	}
 	
-	/** Executed whenever the {@link #spinnerInteger_RandomShapeSize} parameter changes. */
-	protected void callbackRandomShapeSize() {
-		logService.info(this.getClass().getName() + " Random shape size changed to " + spinnerInteger_RandomShapeSize);
+	/** Executed whenever the {@link #spinnerInteger_ShapeSize} parameter changes. */
+	protected void callbackShapeSize() {
+		logService.info(this.getClass().getName() + " Shape size changed to " + spinnerInteger_ShapeSize);
 	}
 	
-	protected void callbackRandomShapeScaling() {
-		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_RandomShapeScaling);
+	protected void callbackShapeScaling() {
+		//logService.info(this.getClass().getName() + " Sum of sine amplitude changed to " + spinnerFloat_ShapeScaling);
 	 	//round to ?? decimal after the comma
-	 	//spinnerFloat_RandomShapeScaling = Math.round(spinnerFloat_RandomShapeScaling * 1f)/1f;
-	 	spinnerFloat_RandomShapeScaling = Precision.round(spinnerFloat_RandomShapeScaling, 2);
-	 	logService.info(this.getClass().getName() + " Random shape scaling changed to " + spinnerFloat_RandomShapeScaling);
+	 	//spinnerFloat_ShapeScaling = Math.round(spinnerFloat_ShapeScaling * 1f)/1f;
+	 	spinnerFloat_ShapeScaling = Precision.round(spinnerFloat_ShapeScaling, 2);
+	 	logService.info(this.getClass().getName() + " Random shape scaling changed to " + spinnerFloat_ShapeScaling);
 	}
 	
 	/** Executed whenever the {@link #spinnerInteger_NumPolygons} parameter changes. */
@@ -607,14 +607,11 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-//		if (ij != null) { //might be null in Fiji
-//			if (ij.ui().isHeadless()) {
-//			}
-//		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflow();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		startWorkflow();
+		
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	/**
@@ -660,8 +657,8 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 		float frequency  		= spinnerFloat_SineSumOfSineFrequency;
 		float sosAmplitude      = spinnerFloat_SumOfSineAmplitude;
 		int numIterations		= spinnerInteger_NumIterations;
-		int randomShapeSize		= spinnerInteger_RandomShapeSize;
-		float randomShapeScaling= spinnerFloat_RandomShapeScaling;
+		int shapeSize		    = spinnerInteger_ShapeSize;
+		float shapeScaling      = spinnerFloat_ShapeScaling;
 		int numPolygons			= spinnerInteger_NumPolygons;
 		float[] probabilities   = new float[]{spinnerFloat_HRMProbability1, spinnerFloat_HRMProbability2, spinnerFloat_HRMProbability3};
 		
@@ -725,11 +722,11 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 				else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
 				else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
 				else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
-				else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "lines",  greyR);
-				else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
-				else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
-				else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
-				else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
+				else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Lines",  greyR);
+				else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Circles",greyR);			
+				else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Squares", greyR);			
+				else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled circles", greyR);			
+				else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled squares", greyR);			
 				else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
@@ -791,11 +788,11 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyR);
 					else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyR);
 					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyR);
-					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyR);
-					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyR);			
-					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyR);			
-					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyR);			
-					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyR);			
+					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Lines",  greyR);
+					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Circles",greyR);			
+					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Squares", greyR);			
+					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled circles", greyR);			
+					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled squares", greyR);			
 					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyR);
@@ -861,11 +858,11 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 					else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
 					else if (imageType.equals("Fractal surface - Sum of sine"))			computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
 					else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
-					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
-					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
-					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
-					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
-					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
+					else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Lines",  greyValue);
+					else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Circles",greyValue);			
+					else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Squares", greyValue);			
+					else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled circles", greyValue);			
+					else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled squares", greyValue);			
 					else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
@@ -936,11 +933,11 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 						else if (imageType.equals("Fractal surface - MPD")) 				computeFrac2DMPD(fracDim, greyValue);
 						else if (imageType.equals("Fractal surface - Sum of sine")) 		computeFracSumOfSine(numIterations, frequency, sosAmplitude, greyValue);
 						else if (imageType.equals("Fractal - HRM"))							computeFracHRM(3, probabilities, greyValue);
-						else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Lines",  greyValue);
-						else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Circles",greyValue);			
-						else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Squares", greyValue);			
-						else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled circles", greyValue);			
-						else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, randomShapeSize, randomShapeScaling, "Filled squares", greyValue);			
+						else if (imageType.equals("Fractal random shapes - Lines"))			computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Lines",  greyValue);
+						else if (imageType.equals("Fractal random shapes - Circles"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Circles",greyValue);			
+						else if (imageType.equals("Fractal random shapes - Squares"))		computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Squares", greyValue);			
+						else if (imageType.equals("Fractal random shapes - Filled circles"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled circles", greyValue);			
+						else if (imageType.equals("Fractal random shapes - Filled squares"))computeFracRandomShapes(numIterations, shapeSize, shapeScaling, "Filled squares", greyValue);			
 						else if (imageType.equals("Fractal IFS - Menger"))					computeFracMenger(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-1"))			computeFracSierpinski1(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Sierpinski-2"))			computeFracSierpinski2(numIterations, greyValue);
@@ -3170,10 +3167,10 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 	 * @param width
 	 * @param height
 	 * @param thicknessMax
-	 * @param randomShapeScaling
+	 * @param shapeScaling
 	 * @param n
 	 */
-	public void drawRandomLines(Graphics g, int width, int height, int thicknessMax, float randomShapeScaling, int numLines) {
+	public void drawRandomLines(Graphics g, int width, int height, int thicknessMax, float shapeScaling, int numLines) {
 	
 		int x1 = 0;
 		int x2 = 0;
@@ -3188,7 +3185,7 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 		if (thicknessMax > 1) {
 			thicknesses   = new int[thicknessMax];
 			for (int t = 0; t < thicknessMax; t++) {
-				thicknesses[t] = (int)Math.round((double)thicknessMax*Math.exp(-randomShapeScaling*t)); //good approximation for hyperbolic distribution, see Excel file
+				thicknesses[t] = (int)Math.round((double)thicknessMax*Math.exp(-shapeScaling*t)); //good approximation for hyperbolic distribution, see Excel file
 			}
 			//thicknesses decrease from thicknessMax to lower values
 		}

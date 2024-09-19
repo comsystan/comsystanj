@@ -51,7 +51,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
 import at.csa.csaj.commons.CsajDialog_2DPlugin;
-import at.csa.csaj.plugin2d.frac.Csaj2DFracDimCorrelationCommand;
+
 /*
  * This is a custom dialog for a CSAJ plugin
  */

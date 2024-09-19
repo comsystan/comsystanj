@@ -82,10 +82,6 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	@Parameter
 	private UIService uiService;
 	
-	//Static variables	
-	public static Insets INSETS_STANDARD = new Insets(3, 3, 3, 3); //top left bottom right 
-	public static Insets INSETS_HEADER   = new Insets(10, 3, 3, 3); //top left bottom right
-	
 	//Input image variables
 	public long width;
 	public long height;
@@ -96,16 +92,18 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	public String datasetName;
 	public String[] sliceLabels;
 	 
-	public JPanel panelInput;
-	public JLabel labelInput;
-  	public JPanel contentPanel;
-  	public JPanel procesButtonPanel;
+	
+	public JPanel contentPanel;
+	
+	public JPanel  panelInput;
+	public JLabel  labelInput;
+	public JButton btnShowInput;
+  	
+  	public JPanel buttonPanelProcess;
   	
   	public boolean processAll;
-  	
-  	public GridBagConstraints gbc;
 
-	public JButton btnShowInput;
+	
 	
 	public JCheckBox checkBoxOverwriteDisplays;
 	public boolean   booleanOverwriteDisplays;
@@ -150,10 +148,7 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 //		setLocation(500, 100);
 //		//setSize(new Dimension(400, 600));
 //		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		
-		gbc = new GridBagConstraints(); 
-		gbc.fill = GridBagConstraints.HORIZONTAL; //New Default
-		
+			
 		//NORTH item
 		//*****************************************************************************************
 		panelInput = new JPanel();
@@ -306,11 +301,11 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	    
 	    //SOUTH Process buttons panel 
 	    //*****************************************************************************************
-	    procesButtonPanel = new JPanel();
-		procesButtonPanel.setLayout(new GridBagLayout());
-		procesButtonPanel.setBorder(new EmptyBorder(5, 5, 5, 5)); 
+	    buttonPanelProcess = new JPanel();
+		buttonPanelProcess.setLayout(new GridBagLayout());
+		buttonPanelProcess.setBorder(new EmptyBorder(5, 5, 5, 5)); 
 		gbc.insets = INSETS_STANDARD;
-		getContentPane().add(procesButtonPanel, BorderLayout.SOUTH);
+		getContentPane().add(buttonPanelProcess, BorderLayout.SOUTH);
 	    
 		//Process single button--------------------------------------------------------
 		btnProcessSingleImage = new JButton("Process single image #");
@@ -326,7 +321,7 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	    gbc.gridx = 0;
 	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.EAST; //right
-	    procesButtonPanel.add(btnProcessSingleImage, gbc);	
+	    buttonPanelProcess.add(btnProcessSingleImage, gbc);	
 		
 		//Process all button----------------------------------------------------------
 		btnProcessAllImages = new JButton("Pocess all images");
@@ -341,7 +336,7 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 	    gbc.gridx = 1;
 	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.WEST; //left
-	    procesButtonPanel.add(btnProcessAllImages, gbc);	
+	    buttonPanelProcess.add(btnProcessAllImages, gbc);	
 	 
 	    //*****************************************************************************************
 	}

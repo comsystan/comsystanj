@@ -68,10 +68,13 @@ import net.imagej.Dataset;
  */
 public class CsajDialog_PluginFrame extends JDialog {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 4212771882901912781L;
+	
+	public GridBagConstraints gbc;
+	
+	//Static variables	
+	public static Insets INSETS_STANDARD = new Insets(3, 3, 3, 3);  //top left bottom right 
+	public static Insets INSETS_HEADER   = new Insets(10, 3, 3, 3); //top left bottom right
 
 	/**
 	 * Create the dialog.
@@ -85,6 +88,8 @@ public class CsajDialog_PluginFrame extends JDialog {
 		setLocation(500, 100);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		
+		gbc = new GridBagConstraints(); 
+		gbc.fill = GridBagConstraints.HORIZONTAL; //Default
 	}
 	
 
