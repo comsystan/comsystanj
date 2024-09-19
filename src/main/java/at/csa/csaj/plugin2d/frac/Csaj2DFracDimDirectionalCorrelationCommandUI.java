@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimWalkingDividerCommandGUI.java
+ * File: Csaj2DFracDimDirectionalCorrelationCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -31,10 +31,8 @@ package at.csa.csaj.plugin2d.frac;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
-
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
 import org.scijava.ItemIO;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
@@ -44,13 +42,12 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.FileWidget;
-
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Walking divider dimension",
+label = "Directional correlation dimension",
 initializer = "initialPluginLaunch",
 iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 menu = {
@@ -58,9 +55,9 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
 @Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Walking divider dimension(New Dialog)")})
+@Menu(label = "Directional correlation dimension(New Dialog)")})
 
-public class Csaj2DFracDimWalkingDividerCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFracDimDirectionalCorrelationCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -68,7 +65,7 @@ public class Csaj2DFracDimWalkingDividerCommandGUI extends ContextCommand implem
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimWalkingDividerDialog dialog = null;
+	private Csaj2DFracDimDirectionalCorrelationDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -101,7 +98,7 @@ public class Csaj2DFracDimWalkingDividerCommandGUI extends ContextCommand implem
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimWalkingDividerDialog(context(), datasetIn);
+						dialog = new Csaj2DFracDimDirectionalCorrelationDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

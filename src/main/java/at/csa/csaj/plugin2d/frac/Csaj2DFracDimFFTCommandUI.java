@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimTugOfWarCommandGUI.java
+ * File: Csaj2DFracDimFFTCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -50,7 +50,7 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Tug of war dimension",
+label = "FFT dimension",
 initializer = "initialPluginLaunch",
 iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 menu = {
@@ -58,9 +58,9 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
 @Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Tug of war dimension(New Dialog)")})
+@Menu(label = "FFT dimension(New Dialog)")})
 
-public class Csaj2DFracDimTugOfWarCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFracDimFFTCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -68,7 +68,7 @@ public class Csaj2DFracDimTugOfWarCommandGUI extends ContextCommand implements P
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimTugOfWarDialog dialog = null;
+	private Csaj2DFracDimFFTDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -101,7 +101,7 @@ public class Csaj2DFracDimTugOfWarCommandGUI extends ContextCommand implements P
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimTugOfWarDialog(context(), datasetIn);
+						dialog = new Csaj2DFracDimFFTDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

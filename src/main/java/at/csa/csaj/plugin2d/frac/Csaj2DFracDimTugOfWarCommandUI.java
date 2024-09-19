@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DKolmogorovComplexityCommandGUI.java
+ * File: Csaj2DFracDimTugOfWarCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,14 +25,16 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.cplx;
+package at.csa.csaj.plugin2d.frac;
 
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+
 import org.scijava.ItemIO;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
@@ -42,22 +44,23 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.FileWidget;
+
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "KC and LD",
+label = "Tug of war dimension",
 initializer = "initialPluginLaunch",
 iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 menu = {
 @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
-@Menu(label = "Complexity analyses", weight = 4),
-@Menu(label = "Kolmogorov complexity and LD(NewDialog)")})
+@Menu(label = "Fractal analyses", weight = 6),
+@Menu(label = "Tug of war dimension(New Dialog)")})
 
-public class Csaj2DKolmogorovComplexityCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFracDimTugOfWarCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -65,7 +68,7 @@ public class Csaj2DKolmogorovComplexityCommandGUI extends ContextCommand impleme
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DKolmogorovComplexityDialog dialog = null;
+	private Csaj2DFracDimTugOfWarDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -98,7 +101,7 @@ public class Csaj2DKolmogorovComplexityCommandGUI extends ContextCommand impleme
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DKolmogorovComplexityDialog(context(), datasetIn);
+						dialog = new Csaj2DFracDimTugOfWarDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

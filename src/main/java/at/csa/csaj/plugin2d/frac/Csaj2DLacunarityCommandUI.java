@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimPyramidCommandGUI.java
+ * File: Csaj2DLacunarityCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -31,10 +31,8 @@ package at.csa.csaj.plugin2d.frac;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
-
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
 import org.scijava.ItemIO;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
@@ -44,13 +42,12 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.FileWidget;
-
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-		label = "Pyramid dimension",
+		label = "Lacunarity",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
@@ -58,9 +55,9 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Pyramid dimension(New Dialog)")})
+		@Menu(label = "Lacunarity(New Dialog)")})
 
-public class Csaj2DFracDimPyramidCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DLacunarityCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -68,7 +65,7 @@ public class Csaj2DFracDimPyramidCommandGUI extends ContextCommand implements Pr
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimPyramidDialog dialog = null;
+	private Csaj2DLacunarityDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -101,7 +98,7 @@ public class Csaj2DFracDimPyramidCommandGUI extends ContextCommand implements Pr
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimPyramidDialog(context(), datasetIn);
+						dialog = new Csaj2DLacunarityDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

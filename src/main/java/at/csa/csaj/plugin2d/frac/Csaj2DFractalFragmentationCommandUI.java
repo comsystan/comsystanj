@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimFFTCommandGUI.java
+ * File: Csaj2DFractalFragmentationCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -50,17 +50,17 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "FFT dimension",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {
-@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-@Menu(label = "ComsystanJ"),
-@Menu(label = "2D Image(s)"),
-@Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "FFT dimension(New Dialog)")})
+		label = "Fractal fragmentation indices",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "2D Image(s)"),
+		@Menu(label = "Fractal analyses", weight = 6),
+		@Menu(label = "Fractal fragmentation indices(New Dialog)")})
 
-public class Csaj2DFracDimFFTCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFractalFragmentationCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -68,7 +68,7 @@ public class Csaj2DFracDimFFTCommandGUI extends ContextCommand implements Previe
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimFFTDialog dialog = null;
+	private Csaj2DFractalFragmentationDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -101,7 +101,7 @@ public class Csaj2DFracDimFFTCommandGUI extends ContextCommand implements Previe
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimFFTDialog(context(), datasetIn);
+						dialog = new Csaj2DFractalFragmentationDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

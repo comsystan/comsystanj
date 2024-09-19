@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimDirectionalCorrelationCommandGUI.java
+ * File: Csaj2DFracDimCorrelationCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -47,7 +47,7 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Directional correlation dimension",
+label = "Correlation dimension",
 initializer = "initialPluginLaunch",
 iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 menu = {
@@ -55,9 +55,9 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
 @Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Directional correlation dimension(New Dialog)")})
+@Menu(label = "Correlation dimension(New Dialog)")})
 
-public class Csaj2DFracDimDirectionalCorrelationCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFracDimCorrelationCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -65,7 +65,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommandGUI extends ContextComman
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimDirectionalCorrelationDialog dialog = null;
+	private Csaj2DFracDimCorrelationDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -98,7 +98,7 @@ public class Csaj2DFracDimDirectionalCorrelationCommandGUI extends ContextComman
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimDirectionalCorrelationDialog(context(), datasetIn);
+						dialog = new Csaj2DFracDimCorrelationDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

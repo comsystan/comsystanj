@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DOpenerCommandGUI.java
+ * File: Csaj2DFracDimPyramidCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,17 +25,17 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.misc;
+package at.csa.csaj.plugin2d.frac;
 
 
+import java.io.File;
 import java.lang.invoke.MethodHandles;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.HashMap;
 
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+
 import org.scijava.ItemIO;
-import org.scijava.command.CommandModule;
-import org.scijava.command.CommandService;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.log.LogService;
@@ -43,34 +43,34 @@ import org.scijava.menu.MenuConstants;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.ui.UIService;
+import org.scijava.widget.FileWidget;
+
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-		label = "2D image opener",
+		label = "Pyramid dimension",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
-		@Menu(label = "2D image opener(NewDialog)", weight = 10)})
+		@Menu(label = "Fractal analyses", weight = 6),
+		@Menu(label = "Pyramid dimension(New Dialog)")})
 
-public class Csaj2DOpenerCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFracDimPyramidCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
-	private LogService logService;
+	LogService logService;
 	
-	@Parameter
-	private CommandService commandService;	
+  	@Parameter(type = ItemIO.INPUT)
+  	private Dataset datasetIn;
+
+	private Csaj2DFracDimPyramidDialog dialog = null;
 	
-	@Parameter
-    private UIService uiService;
-	
-	@Parameter (label = "Image(s)",type = ItemIO.OUTPUT) //so that it can be displayed
-	private Dataset datasetOut;
-	
+
 	@Override //Interface Previewable
 	public void preview() { 
 
@@ -87,19 +87,27 @@ public class Csaj2DOpenerCommandGUI extends ContextCommand implements Previewabl
 	@Override
 	public void run() {
 		
-		Future<CommandModule> future = commandService.run(Csaj2DOpenerCommand.class, false);
-		CommandModule commandModule = null;
-		try {
-			commandModule = future.get();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			String imageType = (String)datasetInInfo.get("imageType");			
+			//RGB not allowed
+			if (!imageType.equals("Grey")) { 
+				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+			} else {
+				SwingUtilities.invokeLater(() -> {
+					if (dialog == null) {
+						dialog = new Csaj2DFracDimPyramidDialog(context(), datasetIn);
+					}
+					dialog.setVisible(true);
+					dialog.btnProcessSingleImage.requestFocusInWindow();
+				});
+			}
 		}
-		Dataset datasetOut = (Dataset)commandModule.getOutput("datasetOut");	
-		uiService.show(datasetOut);
 	}
 	
 	/** The main method enables standalone testing of the command. */
@@ -109,25 +117,17 @@ public class Csaj2DOpenerCommandGUI extends ContextCommand implements Previewabl
 		} catch(Throwable t) {
 		
 		}
-//        // create the ImageJ application context with all available services
-        final ImageJ ij = new ImageJ();
-        ij.ui().showUI();
-//
-//        // ask the user for a file to open
-//        final File file = ij.ui().chooseFile(null, "open");
-//
-//        if (file != null) {
-//            // load the dataset
-//            final Dataset dataset = ij.scifio().datasetIO().open(file.getPath());
-//
-//            // show the image
-//            ij.ui().show(dataset);
-//
-//            // invoke the plugin
-//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
-//        }
-//       
-         //invoke the plugin
-         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
+		
+		// create the ImageJ application context with all available services
+		final ImageJ ij = new ImageJ();
+
+		// display the user interface
+		ij.ui().showUI();
+
+		// open and display an image
+		final File imageFile = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE);
+		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
+		ij.ui().show(image);
+		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }

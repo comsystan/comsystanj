@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DGeneralisedEntropiesCommandGUI.java
+ * File: Csaj2DFracDimHiguchi1DCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.ent;
+package at.csa.csaj.plugin2d.frac;
 
 
 import java.io.File;
@@ -47,17 +47,17 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Generalised entropies",
+label = "Higuchi dimension 1D",
 initializer = "initialPluginLaunch",
 iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 menu = {
 @Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
-@Menu(label = "Entropy analyses", weight = 5),
-@Menu(label = "Generalised entropies(New dialog)")})
+@Menu(label = "Fractal analyses", weight = 6),
+@Menu(label = "Higuchi1D dimension 1D(New Dialog)")})
 
-public class Csaj2DGeneralisedEntropiesCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFracDimHiguchi1DCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -65,7 +65,7 @@ public class Csaj2DGeneralisedEntropiesCommandGUI extends ContextCommand impleme
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DGeneralisedEntropiesDialog dialog = null;
+	private Csaj2DFracDimHiguchi1DDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -98,7 +98,7 @@ public class Csaj2DGeneralisedEntropiesCommandGUI extends ContextCommand impleme
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DGeneralisedEntropiesDialog(context(), datasetIn);
+						dialog = new Csaj2DFracDimHiguchi1DDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

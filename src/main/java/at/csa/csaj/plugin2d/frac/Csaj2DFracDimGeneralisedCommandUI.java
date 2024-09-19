@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimMassRadiusCommandGUI.java
+ * File: Csaj2DFracDimGeneralisedCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -27,6 +27,7 @@
  */
 package at.csa.csaj.plugin2d.frac;
 
+
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
@@ -46,17 +47,17 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-		label = "Mass radius dimension",
-		initializer = "initialPluginLaunch",
-		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-		menu = {
-		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-		@Menu(label = "ComsystanJ"),
-		@Menu(label = "2D Image(s)"),
-		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Mass radius dimension(New Dialog)")})
+label = "Generalised dimension",
+initializer = "initialPluginLaunch",
+iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+menu = {
+@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+@Menu(label = "ComsystanJ"),
+@Menu(label = "2D Image(s)"),
+@Menu(label = "Fractal analyses", weight = 6),
+@Menu(label = "Generalised dimension(New Dialog)")})
 
-public class Csaj2DFracDimMassRadiusCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DFracDimGeneralisedCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -64,7 +65,7 @@ public class Csaj2DFracDimMassRadiusCommandGUI extends ContextCommand implements
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimMassRadiusDialog dialog = null;
+	private Csaj2DFracDimGeneralisedDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -97,7 +98,7 @@ public class Csaj2DFracDimMassRadiusCommandGUI extends ContextCommand implements
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimMassRadiusDialog(context(), datasetIn);
+						dialog = new Csaj2DFracDimGeneralisedDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();

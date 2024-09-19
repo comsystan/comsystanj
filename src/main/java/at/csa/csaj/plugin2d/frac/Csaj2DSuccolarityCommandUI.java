@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimHiguchi1DCommandGUI.java
+ * File: Csaj2DSuccolarityCommandGUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -47,17 +47,17 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Higuchi dimension 1D",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {
-@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-@Menu(label = "ComsystanJ"),
-@Menu(label = "2D Image(s)"),
-@Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Higuchi1D dimension 1D(New Dialog)")})
+		label = "Succolarity",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "2D Image(s)"),
+		@Menu(label = "Fractal analyses", weight = 6),
+		@Menu(label = "Succolarity(New Dialog)")})
 
-public class Csaj2DFracDimHiguchi1DCommandGUI extends ContextCommand implements Previewable{
+public class Csaj2DSuccolarityCommandUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -65,7 +65,7 @@ public class Csaj2DFracDimHiguchi1DCommandGUI extends ContextCommand implements 
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimHiguchi1DDialog dialog = null;
+	private Csaj2DSuccolarityDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -98,7 +98,7 @@ public class Csaj2DFracDimHiguchi1DCommandGUI extends ContextCommand implements 
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimHiguchi1DDialog(context(), datasetIn);
+						dialog = new Csaj2DSuccolarityDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();
