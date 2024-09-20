@@ -81,7 +81,7 @@ import at.csa.csaj.plugin1d.detect.util.Osea4Java_OSEAFactory;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_QRSDetector;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_QRSDetector2;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_BeatDetectionAndClassification.BeatDetectAndClassifyResult;
-import at.csa.csaj.command.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 
 /**
@@ -2428,7 +2428,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

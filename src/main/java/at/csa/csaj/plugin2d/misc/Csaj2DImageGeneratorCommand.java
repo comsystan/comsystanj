@@ -94,15 +94,7 @@ import javax.swing.UIManager;
 		label = "2D image generator",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
+
 public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends ContextCommand implements Previewable {
 		
 	private static final String PLUGIN_LABEL 			= "<html><b>Generates 2D images</b></html>";

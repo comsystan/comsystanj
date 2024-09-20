@@ -66,7 +66,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.command.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
@@ -1000,7 +1000,7 @@ public class Csaj1DStatistics<T extends RealType<T>> extends InteractiveCommand 
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

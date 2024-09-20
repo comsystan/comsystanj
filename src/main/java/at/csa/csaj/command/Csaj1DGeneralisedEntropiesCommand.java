@@ -74,7 +74,7 @@ import at.csa.csaj.commons.CsajAlgorithm_GeneralisedEntropies;
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.command.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 
 /**
@@ -1681,7 +1681,7 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

@@ -72,7 +72,7 @@ import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.frac.util.WalkingDivider;
-import at.csa.csaj.command.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
  * A {@link ContextCommand} plugin computing <the Walking divider dimension</a>
@@ -1298,7 +1298,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

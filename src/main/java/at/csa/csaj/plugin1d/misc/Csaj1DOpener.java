@@ -291,8 +291,8 @@ public class Csaj1DOpener<T extends RealType<T>> extends InteractiveCommand {
 		}
 		
 		//This might free some memory and would be nice for a large table
-		defaultGenericTable = null;
-		Runtime.getRuntime().gc();
+		//defaultGenericTable = null;
+		//Runtime.getRuntime().gc();
 		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));

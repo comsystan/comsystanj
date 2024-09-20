@@ -75,7 +75,7 @@ import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
-import at.csa.csaj.command.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 
 /**
@@ -1489,7 +1489,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

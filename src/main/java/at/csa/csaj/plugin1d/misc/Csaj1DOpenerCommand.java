@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.misc;
 
 
 import net.imagej.DatasetService;
@@ -42,6 +42,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.table.DefaultGenericTable;
+import org.scijava.table.DefaultTableDisplay;
 import org.scijava.ui.UIService;
 import org.scijava.ui.DialogPrompt.MessageType;
 import org.scijava.ui.DialogPrompt.OptionType;
@@ -68,20 +69,12 @@ import javax.swing.UIManager;
  * </p>
  */
 @Plugin(type = ContextCommand.class,
-	headless = true,
-	label = "1D sequence opener",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
+		headless = true,
+		label = "1D sequence opener",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin
+
 public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	
 	private static final String PLUGIN_LABEL = "Opens single or multiple sequences";
@@ -93,7 +86,7 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	@Parameter
 	private StatusService statusService;
 	
-	@Parameter (label = "Sequence(s)", type = ItemIO.OUTPUT) //so that it can be displayed
+	//@Parameter (label = "Sequence(s)", type = ItemIO.OUTPUT) //It would be displayed without the file name, so displaying is explicitly called in the run method
 	private DefaultGenericTable defaultGenericTable;
 	
 	@Parameter
@@ -107,6 +100,8 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
     
     @Parameter
     private IOService ioService;
+    
+	private String tableOutName;
     
     //Widget elements------------------------------------------------------
 	//No widget
@@ -134,14 +129,9 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-// 			if (ij != null) { //might be null in Fiji
-// 				if (ij.ui().isHeadless()) {
-// 				}
-// 			}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflow();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+		startWorkflow();
+		logService.info(this.getClass().getName() + " Finished command run");	
 	}
     
     
@@ -208,6 +198,7 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 		
 		if ((files.length == 1) && (files[0] != null)){
 			 //Img< T > image = ( Img< T > ) IO.open(files[i].getPath()); 
+			tableOutName = files[0].getName();
 			try {
 				defaultGenericTable = (DefaultGenericTable) ioService.open(files[0].getAbsolutePath());	
 			} catch (IOException e) {
@@ -254,7 +245,7 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 				
 				//Show table after plot to set it as the active display
 				//This is mandatory for launching a sequence processing plugin 
-				uiService.show(files[0].getName(), defaultGenericTable);	  
+				uiService.show(files[0].getName(), defaultGenericTable);	
 			}
 			
 			if (numColumns > 1) {
@@ -282,13 +273,9 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 				
 				//Show table after plot to set it as the active display
 				//This is mandatory for launching a sequence processing plugin 
-				uiService.show(files[0].getName(), defaultGenericTable);	
+				uiService.show(files[0].getName(), defaultGenericTable);
 			}				
 		}
-		
-		//This might free some memory and would be nice for a large table
-		defaultGenericTable = null;
-		Runtime.getRuntime().gc();
 		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));

@@ -78,7 +78,7 @@ import at.csa.csaj.commons.CsajUtil_GenerateInterval;
 import at.csa.csaj.plugin1d.frac.util.HKprocess;
 import at.csa.csaj.plugin1d.frac.util.HurstRS;
 import at.csa.csaj.plugin1d.frac.util.HurstSP;
-import at.csa.csaj.command.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
  * A {@link ContextCommand} plugin computing <the Hurst coefficient</a>
@@ -1417,7 +1417,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get().getOutput(tableInName);
+		ij.command().run(Csaj1DOpenerCommand.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
