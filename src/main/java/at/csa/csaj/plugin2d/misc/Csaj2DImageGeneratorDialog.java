@@ -195,9 +195,9 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 		gbc.weightx = 0.0; //reset to default
 		
 		//Rest button--------------------------------------------------------
-		JButton btnShowInput = new JButton("Reset");
-		btnShowInput.setToolTipText("reset to default values");	
-		btnShowInput.addActionListener(new ActionListener() {
+		JButton btnReset = new JButton("Reset");
+		btnReset.setToolTipText("reset to default values");	
+		btnReset.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				spinnerWidth.setValue(512);
@@ -242,7 +242,7 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 		gbc.gridx = 1;
 		gbc.gridy = 0;
 		gbc.anchor = GridBagConstraints.EAST; //right
-		panelInput.add(btnShowInput, gbc);
+		panelInput.add(btnReset, gbc);
 				
 		//CENTER default items		
 	    //*****************************************************************************************
@@ -651,7 +651,7 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 	    contentPanel.add(spinnerB, gbc);	    
 	    
 	    //initialize command variable
-	    spinnerInteger_G = (int)spinnerG.getValue();
+	    spinnerInteger_B = (int)spinnerB.getValue();
 	    
 	    //*****************************************************************************************
 	    labelFracDim = new JLabel("Fractal dimension");
@@ -667,7 +667,7 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
         	@Override
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_FracDim = (float)((SpinnerNumberModel)spinnerFracDim.getModel()).getNumber().doubleValue();
-                logService.info(this.getClass().getName() + " Min eta set to " + spinnerFloat_FracDim);
+                logService.info(this.getClass().getName() + " Fractal dimension set to " + spinnerFloat_FracDim);
                 //if (booleanProcessImmediately) btnProcessSingleImage.doClick();
             }
         });
