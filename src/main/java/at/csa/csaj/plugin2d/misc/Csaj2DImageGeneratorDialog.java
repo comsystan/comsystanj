@@ -212,9 +212,9 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 				choiceRadioButt_ImageType = (String)comboBoxImageType.getSelectedItem();
 				spinnerR.setValue(255);
 				spinnerInteger_R = (int)spinnerR.getValue();
-				spinnerG.setValue(0);
+				spinnerG.setValue(255);
 				spinnerInteger_G = (int)spinnerG.getValue();
-				spinnerB.setValue(0);
+				spinnerB.setValue(255);
 				spinnerInteger_B = (int)spinnerB.getValue();
 				spinnerFracDim.setValue(2.5);
 				spinnerFloat_FracDim = (float)((SpinnerNumberModel)spinnerFracDim.getModel()).getNumber().doubleValue();
@@ -757,11 +757,10 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
         	@Override
             public void stateChanged(ChangeEvent e) {
             	spinnerInteger_NumIterations = (int)spinnerNumIterations.getValue();
-                logService.info(this.getClass().getName() + " Pixel percentage set to " + spinnerInteger_NumIterations);
+                logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
                 //if (booleanProcessImmediately) btnProcessSingleImage.doClick();
             }
-        });
-        
+        });     
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
 	    gbc.gridy = 12;
@@ -792,8 +791,7 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
                 logService.info(this.getClass().getName() + " Shape size set to " + spinnerInteger_ShapeSize);
                 //if (booleanProcessImmediately) btnProcessSingleImage.doClick();
             }
-        });
-        
+        });       
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
 	    gbc.gridy = 13;
@@ -854,8 +852,7 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
                 logService.info(this.getClass().getName() + " Number of polygons set to " + spinnerInteger_NumPolygons);
                 //if (booleanProcessImmediately) btnProcessSingleImage.doClick();
             }
-        });
-        
+        }); 
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
 	    gbc.gridy = 15;
@@ -958,20 +955,6 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 	    contentPanel.add(spinnerHRMProbability3, gbc);	    
 	    //initialize command variable
 	    spinnerFloat_HRMProbability3 = (float)((SpinnerNumberModel)spinnerHRMProbability3.getModel()).getNumber().doubleValue();
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
 	    
 	    
 	    //SOUTH Process buttons panel 

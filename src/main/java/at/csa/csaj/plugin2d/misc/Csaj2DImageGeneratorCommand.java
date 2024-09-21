@@ -600,9 +600,7 @@ public class Csaj2DImageGeneratorCommand<T extends RealType<T>, C> extends Conte
 	@Override //Interface CommandService
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
-
-		startWorkflow();
-		
+		startWorkflow();	
 		logService.info(this.getClass().getName() + " Finished command run");
 	}
 

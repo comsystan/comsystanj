@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin3d.misc;
 
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -97,15 +97,7 @@ import javax.swing.UIManager;
 		label = "3D image volume generator",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
+
 public class Csaj3DVolumeGeneratorCommand<T extends RealType<T>, C> extends ContextCommand implements Previewable {
 		
 	private static final String PLUGIN_LABEL 			= "<html><b>Generates 3D image volumes</b></html>";
@@ -444,14 +436,9 @@ public class Csaj3DVolumeGeneratorCommand<T extends RealType<T>, C> extends Cont
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-//		if (ij != null) { //might be null in Fiji
-//			if (ij.ui().isHeadless()) {
-//			}
-//		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflow();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+		startWorkflow();	
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	/**
