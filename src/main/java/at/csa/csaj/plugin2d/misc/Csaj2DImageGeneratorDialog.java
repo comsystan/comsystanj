@@ -82,8 +82,7 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 	
   	private Dataset datasetOut;
 
-	//Specific dialog items
-  
+	//Specific dialog items  
   	private JLabel   labelWidth;
   	private JSpinner spinnerWidth;
 	private int      spinnerInteger_Width;
@@ -115,7 +114,7 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 	
 	private JLabel   labelB;
 	private JSpinner spinnerB;
-	private int spinnerInteger_B;
+	private int      spinnerInteger_B;
 	    
 	private JLabel   labelFracDim;
 	private JSpinner spinnerFracDim;

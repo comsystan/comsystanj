@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFilterCommand.java
+ * File: Csaj2DFilterCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,13 +25,14 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.preproc;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -68,29 +69,22 @@ import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_2D;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
 
 
 /**
@@ -102,16 +96,8 @@ import io.scif.MetaTable;
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL          = "<html><b>Filter</b></html>";
 	private static final String SPACE_LABEL           = "";
@@ -133,8 +119,6 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	private static String imageType = "";
 	
 	public static final String IMAGE_OUT_NAME = "Filtered image(s)";
-	private static final String IMAGE_PREVIEW_NAME = "Preview image";
-	private static Dataset datasetPreview;
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -264,6 +248,12 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
    
@@ -278,7 +268,27 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 
 	// The following initializer functions set initial value
 	protected void initialPluginLaunch() {
-		checkItemIOIn();
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
+//			//RGB not allowed
+//			if (!imageType.equals("Grey")) { 
+//				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
+//				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+//			}
+		}
 	}
 	protected void initialFilterType() {
 		choiceRadioButt_FilterType = "Gaussian blur";
@@ -355,7 +365,7 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleImage();
-	    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
+	    		uiService.show(IMAGE_OUT_NAME, datasetOut);   //Show result because it did not go over the run() method
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -400,7 +410,7 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleImage();
-		    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
+		    		uiService.show(IMAGE_OUT_NAME, datasetOut);   //Show result because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -433,88 +443,40 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllImages();
-		}
-	}
-	
-	public void checkItemIOIn() {
-	
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image = null");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
-			return;
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+//			//RGB not allowed
+//			if (!imageType.equals("Grey")) { 
+//				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+//				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+//			} 
 		}
 
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
-		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 2D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions             = datasetIn.numDimensions();
-		boolean isRGBMerged       = datasetIn.isRGBMerged();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
 	
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-		
-		// get name of dataset
-		datasetName = datasetIn.getName();
-			
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-			sliceLabels = (String[]) metaTable.get("SliceLabels");
-			//eliminate additional image info delimited with \n (since pom-scijava 29.2.1)
-			for (int i = 0; i < sliceLabels.length; i++) {
-				String label = sliceLabels[i];
-				int index = label.indexOf("\n");
-				//if character has been found, otherwise index = -1
-				if (index > 0) sliceLabels[i] = label.substring(0, index);		
-			}
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-		
-		logService.info(this.getClass().getName() + " Name: "             + datasetName); 
-		logService.info(this.getClass().getName() + " Image size: "       + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: "       + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 		
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	/**
-	 * This method generates the preview dataset
+	 * This method generates the dataset
 	 * @param rai
 	 */
-	private void generateDatasetPreview(RandomAccessibleInterval<T> rai) {
+	private void generateDataset(RandomAccessibleInterval<T> rai) {
 		if (imageType.equals("Grey")) {
 			//RGB image
 			boolean signed   = false;
@@ -525,9 +487,9 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			//long[] dims = new long[]{width, height};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y};
-			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut = datasetService.create(dims, IMAGE_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos2D = new long[2];
 			while (cursor.hasNext()) {
@@ -546,21 +508,21 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			//long[] dims = new long[]{width, height, 3};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), 3};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
-			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
-			datasetPreview.setCompositeChannelCount(3);
-			datasetPreview.setRGBMerged(true);
-//			datasetPreview.setChannelMinimum(0, 0);
-//			datasetPreview.setChannelMinimum(1, 0);
-//			datasetPreview.setChannelMinimum(2, 0);
-//			datasetPreview.setChannelMaximum(0, 255);
-//			datasetPreview.setChannelMaximum(1, 255);
-//			datasetPreview.setChannelMaximum(2, 255);
-//			datasetPreview.initializeColorTables(3);
-//			datasetPreview.setColorTable(ColorTables.RED,   0);
-//			datasetPreview.setColorTable(ColorTables.GREEN, 1);
-//			datasetPreview.setColorTable(ColorTables.BLUE,  2);
+			datasetOut = datasetService.create(dims, IMAGE_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut.setCompositeChannelCount(3);
+			datasetOut.setRGBMerged(true);
+//			datasetOut.setChannelMinimum(0, 0);
+//			datasetOut.setChannelMinimum(1, 0);
+//			datasetOut.setChannelMinimum(2, 0);
+//			datasetOut.setChannelMaximum(0, 255);
+//			datasetOut.setChannelMaximum(1, 255);
+//			datasetOut.setChannelMaximum(2, 255);
+//			datasetOut.initializeColorTables(3);
+//			datasetOut.setColorTable(ColorTables.RED,   0);
+//			datasetOut.setColorTable(ColorTables.GREEN, 1);
+//			datasetOut.setColorTable(ColorTables.BLUE,  2);
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos3D = new long[3];
 			while (cursor.hasNext()) {
@@ -588,7 +550,7 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
     	int sliceIndex = spinnerInteger_NumImageSlice - 1;
 		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
 		RandomAccessibleInterval<T> rai = processSingleInputImage(sliceIndex);
-		generateDatasetPreview(rai);
+		generateDataset(rai);
 		dlgProgress.addMessage("Processing finished!");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
@@ -673,11 +635,7 @@ public class Csaj2DFilterCommand<T extends RealType<T>> extends ContextCommand i
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 					
-				} else if (frame.getTitle().contains(IMAGE_PREVIEW_NAME)) {
-					frame.setVisible(false); //Successfully closes also in Fiji
-					frame.dispose();
-					datasetPreview = null;
-				}		
+				}	
 			} //for
 		}
 //		if (optDeleteExistingPlots) {

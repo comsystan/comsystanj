@@ -73,8 +73,6 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
-
-
  	private JComboBox<String> comboBoxWindowingType;
 	private String   choiceRadioButt_WindowingType;
 	

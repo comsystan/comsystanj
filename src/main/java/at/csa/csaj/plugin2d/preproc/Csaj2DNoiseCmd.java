@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DAutoCropBordersCommand.java
+ * File: Csaj2DNoiseCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,20 +25,21 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.preproc;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -50,75 +51,51 @@ import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imagej.roi.ROIService;
 import net.imglib2.Cursor;
-import net.imglib2.FinalInterval;
-import net.imglib2.Interval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.labeling.ConnectedComponents;
-import net.imglib2.algorithm.labeling.ConnectedComponents.StructuringElement;
-import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.roi.RealMask;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.AbstractIntegerType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
-import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
 
 
 /**
- * A {@link ContextCommand} plugin for <automatic cropping image borders</a>
- * of an image.
+ * A {@link ContextCommand} plugin for adding <noise</a>
+ * to an image.
  */
 @Plugin(type = ContextCommand.class,
 		headless = true,
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
 
-	private static final String PLUGIN_LABEL            = "<html><b>Aut crop borders</b></html>";
-	private static final String SPACE_LABEL             = "";
-	private static final String OPTIONS_LABEL           = "<html><b>Options</b></html>";
-	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
-	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
+public class Csaj2DNoiseCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL          = "<html><b>Noise</b></html>";
+	private static final String SPACE_LABEL           = "";
+	private static final String NOISEOPTIONS_LABEL    = "<html><b>Noise adding options</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL  = "<html><b>Display options</b></html>";
+	private static final String PROCESSOPTIONS_LABEL  = "<html><b>Process options</b></html>";
 
 	Cursor<?> cursor = null;
 	private static String datasetName;
@@ -129,17 +106,9 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 	private static long numSlices = 0;
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
-
-	public static final String IMAGE_OUT_NAME = "Preprocessed image(s)";
-	private static final String IMAGE_PREVIEW_NAME = "Preview image";
-	private static Dataset datasetPreview;
+	private static RealMask realMask;  //ROI
 	
-	private static int cropMinX; 
-	private static int cropMinY;
-	private static int cropMaxX;
-	private static int cropMaxY;
-	
-	private static Img<UnsignedShortType> labeledParticles;
+	public static final String IMAGE_OUT_NAME = "Noise added image(s)";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -199,17 +168,28 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOptions = OPTIONS_LABEL;
+	private final String labelNoiseOptions = NOISEOPTIONS_LABEL;
 	
-	@Parameter(label = "Background",
-			   description = "Black or white background",
+	@Parameter(label = "Noise",
+			   description = "Noise type",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"Black", "White"}, //
+			   choices = {"Shot", "Salt&Pepper", "Uniform", "Gaussian", "Rayleigh", "Exponential"}, //
 			   persist = true,  //restore previous value default = true
-			   initializer = "initialBackgroundType",
-			   callback = "callbackBackgroundType")
-	private String choiceRadioButt_BackgroundType;
-		
+			   initializer = "initialNoiseType",
+			   callback = "callbackNoiseType")
+	private String choiceRadioButt_NoiseType;
+	
+	@Parameter(label = "Percentage(%) or scale",
+			   description = "Maximal percentage of affected data points or scaling parameter (e.g. sigma for Gaussian)",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "0",
+			   max = "9999999999999999999",
+			   stepSize = "0.1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialPercentage",
+			   callback = "callbackPercentage")
+	private float spinnerFloat_Percentage;
+	
 	//-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
@@ -235,6 +215,12 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
    
@@ -249,11 +235,35 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 
 	// The following initializer functions set initial value
 	protected void initialPluginLaunch() {
-		checkItemIOIn();
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
+//			//RGB not allowed
+//			if (!imageType.equals("Grey")) { 
+//				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
+//				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+//			}
+		}
 	}
-	protected void initialBackgroundType() {
-		choiceRadioButt_BackgroundType = "Black";
-	}  	
+	protected void initialNoiseType() {
+		choiceRadioButt_NoiseType = "Gaussian";
+	} 
+		
+	protected void initialPercentage() {
+		spinnerFloat_Percentage = 10;
+	}
 	protected void initialOverwriteDisplays() {
 		booleanOverwriteDisplays = true;
 	}
@@ -262,11 +272,21 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 	}
 	
 	// ------------------------------------------------------------------------------
-	/** Executed whenever the {@link #choiceRadioButt_BackgroundType} parameter changes. */
-	protected void callbackBackgroundType() {
-		logService.info(this.getClass().getName() + " Background type set to " + choiceRadioButt_BackgroundType);
-	}
+	
 
+	/** Executed whenever the {@link #choiceRadioButt_NoiseType} parameter changes. */
+	protected void callbackNoiseType() {
+		logService.info(this.getClass().getName() + " Noise type set to " + choiceRadioButt_NoiseType);
+	}
+	
+	/** Executed whenever the {@link #spinnerFloat_Percentage} parameter changes. */
+	protected void callbackPercentage() {
+	 	//round to ?? decimal after the comma
+	 	//spinnerFloat_Percentage_ = Math.round(spinnerFloat_Percentage * 10f)/10f;
+	 	spinnerFloat_Percentage = Precision.round(spinnerFloat_Percentage, 2);
+		logService.info(this.getClass().getName() + " Sigma/Percentage set to " + spinnerFloat_Percentage);
+	}
+	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
@@ -294,7 +314,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleImage();
-	    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
+	    		uiService.show(IMAGE_OUT_NAME, datasetOut);   //Show result because it did not go over the run() method
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -339,7 +359,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleImage();
-		    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
+		    		uiService.show(IMAGE_OUT_NAME, datasetOut);   //Show result because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -372,88 +392,40 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllImages();
-		}
-	}
-	
-	public void checkItemIOIn() {
-	
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image = null");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
-			return;
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+//			//RGB not allowed
+//			if (!imageType.equals("Grey")) { 
+//				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+//				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+//			} 
 		}
 
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
-		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 2D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions             = datasetIn.numDimensions();
-		boolean isRGBMerged       = datasetIn.isRGBMerged();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
 	
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-		
-		// get name of dataset
-		datasetName = datasetIn.getName();
-			
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-			sliceLabels = (String[]) metaTable.get("SliceLabels");
-			//eliminate additional image info delimited with \n (since pom-scijava 29.2.1)
-			for (int i = 0; i < sliceLabels.length; i++) {
-				String label = sliceLabels[i];
-				int index = label.indexOf("\n");
-				//if character has been found, otherwise index = -1
-				if (index > 0) sliceLabels[i] = label.substring(0, index);		
-			}
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-		
-		logService.info(this.getClass().getName() + " Name: "             + datasetName); 
-		logService.info(this.getClass().getName() + " Image size: "       + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: "       + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 		
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
-	
+
 	/**
-	 * This method generates the preview dataset
+	 * This method generates the dataset
 	 * @param rai
 	 */
-	private void generateDatasetPreview(RandomAccessibleInterval<T> rai) {
+	private void generateDataset(RandomAccessibleInterval<T> rai) {
 		if (imageType.equals("Grey")) {
 			//RGB image
 			boolean signed   = false;
@@ -464,9 +436,9 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 			//long[] dims = new long[]{width, height};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y};
-			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut = datasetService.create(dims, IMAGE_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos2D = new long[2];
 			while (cursor.hasNext()) {
@@ -485,21 +457,21 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 			//long[] dims = new long[]{width, height, 3};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), 3};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
-			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
-			datasetPreview.setCompositeChannelCount(3);
-			datasetPreview.setRGBMerged(true);
-//			datasetPreview.setChannelMinimum(0, 0);
-//			datasetPreview.setChannelMinimum(1, 0);
-//			datasetPreview.setChannelMinimum(2, 0);
-//			datasetPreview.setChannelMaximum(0, 255);
-//			datasetPreview.setChannelMaximum(1, 255);
-//			datasetPreview.setChannelMaximum(2, 255);
-//			datasetPreview.initializeColorTables(3);
-//			datasetPreview.setColorTable(ColorTables.RED,   0);
-//			datasetPreview.setColorTable(ColorTables.GREEN, 1);
-//			datasetPreview.setColorTable(ColorTables.BLUE,  2);
+			datasetOut = datasetService.create(dims, IMAGE_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut.setCompositeChannelCount(3);
+			datasetOut.setRGBMerged(true);
+//			datasetOut.setChannelMinimum(0, 0);
+//			datasetOut.setChannelMinimum(1, 0);
+//			datasetOut.setChannelMinimum(2, 0);
+//			datasetOut.setChannelMaximum(0, 255);
+//			datasetOut.setChannelMaximum(1, 255);
+//			datasetOut.setChannelMaximum(2, 255);
+//			datasetOut.initializeColorTables(3);
+//			datasetOut.setColorTable(ColorTables.RED,   0);
+//			datasetOut.setColorTable(ColorTables.GREEN, 1);
+//			datasetOut.setColorTable(ColorTables.BLUE,  2);
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos3D = new long[3];
 			while (cursor.hasNext()) {
@@ -516,7 +488,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 	*/
 	protected void startWorkflowForSingleImage() {
 		
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Preprocessing, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Adding noise, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		
 		dlgProgress.updatePercent("");
@@ -527,7 +499,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
     	int sliceIndex = spinnerInteger_NumImageSlice - 1;
 		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
 		RandomAccessibleInterval<T> rai = processSingleInputImage(sliceIndex);
-		generateDatasetPreview(rai);
+		generateDataset(rai);
 		dlgProgress.addMessage("Processing finished!");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
@@ -539,7 +511,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 	*/
 	protected void startWorkflowForAllImages() {
 
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Preprocessing, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Adding noise, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 	
@@ -612,11 +584,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 					
-				} else if (frame.getTitle().contains(IMAGE_PREVIEW_NAME)) {
-					frame.setVisible(false); //Successfully closes also in Fiji
-					frame.dispose();
-					datasetPreview = null;
-				}		
+				} 	
 			} //for
 		}
 //		if (optDeleteExistingPlots) {
@@ -740,27 +708,6 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 		//datasetOut = datasetService.create(rai); //without properties such as sliceLabels
 		//datasetOut.getProperties().putAll(datasetIn.getProperties());
 		
-	
-		//******************************************************************************	
-		//Cropping is not not already done! datasetOut is only a copy
-		//Only interval coordinates are already computed as field variables	
-		logService.info(this.getClass().getName() + " cropMinX: " + cropMinX);
-		logService.info(this.getClass().getName() + " cropMinY: " + cropMinY);
-		logService.info(this.getClass().getName() + " cropMaxX: " + cropMaxX);
-		logService.info(this.getClass().getName() + " cropMaxY: " + cropMaxY);
-		
-		Interval interVal = null;
-		if (imageType.equals("Grey")) {
-			interVal = new FinalInterval( new long[] {cropMinX, cropMinY},  new long[] {cropMaxX, cropMaxY});
-			
-		} else if (imageType.equals("RGB")) {
-			interVal = new FinalInterval( new long[] {cropMinX, cropMinY, 0},  new long[] {cropMaxX, cropMaxY, 2});
-		}
-		rai = Views.offsetInterval(rai, interVal);
-		
-	
-		//*****************************************************************************
-		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		SimpleDateFormat sdf = new SimpleDateFormat();
@@ -800,11 +747,6 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 			datasetOut.setRGBMerged(true);		
 		}
 	
-		//For Auto crop size reduced images 
-		int[] intervalMinX = new int[(int)numSlices];
-		int[] intervalMinY = new int[(int)numSlices];
-		int[] intervalMaxX = new int[(int)numSlices];
-		int[] intervalMaxY = new int[(int)numSlices];
 		
 		// loop over all slices of stack
 		for (int s = 0; s < numSlices; s++) { // p...planes of an image stack
@@ -838,22 +780,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 				//rai of DatasetOut already set to output values
 				
 				//uiService.show("Result", iv);
-					
-				//******************************************************************************	
-				//Cropping is not not already done! datasetOut is only a copy
-				//Only interval coordinates are already computed as field variables
-				//Collect cropping rectangle (interval) points found in process(rai)	
-				intervalMinX[s] = cropMinX;
-				intervalMinY[s] = cropMinY;
-				intervalMaxX[s] = cropMaxX;
-				intervalMaxY[s] = cropMaxY;
 				
-				logService.info(this.getClass().getName() + " cropMinX: " + cropMinX);
-				logService.info(this.getClass().getName() + " cropMinY: " + cropMinY);
-				logService.info(this.getClass().getName() + " cropMaxX: " + cropMaxX);
-				logService.info(this.getClass().getName() + " cropMaxY: " + cropMaxY);			
-				//************************************************************************
-
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 				SimpleDateFormat sdf = new SimpleDateFormat();
@@ -862,159 +789,9 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 			//}
 		} //s
 		
-		//Finally overwrite datasetOut if it should be cropped
-			
-		width  = datasetIn.getWidth();
-		height = datasetIn.getHeight();
-	
-		AxisType[] axes  = null;
-		long[] dims 	 = null;
-		int bitsPerPixel = 0;
-		boolean signed   = false;
-		boolean floating = false;
-		boolean virtual  = false;
-		String name = "Auto Cropped";
-				
-		if (imageType.equals("Grey")) {
-			if (numSlices == 1) {
-				int cropWidth  = intervalMaxX[0] - intervalMinX[0];
-				int cropHeight = intervalMaxY[0] - intervalMinY[0];	
-				bitsPerPixel = 8;
-				dims = new long[]{cropWidth, cropHeight};
-				axes = new AxisType[]{Axes.X, Axes.Y};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-			
-				//We must read from datasetIn		
-				RandomAccess<RealType<?>> ra = datasetIn.randomAccess();
-				Cursor<RealType<?>> cursor = datasetOut.cursor();
-				long[] pos = new long[2];
-				float value;	
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos);
-					pos[0] += intervalMinX[0];
-					pos[1] += intervalMinY[0];
-					ra.setPosition(pos);
-					value = ra.get().getRealFloat();	
-					cursor.get().setReal(value);
-				}		
-			} //numSlices == 1
-			else if (numSlices > 1) {
-				int[] intervalWidth  = new int[(int) numSlices];
-				int[] intervalHeight = new int[(int) numSlices];
-				for (int i = 0; i < numSlices; i++) {
-					intervalWidth[i]  = intervalMaxX[i] - intervalMinX[i];
-					intervalHeight[i] = intervalMaxY[i] - intervalMinY[i];
-		        } 
-				int cropWidth  = NumberUtils.max(intervalWidth);
-				int cropHeight = NumberUtils.max(intervalHeight);
-				
-				//Offset to the largest interval
-				int[] intervalWidthOff  = new int[(int) numSlices];
-				int[] intervalHeightOff = new int[(int) numSlices];
-				
-				for (int i = 0; i < numSlices; i++) {
-					intervalWidthOff[i]  = (cropWidth  - intervalWidth[i])/2;
-					intervalHeightOff[i] = (cropHeight - intervalHeight[i])/2;
-		        } 
-				
-				bitsPerPixel = 8;
-				dims = new long[]{cropWidth, cropHeight, numSlices};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-			
-				//We must read from datasetIn
-				RandomAccess<RealType<?>> ra = datasetIn.randomAccess();
-				Cursor<RealType<?>> cursor = datasetOut.cursor();
-				long[] pos = new long[3];
-				float value;		
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos);
-					pos[0] += (intervalMinX[(int)pos[2]] -  intervalWidthOff[(int)pos[2]]); //pos[2] is the slice number
-					pos[1] += (intervalMinY[(int)pos[2]] - intervalHeightOff[(int)pos[2]]);
-					
-					if (pos[0]>0 && pos[0]<width && pos[1]>0 && pos[1]<height) {//pos might be outside if current interval is smaller than the largest interval
-						ra.setPosition(pos);
-						value = ra.get().getRealFloat();	
-						cursor.get().setReal(value);		
-					}
-				}		
-			} //numSlices > 1
-		} //Grey
+		// stack channels back together
+		//RandomAccessibleInterval result = ij.op().transform().stackView(outputImages);
 		
-		if (imageType.equals("RGB")) {
-			if (numSlices == 1) {
-				int cropWidth  = intervalMaxX[0] - intervalMinX[0];
-				int cropHeight = intervalMaxY[0] - intervalMinY[0];	
-				bitsPerPixel = 8;
-				dims = new long[]{cropWidth, cropHeight, 3};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-				datasetOut.setCompositeChannelCount(3);
-				datasetOut.setRGBMerged(true);
-				
-				//Read from datasetIn		
-				RandomAccess<RealType<?>> ra = datasetIn.randomAccess();
-				Cursor<RealType<?>> cursor = datasetOut.cursor();
-				long[] pos = new long[3];
-				float value;	
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos);
-					pos[0] += intervalMinX[0];
-					pos[1] += intervalMinY[0];
-					//pos[2]; //RGB does not matter
-					ra.setPosition(pos);
-					value = ra.get().getRealFloat();	
-					cursor.get().setReal(value);
-				}		
-			} //numSlices == 1
-			else if (numSlices > 1) {
-				int[] intervalWidth  = new int[(int) numSlices];
-				int[] intervalHeight = new int[(int) numSlices];
-				for (int i = 0; i < numSlices; i++) {
-					intervalWidth[i]  = intervalMaxX[i] - intervalMinX[i];
-					intervalHeight[i] = intervalMaxY[i] - intervalMinY[i];
-		        } 
-				int cropWidth  = NumberUtils.max(intervalWidth);
-				int cropHeight = NumberUtils.max(intervalHeight);
-			
-				//Offset to the largest interval
-				int[] intervalWidthOff  = new int[(int) numSlices];
-				int[] intervalHeightOff = new int[(int) numSlices];
-				
-				for (int i = 0; i < numSlices; i++) {
-					intervalWidthOff[i]  = (cropWidth  - intervalWidth[i])/2;
-					intervalHeightOff[i] = (cropHeight - intervalHeight[i])/2;
-		        } 
-			
-				bitsPerPixel = 8;
-				dims = new long[]{cropWidth, cropHeight, 3, numSlices};
-				axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-				datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-			
-				//Read from datasetIn
-				RandomAccess<RealType<?>> ra = datasetIn.randomAccess();
-				Cursor<RealType<?>> cursor = datasetOut.cursor();
-				long[] pos = new long[4];
-				float value;		
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					cursor.localize(pos);
-					pos[0] += (intervalMinX[(int)pos[3]] -  intervalWidthOff[(int)pos[3]]); //pos[3] is the slice number
-					pos[1] += (intervalMinY[(int)pos[3]] - intervalHeightOff[(int)pos[3]]);
-					//pos[2]; //RGB channel does not matter
-					if (pos[0]>0 && pos[0]<width && pos[1]>0 && pos[1]<height) {//pos might be outside if current interval is smaller than the largest interval
-						ra.setPosition(pos);
-						value = ra.get().getRealFloat();	
-						cursor.get().setReal(value);		
-					}
-				}		
-			} //numSlices > 1
-		} //RGB
-		
-	
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
 //		try {
@@ -1025,8 +802,7 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 //		}
 		
 		Map<String, Object> map = datasetOut.getProperties();
-
-	
+		
 		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		SimpleDateFormat sdf = new SimpleDateFormat();
@@ -1046,62 +822,375 @@ public class Csaj2DAutoCropBordersCommand<T extends RealType<T>> extends Context
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
-	
-		String backgroundType = choiceRadioButt_BackgroundType;   //"Black", "White"
+			
+		String noiseType  = choiceRadioButt_NoiseType;//"Shot" "Salt&Pepper", "Uniform" "Gaussian" "Rayleigh" "Exponential"
+		double fraction   = (double)spinnerFloat_Percentage/100f;
+		double scaleParam = spinnerFloat_Percentage; //That is not a good practice
 		
 		//imageType = "Grey"; // "Grey" "RGB"....
 		//numSlices;
 		
+		Random random = new Random();
+		random.setSeed(System.currentTimeMillis());
+		int randomInt;	
 		int pixelValue;	
-		int backValue = 0; //Background grey value
-		if      (backgroundType.equals("Black")) backValue = 0;
-		else if (backgroundType.equals("White")) backValue = 255;
-	
-		//"Auto crop borders", .......
-		//Result image will be smaller
-		//All black pixels around the bounding rectangle will be eliminated
-		//But input rai comes from datasetOut which is already a copy of datasetIn
-		//Here only the cropping coordinates are computed
-		//Cropping is later done in processSingleInputImage or processAllInputImages method
+		int newValue;
+		long numChanged = 0;
 		
-		//Set/Reset cropping coordinates
-		cropMinX = Integer.MAX_VALUE;
-		cropMinY = Integer.MAX_VALUE;
-		cropMaxX = 0;
-		cropMaxY = 0;
+		//"Shot" "Salt&Pepper", "Uniform" "Gaussian" "Rayleigh" "Exponential"
+		if (noiseType.equals("Shot")) {
+			//The percentage of all pixels are changed
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+						
+				//The percentage of all pixels are changed 
+				int max = -Integer.MAX_VALUE;
+				//double min = Double.MAX_VALUE;
+					
+				cursor = Views.iterable(rai).localizingCursor();	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					if (pixelValue > max) max = pixelValue;
+				} //cursor
 				
-		//Find 4 corner coordinates of rectangle
-		if (imageType.equals("Grey")) { //rai should have 2 dimensions							
-			cursor = Views.iterable(rai).localizingCursor();
-			int[] pos = new int[2];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);	
-				pixelValue = ((UnsignedByteType) cursor.get()).get();
-				if (pixelValue != backValue) {
-					if (pos[0] < cropMinX) cropMinX = pos[0];
-					if (pos[1] < cropMinY) cropMinY = pos[1]; 
-					if (pos[0] > cropMaxX) cropMaxX = pos[0];
-					if (pos[1] > cropMaxY) cropMaxY = pos[1]; 
+				cursor.reset();
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					if (random.nextDouble() < fraction) {
+						numChanged = numChanged + 1;
+						((UnsignedByteType) cursor.get()).set(max);
+					}	
 				}
-			} //cursor						
-		} else if (imageType.equals("RGB")) {				
-			cursor = Views.iterable(rai).localizingCursor();
-			int[] pos = new int[3];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);	
-				pixelValue = ((UnsignedByteType) cursor.get()).get();
-				if (pixelValue != backValue) {
-					if (pos[0] < cropMinX) cropMinX = pos[0];
-					if (pos[1] < cropMinY) cropMinY = pos[1]; 
-					if (pos[0] > cropMaxX) cropMaxX = pos[0];
-					if (pos[1] > cropMaxY) cropMaxY = pos[1]; 
-				}
-			} //cursor	
-			cursor.reset();										
-		} //RGB	
+						
+			} else if (imageType.equals("RGB")) {
 			
+				int numBand = 3;
+				RandomAccessibleInterval<T> raiSlice = null;	
+				
+				for (int b = 0; b < numBand; b++) {
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);
+					
+					//The percentage of all pixels are changed 
+					int max = -Integer.MAX_VALUE;
+					//double min = Double.MAX_VALUE;
+					
+					cursor = Views.iterable(raiSlice).localizingCursor();			
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						pixelValue = ((UnsignedByteType) cursor.get()).get();
+						if (pixelValue > max) max = pixelValue;
+					} //cursor
+					
+					cursor.reset();
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						if (random.nextDouble() < fraction/3.0) { //for each channel only 1/3 should be changed
+							numChanged = numChanged + 1;
+							((UnsignedByteType) cursor.get()).set(max);
+						}	
+					}							
+				} //b
+			} //RGB	
+		} //Shot
+		
+		if (noiseType.equals("Salt&Pepper")) {
+			//The percentage of all pixels are changed  
+			
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+			
+				//The percentage of all pixels are changed 
+				int max = -Integer.MAX_VALUE;
+				int min =  Integer.MAX_VALUE;
+					
+				cursor = Views.iterable(rai).localizingCursor();	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					if (pixelValue > max) max = pixelValue;
+					if (pixelValue < min) min = pixelValue;
+				} //cursor
+				
+				cursor.reset();
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					if (random.nextDouble() < fraction) {
+						numChanged = numChanged + 1;
+						randomInt = random.nextInt(2);
+						if 		(randomInt == 0) ((UnsignedByteType) cursor.get()).set(max);
+						else if (randomInt == 1) ((UnsignedByteType) cursor.get()).set(min);			
+					}	
+				}
+						
+			} else if (imageType.equals("RGB")) {
+				
+				int numBand = 3;
+				RandomAccessibleInterval<T> raiSlice = null;	
+				
+				for (int b = 0; b < numBand; b++) {
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);			
+					//The percentage of all pixels are changed 
+					int max = -Integer.MAX_VALUE;
+					int min =  Integer.MAX_VALUE;
+					
+					cursor = Views.iterable(raiSlice).localizingCursor();			
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						pixelValue = ((UnsignedByteType) cursor.get()).get();
+						if (pixelValue > max) max = pixelValue;
+						if (pixelValue < min) min = pixelValue;
+					} //cursor
+					
+					cursor.reset();
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						if (random.nextDouble() < fraction/3.0) { //for each channel only 1/3 should be changed
+							numChanged = numChanged + 1;
+							randomInt = random.nextInt(2);
+							if 		(randomInt == 0) ((UnsignedByteType) cursor.get()).set(max);
+							else if (randomInt == 1) ((UnsignedByteType) cursor.get()).set(min); 						
+						}	
+					}							
+				} //b
+			} //RGB	
+		} //Salt&Pepper
+		
+		if (noiseType.equals("Uniform")) {
+			
+			//The percentage of each original pixel value is computed.
+			//A value between 0 and this percentage is added or subtracted to the original value
+			
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+						
+				cursor = Views.iterable(rai).localizingCursor();	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					numChanged = numChanged + 1;
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					randomInt = random.nextInt(2);
+					if (randomInt == 0) {
+						newValue = pixelValue + (int)Math.round(random.nextDouble()*fraction*pixelValue); 
+						if (newValue > 255) newValue = 255;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+					else if (randomInt == 1) {
+						newValue = pixelValue - (int)Math.round(random.nextDouble()*fraction*pixelValue); 
+						if (newValue < 0) newValue = 0;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+				}
+						
+			} else if (imageType.equals("RGB")) {
+			
+				int numBands = 3;
+				RandomAccessibleInterval<T> raiSlice = null;	
+				
+				for (int b = 0; b < numBands; b++) {
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
+					cursor = Views.iterable(raiSlice).localizingCursor();			
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						numChanged = numChanged + 1;
+						pixelValue = ((UnsignedByteType) cursor.get()).get();
+						randomInt = random.nextInt(2);
+						if (randomInt == 0) {
+							newValue = pixelValue + (int)Math.round(random.nextDouble()*fraction*pixelValue/3.0); //for each channel only 1/3 change
+							if (newValue > 255) newValue = 255;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+						else if (randomInt == 1) {
+							newValue = pixelValue - (int)Math.round(random.nextDouble()*fraction*pixelValue/3.0); //for each channel only 1/3 change
+							if (newValue < 0) newValue = 0;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+					} //cursor					
+				} //b
+			} //RGB	
+		} //Uniform
+		
+		if (noiseType.equals("Gaussian")) {
+			
+			//Gaussian noise with mean=0 and the specified sigma is added
+			double sigma = scaleParam;
+			
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+						
+				cursor = Views.iterable(rai).localizingCursor();	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					numChanged = numChanged + 1;
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					randomInt = random.nextInt(2);
+					
+					if (randomInt == 0) {
+						newValue = pixelValue + (int)Math.round(random.nextGaussian() * sigma); 
+						if (newValue > 255) newValue = 255;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+					else if (randomInt == 1) {
+						newValue = pixelValue - (int)Math.round(random.nextGaussian() * sigma); 
+						if (newValue < 0) newValue = 0;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+					
+				}
+						
+			} else if (imageType.equals("RGB")) {
+			
+				int numBands = 3; //RGB
+				RandomAccessibleInterval<T> raiSlice = null;	
+				
+				for (int b = 0; b < numBands; b++) {
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
+					cursor = Views.iterable(raiSlice).localizingCursor();			
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						numChanged = numChanged + 1;
+						pixelValue = ((UnsignedByteType) cursor.get()).get();
+						randomInt = random.nextInt(2);
+						if (randomInt == 0) {
+							newValue = pixelValue + (int)Math.round(random.nextGaussian() * sigma /3.0); //for each channel only 1/3 change
+							if (newValue > 255) newValue = 255;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+						else if (randomInt == 1) {
+							newValue = pixelValue - (int)Math.round(random.nextGaussian() * sigma /3.0); //for each channel only 1/3 change
+							if (newValue < 0) newValue = 0;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+					} //cursor					
+				} //b
+			} //RGB	
+		} //Gaussian
+		
+		if (noiseType.equals("Rayleigh")) {
+			
+			//Rayleigh noise with the specified scale parameter is added
+			//see https://www.randomservices.org/random/special/Rayleigh.html      point 35.
+			//or
+			//https://en.wikipedia.org/wiki/Rayleigh_distribution
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+						
+				cursor = Views.iterable(rai).localizingCursor();	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					numChanged = numChanged + 1;
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					randomInt = random.nextInt(2);
+					
+					if (randomInt == 0) {
+						newValue = pixelValue + (int)Math.round(scaleParam * Math.sqrt(-2*Math.log(random.nextDouble()))); 
+						if (newValue > 255) newValue = 255;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+					else if (randomInt == 1) {
+						newValue = pixelValue - (int)Math.round(scaleParam * Math.sqrt(-2*Math.log(random.nextDouble()))); 
+						if (newValue < 0) newValue = 0;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+					
+				}
+						
+			} else if (imageType.equals("RGB")) {
+			
+				int numBands = 3; //RGB
+				RandomAccessibleInterval<T> raiSlice = null;	
+				
+				for (int b = 0; b < numBands; b++) {
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
+					cursor = Views.iterable(raiSlice).localizingCursor();			
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						numChanged = numChanged + 1;
+						pixelValue = ((UnsignedByteType) cursor.get()).get();
+						randomInt = random.nextInt(2);
+						if (randomInt == 0) {
+							newValue = pixelValue + (int)Math.round(scaleParam * Math.sqrt(-2*Math.log(random.nextDouble()))/3.0); //for each channel only 1/3 change
+							if (newValue > 255) newValue = 255;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+						else if (randomInt == 1) {
+							newValue = pixelValue - (int)Math.round(scaleParam * Math.sqrt(-2*Math.log(random.nextDouble()))/3.0);  //for each channel only 1/3 change
+							if (newValue < 0) newValue = 0;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+					} //cursor					
+				} //b
+			} //RGB	
+		} //Rayleigh
+		
+		if (noiseType.equals("Exponential")) {
+			
+			//Gaussian noise with mean=0 and the specified sigma is added
+			double sigma = scaleParam;
+			
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+						
+				cursor = Views.iterable(rai).localizingCursor();	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);	
+					numChanged = numChanged + 1;
+					pixelValue = ((UnsignedByteType) cursor.get()).get();
+					randomInt = random.nextInt(2);
+					
+					if (randomInt == 0) {
+						newValue = pixelValue + (int)Math.round(-scaleParam*Math.log(random.nextDouble())); 
+						if (newValue > 255) newValue = 255;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+					else if (randomInt == 1) {
+						newValue = pixelValue - (int)Math.round(-scaleParam*Math.log(random.nextDouble())); 
+						if (newValue < 0) newValue = 0;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					}
+					
+				}
+						
+			} else if (imageType.equals("RGB")) {
+			
+				int numBands = 3; //RGB
+				RandomAccessibleInterval<T> raiSlice = null;	
+				
+				for (int b = 0; b < numBands; b++) {
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
+					cursor = Views.iterable(raiSlice).localizingCursor();			
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);	
+						numChanged = numChanged + 1;
+						pixelValue = ((UnsignedByteType) cursor.get()).get();
+						randomInt = random.nextInt(2);
+						if (randomInt == 0) {
+							newValue = pixelValue + (int)Math.round(-scaleParam*Math.log(random.nextDouble())/3.0); //for each channel only 1/3 change
+							if (newValue > 255) newValue = 255;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+						else if (randomInt == 1) {
+							newValue = pixelValue - (int)Math.round(-scaleParam*Math.log(random.nextDouble())/3.0); //for each channel only 1/3 change
+							if (newValue < 0) newValue = 0;
+							((UnsignedByteType) cursor.get()).set(newValue);
+						}
+					} //cursor					
+				} //b
+			} //RGB	
+		} //Exponential
+		
+		logService.info(this.getClass().getName() + " Number of changed pixels: " + numChanged);
+		
 		return rai;	
 	}
 	

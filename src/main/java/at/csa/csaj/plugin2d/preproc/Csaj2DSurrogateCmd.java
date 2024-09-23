@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DParticlesToStackCommand.java
+ * File: Csaj2DSurrogateCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,20 +25,19 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin2d.preproc;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -50,52 +49,37 @@ import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imagej.roi.ROIService;
 import net.imglib2.Cursor;
-import net.imglib2.FinalInterval;
-import net.imglib2.Interval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.labeling.ConnectedComponents;
-import net.imglib2.algorithm.labeling.ConnectedComponents.StructuringElement;
-import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.roi.RealMask;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.AbstractIntegerType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
-import org.apache.commons.lang3.math.NumberUtils;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate2D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
 
 
 /**
- * A {@link ContextCommand} plugin for <generating an image stack of particles</a>
+ * A {@link ContextCommand} plugin for constructing <surrogates</a>
  * of an image.
  */
 @Plugin(type = ContextCommand.class,
@@ -103,22 +87,15 @@ import io.scif.MetaTable;
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
 
-	private static final String PLUGIN_LABEL            = "<html><b>Particles to stack</b></html>";
-	private static final String SPACE_LABEL             = "";
-	private static final String OPTIONS_LABEL           = "<html><b>Options</b></html>";
-	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
-	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
+public class Csaj2DSurrogateCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL          = "<html><b>Surrogate</b></html>";
+	private static final String SPACE_LABEL           = "";
+	private static final String SURROGATETYPE_LABEL   = "<html><b>Surrogate type</b></html>";
+	private static final String FFTOPTIONS_LABEL      = "<html><b>FFT options</b></html>";
+	private static final String DISPLAYOPTIONS_LABEL  = "<html><b>Display options</b></html>";
+	private static final String PROCESSOPTIONS_LABEL  = "<html><b>Process options</b></html>";
 
 	Cursor<?> cursor = null;
 	private static String datasetName;
@@ -129,12 +106,9 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 	private static long numSlices = 0;
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
-
-	public static final String IMAGE_OUT_NAME = "Preprocessed image(s)";
-	private static final String IMAGE_PREVIEW_NAME = "Preview image";
-	private static Dataset datasetPreview;
-		
-	private static Img<UnsignedShortType> labeledParticles;
+	private static RealMask realMask;  //ROI
+	
+	public static final String IMAGE_OUT_NAME = "Surrogate image(s)";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -194,17 +168,30 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOptions = OPTIONS_LABEL;
-
-	@Parameter(label = "Connectivity",
-			   description = "4 or 8 neighbourhood connectivity",
+	private final String labelSurrogateType = SURROGATETYPE_LABEL;
+	
+	@Parameter(label = "Surrogate type",
+			   description = "Surrogate type",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"4", "8"}, //
+			   choices = {"Shuffle", "Gaussian", "Random phase", "AAFT"},
 			   persist = true,  //restore previous value default = true
-			   initializer = "initialConnectivityType",
-			   callback = "callbackConnectivityType")
-	private String choiceRadioButt_ConnectivityType;
-		
+			   initializer = "initialSurrogateType",
+			   callback = "callbackSurrogateType")
+	private String choiceRadioButt_SurrogateType;
+	
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelFFTOptions = FFTOPTIONS_LABEL;
+	
+	@Parameter(label = "<html>(<i>Random phase/AAFT</i>)<br><center>Windowing</center></html>",
+			   description = "Windowing type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Rectangular", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialWindowingType",
+			   callback = "callbackWindowingType")
+	private String choiceRadioButt_WindowingType;
+	
 	//-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
@@ -230,6 +217,12 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
+	@Parameter(label = "Process all images",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
    
@@ -244,11 +237,34 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 
 	// The following initializer functions set initial value
 	protected void initialPluginLaunch() {
-		checkItemIOIn();
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
+//			//RGB not allowed
+//			if (!imageType.equals("Grey")) { 
+//				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
+//				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+//			}
+		}
 	}
-	protected void initialConnectivityType() {
-		choiceRadioButt_ConnectivityType = "8";
-	} 	
+	protected void initialSurrogateType() {
+		choiceRadioButt_SurrogateType = "Shuffle";
+	}	
+	protected void initialWindowingType() {
+		choiceRadioButt_WindowingType = "Rectangular";
+	} 
 	protected void initialOverwriteDisplays() {
 		booleanOverwriteDisplays = true;
 	}
@@ -256,12 +272,18 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
     	spinnerInteger_NumImageSlice = 1;
 	}
 	
-	// ------------------------------------------------------------------------------	
-
-	/** Executed whenever the {@link #choiceRadioButt_Connectivityype} parameter changes. */
-	protected void callbackConnectivityType() {
-		logService.info(this.getClass().getName() + " Connectivity type set to " + choiceRadioButt_ConnectivityType);
+	// ------------------------------------------------------------------------------
+	
+	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
+	protected void callbackSurrogateType() {
+		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
+	protected void callbackWindowingType() {
+		logService.info(this.getClass().getName() + " Windowing type set to " + choiceRadioButt_WindowingType);
+	}
+
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
@@ -289,7 +311,7 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleImage();
-	    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
+	    		uiService.show(IMAGE_OUT_NAME, datasetOut);   //Show result because it did not go over the run() method
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -334,7 +356,7 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleImage();
-		    		uiService.show(IMAGE_PREVIEW_NAME, datasetPreview);   //Show result because it did not go over the run() method
+		    		uiService.show(IMAGE_OUT_NAME, datasetOut);   //Show result because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -367,88 +389,40 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllImages();
-		}
-	}
-	
-	public void checkItemIOIn() {
-	
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image = null");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
-			return;
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+//			//RGB not allowed
+//			if (!imageType.equals("Grey")) { 
+//				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+//				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
+//			} 
 		}
 
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
-		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 2D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions             = datasetIn.numDimensions();
-		boolean isRGBMerged       = datasetIn.isRGBMerged();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
 	
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-		
-		// get name of dataset
-		datasetName = datasetIn.getName();
-			
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-			sliceLabels = (String[]) metaTable.get("SliceLabels");
-			//eliminate additional image info delimited with \n (since pom-scijava 29.2.1)
-			for (int i = 0; i < sliceLabels.length; i++) {
-				String label = sliceLabels[i];
-				int index = label.indexOf("\n");
-				//if character has been found, otherwise index = -1
-				if (index > 0) sliceLabels[i] = label.substring(0, index);		
-			}
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-		
-		logService.info(this.getClass().getName() + " Name: "             + datasetName); 
-		logService.info(this.getClass().getName() + " Image size: "       + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: "       + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 		
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
-	
+
 	/**
 	 * This method generates the preview dataset
 	 * @param rai
 	 */
-	private void generateDatasetPreview(RandomAccessibleInterval<T> rai) {
+	private void generateDataset(RandomAccessibleInterval<T> rai) {
 		if (imageType.equals("Grey")) {
 			//RGB image
 			boolean signed   = false;
@@ -459,9 +433,9 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 			//long[] dims = new long[]{width, height};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y};
-			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut = datasetService.create(dims, IMAGE_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos2D = new long[2];
 			while (cursor.hasNext()) {
@@ -480,21 +454,21 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 			//long[] dims = new long[]{width, height, 3};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), 3};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL};
-			datasetPreview = datasetService.create(dims, IMAGE_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
-			datasetPreview.setCompositeChannelCount(3);
-			datasetPreview.setRGBMerged(true);
-//			datasetPreview.setChannelMinimum(0, 0);
-//			datasetPreview.setChannelMinimum(1, 0);
-//			datasetPreview.setChannelMinimum(2, 0);
-//			datasetPreview.setChannelMaximum(0, 255);
-//			datasetPreview.setChannelMaximum(1, 255);
-//			datasetPreview.setChannelMaximum(2, 255);
-//			datasetPreview.initializeColorTables(3);
-//			datasetPreview.setColorTable(ColorTables.RED,   0);
-//			datasetPreview.setColorTable(ColorTables.GREEN, 1);
-//			datasetPreview.setColorTable(ColorTables.BLUE,  2);
+			datasetOut = datasetService.create(dims, IMAGE_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut.setCompositeChannelCount(3);
+			datasetOut.setRGBMerged(true);
+//			datasetOut.setChannelMinimum(0, 0);
+//			datasetOut.setChannelMinimum(1, 0);
+//			datasetOut.setChannelMinimum(2, 0);
+//			datasetOut.setChannelMaximum(0, 255);
+//			datasetOut.setChannelMaximum(1, 255);
+//			datasetOut.setChannelMaximum(2, 255);
+//			datasetOut.initializeColorTables(3);
+//			datasetOut.setColorTable(ColorTables.RED,   0);
+//			datasetOut.setColorTable(ColorTables.GREEN, 1);
+//			datasetOut.setColorTable(ColorTables.BLUE,  2);
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos3D = new long[3];
 			while (cursor.hasNext()) {
@@ -511,7 +485,7 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 	*/
 	protected void startWorkflowForSingleImage() {
 		
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Preprocessing, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing surrogates, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		
 		dlgProgress.updatePercent("");
@@ -522,7 +496,7 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
     	int sliceIndex = spinnerInteger_NumImageSlice - 1;
 		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
 		RandomAccessibleInterval<T> rai = processSingleInputImage(sliceIndex);
-		generateDatasetPreview(rai);
+		generateDataset(rai);
 		dlgProgress.addMessage("Processing finished!");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
@@ -534,23 +508,17 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 	*/
 	protected void startWorkflowForAllImages() {
 
-//		dlgProgress = new Dialog_WaitingWithProgressBar("Preprocessing, please wait... Open console window for further info.",
-//							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-//		dlgProgress.setVisible(true);
-//	
-//		deleteExistingDisplays();
-//    	logService.info(this.getClass().getName() + " Processing all available images");
-//		processAllInputImages();
-//		dlgProgress.addMessage("Processing finished!");
-//		dlgProgress.setVisible(false);
-//		dlgProgress.dispose();
-//		Toolkit.getDefaultToolkit().beep();
-		
-		//NOTE
-		//The usual workflow for all images in a stack is not possible
-		//Output of several datasetOut is currently not supported
-		//Therefore, only the current image is processed
-		startWorkflowForSingleImage();
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing surrogates, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+	
+		deleteExistingDisplays();
+    	logService.info(this.getClass().getName() + " Processing all available images");
+		processAllInputImages();
+		dlgProgress.addMessage("Processing finished!");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
 	}
 
 
@@ -613,10 +581,6 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 					
-				} else if (frame.getTitle().contains(IMAGE_PREVIEW_NAME)) {
-					frame.setVisible(false); //Successfully closes also in Fiji
-					frame.dispose();
-					datasetPreview = null;
 				}		
 			} //for
 		}
@@ -741,13 +705,6 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 		//datasetOut = datasetService.create(rai); //without properties such as sliceLabels
 		//datasetOut.getProperties().putAll(datasetIn.getProperties());
 		
-	
-		//******************************************************************************	
-		//Result is an image stack 
-		//do nothing
-		//original rai has been overwritten with labels		
-		//*****************************************************************************
-		
 		long duration = System.currentTimeMillis() - startTime;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		SimpleDateFormat sdf = new SimpleDateFormat();
@@ -786,7 +743,8 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 			datasetOut.setCompositeChannelCount(3);
 			datasetOut.setRGBMerged(true);		
 		}
-
+	
+		
 		// loop over all slices of stack
 		for (int s = 0; s < numSlices; s++) { // p...planes of an image stack
 			//if (!exec.isShutdown()){
@@ -819,11 +777,7 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 				//rai of DatasetOut already set to output values
 				
 				//uiService.show("Result", iv);
-					
-				//******************************************************************************	
-				//nothing to do
-				//************************************************************************
-			
+				
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 				SimpleDateFormat sdf = new SimpleDateFormat();
@@ -832,13 +786,9 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 			//}
 		} //s
 		
-		//Result is an image stack 
-		//nothing to do 
-		//datasetOut is already a stack
-		
 		// stack channels back together
 		//RandomAccessibleInterval result = ij.op().transform().stackView(outputImages);
-	
+		
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
 //		try {
@@ -849,8 +799,7 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 //		}
 		
 		Map<String, Object> map = datasetOut.getProperties();
-
-	
+		
 		long duration = System.currentTimeMillis() - startTimeAll;
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		SimpleDateFormat sdf = new SimpleDateFormat();
@@ -871,215 +820,29 @@ public class Csaj2DParticlesToStackCommand<T extends RealType<T>> extends Contex
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 			
-		String neighborhood   = choiceRadioButt_ConnectivityType; //4 or 8 Option for Particles to stack
-		
+		String surrType      = choiceRadioButt_SurrogateType;
+		String windowingType = choiceRadioButt_WindowingType;
+	
 		//imageType = "Grey"; // "Grey" "RGB"....
 		//numSlices;
 		
-		int pixelValue;	
-	
-		//https://en.wikipedia.org/wiki/Connected-component_labeling
-	
-		AxisType[] axes  = null;
-		long[] dims 	 = null;
-		int bitsPerPixel = 0;
-		boolean signed   = false;
-		boolean floating = false;
-		boolean virtual  = false;
-		String name = "Particle stack";
+		CsajAlgorithm_Surrogate2D surrogate2D = new CsajAlgorithm_Surrogate2D();
 		
-		if (imageType.equals("Grey")) { //rai should have 2 dimensions	
-					
-			StructuringElement se = null;
-			if (neighborhood.equals("4")) se = ConnectedComponents.StructuringElement.FOUR_CONNECTED;
-			if (neighborhood.equals("8")) se = ConnectedComponents.StructuringElement.EIGHT_CONNECTED;
+		if (surrType.equals("Shuffle")) {
+			 rai = surrogate2D.calcSurrogateShuffle(rai);	
+			 
+		} else 	if (surrType.equals("Gaussian")) {
+			rai = surrogate2D.calcSurrogateGaussian(rai);		
 			
-			long[] dimensions = new long[2];
-			dimensions[0] = rai.dimension(0);
-			dimensions[1] = rai.dimension(1);
-			//labeledParticles = ArrayImgs.unsignedBytes(dimensions); //only 255 components
-			labeledParticles = ArrayImgs.unsignedShorts(dimensions); //65535 components!
-			ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
-			//ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //Only up to 255 components because target rai is ByteType [0,255]!
-								
-			//labeledParticles is a labeled image - ever particle has a number
-			//get number of labels (find highest value)
-			long numLabels = 0;
-			short shortValue;
-			Cursor<UnsignedShortType> cursorShort = labeledParticles.cursor();
-			while (cursorShort.hasNext()) {
-				cursorShort.fwd();
-				shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
-				if (shortValue > numLabels) {
-					numLabels = shortValue;
-					//System.out.println("Csaj2DPreprocess: New label number: " + numLabels);
-				}
-			}	
-			logService.info(this.getClass().getName() + " Number of labels: " + numLabels);
-			
-			//scale rai to [0,255] for the preview
-			cursorShort = labeledParticles.cursor();
-			RandomAccess<RealType<?>> ra = rai.randomAccess();
-			long[] pos = new long[2];
-			while (cursorShort.hasNext()) {
-				cursorShort.fwd();
-				cursorShort.localize(pos);
-				shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
-				ra.setPosition(pos[0], 0);
-				ra.setPosition(pos[1], 1);
-				ra.get().setReal((int) Math.round((double)shortValue/(double)numLabels*255.0));
-			}
-					
-			//prepare new datasetOut which is a stack
-			width  = datasetOut.getWidth();
-			height = datasetOut.getHeight();
-			bitsPerPixel = 8;
-			dims = new long[]{width, height, numLabels};
-			axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-			datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-		
-			long[] posShort = new long[2];
-			long[] posOut = new long[3];
-			//read from datasetTemp
-			cursorShort = labeledParticles.cursor();
-			//write to datasetOut
-			ra = datasetOut.randomAccess();
-			while (cursorShort.hasNext()) {
-				cursorShort.fwd();
-				shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
-				if (shortValue > 0) {
-					cursorShort.localize(posShort);
-					posOut[0] = posShort[0];
-					posOut[1] = posShort[1];
-					posOut[2] = shortValue - 1; //Stack position corresponds to label number 
-					ra.setPosition(posOut);
-					ra.get().setReal(255);			
-				}
-			}	
-			//datasetOut = datasetTemp; //just for debugging
-			labeledParticles = null;
-								
-		} else if (imageType.equals("RGB")) {  //rai should have 3 dimensions	
-			
-			StructuringElement se = null;
-			if (neighborhood.equals("4")) se = ConnectedComponents.StructuringElement.FOUR_CONNECTED;
-			if (neighborhood.equals("8")) se = ConnectedComponents.StructuringElement.EIGHT_CONNECTED;
-			
-			long[] dimensions = new long[3];
-			dimensions[0] = rai.dimension(0);
-			dimensions[1] = rai.dimension(1);
-			dimensions[3] = rai.dimension(3);
-			//labeledParticles = ArrayImgs.unsignedBytes(dimensions); //only 255 components
-			labeledParticles = ArrayImgs.unsignedShorts(dimensions); //65535 components!
-			ConnectedComponents.labelAllConnectedComponents(rai, labeledParticles, se); //No preview
-			//ConnectedComponents.labelAllConnectedComponents(rai, rai, se); //Only up to 255 components because target rai is ByteType [0,255]!
-								
-			//labeledParticles is a labeled image - ever particle has a number
-			//get number of labels (find highest value)
-			long numLabels = 0;
-			short shortValue;
-			Cursor<UnsignedShortType> cursorShort = labeledParticles.cursor();
-			while (cursorShort.hasNext()) {
-				cursorShort.fwd();
-				shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
-				if (shortValue > numLabels) {
-					numLabels = shortValue;
-					//System.out.println("Csaj2DPreprocess: New label number: " + numLabels);
-				}
-			}	
-			logService.info(this.getClass().getName() + " Number of labels: " + numLabels);
-			
-			//scale rai to [0,255] for the preview
-			cursorShort = labeledParticles.cursor();
-			RandomAccess<RealType<?>> ra = rai.randomAccess();
-			long[] pos = new long[3];
-			while (cursorShort.hasNext()) {
-				cursorShort.fwd();
-				cursorShort.localize(pos);
-				shortValue = (short) ((UnsignedShortType) cursorShort.get()).get();
-				ra.setPosition(pos[0], 0);
-				ra.setPosition(pos[1], 1);
-				ra.setPosition(pos[2], 2);
-				ra.get().setReal((int) Math.round((double)shortValue/(double)numLabels*255.0));
-			}
-			
-			//prepare new datasetOut with data from datasetTemp
-			bitsPerPixel = 8;
-			width  = datasetOut.getWidth();
-			height = datasetOut.getHeight();
-			dims = new long[]{width, height, 3, numLabels};
-			axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-			datasetOut = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual); //This overwrites datasetOut
-		
-			long[] posShort = new long[3];
-			long[] posOut = new long[4];
-			//read from datasetTemp
-			cursor = labeledParticles.cursor();
-			//write to datasetOut
-			ra = datasetOut.randomAccess();
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				pixelValue = ((UnsignedByteType) cursor.get()).get();
-				if (pixelValue > 0) {
-					cursor.localize(posShort);
-					posOut[0] = posShort[0];
-					posOut[1] = posShort[1];
-					posOut[2] = 0; //R
-					posOut[3] = pixelValue - 1; //Stack position corresponds to label number 
-					ra.setPosition(posOut);
-					ra.get().setReal(255);		
-					posOut[2] = 1; //G
-					//posOut[3] = pixelValue - 1; //Stack position corresponds to label number
-					ra.setPosition(posOut);
-					ra.get().setReal(255);		
-					posOut[2] = 2; //B
-					//posOut[3] = pixelValue - 1; //Stack position corresponds to label number
-					ra.setPosition(posOut);
-					ra.get().setReal(255);		
-				}
-			}	
-			//datasetOut = datasetTemp; //just for debugging		
-			labeledParticles = null;
-		} //RGB	
+		} else 	if (surrType.equals("Random phase")) {
+			//String windowingType = "Bartlett"; 
+			rai = surrogate2D.calcSurrogateRandomPhase(rai, windowingType);
+				
+		} else 	if (surrType.equals("AAFT")) {
+			rai = surrogate2D.calcSurrogateAAFT(rai, windowingType);	
+		}
 		
 		return rai;	
-	}
-	
-	//DO NOT USE!
-	//This recursive function is working but produces an exploding number of stacks yielding a StackOverFlow error
-	public static void regionGrowingOfNewParticle(RandomAccessibleInterval rai, int[][] labeledParticles, int particleLabel, int x, int y, String neighborhood, boolean overwriteRai){
-		int pixelValue = -999999;
-		//A pixel must be within the boundaries of the image
-		if(x >= 0 && x < rai.dimension(0) && y >= 0 && y < rai.dimension(1)) {
-			RandomAccess<RealType<?>> ra = rai.randomAccess();
-			ra.setPosition(x, 0);
-			ra.setPosition(y, 1);
-			pixelValue = ((UnsignedByteType) ra.get()).get(); 
-		
-		 	//A pixel must not be zero and must not already be contained in a particle.
-			if (pixelValue != 0 && labeledParticles[x][y] == 0) {
-		      
-				labeledParticles[x][y] = particleLabel;
-		        if (overwriteRai)  ra.get().setReal(particleLabel); //This overwrites original rai
-		     
-		        if (neighborhood.equals("8")) { //Scan the 8 neighborhood
-		            regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x,   y-1, neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x,   y+1, neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x-1, y-1, neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x-1, y,   neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x-1, y+1, neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x+1, y-1, neighborhood, overwriteRai); 
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x+1, y,   neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x+1, y+1, neighborhood, overwriteRai);
-		       }
-		       else if (neighborhood.equals("4")) { //Scan the 4 neighborhood
-		            regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x,   y-1, neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x,   y+1, neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x-1, y,   neighborhood, overwriteRai);
-			        regionGrowingOfNewParticle(rai, labeledParticles, particleLabel, x+1, y,   neighborhood, overwriteRai);
-		       }
-			}
-	    }
 	}
 	
 	/** The main method enables standalone testing of the command. */

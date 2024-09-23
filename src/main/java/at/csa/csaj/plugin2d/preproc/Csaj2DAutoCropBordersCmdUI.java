@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimBoxCountingUI.java
+ * File: Csaj2DAutoCropBordersCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.frac;
+package at.csa.csaj.plugin2d.preproc;
 
 
 import java.io.File;
@@ -50,17 +50,18 @@ import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Box counting dimension",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {
-@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-@Menu(label = "ComsystanJ"),
-@Menu(label = "2D Image(s)"),
-@Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Box counting dimension(New Dialog)")})
+		headless = true,
+		label = "Auto crop borders",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "2D Image(s)"),
+		@Menu(label = "Preprocessing", weight = 1),
+		@Menu(label = "Auto crop borders(New Dialog)")})
 
-public class Csaj2DFracDimBoxCountingUI extends ContextCommand implements Previewable{
+public class Csaj2DAutoCropBordersCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -68,7 +69,7 @@ public class Csaj2DFracDimBoxCountingUI extends ContextCommand implements Previe
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimBoxCountingDialog dialog = null;
+	private Csaj2DAutoCropBordersDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -101,7 +102,7 @@ public class Csaj2DFracDimBoxCountingUI extends ContextCommand implements Previe
 			} else {
 				SwingUtilities.invokeLater(() -> {
 					if (dialog == null) {
-						dialog = new Csaj2DFracDimBoxCountingDialog(context(), datasetIn);
+						dialog = new Csaj2DAutoCropBordersDialog(context(), datasetIn);
 					}
 					dialog.setVisible(true);
 					dialog.btnProcessSingleImage.requestFocusInWindow();
