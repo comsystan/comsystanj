@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DSurrogateDialog.java
+ * File: Csaj3DSurrogateDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.plugin2d.preproc;
+package at.csa.csaj.plugin3d.preproc;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -42,14 +42,14 @@ import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.ui.UIService;
-import at.csa.csaj.commons.CsajDialog_2DPlugin;
+import at.csa.csaj.commons.CsajDialog_3DPlugin;
 
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DSurrogateDialog extends CsajDialog_2DPlugin {
+public class Csaj3DSurrogateDialog extends CsajDialog_3DPlugin {
 
-	private static final long serialVersionUID = -6460172269131670060L;
+	private static final long serialVersionUID = 8182324403381019579L;
 
 	@Parameter
 	private LogService logService;
@@ -89,7 +89,7 @@ public class Csaj2DSurrogateDialog extends CsajDialog_2DPlugin {
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DSurrogateDialog(Context context, Dataset datasetIn) {
+	public Csaj3DSurrogateDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -100,7 +100,7 @@ public class Csaj2DSurrogateDialog extends CsajDialog_2DPlugin {
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Surrogate");
+		setTitle("3D Surrogate");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 		//*****************************************************************************************
@@ -129,7 +129,7 @@ public class Csaj2DSurrogateDialog extends CsajDialog_2DPlugin {
 					labelWindowingType.setEnabled(true);
 					comboBoxWindowingType.setEnabled(true);
 				}
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 			}
 		});
 	    
@@ -162,7 +162,7 @@ public class Csaj2DSurrogateDialog extends CsajDialog_2DPlugin {
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_WindowingType = (String)comboBoxWindowingType.getSelectedItem();
 				logService.info(this.getClass().getName() + " Windowing type set to " + choiceRadioButt_WindowingType);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 			}
 		});
 	    
@@ -191,16 +191,14 @@ public class Csaj2DSurrogateDialog extends CsajDialog_2DPlugin {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DSurrogateCmd.class, false,
+		Future<CommandModule> future = commandService.run(Csaj3DSurrogateCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
-														"processAll",					  processAll, //true for all
 							
 														"choiceRadioButt_SurrogateType",  choiceRadioButt_SurrogateType,
 														"choiceRadioButt_WindowingType",  choiceRadioButt_WindowingType,
 													
 														"booleanOverwriteDisplays",       booleanOverwriteDisplays,
-														"booleanProcessImmediately",	  booleanProcessImmediately,
-														"spinnerInteger_NumImageSlice",	  spinnerInteger_NumImageSlice
+														"booleanProcessImmediately",	  booleanProcessImmediately
 														);
 		CommandModule commandModule = null;
 		try {

@@ -144,7 +144,7 @@ public class Csaj3DVolumeGeneratorDialog extends CsajDialog_PluginFrame {
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Image volume generator");
+		setTitle("3D Image volume generator");
 
 		//NORTH item
 		//*****************************************************************************************

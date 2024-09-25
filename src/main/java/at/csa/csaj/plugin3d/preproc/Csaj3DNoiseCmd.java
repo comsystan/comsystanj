@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DNoiseCommand.java
+ * File: Csaj3DNoiseCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -27,13 +27,14 @@
  */
 
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin3d.preproc;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.TimeZone;
@@ -80,6 +81,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import io.scif.DefaultImageMetadata;
 import io.scif.MetaTable;
@@ -89,21 +91,13 @@ import io.scif.MetaTable;
  * to an image volume.
  */
 @Plugin(type = ContextCommand.class,
-headless = true,
-label = "3D Noise",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj3DNoiseCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "3D Noise",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {})
+
+public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "3D Noise";
 	private static final String SPACE_LABEL             = "";
@@ -124,8 +118,6 @@ public class Csaj3DNoiseCommand<T extends RealType<T>> extends ContextCommand im
 	private static String imageType = "";
 	
 	public static final String VOLUME_OUT_NAME = "Noise added volume";
-	private static final String VOLUME_PREVIEW_NAME = "Preview volume";
-	private static Dataset datasetPreview;
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -370,94 +362,43 @@ public class Csaj3DNoiseCommand<T extends RealType<T>> extends ContextCommand im
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForSingleVolume();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		startWorkflowForSingleVolume();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
-
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
-			cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
-			return;
-		}
-
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
+		//Define supported image types for this plugin
+		//String[] supportedImageTypes = {"Grey"};
+		//String[] supportedImageTypes = {"RGB"};
+		String[] supportedImageTypes = {"Grey", "RGB"};
+		
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 3D plugin cannot be started - Initial check failed.");
 		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 3D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width  = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		depth = datasetIn.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-	
-		numDimensions = datasetIn.numDimensions();
-		numBytes      = datasetIn.getBytesOfInfo();
-		
-		//compositeChannelCount = datasetIn.getImgPlus().getCompositeChannelCount(); //1  Grey,   3 RGB
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-
-		// get the name of dataset
-		datasetName = datasetIn.getName();
-		
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-  	
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size: " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: " + imageType);
-		logService.info(this.getClass().getName() + " Number of images: "+ numSlices); 
-		logService.info(this.getClass().getName() + " Number of bytes: " + numBytes); 
-		
-		//RGB not allowed
-//		if (!imageType.equals("Grey")) { 
-//			logService.warn(this.getClass().getName() + " WARNING: Grey value image volume expected!");
-//			cancel("ComsystanJ 3D plugin cannot be started - grey value image volume expected!");
-//		}
-		//Image volume expected
-		if (numSlices == 1) { 
-			logService.warn(this.getClass().getName() + " WARNING: Single image instead of image volume detected");
-			cancel("ComsystanJ 3D plugin cannot be started - image volume expected!");
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			depth  =       			(long)datasetInInfo.get("depth");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			//sliceLabels = 		(String[])datasetInInfo.get("sliceLabels");
 		}
 	}
 
 	/**
-	 * This method generates the preview dataset
+	 * This method generates the dataset
 	 * @param rai
 	 */
-	private void generateDatasetPreview(RandomAccessibleInterval<T> rai) {
+	private void generateDataset(RandomAccessibleInterval<T> rai) {
 		if (imageType.equals("Grey")) {
 			//RGB image
 			boolean signed   = false;
@@ -468,9 +409,9 @@ public class Csaj3DNoiseCommand<T extends RealType<T>> extends ContextCommand im
 			//long[] dims = new long[]{width, height, depth};
 			long[] dims = new long[]{rai.dimension(0), rai.dimension(1), rai.dimension(2)};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.Z};
-			datasetPreview = datasetService.create(dims, VOLUME_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut = datasetService.create(dims, VOLUME_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos3D = new long[3];
 			while (cursor.hasNext()) {
@@ -488,21 +429,21 @@ public class Csaj3DNoiseCommand<T extends RealType<T>> extends ContextCommand im
 			int bitsPerPixel = 8;
 			long[] dims = new long[]{width, height, 3, depth};
 			AxisType[] axes = new AxisType[]{Axes.X, Axes.Y, Axes.CHANNEL, Axes.Z};
-			datasetPreview = datasetService.create(dims, VOLUME_PREVIEW_NAME, axes, bitsPerPixel, signed, floating, virtual);	
-			datasetPreview.setCompositeChannelCount(3);
-			datasetPreview.setRGBMerged(true);
-//			datasetPreview.setChannelMinimum(0, 0);
-//			datasetPreview.setChannelMinimum(1, 0);
-//			datasetPreview.setChannelMinimum(2, 0);
-//			datasetPreview.setChannelMaximum(0, 255);
-//			datasetPreview.setChannelMaximum(1, 255);
-//			datasetPreview.setChannelMaximum(2, 255);
-//			datasetPreview.initializeColorTables(3);
-//			datasetPreview.setColorTable(ColorTables.RED,   0);
-//			datasetPreview.setColorTable(ColorTables.GREEN, 1);
-//			datasetPreview.setColorTable(ColorTables.BLUE,  2);
+			datasetOut = datasetService.create(dims, VOLUME_OUT_NAME, axes, bitsPerPixel, signed, floating, virtual);	
+			datasetOut.setCompositeChannelCount(3);
+			datasetOut.setRGBMerged(true);
+//			datasetOut.setChannelMinimum(0, 0);
+//			datasetOut.setChannelMinimum(1, 0);
+//			datasetOut.setChannelMinimum(2, 0);
+//			datasetOut.setChannelMaximum(0, 255);
+//			datasetOut.setChannelMaximum(1, 255);
+//			datasetOut.setChannelMaximum(2, 255);
+//			datasetOut.initializeColorTables(3);
+//			datasetOut.setColorTable(ColorTables.RED,   0);
+//			datasetOut.setColorTable(ColorTables.GREEN, 1);
+//			datasetOut.setColorTable(ColorTables.BLUE,  2);
 			
-			Cursor<RealType<?>> cursor = datasetPreview.localizingCursor();
+			Cursor<RealType<?>> cursor = datasetOut.localizingCursor();
 			RandomAccess<T> ra = rai.randomAccess();
 			long[] pos4D = new long[4];
 			while (cursor.hasNext()) {
@@ -604,7 +545,7 @@ public class Csaj3DNoiseCommand<T extends RealType<T>> extends ContextCommand im
 			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 				frame = listFrames[i];
 				//System.out.println("frame name: " + frame.getTitle());
-				if (frame.getTitle().contains(VOLUME_PREVIEW_NAME) || frame.getTitle().contains(VOLUME_OUT_NAME)) {
+				if (frame.getTitle().contains(VOLUME_OUT_NAME)) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 				}
