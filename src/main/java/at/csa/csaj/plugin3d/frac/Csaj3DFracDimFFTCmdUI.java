@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DGeneralisedEntropiesCmdUI.java
+ * File: Csaj3DFracDimFFTCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,8 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin3d.ent;
-
+package at.csa.csaj.plugin3d.frac;
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
@@ -49,17 +48,17 @@ import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
 		headless = true,
-		label = "3D Generalised Entropies",
+		label = "3D FFT dimension",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
-		@Menu(label = "3D Entropy analyses", weight = 5),
-		@Menu(label = "3D Generalised Entropies(New dialog)")})
+		@Menu(label = "3D Fractal analyses", weight = 6),
+		@Menu(label = "3D FFT dimension(New dialog)")})
 
-public class Csaj3DGeneralisedEntropiesCmdUI extends ContextCommand implements Previewable{
+public class Csaj3DFracDimFFTCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -67,7 +66,7 @@ public class Csaj3DGeneralisedEntropiesCmdUI extends ContextCommand implements P
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj3DGeneralisedEntropiesDialog dialog = null;
+	private Csaj3DFracDimFFTDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -95,7 +94,7 @@ public class Csaj3DGeneralisedEntropiesCmdUI extends ContextCommand implements P
 		}	
 		SwingUtilities.invokeLater(() -> {
 			if (dialog == null) {
-				dialog = new Csaj3DGeneralisedEntropiesDialog(context(), datasetIn);
+				dialog = new Csaj3DFracDimFFTDialog(context(), datasetIn);
 			}
 			dialog.setVisible(true);
 			dialog.btnProcessSingleVolume.requestFocusInWindow();

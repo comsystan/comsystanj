@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DFracDimCorrelationCommand.java
+ * File: Csaj3DFracDimCorrelationCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,8 +26,7 @@
  * #L%
  */
 
-
-package at.csa.csaj.command;
+package at.csa.csaj.plugin3d.frac;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -35,6 +34,7 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -85,6 +85,7 @@ import org.scijava.widget.NumberWidget;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin3d.frac.util.CorrelationDim3DMethods;
 import at.csa.csaj.plugin3d.frac.util.CorrelationDim3D_Grey;
@@ -96,21 +97,13 @@ import io.scif.MetaTable;
  * of an image volume.
  */
 @Plugin(type = ContextCommand.class,
-headless = true,
-label = "3D Correlation dimension",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "3D Correlation dimension",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {})
+
+public class Csaj3DFracDimCorrelationCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "Computes 3D Correlation dimension";
 	private static final String SPACE_LABEL             = "";
@@ -254,16 +247,16 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     private String choiceRadioButt_ColorModelType;
     
 //    Only for sliding box option
-//    @Parameter(label = "(Sliding box) Pixel %",
-//    		   description = "% of image pixels to be taken - to lower computation times",
-//  	       	   style = NumberWidget.SPINNER_STYLE,
-//  	           min = "1",
-//  	           max = "100",
-//  	           stepSize = "1",
-//  	           //persist = false,  //restore previous value default = true
-//  	           initializer = "initialPixelPercentage",
-//  	           callback    = "callbackPixelPercentage")
-//    private int spinnerInteger_PixelPercentage;
+    @Parameter(label = "(Sliding box) Pixel %",
+    		   description = "% of image pixels to be taken - to lower computation times",
+  	       	   style = NumberWidget.SPINNER_STYLE,
+  	           min = "1",
+  	           max = "100",
+  	           stepSize = "1",
+  	           //persist = false,  //restore previous value default = true
+  	           initializer = "initialPixelPercentage",
+  	           callback    = "callbackPixelPercentage")
+    private int spinnerInteger_PixelPercentage;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -341,9 +334,9 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     protected void initialColorModelType() {
     	choiceRadioButt_ColorModelType = "Binary";
     }
-//    protected void initialPixelPercentage() {
-//      	spinnerInteger_PixelPercentage = 10;
-//    }
+    protected void initialPixelPercentage() {
+      	spinnerInteger_PixelPercentage = 10;
+    }
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
 	}
@@ -411,10 +404,10 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
 	
-//	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
-//	protected void callbackPixelPercentage() {
-//		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
-//	}
+	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
+	protected void callbackPixelPercentage() {
+		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
+	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
@@ -521,83 +514,36 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForSingleVolume();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		startWorkflowForSingleVolume();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
-			cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
-			return;
-		}
-
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
+		//Define supported image types for this plugin
+		String[] supportedImageTypes = {"Grey"};
+		//String[] supportedImageTypes = {"RGB"};
+		//String[] supportedImageTypes = {"Grey", "RGB"};
+		
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 3D plugin cannot be started - Initial check failed.");
 		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 3D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions = datasetIn.numDimensions();
-	
-		//compositeChannelCount = datasetIn.getImgPlus().getCompositeChannelCount(); //1  Grey,   3 RGB
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-
-		// get the name of dataset
-		datasetName = datasetIn.getName();
-		
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-  	
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size = " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: " + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		
-		//RGB not allowed
-		if (!imageType.equals("Grey")) { 
-			logService.warn(this.getClass().getName() + " WARNING: Grey value image volume expected!");
-			cancel("ComsystanJ 3D plugin cannot be started - grey value image volume expected!");
-		}
-		//Image volume expected
-		if (numSlices == 1) { 
-			logService.warn(this.getClass().getName() + " WARNING: Single image instead of image volume detected");
-			cancel("ComsystanJ 3D plugin cannot be started - image volume expected!");
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			depth  =       			(long)datasetInInfo.get("depth");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			//sliceLabels = 		(String[])datasetInInfo.get("sliceLabels");
 		}
 	}
 
@@ -732,7 +678,7 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 
 
 	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height, long depth) { 
+	public static int getMaxBoxNumber(long width, long height, long depth) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height) && (boxWidth <= depth)) {
@@ -791,7 +737,7 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
 		GenericColumn columnScanType       = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		//IntColumn columnPixelPercentage    = new IntColumn("(Sliding Box) Pixel %");
+		IntColumn columnPixelPercentage    = new IntColumn("(Sliding Box) Pixel %");
 		DoubleColumn columnDb              = new DoubleColumn("3D Dc");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
@@ -803,7 +749,7 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		tableOut.add(columnNumRegEnd);
 		tableOut.add(columnScanType);
 		tableOut.add(columnColorModelType);
-		//tableOut.add(columnPixelPercentage);
+		tableOut.add(columnPixelPercentage);
 		tableOut.add(columnDb);
 		tableOut.add(columnR2);
 		tableOut.add(columnStdErr);
@@ -820,7 +766,7 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
 		int numBoxes          = spinnerInteger_NumBoxes;
-		//int pixelPercentage   = spinnerInteger_PixelPercentage;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		String scanningType   = choiceRadioButt_ScanningType;  //Raster box     Sliding box
 		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
 		
@@ -833,7 +779,7 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
 		tableOut.set("Scanning type",	row, scanningType);
 		tableOut.set("Color model",		row, colorModelType);
-		//if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", row, pixelPercentage);	
+		if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", row, pixelPercentage);	
 		tableOut.set("3D Dc",			row, containerPM.item1_Values[1]);
 		tableOut.set("R2",				row, containerPM.item1_Values[4]);
 		tableOut.set("StdErr",			row, containerPM.item1_Values[3]);
@@ -854,7 +800,7 @@ public class Csaj3DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		int numBoxes          = spinnerInteger_NumBoxes;
 		String scanningType   = choiceRadioButt_ScanningType;    //Raster box     Sliding box
 		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
-		int pixelPercentage   = 100; //spinnerInteger_PixelPercentage;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 
 

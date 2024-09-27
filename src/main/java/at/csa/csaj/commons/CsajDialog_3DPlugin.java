@@ -68,7 +68,7 @@ import net.imagej.Dataset;
  */
 public class CsajDialog_3DPlugin extends CsajDialog_PluginFrame {
 
-	private static final long serialVersionUID = 2044613579185970380L;
+	private static final long serialVersionUID = -4712612138325562994L;
 
 	@Parameter
 	private LogService logService;
@@ -85,6 +85,7 @@ public class CsajDialog_3DPlugin extends CsajDialog_PluginFrame {
 	//Input image variables
 	public long width;
 	public long height;
+	public long depth;
 	public int numDimensions;
 	public int compositeChannelCount;
 	public long numSlices;
@@ -120,10 +121,16 @@ public class CsajDialog_3DPlugin extends CsajDialog_PluginFrame {
 		//Context must be imported from caller class (ContextCommand)
 		context.inject(this); //Important
 	
+		//Define supported image types for over all plugins
+		//String[] supportedImageTypes = {"Grey"};
+		//String[] supportedImageTypes = {"RGB"};
+		String[] supportedImageTypes = {"Grey", "RGB"};
+				
 		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
 		width  =       			(long)datasetInInfo.get("width");
 		height =       			(long)datasetInInfo.get("height");
+		depth  =       			(long)datasetInInfo.get("depth");
 		numDimensions =         (int)datasetInInfo.get("numDimensions");
 		compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
 		numSlices =             (long)datasetInInfo.get("numSlices");
@@ -135,7 +142,7 @@ public class CsajDialog_3DPlugin extends CsajDialog_PluginFrame {
 //	
 //		ImageIcon icon = new ImageIcon(this.getClass().getResource("/icons/comsystan-logo-grey46-16x16.png"));
 //		setIconImage(icon.getImage());
-//		setTitle("Csaj 2D plugin"); //This should be overwritten
+//		setTitle("Csaj 3D plugin"); //This should be overwritten
 //		//setBounds(400, 100, 480, 600); //offset x, offset y, width, height on screen
 //		setLocation(500, 100);
 //		//setSize(new Dimension(400, 600));
