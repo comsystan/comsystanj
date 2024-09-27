@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFractalFragmentationDialog.java
+ * File: Csaj3DFracDimHiguchi3DDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.plugin2d.frac;
+package at.csa.csaj.plugin3d.frac;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -35,7 +35,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -43,8 +42,10 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import net.imagej.Dataset;
 import org.scijava.Context;
 import org.scijava.command.CommandModule;
@@ -53,14 +54,13 @@ import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
-
-import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
+import at.csa.csaj.commons.CsajDialog_3DPluginWithRegression;
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithRegression {
+public class Csaj3DFracDimHiguchi3DDialog extends CsajDialog_3DPluginWithRegression {
 
-	private static final long serialVersionUID = 4844668435605454813L;
+	private static final long serialVersionUID = -5286626144769708659L;
 
 	@Parameter
 	private LogService logService;
@@ -76,10 +76,11 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
+ 	private JComboBox<String> comboBoxMethod;
+	private String            choiceRadioButt_Method;
 
-	private JCheckBox  checkBoxShowConvexHull;
-	private boolean    booleanShowConvexHull;
-	
+	private JCheckBox checkBoxSkipZeroes;
+	private boolean   booleanSkipZeroes;
 	
 	/**Some default @Parameters are already defined in the super class
 	 * public JCheckBox checkBoxOverwriteDisplays;
@@ -99,7 +100,7 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DFractalFragmentationDialog(Context context, Dataset datasetIn) {
+	public Csaj3DFracDimHiguchi3DDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -110,41 +111,76 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Fractal fragementation indices ");
+		setTitle("3D Higuchi3D dimension");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************
-	    JLabel labelShowConvexHull = new JLabel("Show convex hull");
-	    labelShowConvexHull.setToolTipText("Show image of convex hull");
-	    labelShowConvexHull.setHorizontalAlignment(JLabel.RIGHT);
+	    JLabel labelMethod = new JLabel("3D method");
+	    labelMethod.setToolTipText("Type of 3D grey value Higuchi algorithm");
+	    labelMethod.setHorizontalAlignment(JLabel.RIGHT);
+		
+		String options[] = {"Multiplicated differences",														   
+				   			"Squared differences",
+				   			"Direct differences"
+		};
+		comboBoxMethod = new JComboBox<String>(options);
+		comboBoxMethod.setToolTipText("Type of 3D grey value Higuchi algorithm");
+	    comboBoxMethod.setEditable(false);
+	    comboBoxMethod.setSelectedItem("Direct differences");
+	    comboBoxMethod.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				choiceRadioButt_Method = (String)comboBoxMethod.getSelectedItem();
+				logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_Method);
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+			}
+		});
 	    
-		checkBoxShowConvexHull = new JCheckBox();
-		checkBoxShowConvexHull.setToolTipText("Show image of convex hull");
-		checkBoxShowConvexHull.setSelected(true);
-		checkBoxShowConvexHull.addItemListener(new ItemListener() {
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelMethod, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.WEST; //left 
+	    contentPanel.add(comboBoxMethod, gbc);
+	  
+	    //initialize command variable
+	    choiceRadioButt_Method = (String)comboBoxMethod.getSelectedItem();
+
+	    //*****************************************************************************************
+	    JLabel labelSkipZeroes = new JLabel("Skip zero values");
+	    labelSkipZeroes.setToolTipText("Delete zeroes or not");
+	    labelSkipZeroes.setHorizontalAlignment(JLabel.RIGHT);
+	    
+		checkBoxSkipZeroes = new JCheckBox();
+		checkBoxSkipZeroes.setToolTipText("Delete zeroes or not");
+		checkBoxSkipZeroes.setSelected(false);
+		checkBoxSkipZeroes.addItemListener(new ItemListener() {
 			@Override
 		    public void itemStateChanged(ItemEvent e) {
-		    	booleanShowConvexHull = checkBoxShowConvexHull.isSelected();
-		    	logService.info(this.getClass().getName() + " Show convex hull option set to " + booleanShowConvexHull);
-		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    	booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
+		    	logService.info(this.getClass().getName() + " Skip zeroes option set to " + booleanSkipZeroes);
+		    	if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 		    }
 		});
 		gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 210;
+	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelShowConvexHull, gbc);
+	    contentPanel.add(labelSkipZeroes, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 210;
+	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.WEST; //left
-	    contentPanel.add(checkBoxShowConvexHull, gbc);	
+	    contentPanel.add(checkBoxSkipZeroes, gbc);	
 	    //initialize command variable
-	    booleanShowConvexHull = checkBoxShowConvexHull.isSelected();
-		
-		//*****************************************************************************************
+	    booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
+	    
+	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
-		labelNumEps.setText("Number of boxes");
-		int numEpsMax = Csaj2DFractalFragmentationCommand.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+		labelNumEps.setText("k");
+		int numEpsMax = Csaj3DFracDimHiguchi3DCmd.getMaxK(width, height, depth);
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -162,20 +198,20 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFractalFragmentationCommand.class, false,
-														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
-														"processAll",					  processAll, //true for all
+		Future<CommandModule> future = commandService.run(Csaj3DFracDimHiguchi3DCmd.class, false,
+														"datasetIn",                         datasetIn,  //is not automatically harvested in headless mode
+												
+														"choiceRadioButt_Method",            choiceRadioButt_Method,
+														"booleanSkipZeroes", 				 booleanSkipZeroes,
+							
+														"spinnerInteger_KMax",               spinnerInteger_NumEps, //WARNING: Exceptionally a different name
+														"spinnerInteger_NumRegStart",        spinnerInteger_NumRegStart,
+														"spinnerInteger_NumRegEnd",          spinnerInteger_NumRegEnd,
+														"booleanShowDoubleLogPlot",          booleanShowDoubleLogPlot,
 					
-														"spinnerInteger_NumBoxes",        spinnerInteger_NumEps, //WARNING: Exceptionally a different name
-														"spinnerInteger_NumRegStart",     spinnerInteger_NumRegStart,
-														"spinnerInteger_NumRegEnd",       spinnerInteger_NumRegEnd,
-														"booleanShowDoubleLogPlot",       booleanShowDoubleLogPlot,
-	
-														"booleanShowConvexHull",          booleanShowConvexHull,
 														
-														"booleanOverwriteDisplays",       booleanOverwriteDisplays,
-														"booleanProcessImmediately",	  booleanProcessImmediately,
-														"spinnerInteger_NumImageSlice",	  spinnerInteger_NumImageSlice
+														"booleanOverwriteDisplays",          booleanOverwriteDisplays,
+														"booleanProcessImmediately",	     booleanProcessImmediately
 														);
 		CommandModule commandModule = null;
 		try {
@@ -188,7 +224,7 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFractalFragmentationCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj3DFracDimHiguchi3DCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

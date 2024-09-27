@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFractalFragmentationDialog.java
+ * File: Csaj3DFractalFragmentationDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.plugin2d.frac;
+package at.csa.csaj.plugin3d.frac;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -39,7 +39,6 @@ import java.util.concurrent.Future;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -54,13 +53,14 @@ import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
 
-import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
+import at.csa.csaj.commons.CsajDialog_3DPluginWithRegression;
+
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithRegression {
+public class Csaj3DFractalFragmentationDialog extends CsajDialog_3DPluginWithRegression {
 
-	private static final long serialVersionUID = 4844668435605454813L;
+	private static final long serialVersionUID = 2435854834116217076L;
 
 	@Parameter
 	private LogService logService;
@@ -76,7 +76,18 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
-
+	private JPanel       panelScanningType;
+	private ButtonGroup  buttonGroupScanningType;
+    private JRadioButton radioButtonRasterBox;
+    private JRadioButton radioButtonSlidingBox;
+	private String       choiceRadioButt_ScanningType;
+	
+	private JPanel       panelColorModelType;
+	private ButtonGroup  buttonGroupColorModelType;
+    private JRadioButton radioButtonBinary;
+    private JRadioButton radioButtonGrey;
+	private String       choiceRadioButt_ColorModelType;
+	
 	private JCheckBox  checkBoxShowConvexHull;
 	private boolean    booleanShowConvexHull;
 	
@@ -99,7 +110,7 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DFractalFragmentationDialog(Context context, Dataset datasetIn) {
+	public Csaj3DFractalFragmentationDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -110,9 +121,104 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Fractal fragementation indices ");
+		setTitle("3D Fractal fragementation indices ");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
+	    //*****************************************************************************************
+	    JLabel labelScanningType = new JLabel("Scanning");
+	    labelScanningType.setToolTipText("Type of 3D box scanning");
+	    labelScanningType.setHorizontalAlignment(JLabel.RIGHT);
+		
+		buttonGroupScanningType = new ButtonGroup();
+		radioButtonRasterBox    = new JRadioButton("Raster box");
+		radioButtonSlidingBox   = new JRadioButton("Sliding box");
+		radioButtonRasterBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				if (radioButtonRasterBox.isSelected())  choiceRadioButt_ScanningType = radioButtonRasterBox.getText();
+				logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+			}
+		});
+		radioButtonSlidingBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				if (radioButtonSlidingBox.isSelected())  choiceRadioButt_ScanningType = radioButtonSlidingBox.getText();
+				logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+			}
+		});
+		buttonGroupScanningType.add(radioButtonRasterBox);
+		//buttonGroupScanningType.add(radioButtonSlidingBox);
+		radioButtonRasterBox.setSelected(true);
+		
+		panelScanningType = new JPanel();
+		panelScanningType.setToolTipText("Type of 3D box scanning");
+		panelScanningType.setLayout(new BoxLayout(panelScanningType, BoxLayout.Y_AXIS)); 
+	    panelScanningType.add(radioButtonRasterBox);
+	    //panelScanningType.add(radioButtonSlidingBox); //"Sliding box" does not give the right dimension values
+	    
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelScanningType, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.WEST; //left 
+	    contentPanel.add(panelScanningType, gbc);
+	    //initialize command variable
+		if (radioButtonRasterBox.isSelected())  choiceRadioButt_ScanningType = radioButtonRasterBox.getText();
+		if (radioButtonSlidingBox.isSelected()) choiceRadioButt_ScanningType = radioButtonSlidingBox.getText();
+		
+	    //*****************************************************************************************
+	    JLabel labelColorModelType = new JLabel("Color model");
+	    labelColorModelType.setToolTipText("Type of color model - binary or greyscale");
+	    labelColorModelType.setHorizontalAlignment(JLabel.RIGHT);
+		
+		buttonGroupColorModelType = new ButtonGroup();
+		radioButtonBinary = new JRadioButton("Binary");
+		radioButtonGrey   = new JRadioButton("Grey");
+		radioButtonBinary.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				if (radioButtonBinary.isSelected())  choiceRadioButt_ColorModelType = radioButtonBinary.getText();
+				logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+			}
+		});
+		radioButtonGrey.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				if (radioButtonGrey.isSelected())  choiceRadioButt_ColorModelType = radioButtonGrey.getText();
+				logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+			}
+		});
+		buttonGroupColorModelType.add(radioButtonBinary);
+		buttonGroupColorModelType.add(radioButtonGrey);
+		radioButtonBinary.setSelected(true);
+		
+		panelColorModelType = new JPanel();
+		panelColorModelType.setToolTipText("Type of color model - binary or greyscale");
+		panelColorModelType.setLayout(new BoxLayout(panelColorModelType, BoxLayout.Y_AXIS)); 
+		
+	    panelColorModelType.add(radioButtonBinary);
+	    //panelColorModelType.add(radioButtonGrey); 
+	    
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 1;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelColorModelType, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 1;
+	    gbc.anchor = GridBagConstraints.WEST; //left 
+	    contentPanel.add(panelColorModelType, gbc);
+	    //initialize command variable
+		if (radioButtonBinary.isSelected()) choiceRadioButt_ColorModelType = radioButtonBinary.getText();
+		if (radioButtonGrey.isSelected())   choiceRadioButt_ColorModelType = radioButtonGrey.getText();
+		
 	    //*****************************************************************************************
 	    JLabel labelShowConvexHull = new JLabel("Show convex hull");
 	    labelShowConvexHull.setToolTipText("Show image of convex hull");
@@ -126,7 +232,7 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 		    public void itemStateChanged(ItemEvent e) {
 		    	booleanShowConvexHull = checkBoxShowConvexHull.isSelected();
 		    	logService.info(this.getClass().getName() + " Show convex hull option set to " + booleanShowConvexHull);
-		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    	if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 		    }
 		});
 		gbc.insets = INSETS_STANDARD;
@@ -144,7 +250,7 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of boxes");
-		int numEpsMax = Csaj2DFractalFragmentationCommand.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+		int numEpsMax = Csaj3DFractalFragmentationCmd.getMaxBoxNumber(width, height, depth);
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -162,9 +268,11 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFractalFragmentationCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj3DFractalFragmentationCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
-														"processAll",					  processAll, //true for all
+													
+														"choiceRadioButt_ScanningType",   choiceRadioButt_ScanningType,
+														"choiceRadioButt_ColorModelType", choiceRadioButt_ColorModelType,
 					
 														"spinnerInteger_NumBoxes",        spinnerInteger_NumEps, //WARNING: Exceptionally a different name
 														"spinnerInteger_NumRegStart",     spinnerInteger_NumRegStart,
@@ -174,8 +282,7 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 														"booleanShowConvexHull",          booleanShowConvexHull,
 														
 														"booleanOverwriteDisplays",       booleanOverwriteDisplays,
-														"booleanProcessImmediately",	  booleanProcessImmediately,
-														"spinnerInteger_NumImageSlice",	  spinnerInteger_NumImageSlice
+														"booleanProcessImmediately",	  booleanProcessImmediately
 														);
 		CommandModule commandModule = null;
 		try {
@@ -188,7 +295,7 @@ public class Csaj2DFractalFragmentationDialog extends CsajDialog_2DPluginWithReg
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFractalFragmentationCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj3DFractalFragmentationCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

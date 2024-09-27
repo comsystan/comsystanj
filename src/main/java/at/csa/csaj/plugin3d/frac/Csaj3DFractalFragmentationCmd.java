@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DFracDimGeneralisedCommand.java
+ * File: Csaj3DFractalFragmentationCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,8 +26,7 @@
  * #L%
  */
 
-
-package at.csa.csaj.command;
+package at.csa.csaj.plugin3d.frac;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -35,8 +34,8 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,11 +51,16 @@ import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.morphology.Erosion;
+import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
+
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -65,8 +69,6 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -74,47 +76,42 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
+import at.csa.csaj.commons.Cpol_GeoPoint;
+import at.csa.csaj.commons.Cpol_GeoPolygon;
+import at.csa.csaj.commons.Cpol_GeoPolygonProc;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
-import at.csa.csaj.commons.CsajPlot_SequenceFrame;
+import at.csa.csaj.commons.QuickHull3D;
+import at.csa.csaj.commons.QuickHull3D_Point3d;
 import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajContainer_Items;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
+import at.csa.csaj.plugin3d.frac.util.BoxCounting3DMethods;
+import at.csa.csaj.plugin3d.frac.util.BoxCounting3D_Grey;
 import at.csa.csaj.plugin3d.frac.util.GeneralisedDim3DMethods;
 import at.csa.csaj.plugin3d.frac.util.GeneralisedDim3D_Grey;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
 
 /**
- * A {@link ContextCommand} plugin computing <the 3D Generalised dimensions</a>
+ * A {@link ContextCommand} plugin computing <3D fractal fragmentation indices</a>
  * of an image volume.
  */
 @Plugin(type = ContextCommand.class,
-headless = true,
-label = "3D Generalised dimensions",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+	headless = true,
+	label = "3D Fractal fragmentation indices",
+	initializer = "initialPluginLaunch",
+	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+	menu = {})
 
-	private static final String PLUGIN_LABEL            = "Computes 3D Generalised dimensions";
+public class Csaj3DFractalFragmentationCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "Computes 3D Fractal fragmentation indices";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -122,10 +119,14 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 
+	private static Img<BitType> imgBit; 
 	private static Img<FloatType> imgFloat; 
+	private static Img<FloatType> imgSubSampled;
+	private static Img<FloatType> imgTemp;
 	private static RandomAccessibleInterval<?> raiBox;
-	private static RandomAccess<?> ra;
+	private static RandomAccess<UnsignedByteType> ra;
 	private static Cursor<?> cursor = null;
+	private static Cursor<FloatType> cursorF = null;
 	private static String datasetName;
 	private static long width = 0;
 	private static long height = 0;
@@ -137,10 +138,8 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	private static String imageType = "";
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
-	private static ArrayList<CsajPlot_SequenceFrame> genDimPlotList      = new ArrayList<CsajPlot_SequenceFrame>();
-	private static ArrayList<CsajPlot_SequenceFrame> fSpecPlotList       = new ArrayList<CsajPlot_SequenceFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - 3D Generalised dimensions";
+	public static final String TABLE_OUT_NAME = "Table - 3D FFI & FFDI";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -202,8 +201,8 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "Number of boxes",
-    		   description = "Number of distinct radii following the power of 2",
+	@Parameter(label = "# of boxes",
+    		   description = "Number of distinct box sizes with the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
@@ -239,57 +238,32 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelMethod = METHODOPTIONS_LABEL;
 
-    @Parameter(label = "Min q",
-  	    	   description = "Number of minimal q",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "-32768",
-	           max = "32768",
-	           stepSize = "1",
-	           persist = true,  //restore previous value default = true
-	           initializer = "initialMinQ",
-	           callback = "callbackMinQ")
-    private int spinnerInteger_MinQ;
-     
-    @Parameter(label = "Max q",
-    		   description = "Number of maximal q",
-  	       	   style = NumberWidget.SPINNER_STYLE,
-  	           min = "-32768",
-  	           max = "32768",
-  	           stepSize = "1",
-  	           persist = true,  //restore previous value default = true
-  	           initializer = "initialMaxQ",
-  	           callback = "callbackMaxQ")
-    private int spinnerInteger_MaxQ;
-	
-    @Parameter(label = "Scanning method",
+//   @Parameter(label = "Fractal dimension",
+//	 description = "Type of fractal dimension computation",
+//	 style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+//	 choices = {"Box counting", "Pyramid"},
+//	 //persist = false,  //restore previous value default = true
+//	 initializer = "initialFracalDimType",
+//	 callback = "callbackFractalDimType")
+//   private String choiceRadioButt_FractalDimType;
+
+     @Parameter(label = "Scanning method",
     		    description = "Type of 3D box scanning",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-      		    choices = {"Raster box"}, // "Sliding box", "Fast sliding box (beta)"}, //3D Sliding box already implemented but would be very long lasting 
+      		    choices = {"Raster box"}, //"Sliding box" 
       		    persist = true,  //restore previous value default = true
     		    initializer = "initialScanningType",
                 callback = "callbackScanningType")
-    private String choiceRadioButt_ScanningType;
+     private String choiceRadioButt_ScanningType;
      
-    @Parameter(label = "Color model",
+     @Parameter(label = "Color model",
  		    description = "Type of image and computation",
  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Binary", "Grey"},
+   		    choices = {"Binary"}, //, "DBC", "RDBC"},
    		    persist = true,  //restore previous value default = true
  		    initializer = "initialColorModelType",
              callback = "callbackColorModelType")
-    private String choiceRadioButt_ColorModelType;
-    
-//    Only for sliding box option
-//    @Parameter(label = "(Sliding box) Pixel %",
-//    		   description = "% of image pixels to be taken - to lower computation times",
-//  	       	   style = NumberWidget.SPINNER_STYLE,
-//  	           min = "1",
-//  	           max = "100",
-//  	           stepSize = "1",
-//  	           //persist = false,  //restore previous value default = true
-//  	           initializer = "initialPixelPercentage",
-//  	           callback    = "callbackPixelPercentage")
-//    private int spinnerInteger_PixelPercentage;
+     private String choiceRadioButt_ColorModelType;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -300,15 +274,10 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 			   initializer = "initialShowDoubleLogPlots")
 	private boolean booleanShowDoubleLogPlot;
 	
-    @Parameter(label = "Show Dq plot",
-		       persist = true,  //restore previous value default = true
-		       initializer = "initialShowDqPlot")
-	private boolean booleanShowDqPlot;
-  
-    @Parameter(label = "Show F spectrum",
-		       persist = true,  //restore previous value default = true
-		       initializer = "initialShowFSpectrum")
-	private boolean booleanShowFSpectrum;
+	@Parameter(label = "Show convex hull",
+		   	   persist = true, //restore previous value default = true
+			   initializer = "initialShowConvexHull")
+	private boolean booleanShowConvexHull;
 
 	@Parameter(label = "Overwrite result display(s)",
 	    	description = "Overwrite already existing result images, plots or tables",
@@ -331,7 +300,7 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 //			   callback = "callbackNumImageSlice")
 //	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label = "    Process single volume     ",callback = "callbackProcessSingleVolume")
+	@Parameter(label = "    Process single volume     ", callback = "callbackProcessSingleVolume")
 	private Button buttonProcessSingleVolume;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
@@ -370,30 +339,24 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
     	}
     	spinnerInteger_NumRegEnd =  numBoxes;
     }
-    protected void initialMinQ() {
-      	spinnerInteger_MinQ = -5;
-    }
-    protected void initialMaxQ() {
-      	spinnerInteger_MaxQ = 5;
-    }
+//    protected void initialFractalDimType() {
+//    	choiceRadioButt_FractalDimType = "Box counting";
+//    }
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
     }
     protected void initialColorModelType() {
     	choiceRadioButt_ColorModelType = "Binary";
     }
-//    protected void initialPixelPercentage() {
-//      	spinnerInteger_PixelPercentage = 10;
-//    }
+	
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
 	}
-    protected void initialShowDqPlot() {
-    	booleanShowDqPlot = true;
-    }
-    protected void initialShowFSpectrum() {
-    	booleanShowFSpectrum = true;
-    }
+	
+	protected void initialShowConvexHull() {
+		booleanShowConvexHull = true;
+	}
+	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
 	}
@@ -446,20 +409,7 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
 	}
-	/** Executed whenever the {@link #spinnerInteger_MinQ} parameter changes. */
-	protected void callbackMinQ() {
-		if (spinnerInteger_MinQ >= spinnerInteger_MaxQ) {
-			spinnerInteger_MinQ  = spinnerInteger_MaxQ - 1;
-		}
-			logService.info(this.getClass().getName() + " Minimal q set to " + spinnerInteger_MinQ);
-	}
-	/** Executed whenever the {@link #spinnerInteger_MaxQ} parameter changes. */
-	protected void callbackMaxQ() {
-		if (spinnerInteger_MaxQ <= spinnerInteger_MinQ) {
-			spinnerInteger_MaxQ  = spinnerInteger_MinQ + 1;
-		}
-		logService.info(this.getClass().getName() + " Minimal q set to " + spinnerInteger_MinQ);
-	}
+
 	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
 	protected void callbackScanningType() {
 		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
@@ -470,11 +420,6 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	protected void callbackColorModelType() {
 		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
-	
-//	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
-//	protected void callbackPixelPercentage() {
-//		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
-//	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
@@ -581,83 +526,36 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForSingleVolume();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		startWorkflowForSingleVolume();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
-			cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
-			return;
-		}
-
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
+		//Define supported image types for this plugin
+		String[] supportedImageTypes = {"Grey"};
+		//String[] supportedImageTypes = {"RGB"};
+		//String[] supportedImageTypes = {"Grey", "RGB"};
+		
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 3D plugin cannot be started - Initial check failed.");
 		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 3D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions = datasetIn.numDimensions();
-	
-		//compositeChannelCount = datasetIn.getImgPlus().getCompositeChannelCount(); //1  Grey,   3 RGB
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-
-		// get the name of dataset
-		datasetName = datasetIn.getName();
-		
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-  	
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size = " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: " + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		
-		//RGB not allowed
-		if (!imageType.equals("Grey")) { 
-			logService.warn(this.getClass().getName() + " WARNING: Grey value image volume expected!");
-			cancel("ComsystanJ 3D plugin cannot be started - grey value image volume expected!");
-		}
-		//Image volume expected
-		if (numSlices == 1) { 
-			logService.warn(this.getClass().getName() + " WARNING: Single image instead of image volume detected");
-			cancel("ComsystanJ 3D plugin cannot be started - image volume expected!");
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			depth  =       			(long)datasetInInfo.get("depth");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			//sliceLabels = 		(String[])datasetInInfo.get("sliceLabels");
 		}
 	}
 
@@ -666,18 +564,18 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Generalised dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D fractal fragmentation indices, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
 		dlgProgress.setVisible(true);
-    
-		deleteExistingDisplays();
-    	generateTableHeader();
+		
+    	deleteExistingDisplays();
+		generateTableHeader();
         logService.info(this.getClass().getName() + " Processing volume...");
 		processSingleInputVolume();
-		
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");	
+	
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
@@ -747,17 +645,17 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 //			//	if (display.getName().contains("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
 //			//}			
 //			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
-//		
-//			Frame frame;
-//			Frame[] listFrames = JFrame.getFrames();
-//			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
-//				frame = listFrames[i];
-//				//System.out.println("frame name: " + frame.getTitle());
-//				if (frame.getTitle().contains("Name")) {
-//					frame.setVisible(false); //Successfully closes also in Fiji
-//					frame.dispose();
-//				}
-//			}
+		
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().contains("Convex hull")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
 		}
 		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
@@ -768,22 +666,6 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 					// doubleLogPlotList.remove(l); /
 				}
 				doubleLogPlotList.clear();
-			}
-			if (genDimPlotList != null) {
-				for (int l = 0; l < genDimPlotList.size(); l++) {
-					genDimPlotList.get(l).setVisible(false);
-					genDimPlotList.get(l).dispose();
-					//genDimPlotList.remove(l);  /
-				}
-				genDimPlotList.clear();		
-			}
-			if (fSpecPlotList != null) {
-				for (int l = 0; l < fSpecPlotList.size(); l++) {
-					fSpecPlotList.get(l).setVisible(false);
-					fSpecPlotList.get(l).dispose();
-					//fSpecPlotList.remove(l);  /
-				}
-				fSpecPlotList.clear();		
 			}
 //			//ImageJ PlotWindows aren't recognized by DeafultDisplayService!!?
 //			List<Display<?>> list = defaultDisplayService.getDisplays();
@@ -808,7 +690,7 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 
 
 	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height, long depth) { 
+	public static int getMaxBoxNumber(long width, long height, long depth) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height) && (boxWidth <= depth)) {
@@ -824,19 +706,159 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	private void processSingleInputVolume() {
 		
 		long startTime = System.currentTimeMillis();
-		int minQ = this.spinnerInteger_MinQ;
-		int maxQ = this.spinnerInteger_MaxQ;
-		int numQ = maxQ - minQ + 1;
 	
 		//get rai
 		RandomAccessibleInterval<T> rai = null;	
 	
-		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
+		rai =  (RandomAccessibleInterval<T>) datasetIn.copy().getImgPlus(); //dim==3
 
 		// Compute regression parameters
 		CsajContainer_ProcessMethod containerPM = process(rai); //rai is 3D
+		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
+		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
+		//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
 		
-		writeToTable(containerPM);
+		logService.info(this.getClass().getName() + " 3D Dmass: " + containerPM.item1_Values[6]);
+		//writeToTable(0, s, containerPM); //write always to the first row //later because convex hull
+		
+		//Do it again for convex Hull**************************************************
+		logService.info(this.getClass().getName() + " Create convex hull.....");
+//		imgBit = createImgBit(rai);
+//		int isoLevel = 1; //isoLevel is a threshold
+//		mesh = Meshes.marchingCubes(imgBit, isoLevel);
+//		//mesh = Meshes.marchingCubes(rai, isoLevel);
+//		//or 
+//		//mesh = ij.op().geom().marchingCubes(imgBit, isoLevel);
+//		
+////		defaultConvexHull3D = new DefaultConvexHull3D();
+////		hull = defaultConvexHull3D.calculate(mesh);		
+////		or
+//		List result = opService.geom().convexHull(mesh);
+//		hull = (Mesh) result.get(0);
+//		
+//		//volumes for checking
+//		double meshVolume = opService.geom().size(mesh).getRealDouble();
+//		double hullVolume =   ij.op().geom().size(hull).getRealDouble();
+//			
+//		RandomAccessibleInterval<BitType> raiMesh = opService.geom().voxelization(mesh, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
+//		RandomAccessibleInterval<BitType> raiHull = opService.geom().voxelization(hull, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
+//		
+//		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();	
+//		cursor = (Views.iterable(raiHull)).localizingCursor();
+//		long[] pos = new long[3];
+//		while(cursor.hasNext()) {
+//			cursor.next();
+//			cursor.localize(pos);
+//			ra.setPosition(pos);
+//			if (((BitType) cursor.get()).get() == true)  ((UnsignedByteType) ra.get()).set(255); //This changes the rai
+//		}
+//		uiService.show("raiMesh", raiMesh);
+//		uiService.show("raiHull", raiHull);
+//		if (booleanShowConvexHull) uiService.show("Convex hull", rai);
+
+		//Convex hull with
+		//QuickHull3D: A Robust 3D Convex Hull Algorithm in Java
+		//https://www.cs.ubc.ca/~lloyd/java/quickhull3d.html
+		//get number of object points
+		int numPoints = 0;
+		cursor = Views.iterable(rai).localizingCursor();
+		while(cursor.hasNext()) {
+			cursor.next();	
+			if (((UnsignedByteType) cursor.get()).getInteger() > 0 ) {
+				numPoints += 1;
+			}
+		}
+		
+		//get list of object points	
+		QuickHull3D_Point3d[] points = new QuickHull3D_Point3d[numPoints];
+		int p = 0;
+		cursor = Views.iterable(rai).localizingCursor();
+		int[] pos = new int[3];
+		while(cursor.hasNext()) {
+			cursor.next();
+			cursor.localize(pos);		
+			if (((UnsignedByteType) cursor.get()).getInteger() > 0 ) {
+				points[p] = new QuickHull3D_Point3d(pos[0], pos[1], pos[2]) ;
+				p += 1;
+			}
+		}
+		
+		//get vertices of convex hull
+		QuickHull3D hull3D = new QuickHull3D();
+		hull3D.build (points);
+		QuickHull3D_Point3d[] vertices = hull3D.getVertices();
+	
+//		//write vertices to rai
+//		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+//		pos = new int[3];
+//		for (int v = 0; v <vertices.length; v++) {
+//			Point3d pnt = vertices[v];
+//			pos[0] = (int)Math.round(pnt.x);
+//			pos[1] = (int)Math.round(pnt.y);
+//			pos[2] = (int)Math.round(pnt.z);
+//			ra.setPosition(pos);
+//			ra.get().set(255);
+//			//System.out.println (pnt.x + " " + pnt.y + " " + pnt.z);
+//		}	
+		if (booleanShowConvexHull) uiService.show("Convex hull", rai);
+			
+		//Change to GeoPolygons to find all pixels inside convex hull
+		//https://www.codeproject.com/Articles/1071168/Point-Inside-D-Convex-Polygon-in-Java
+		//Create GeoPolygon
+		ArrayList<Cpol_GeoPoint> cubeVertices = new ArrayList<Cpol_GeoPoint>();
+		QuickHull3D_Point3d p3d;
+		for (int v = 0; v < vertices.length; v++) {
+			p3d = vertices[v];
+			cubeVertices.add(new Cpol_GeoPoint(p3d.x, p3d.y, p3d.z));
+		}
+		
+		//delete quickhull3d classes to save memory
+		points   = null;
+		hull3D   = null;
+		vertices = null;
+		
+		// Create polygon instance
+		Cpol_GeoPolygon polygonInst = new Cpol_GeoPolygon(cubeVertices);
+		// Create main process instance
+		Cpol_GeoPolygonProc procInst = new Cpol_GeoPolygonProc(polygonInst);
+		
+		//Main procedure to check if a point (ax, ay, az) is inside the CubeVertices:               
+		//procInst.PointInside3DPolygon(ax, ay, az);
+		//set rai accordingly
+		cursor = Views.iterable(rai).localizingCursor();
+		pos = new int[3];
+		while(cursor.hasNext()) {
+			cursor.next();
+			cursor.localize(pos);	
+			if (procInst.PointInside3DPolygon(pos[0], pos[1], pos[2])) {
+				((UnsignedByteType) cursor.get()).set(255);
+			}
+		}
+		//if (booleanShowConvexHull) uiService.show("Convex hull", rai);
+		
+		//delete GeoPolygon classes to save memory
+		cubeVertices = null;
+		polygonInst  = null;
+		procInst     = null;
+		
+		// Compute regression parameters
+		logService.info(this.getClass().getName() + " Processing of convex hull volume.....");
+		CsajContainer_ProcessMethod containerPMCH = process(rai); //rai is 3D
+		//D1	 0 Intercept,  1 Slope,  2 InterceptStdErr,  3 SlopeStdErr,  4 RSquared
+		//Mass	 5 Intercept,  6 Slope,  7 InterceptStdErr,  8 SlopeStdErr,  9 RSquared
+		//Perim	10 Intercept, 11 Slope, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
+		
+		logService.info(this.getClass().getName() + " Dmass-convexhull : " + containerPMCH.item1_Values[6]);
+		
+		int length = containerPM.item1_Values.length; //15
+		double[] resultValues = new double[2*length];
+		for (int i=0; i < length; i++) {
+			resultValues[i]    = containerPM.item1_Values[i];
+			resultValues[15+i] = containerPMCH.item1_Values[i]; //Convex hull
+		}
+		
+		CsajContainer_Items containerItems = new CsajContainer_Items(resultValues, containerPM.item2_Values);
+		writeToTable(containerItems); //write always to the first row
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
@@ -865,67 +887,94 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	private void generateTableHeader() {
 		
 		GenericColumn columnFileName       = new GenericColumn("File name");
-		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");;
+		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
 		GenericColumn columnNumRegStart    = new GenericColumn("Reg Start");
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
-		IntColumn columnMinQ               = new IntColumn("Min q");
-		IntColumn columnMaxQ               = new IntColumn("Max q");
 		GenericColumn columnScanType       = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		//IntColumn columnPixelPercentage    = new IntColumn("(Sliding Box) Pixel %");
+		//GenericColumn columnFractalDimType = new GenericColumn("Fractal dimension type");
+		DoubleColumn columnFFI             = new DoubleColumn("3D FFI");
+		DoubleColumn columnFFDI            = new DoubleColumn("3D FFDI");
+		DoubleColumn columnFTI             = new DoubleColumn("3D FTI");
+		DoubleColumn columnD1              = new DoubleColumn("3D D1");
+		DoubleColumn columnDmass           = new DoubleColumn("3D Dmass");
+		DoubleColumn columnDbound          = new DoubleColumn("3D Dboundary");
+		DoubleColumn columnR2d1            = new DoubleColumn("R2 D1");
+		DoubleColumn columnR2mass          = new DoubleColumn("R2 Dmass");
+		DoubleColumn columnR2bound         = new DoubleColumn("R2 Dboundary");
+		DoubleColumn columnCH_D1           = new DoubleColumn("3D CH_D1");  //CH----ComplexHull
+		DoubleColumn columnCH_Dmass        = new DoubleColumn("3D CH_D-mass");
+		DoubleColumn columnCH_Dbound       = new DoubleColumn("3D CH_D-boundary");
+		DoubleColumn columnCH_R2d1         = new DoubleColumn("CH_R2-D1");
+		DoubleColumn columnCH_R2mass       = new DoubleColumn("CH_R2-mass");
+		DoubleColumn columnCH_R2bound      = new DoubleColumn("CH_R2-boundary");
 
 		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnMaxNumBoxes);
 		tableOut.add(columnNumRegStart);
 		tableOut.add(columnNumRegEnd);
-		tableOut.add(columnMinQ);
-		tableOut.add(columnMaxQ);
+		//tableOut.add(columnFractalDimType);
 		tableOut.add(columnScanType);
 		tableOut.add(columnColorModelType);
-		//tableOut.add(columnPixelPercentage);
-		
-		int minQ = spinnerInteger_MinQ;
-		int maxQ = spinnerInteger_MaxQ;
-		int numQ = maxQ - minQ + 1;
-		for (int q = 0; q < numQ; q++) {
-			tableOut.add(new GenericColumn("3D D" + (minQ + q)));
-		}
-
+		tableOut.add(columnFFI);
+		tableOut.add(columnFFDI);
+		tableOut.add(columnFTI);
+		tableOut.add(columnD1);
+		tableOut.add(columnDmass);
+		tableOut.add(columnDbound);
+		tableOut.add(columnR2d1);
+		tableOut.add(columnR2mass);
+		tableOut.add(columnR2bound);
+		tableOut.add(columnCH_D1);
+		tableOut.add(columnCH_Dmass);
+		tableOut.add(columnCH_Dbound);
+		tableOut.add(columnCH_R2d1);
+		tableOut.add(columnCH_R2mass);
+		tableOut.add(columnCH_R2bound);
 	}
 
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param CsajContainer_ProcessMethod containerPM
+	 * @param CsajContainer_Items containerItems
 	 */
-	private void writeToTable(CsajContainer_ProcessMethod containerPM) { 
+	private void writeToTable(CsajContainer_Items containerItems) { 
 
-		int numRegStart    = spinnerInteger_NumRegStart;
-		int numRegEnd      = spinnerInteger_NumRegEnd;
-		int numBoxes       = spinnerInteger_NumBoxes;
-		int minQ           = spinnerInteger_MinQ;
-		int maxQ           = spinnerInteger_MaxQ;
-		//int pixelPercentage   = spinnerInteger_PixelPercentage;
+		int numRegStart       = spinnerInteger_NumRegStart;
+		int numRegEnd         = spinnerInteger_NumRegEnd;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		//String fractalDimType  = choiceRadioButt_FractalDimType;
 		String scanningType   = choiceRadioButt_ScanningType;  //Raster box     Sliding box
 		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
+		//D1        0 Intercept,  1 Dim, 2  InterceptStdErr, 3  SlopeStdErr,  4 RSquared
+		//Mass      5 Intercept,  6 Dim, 7  InterceptStdErr, 8  SlopeStdErr,  9 RSquared
+		//Boundary 10 Intercept, 11 Dim, 12 InterceptStdErr, 13 SlopeStdErr, 14 RSquared
 		
 		int row = 0;
 		// fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",		row, datasetName);	
-		tableOut.set("# Boxes",			row, numBoxes);
-		tableOut.set("Reg Start",       row, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-		tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
-		tableOut.set("Min q",      	    row, minQ);	
-		tableOut.set("Max q",           row, maxQ);	
-		tableOut.set("Scanning type",	row, scanningType);
-		tableOut.set("Color model",		row, colorModelType);
-		//if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", row, pixelPercentage);	
-		int numQ = maxQ - minQ + 1;
-		for (int q = 0; q < numQ; q++) {
-			tableOut.set("3D D" + (minQ + q), row, containerPM.item1_Matrix[q][1]);
-		}	
+		tableOut.set("File name",	 	 row, datasetName);	
+		tableOut.set("# Boxes",		     row, numBoxes);
+		tableOut.set("Reg Start",        row, "("+numRegStart+")" + containerItems.item2_Values[0]); //(NumRegStart)epsRegStart
+		tableOut.set("Reg End",      	 row, "("+numRegEnd+")"   + containerItems.item2_Values[1]); //(NumRegEnd)epsRegEnd
+		tableOut.set("Color model",		 row, colorModelType);
+		//table.set("Fractal dimension type", row, fractalDimType);	
+		tableOut.set("3D FFI",         	 row, containerItems.item1_Values[6] - containerItems.item1_Values[11]); //FFI
+		tableOut.set("3D FFDI",          row, containerItems.item1_Values[1]*(1.0-(containerItems.item1_Values[6] - containerItems.item1_Values[11]))); //FFDI = D1(1-FFI)
+		tableOut.set("3D FTI",         	 row, (containerItems.item1_Values[15+6] - containerItems.item1_Values[15+11])-(containerItems.item1_Values[6] - containerItems.item1_Values[11])); //FFI hull - FFI
+		tableOut.set("3D D1",         	 row, containerItems.item1_Values[1]); //D1
+		tableOut.set("3D Dmass",         row, containerItems.item1_Values[6]); //Dmass
+		tableOut.set("3D Dboundary",     row, containerItems.item1_Values[11]); //D-boundary
+		tableOut.set("R2 D1",            row, containerItems.item1_Values[4]);
+		tableOut.set("R2 Dmass",         row, containerItems.item1_Values[9]);
+		tableOut.set("R2 Dboundary",     row, containerItems.item1_Values[14]);
+		tableOut.set("3D CH_D1",         row, containerItems.item1_Values[15+1]); //D1   Complex Hull values
+		tableOut.set("3D CH_D-mass",     row, containerItems.item1_Values[15+6]); //Dmass
+		tableOut.set("3D CH_D-boundary", row, containerItems.item1_Values[15+11]); //D-boundary
+		tableOut.set("CH_R2-D1",         row, containerItems.item1_Values[15+4]);
+		tableOut.set("CH_R2-mass",       row, containerItems.item1_Values[15+9]);
+		tableOut.set("CH_R2-boundary",   row, containerItems.item1_Values[15+14]);
 	}
 
 	/**
@@ -934,22 +983,24 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	*/
 	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
+		logService.info(this.getClass().getName() + " Processing of volume started");
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		int numRegStart    = spinnerInteger_NumRegStart;
-		int numRegEnd      = spinnerInteger_NumRegEnd;
-		int numBoxes       = spinnerInteger_NumBoxes;
-		int minQ           = spinnerInteger_MinQ;
-		int maxQ           = spinnerInteger_MaxQ;
+		int numRegStart       = spinnerInteger_NumRegStart;
+		int numRegEnd         = spinnerInteger_NumRegEnd;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		String fractalDimType = "Box counting"; // choiceRadioButt_FractalDimType;
+		//NOTE: IF minQ IS CHANGED, THE lnDatY[q] FOR THE REGRESSION MUST ALSO BE CHANGED***********************************************
+		int minQ            = 0; //NOTE!!!!  //spinnerInteger_MinQ;
+		int maxQ            = 2; //spinnerInteger_MaxQ;
 		String scanningType   = choiceRadioButt_ScanningType;    //Raster box     Sliding box
 		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
 		int pixelPercentage   = 100; //spinnerInteger_PixelPercentage;
-		boolean optShowDoubleLogPlot  = booleanShowDoubleLogPlot;
-		boolean optShowDqPlot         = booleanShowDqPlot;
-		boolean optShowFSpectrum      = booleanShowFSpectrum;
-		
+		boolean optShowPlot   = booleanShowDoubleLogPlot;
+
+
 		if ((!colorModelType.equals("Binary")) && (numRegStart == 1)){
 			numRegStart = 2; //numRegStart == 1 (single pixel box is not possible for DBC algorithms)
 		}
@@ -958,224 +1009,224 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 		long height = rai.dimension(1);
 		long depth  = rai.dimension(2);
 		
-		int numQ = maxQ - minQ + 1;
-		double[] epsRegStartEnd     = new double[2];  // epsRegStart, epsRegEnd
-		double[][] regressionParams = new double[numQ][5];
-		double[][] resultValues     = new double[numQ][5];
+		double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
+		double[] regressionParams = null;
+		double[] resultValues = null;
 	
-		String plot_method = "3D Generalised dimensions";
+		String plot_method = "3D Fractal fragmentation indices";
 		String xAxis = "ln(eps)";
 		String yAxis = "ln(Count)";
 		
-		GeneralisedDim3DMethods gd3D = null;
+		GeneralisedDim3DMethods   gd3DMass  = null;
+		BoxCounting3DMethods      bc3DMass  = null;
+		BoxCounting3DMethods      bc3DPerim = null;
 		
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
-			gd3D = new GeneralisedDim3D_Grey(rai, numBoxes, minQ, maxQ, scanningType, colorModelType, pixelPercentage, dlgProgress, statusService);	
-			plot_method="3D Generalised dimensions";
+			
+			//D1
+			gd3DMass = new GeneralisedDim3D_Grey(rai, numBoxes, minQ, maxQ, scanningType, colorModelType, pixelPercentage, dlgProgress, statusService);	
+			
+			//Db mass
+			bc3DMass  = new BoxCounting3D_Grey(rai, numBoxes, scanningType, colorModelType, dlgProgress, statusService);
+			
+			//*********create boundary image
+			//Compute erode image
+			RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
+			Runtime runtime  = Runtime.getRuntime();
+			long maxMemory   = runtime.maxMemory();
+			long totalMemory = runtime.totalMemory();
+			long freeMemory  = runtime.freeMemory();
+			int availableProcessors = runtime.availableProcessors();
+			//System.out.println("available processors: " + availableProcessors);
+			
+			int numThreads = 6; //For erosion //with 6 it was 3 times faster than only with one thread
+			if (numThreads > availableProcessors) numThreads = availableProcessors;
+
+			long[] pos = new long[3];
+			int pixelValueImgOrig;
+			float pixelValueImgTemp;
+			
+			imgFloat = createImgFloat(rai);
+			imgTemp = Erosion.erode(imgFloat, kernel, numThreads); //eroded image
+			//uiService.show("Eroded image", imgTemp);
+			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+			//subtraction ImgOrig - ImgErode
+			cursorF = imgTemp.localizingCursor();
+			while (cursorF.hasNext()) {
+				cursorF.fwd();
+				cursorF.localize(pos);
+				ra.setPosition(pos);
+				pixelValueImgTemp = ((FloatType) cursorF.get()).get();    //eroded image
+				pixelValueImgOrig = ((UnsignedByteType) ra.get()).getInteger(); //original image
+				// Binary Image: 0 and [1, 255]! and not: 0 and 255
+				if ((pixelValueImgOrig > 0) && (pixelValueImgTemp == 0)) {
+					((FloatType) cursorF.get()).set(255f);					
+				} else {
+					((FloatType) cursorF.get()).set(0f);		
+				}
+			}
+			//uiService.show("Boundary image", imgTemp);
+			
+			//Db boundary
+			bc3DPerim = new BoxCounting3D_Grey(imgTemp, numBoxes, scanningType, colorModelType, dlgProgress, statusService);
+			plot_method="3D - Double Log Plots - fractal fragmentation indices";
 			xAxis = "ln(Box size)";
 			yAxis = "ln(Count)";
-		
+			
 			//******************************************************************************************************************************************
+			
 			
 		} else if (imageType.equals("RGB")) { // RGB image  //additional check, is already checked during validation of active dataset
 		
 			//no method implemented
 
 		}
+			
+		int numQ = maxQ - minQ + 1;
+		double[][] totalsGen         = new double[numQ][numBoxes]; //several Generalised dims will be computed but only one will be taken in the end
+		double[]   totalsMass        = new double[numBoxes];
+		double[]   totalsBoundary    = new double[numBoxes];
+		double[]   eps               = new double[numBoxes];
 		
-		int[] eps         = gd3D.calcEps();
-		double[][] totals = gd3D.calcTotals();
+		eps            = bc3DMass.calcEps();
+		logService.info(this.getClass().getName() + " Processing of D1.....");
+		totalsGen      = gd3DMass.calcTotals();
+		logService.info(this.getClass().getName() + " Processing of Dmass.....");
+		totalsMass     = bc3DMass.calcTotals();
+		logService.info(this.getClass().getName() + " Processing of Dboundary.....");
+		totalsBoundary = bc3DPerim.calcTotals();
 		
-		if (eps == null || totals == null) return null;
+		if (eps == null || totalsGen == null || totalsMass == null || totalsBoundary  == null) return null;
 		
-		double[]   lnEps    = new double[numBoxes];
-		double[][] lnTotals = new double[numQ][numBoxes];
+		//Computing log values for plot 
+		//Change sequence of entries to start with a pixel
+		double[][] lnTotalsGen      = new double[numQ][numBoxes];
+		double[]   lnTotalsMass     = new double[numBoxes];
+		double[]   lnTotalsBoundary = new double[numBoxes];
+		double[]   lnEps            = new double[numBoxes];
 	
-		//logService.info(this.getClass().getName() + " 3D Box counting");
+		//logService.info(this.getClass().getName() + " 3D FFI 6 FFDI");
 		//logService.info(this.getClass().getName() + " lnEps: \t  lnTotals:");	
-		for (int n = 0; n < eps.length; n++) {
-			lnEps[n]    = Math.log(eps[n]);
-			for (int q = 0; q < numQ; q++) {
-				//logService.info(this.getClass().getName() +  "n: " + n + "  q: " + (q + minQ) + "    totals[q][n]: "+ totals[q][n]);
-				if (totals[q][n] == 0)
-					totals[q][n] = Double.MIN_VALUE; // damit logarithmus nicht undefiniert ist
-				if ((q + minQ) != 1)
-					lnTotals[q][n] = Math.log(totals[q][n]);
-				if ((q + minQ) == 1)
-					lnTotals[q][n] = totals[q][n];
-			}
-			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n] );
-			//logService.info(this.getClass().getName() + " n:" + n + " totals[n]: " + totals[n]);
+
+		for (int n = 0; n < numBoxes; n++) {
+				for (int q = 0; q < numQ; q++) {
+					if (totalsGen[q][n] == 0) {
+						totalsGen[q][n] = Double.MIN_VALUE;
+					} else if (Double.isNaN(totalsGen[q][n])) {
+						totalsGen[q][n] = Double.NaN;
+					}
+					if ((q + minQ) != 1)
+						lnTotalsGen[q][n] = Math.log(totalsGen[q][n]);
+					if ((q + minQ) == 1) //D1
+						lnTotalsGen[q][n] = totalsGen[q][n];			
+				}
+				//Dmass
+				if (totalsMass[n] == 0) {
+					lnTotalsMass[n] = Math.log(Double.MIN_VALUE);
+				} else if (Double.isNaN(totalsMass[n])) {
+					lnTotalsMass[n] = Double.NaN;
+				} else {
+					lnTotalsMass[n] = Math.log(totalsMass[n]);
+				}
+				//Dboundary
+				if (totalsBoundary[n] == 0) {
+					lnTotalsBoundary[n] = Math.log(Double.MIN_VALUE);
+				} else if (Double.isNaN(totalsBoundary[n])) {
+					lnTotalsBoundary[n] = Double.NaN;
+				} else {
+					lnTotalsBoundary[n] = Math.log(totalsBoundary[n]);
+				}
+				
+				lnEps[n] = Math.log(eps[n]);
+				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
+				//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n]);
+				//logService.info(this.getClass().getName() + " n:" + n + " totalsMass[n]: " + totalsMass[n]);
 		}
 				
-		//Create double log plot	
-		if (optShowDoubleLogPlot) {
-			boolean isLineVisible = false; //?				
-			String[] legendLabels = new String[numQ];
-			for (int q = 0; q < numQ; q++) {
-				legendLabels[q] = "q=" + (q + minQ); 
-			}
-			if ((imageType.equals("Grey")) || (imageType.equals("RGB"))) { //both are OK
-				String preName = "Volume-";
-				CsajPlot_RegressionFrame doubleLogPlot = DisplayMultipleRegressionPlotXY(lnEps, lnTotals, isLineVisible,"Double log plot - 3D Generalised dimensions", 
-						preName + datasetName, xAxis, yAxis, legendLabels,
-						numRegStart, numRegEnd);
-				doubleLogPlotList.add(doubleLogPlot);
-			}
-			else {
+		//Create double log plot
+		boolean isLineVisible = false; //?
+				
+		// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		double[]   lnDataX  = new double[numBoxes];
+		double[][] lnDataY  = new double[3][numBoxes]; //for D1, Dmass Dboundary
 	
-			}
+		for (int n = 0; n < numBoxes; n++) {
+			//Take only one dimension out of the gneralized dimensions
+			lnDataY[0][n]  = lnTotalsGen[1][n];	 //Index 1 for D1 (BUT ONLY IF minQ = 0  !!!!!!!!!)
+			lnDataY[1][n]  = lnTotalsMass[n];	
+			lnDataY[2][n]  = lnTotalsBoundary[n];	
+			lnDataX[n]     = lnEps[n];
 		}
-		
-		// Compute regressions
-		for (int q = 0; q < numQ; q++) {
-			CsajRegression_Linear lr = new CsajRegression_Linear();
-			regressionParams[q] = lr.calculateParameters(lnEps, lnTotals[q], numRegStart, numRegEnd);
-			//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		}
-		
-		// Compute   Dq's
-		double [] genDimList = new double[numQ];
-		double [] qList   = new double[numQ];
-		for (int q = 0; q < numQ; q++) {
-			qList[q] = q + minQ;
-			if (qList[q] == 1) genDimList[q] = regressionParams[q][1]; //Slope
-			else               genDimList[q] = regressionParams[q][1]/(qList[q] - 1);
-		}
-		
-		if (optShowDqPlot) {	
-			boolean isLineVisible = false; //?
-			String preName = "Volume-";
-			String axisNameX = "q";
-			String axisNameY = "Dq";
-		
-			CsajPlot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, genDimList, isLineVisible, "Generalised dimensions", 
-					preName + datasetName, axisNameX, axisNameY, "");
-			genDimPlotList.add(dimGenPlot);
-		}
-		
-		if (optShowFSpectrum) {		
-			// see Vicsek Fractal Growth Phenomena p55
-			boolean isLineVisible = false; //?
-			String preName = "Volume-";
-			String axisNameX = "alpha";
-			String axisNameY = "f";
-		
-			double[] alphas = new double[numQ];
-			double[] fSpec  = new double[numQ];
-			//first point
-			alphas[0] = (((qList[1] - 1)*genDimList[1]) - ((qList[0] - 1)*genDimList[0])) / 1.0;
-			for (int q = 1; q < numQ-1; q++) {
-				alphas[q] = (((qList[q+1] - 1)*genDimList[q+1]) - ((qList[q-1] - 1)*genDimList[q-1])) / 2.0;	
-			}
-			//Last point
-			alphas[numQ-1] = (((qList[numQ-1] - 1)*genDimList[numQ-1]) - ((qList[numQ-2] - 1)*genDimList[numQ-2]))  /1.0;
+		// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
+		// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
+	
+		if (optShowPlot) {	
+			logService.info(this.getClass().getName() + " Prepare double log plot......");
+			String preName = "";
+			String xAxisLabel = "";
+			if      (fractalDimType.equals("Box counting")) xAxisLabel = "ln(Box size)";
+			else if (fractalDimType.equals("Pyramid"))      xAxisLabel = "ln(2^n)";
+			String yAxisLabel = "ln(Count)";
 			
-			for (int q = 0; q < numQ; q++) {
-				fSpec[q] = qList[q]*alphas[q] - ((qList[q]-1)*genDimList[q]);
-			}
-			CsajPlot_SequenceFrame fSpecPlot = DisplaySinglePlotXY(alphas, fSpec, isLineVisible, "f spectrum", 
-					preName + datasetName, axisNameX, axisNameY, "");
-			fSpecPlotList.add(fSpecPlot);
+			String[] legendLabels = new String[3];
+			legendLabels[0] = "D1";
+			legendLabels[1] = "D Mass";
+			legendLabels[2] = "D Boundary";
+			
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double Log Plots - fractal fragmentation indices", 
+					preName + datasetName, xAxisLabel, yAxisLabel, legendLabels,
+					numRegStart, numRegEnd);
+			doubleLogPlotList.add(doubleLogPlot);
+		}
+				
+		// Compute regressions
+		logService.info(this.getClass().getName() + " Computing of regressions.....");
+		CsajRegression_Linear lr = new CsajRegression_Linear();
+		double[] regressionParamsD1 = lr.calculateParameters(lnDataX, lnDataY[0], numRegStart, numRegEnd);
+		lr = new CsajRegression_Linear();
+		double[] regressionParamsMass = lr.calculateParameters(lnDataX, lnDataY[1], numRegStart, numRegEnd);
+		lr = new CsajRegression_Linear();
+		double[] regressionParamsPerim = lr.calculateParameters(lnDataX, lnDataY[2], numRegStart, numRegEnd);
+		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+		
+		regressionParams = new double[regressionParamsD1.length + regressionParamsMass.length + regressionParamsPerim.length]; 
+		for (int r = 0; r < regressionParamsD1.length; r++) {
+			regressionParams[r] = regressionParamsD1[r];
+		}
+		for (int r = 0; r < regressionParamsMass.length; r++) {
+			regressionParams[r + regressionParamsD1.length] = regressionParamsMass[r];
+		}
+		for (int r = 0; r < regressionParamsPerim.length; r++) {
+			regressionParams[r + regressionParamsD1.length + regressionParamsMass.length] = regressionParamsPerim[r];
 		}
 		
 		//Compute result values
 		resultValues = regressionParams;
-		for (int q = 0; q < numQ; q++) {
-			//Compute dimension
-			double dim = Double.NaN;
-			if ((q + minQ) == 1) dim = regressionParams[q][1]; //Slope
-			else                 dim = regressionParams[q][1]/(q + minQ - 1);
-			if ((q + minQ) == 2) logService.info(this.getClass().getName() + " 3D Dq=2: " + dim);
-			resultValues[q][1] = dim;
-		} //q
-			
+		double dimD1    = Double.NaN;
+		double dimMass  = Double.NaN;
+		double dimPerim = Double.NaN;
+		dimD1    =  regressionParams[1]; //Slope for D1
+		dimMass  = -regressionParams[6];
+		dimPerim = -regressionParams[11];	
+		resultValues[1]  = dimD1;
+		resultValues[6]  = dimMass;
+		resultValues[11] = dimPerim;
+		//logService.info(this.getClass().getName() + " D mass: " + dimMass); //do this in processSingleInputVolume()
+				
 		epsRegStartEnd[0] = eps[numRegStart-1];
 		epsRegStartEnd[1] = eps[numRegEnd-1];
 	
 		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
-		// Output
-		// uiService.show("Table - 3D Generalised dimensions", table);
+		//Output
+		//uiService.show(TABLE_OUT_NAME, table);
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
+		//table
 	}
-
-	// This method shows the double log plot
-	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int numRegStart, int numRegEnd) {
-		if (imageType.equals("Grey")) {
-			if (lnDataX == null) {
-				logService.info(this.getClass().getName() + " lnDataX == null, cannot display the plot!");
-				return;
-			}
-			if (lnDataY == null) {
-				logService.info(this.getClass().getName() + " lnDataY == null, cannot display the plot!");
-				return;
-			}
-			if (numRegStart >= numRegEnd) {
-				logService.info(this.getClass().getName() + " numRegStart >= numRegEnd, cannot display the plot!");
-				return;
-			}
-			if (numRegEnd <= numRegStart) {
-				logService.info(this.getClass().getName() + " numRegEnd <= numRegStart, cannot display the plot!");
-				return;
-			}
-			// String preName = "";
-			if (preName == null) {
-				preName = "Volume-";
-			} else {
-				preName = "Volume-";
-			}
-			boolean isLineVisible = false; // ?
-			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-					"Double log plot - 3D Generalised dimensions", preName + datasetName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
-			doubleLogPlotList.add(doubleLogPlot);
-		}
-		if (!imageType.equals("Grey")) {
-
-		}
-	}
-	
 
 	/**
 	 * Displays a regression plot in a separate window.
-	 * <p>
-	 * 
-	 *
-	 * </p>
-	 * 
-	 * @param dataX                 data values for x-axis.
-	 * @param dataY                 data values for y-axis.
-	 * @param isLineVisible         option if regression line is visible
-	 * @param frameTitle            title of frame
-	 * @param plotLabel             label of plot
-	 * @param xAxisLabel            label of x-axis
-	 * @param yAxisLabel            label of y-axis
-	 * @param numRegStart                minimum value for regression range
-	 * @param numRegEnd                maximal value for regression range
-	 * @param optDeleteExistingPlot option if existing plot should be deleted before
-	 *                              showing a new plot
-	 * @param interpolType          The type of interpolation
-	 * @return RegressionPlotFrame
-	 */
-	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
-			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel,String legendLabel,
-			int numRegStart, int numRegEnd) {
-		// jFreeChart
-		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabel, numRegStart, numRegEnd);
-		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		pl.pack();
-		// int horizontalPercent = 5;
-		// int verticalPercent = 5;
-		// RefineryUtilities.positionFrameOnScreen(pl, horizontalPercent,
-		// verticalPercent);
-		// CommonTools.centerFrameOnScreen(pl);
-		pl.setVisible(true);
-		return pl;
-	}
-
-	/**
-	 * Displays a multiple regression plot in a separate window.
 	 * <p>
 	 *		
 	 *
@@ -1194,42 +1245,11 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	 * @param interpolType The type of interpolation
 	 * @return RegressionPlotFrame
 	 */			
-	private CsajPlot_RegressionFrame DisplayMultipleRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
 		// jFreeChart
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabels, numRegStart, numRegEnd);
-		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		pl.pack();
-		// int horizontalPercent = 5;
-		// int verticalPercent = 5;
-		// RefineryUtilities.positionFrameOnScreen(pl, horizontalPercent,
-		// verticalPercent);
-		//CommonTools.centerFrameOnScreen(pl);
-		pl.setVisible(true);
-		return pl;
-		
-	}
-	
-	/**
-	 * Displays a single plot in a separate window.
-	 * @param dataX
-	 * @param dataY
-	 * @param isLineVisible
-	 * @param frameTitle
-	 * @param plotLabel
-	 * @param xAxisLabel
-	 * @param yAxisLabel
-	 * @param legendLabel
-	 * @param numRegStart
-	 * @param numRegEnd
-	 * @return
-	 */
-	private CsajPlot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
-			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
-		// jFreeChart
-		CsajPlot_SequenceFrame pl = new CsajPlot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabel);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;
@@ -1243,13 +1263,13 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 	
 	/**
 	 * 
-	 * This methods creates a Img<FloatType>
+	 * This methods creates an Img<BitType>
 	 */
-	private Img<FloatType > createImgFloat(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
+	private Img<BitType > createImgBit(RandomAccessibleInterval<?> rai){ //rai must always be a single 3D volume
 		
-		imgFloat = new ArrayImgFactory<>(new FloatType()).create(rai.dimension(0), rai.dimension(1)); //always single 2D
-		Cursor<FloatType> cursor = imgFloat.localizingCursor();
-		final long[] pos = new long[imgFloat.numDimensions()];
+		imgBit = new ArrayImgFactory<>(new BitType()).create(rai.dimension(0), rai.dimension(1), rai.dimension(2)); //always single 3D volume
+		Cursor<BitType> cursor = imgBit.localizingCursor();
+		final long[] pos = new long[imgBit.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursor.hasNext()){
 			cursor.fwd();
@@ -1264,11 +1284,29 @@ public class Csaj3DFracDimGeneralisedCommand<T extends RealType<T>> extends Cont
 			//	ra.setPosition(s, 2);
 			//}
 			//ra.get().setReal(cursor.get().get());
+			if (ra.get().getRealFloat() > 0) cursor.get().setOne();
+		}	
+		return imgBit;
+	}
+
+	/**
+	 * 
+	 * This methods creates an Img<FloatType>
+	 */
+	private Img<FloatType > createImgFloat(RandomAccessibleInterval<?> rai){ //rai must always be a single 3D volume
+		
+		imgFloat = new ArrayImgFactory<>(new FloatType()).create(rai.dimension(0), rai.dimension(1), rai.dimension(2)); //always single 3D
+		Cursor<FloatType> cursor = imgFloat.localizingCursor();
+		final long[] pos = new long[imgFloat.numDimensions()];
+		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
+		while (cursor.hasNext()){
+			cursor.fwd();
+			cursor.localize(pos);
+			ra.setPosition(pos);
 			cursor.get().setReal(ra.get().getRealFloat());
-		}
+		}	
 		return imgFloat;
 	}
-	
 
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {

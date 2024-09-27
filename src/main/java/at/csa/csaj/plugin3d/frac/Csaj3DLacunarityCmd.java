@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DFracDimHiguchi3DCommand.java
+ * File: Csaj3DLacunarityCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,8 +26,7 @@
  * #L%
  */
 
-
-package at.csa.csaj.command;
+package at.csa.csaj.plugin3d.frac;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -35,8 +34,8 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,9 +48,11 @@ import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -61,19 +62,13 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
-import org.scijava.table.BoolColumn;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
@@ -82,44 +77,35 @@ import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
-import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin3d.frac.util.Higuchi3DMethods;
-import at.csa.csaj.plugin3d.frac.util.Higuchi3D_Grey_DirDiff;
-import at.csa.csaj.plugin3d.frac.util.Higuchi3D_Grey_MultDiff;
-import at.csa.csaj.plugin3d.frac.util.Higuchi3D_Grey_SqrDiff;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
+import at.csa.csaj.plugin3d.frac.util.Lacunarity3DMethods;
+import at.csa.csaj.plugin3d.frac.util.Lacunarity3D_Grey;
 
 /**
- * A {@link ContextCommand} plugin computing <the 3D Higuchi dimension</a>
+ * A {@link ContextCommand} plugin computing <the 3D Lacunarity</a>
  * of an image volume.
  */
 @Plugin(type = ContextCommand.class,
-headless = true,
-label = "3D Higuchi dimension",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+	headless = true,
+	label = "3D Lacunarity",
+	initializer = "initialPluginLaunch",
+	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+	menu = {})
 
-	private static final String PLUGIN_LABEL            = "Computes fractal dimension with Higuchi 3D algorithms";
+public class Csaj3DLacunarityCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "Computes 3D Lacunarity";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
-	private static final String METHODOPTIONS_LABEL     = "<html><b>Method</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
-	//private static Img<FloatType> imgFloat;
+
+	private static Img<FloatType> imgFloat; 
+	private static RandomAccess<?> ra;
+	private static Cursor<?> cursor = null;
 	private static String datasetName;
 	private static long width = 0;
 	private static long height = 0;
@@ -129,10 +115,10 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 	private static int numVolumes = 0;
 	private static long compositeChannelCount = 0;
 	private static String imageType = "";
-	private static int  numKMax = 0;
+	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
-	
-	public static final String TABLE_OUT_NAME = "Table - 3D Higuchi dimension";
+
+	public static final String TABLE_OUT_NAME = "Table - 3D Lacunarities";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -194,43 +180,95 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "k", description = "Maximal delay between data points", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialKMax", callback = "callbackKMax")
-	private int spinnerInteger_KMax;
-
-	@Parameter(label = "Regression Start", description = "Minimum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "1", max = "32768", stepSize = "1",
-			   persist = false, //restore previous value default = true
-			   initializer = "initialNumRegStart", callback = "callbackNumRegStart")
-	private int spinnerInteger_NumRegStart = 1;
-
-	@Parameter(label = "Regression End", description = "Maximum x value of linear regression", style = NumberWidget.SPINNER_STYLE, min = "3", max = "32768", stepSize = "1",
-			   persist = false, //restore previous value default = true
-			   initializer = "initialNumRegEnd", callback = "callbackNumRegEnd")
-	private int spinnerInteger_NumRegEnd = 8;
+	@Parameter(label = "Number of boxes",
+    		   description = "Number of distinct box sizes following the power of 2",
+	       	   style = NumberWidget.SPINNER_STYLE,
+	           min = "1",
+	           max = "32768",
+	           stepSize = "1",
+	           persist = false,  //restore previous value default = true
+	           initializer = "initialNumBoxes",
+	           callback    = "callbackNumBoxes")
+    private int spinnerInteger_NumBoxes;
+    
+//    @Parameter(label = "Regression Start",
+//    		   description = "Minimum x value of linear regression",
+// 		       style = NumberWidget.SPINNER_STYLE,
+// 		       min = "1",
+// 		       max = "32768",
+// 		       stepSize = "1",
+// 		       persist = false,   //restore previous value default = true
+// 		       initializer = "initialNumRegStart",
+// 		       callback = "callbackNumRegStart")
+//    private int spinnerInteger_NumRegStart = 1;
+// 
+//    @Parameter(label = "Regression End",
+//    		   description = "Maximum x value of linear regression",
+//    		   style = NumberWidget.SPINNER_STYLE,
+//		       min = "3",
+//		       max = "32768",
+//		       stepSize = "1",
+//		       persist = false,   //restore previous value default = true
+//		       initializer = "initialNumRegEnd",
+//		       callback = "callbackNumRegEnd")
+//     private int spinnerInteger_NumRegEnd = 3;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelMethod = METHODOPTIONS_LABEL;
 
-	@Parameter(label = "Method", description = "Type of Higuchi 3D algorithm", style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE, choices = {
-			   "Multiplicated differences",														   
-			   "Squared differences",
-			   "Direct differences",
-			   },
-			   persist = true, //restore previous value default = true
-			   initializer = "initialMethod", callback = "callbackMethod")
-	private String choiceRadioButt_Method;
+    @Parameter(label = "Scanning method",
+    		    description = "Type of 3D box scanning",
+    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+      		    choices = {"Raster box"},//, "Sliding box", "Tug of war"}, //3D Sliding box is implemented but very long lasting 
+      		    persist = true,  //restore previous value default = true
+    		    initializer = "initialScanningType",
+                callback = "callbackScanningType")
+    private String choiceRadioButt_ScanningType;
+     
+    @Parameter(label = "Color model",
+ 		    description = "Type of image and computation",
+ 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		    choices = {"Binary", "Grey"}, //, "DBC", "RDBC"},
+   		    persist = true,  //restore previous value default = true
+ 		    initializer = "initialColorModelType",
+             callback = "callbackColorModelType")
+    private String choiceRadioButt_ColorModelType;
+    
+//    Only for sliding box option
+    @Parameter(label = "(Sliding box) Pixel %",
+    		   description = "% of image pixels to be taken - to lower computation times",
+  	       	   style = NumberWidget.SPINNER_STYLE,
+  	           min = "1",
+  	           max = "100",
+  	           stepSize = "1",
+  	           //persist = false,  //restore previous value default = true
+  	           initializer = "initialPixelPercentage",
+  	           callback    = "callbackPixelPercentage")
+    private int spinnerInteger_PixelPercentage;
+//    
+//    @Parameter(label = "(Tug of war) Accuracy",
+//		       description = "Accuracy (default=90)",
+//	       	   style = NumberWidget.SPINNER_STYLE,
+//	           min = "1",
+//	           max = "99999999999999",
+//	           stepSize = "1",
+//	           persist = true,  //restore previous value default = true
+//	           initializer = "initialNumAccuracy",
+//	           callback    = "callbackNumAccuracy")
+//    private int spinnerInteger_NumAcurracy;
+//
+//    @Parameter(label = "(Tug of war) Confidence",
+//		       description = "Confidence (deafault=15)",
+//	       	   style = NumberWidget.SPINNER_STYLE,
+//	           min = "1",
+//	           max = "99999999999999",
+//	           stepSize = "1",
+//	           persist = true,  //restore previous value default = true
+//	           initializer = "initialNumConfidence",
+//	           callback    = "callbackNumConfidence")
+//    private int spinnerInteger_NumConfidence;
 
-	//-----------------------------------------------------------------------------------------------------
-	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
-	
-	@Parameter(label = "Skip zero values",
-			   persist = true,
-		       callback = "callbackSkipZeroes")
-	private boolean booleanSkipZeroes;
-	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
@@ -277,54 +315,49 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 		checkItemIOIn();
 	}
 	
-	protected void initialKMax() {
-		if (datasetIn == null) {
+    protected void initialNumBoxes() {
+    	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
     		cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
     		return;
     	} else {
-    		numKMax = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
+    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1), datasetIn.dimension(2));
     	}
-		spinnerInteger_KMax = numKMax;
-	}
-
-	protected void initialNumRegStart() {
-		spinnerInteger_NumRegStart = 1;
-	}
-
-	protected void initialNumRegEnd() {
-		if (datasetIn == null) {
-    		logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
-    		cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
-    		return;
-    	} else {
-    		numKMax = (int) Math.floor((Math.min(datasetIn.dimension(0), datasetIn.dimension(1))) / 3.0);
-    	}
-	}
-
-	protected void initialMethod() {
-		choiceRadioButt_Method = "Direct differences";
-		//Check if Image type and selected Method fits together 	
-		if (imageType.equals("Grey")) {// grey image
-			if	(false){
-				Result result = uiService.showDialog("An RGB algorithm cannot be applied to gray image volumes!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
-			}
-		}	
-		if (imageType.equals("RGB")) {// RGB image
-			//******************************************************************************************************
-			if  ( (choiceRadioButt_Method.equals("Multiplicated differences"))
-				||(choiceRadioButt_Method.equals("Squared differences"))
-				||(choiceRadioButt_Method.equals("Direct differences")) )
-			{
-				Result result = uiService.showDialog("A grey value algorithm cannot be applied to RGB image volumes!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
-			}
-		}
-	}
-
+      	spinnerInteger_NumBoxes = numBoxes;
+    }
+//    protected void initialNumRegStart() {
+//    	spinnerInteger_NumRegStart = 1;
+//    }
+//    protected void initialNumRegEnd() {
+//    	if (datasetIn == null) {
+//			logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
+//			cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
+//			return;
+//	  	} else {
+//			numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1), datasetIn.dimension(2));
+//	  	}
+//    	spinnerInteger_NumRegEnd =  numBoxes;
+//    }
+	
+    protected void initialScanningType() {
+    	choiceRadioButt_ScanningType = "Raster box";
+    }
+    protected void initialColorModelType() {
+    	choiceRadioButt_ColorModelType = "Binary";
+    }
+    protected void initialPixelPercentage() {
+      	spinnerInteger_PixelPercentage = 10;
+    }
+//    protected void initialNumAccuracy() {
+//    	spinnerInteger_NumAcurracy = 90; //s1=30 Wang paper
+//    }
+//    
+//    protected void initialNumConfidence() {
+//    	spinnerInteger_NumConfidence = 15; //s2=5 Wang paper
+//    }
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
 	}
-	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
 	}
@@ -336,73 +369,86 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 	// ------------------------------------------------------------------------------
 	
 
-	/** Executed whenever the {@link #spinnerInteger_KMax} parameter changes. */
-	protected void callbackKMax() {
+	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
+	protected void callbackNumBoxes() {
+		
+		if  (spinnerInteger_NumBoxes < 3) {
+			spinnerInteger_NumBoxes = 3;
+		}
+		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1), datasetIn.dimension(2));	
+		if (spinnerInteger_NumBoxes > numMaxBoxes) {
+			spinnerInteger_NumBoxes = numMaxBoxes;
+		};
+//		if (spinnerInteger_NumRegEnd > spinnerInteger_NumBoxes) {
+//			spinnerInteger_NumRegEnd = spinnerInteger_NumBoxes;
+//		}
+//		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
+//			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
+//		}
 
-		if (spinnerInteger_KMax < 3) {
-			spinnerInteger_KMax = 3;
-		}
-		if (spinnerInteger_KMax > numKMax) {
-			spinnerInteger_KMax = numKMax;
-		}
-		if (spinnerInteger_NumRegEnd > spinnerInteger_KMax) {
-			spinnerInteger_NumRegEnd = spinnerInteger_KMax;
-		}
-		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
-			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
-		}
-		logService.info(this.getClass().getName() + " k set to " + spinnerInteger_KMax);
+		numBoxes = spinnerInteger_NumBoxes;
+		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
+//    /** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
+//	protected void callbackNumRegStart() {
+//		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
+//			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
+//		}
+//		if(spinnerInteger_NumRegStart < 1) {
+//			spinnerInteger_NumRegStart = 1;
+//		}
+//		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_NumRegStart);
+//	}
+//	/** Executed whenever the {@link #spinnerInteger_NumRegEnd} parameter changes. */
+//	protected void callbackNumRegEnd() {
+//		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
+//			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
+//		}		
+//		if (spinnerInteger_NumRegEnd > spinnerInteger_NumBoxes) {
+//			spinnerInteger_NumRegEnd = spinnerInteger_NumBoxes;
+//		}
+//		
+//		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
+//	}
 
-	/** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
-	protected void callbackNumRegStart() {
-		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
-			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
-		}
-		if (spinnerInteger_NumRegStart < 1) {
-			spinnerInteger_NumRegStart = 1;
-		}
-		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_NumRegStart);
-	}
-
-	/** Executed whenever the {@link #spinnerInteger_NumRegEnd} parameter changes. */
-	protected void callbackNumRegEnd() {
-		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
-		}
-		if (spinnerInteger_NumRegEnd > spinnerInteger_KMax) {
-			spinnerInteger_NumRegEnd = spinnerInteger_KMax;
-		}
-
-		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_NumRegEnd);
-	}
-
-	/** Executed whenever the {@link #choiceRadioButt_Method} parameter changes. */
-	protected void callbackMethod() {
-		//Check if Image type and selected Method fits together 	
-		if (imageType.equals("Grey")) {// grey image
-			if	(false){
-				Result result = uiService.showDialog("An RGB algorithm cannot be applied to gray image volumes!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
-			}
-		}	
-		if (imageType.equals("RGB")) {// RGB image
-			//******************************************************************************************************
-			if  ( (choiceRadioButt_Method.equals("Multiplicated differences"))
-				||(choiceRadioButt_Method.equals("Squared differences"))
-				||(choiceRadioButt_Method.equals("Direct differences")) )
-			{
-				Result result = uiService.showDialog("A grey value algorithm cannot be applied to RGB image volumes!", "Alert", MessageType.WARNING_MESSAGE, OptionType.DEFAULT_OPTION);
+	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
+	protected void callbackScanningType() {
+		if (choiceRadioButt_ScanningType.equals("Tug of war")) {
+			if (choiceRadioButt_ColorModelType.equals("Grey")) {
+				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
+				choiceRadioButt_ColorModelType = "Binary";
 			}
 		}
-		logService.info(this.getClass().getName() + " Method set to " + choiceRadioButt_Method);
+		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
+		
 	}
 	
-	
-	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
-	protected void callbackSkipZeroes() {
-		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+	protected void callbackColorModelType() {
+		if (choiceRadioButt_ScanningType.equals("Tug of war")) {
+			if (choiceRadioButt_ColorModelType.equals("Grey")) {
+				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
+				choiceRadioButt_ColorModelType = "Binary";
+			}
+		}
+		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
 	}
-
+	
+	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
+	protected void callbackPixelPercentage() {
+		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
+	}
+	
+//	/** Executed whenever the {@link #spinnerInteger_NumAccuracy} parameter changes. */
+//	protected void callbackNumAccuracy() {
+//		logService.info(this.getClass().getName() + " Accuracy set to " + spinnerInteger_NumAcurracy);
+//	}
+//	
+//	/** Executed whenever the {@link #spinnerInteger_NumConfidence} parameter changes. */
+//	protected void callbackNumConfidence() {
+//		logService.info(this.getClass().getName() + " Confidence set to " + spinnerInteger_NumConfidence);
+//	}
+	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
@@ -508,83 +554,36 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForSingleVolume();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		startWorkflowForSingleVolume();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
-			cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
-			return;
-		}
-
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
+		//Define supported image types for this plugin
+		String[] supportedImageTypes = {"Grey"};
+		//String[] supportedImageTypes = {"RGB"};
+		//String[] supportedImageTypes = {"Grey", "RGB"};
+		
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 3D plugin cannot be started - Initial check failed.");
 		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 3D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions = datasetIn.numDimensions();
-	
-		//compositeChannelCount = datasetIn.getImgPlus().getCompositeChannelCount(); //1  Grey,   3 RGB
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-
-		// get the name of dataset
-		datasetName = datasetIn.getName();
-		
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-  	
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size = " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: " + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		
-		//RGB not allowed
-		if (!imageType.equals("Grey")) { 
-			logService.warn(this.getClass().getName() + " WARNING: Grey value image volume expected!");
-			cancel("ComsystanJ 3D plugin cannot be started - grey value image volume expected!");
-		}
-		//Image volume expected
-		if (numSlices == 1) { 
-			logService.warn(this.getClass().getName() + " WARNING: Single image instead of image volume detected");
-			cancel("ComsystanJ 3D plugin cannot be started - image volume expected!");
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			depth  =       			(long)datasetInInfo.get("depth");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			//sliceLabels = 		(String[])datasetInInfo.get("sliceLabels");
 		}
 	}
 
@@ -593,7 +592,7 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Higuchi3D dimension, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Lacunarity, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -601,9 +600,9 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
     
 		deleteExistingDisplays();
     	generateTableHeader();
-    	logService.info(this.getClass().getName() + " Processing volume...");
+        logService.info(this.getClass().getName() + " Processing volume...");
 		processSingleInputVolume();
-	
+		
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
@@ -717,13 +716,25 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 		}
 	}
 
+
+	/** This method computes the maximal number of possible boxes*/
+	public static int getMaxBoxNumber(long width, long height, long depth) { 
+		float boxWidth = 1f;
+		int number = 1; 
+		while ((boxWidth <= width) && (boxWidth <= height) && (boxWidth <= depth)) {
+			boxWidth = boxWidth * 2;
+			number = number + 1;
+		}
+		return number - 1;
+	}
+
 	/** This method takes the active image volume and computes results. 
 	 *
 	 **/
 	private void processSingleInputVolume() {
 		
 		long startTime = System.currentTimeMillis();
-
+	
 		//get rai
 		RandomAccessibleInterval<T> rai = null;	
 	
@@ -733,7 +744,7 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 		CsajContainer_ProcessMethod containerPM = process(rai); //rai is 3D
 
 		writeToTable(containerPM);
-		
+	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;
@@ -760,26 +771,36 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		GenericColumn columnFileName     = new GenericColumn("File name");
-		IntColumn columnKMax             = new IntColumn("k");
-		GenericColumn columnNumRegStart  = new GenericColumn("Reg Start");
-		GenericColumn columnNumRegEnd    = new GenericColumn("Reg End");
-		GenericColumn columnMethod       = new GenericColumn("Method");
-		BoolColumn columnSkipZeroes      = new BoolColumn("Skip zeroes");
-		DoubleColumn columnDh            = new DoubleColumn("3D Dh");
-		DoubleColumn columnR2            = new DoubleColumn("R2");
-		DoubleColumn columnStdErr        = new DoubleColumn("StdErr");
+		GenericColumn columnFileName       = new GenericColumn("File name");
+		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");;
+		//GenericColumn columnNumRegStart   = new GenericColumn("Reg Start");
+		//GenericColumn columnNumRegEnd     = new GenericColumn("Reg End");
+		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
+		GenericColumn columnColorModelType = new GenericColumn("Color model");
+		//IntColumn columnPixelPercentage    = new IntColumn("(Sliding Box) Pixel %");
+		DoubleColumn columnL_RP            = new DoubleColumn("<L>-R&P"); //weighted mean L
+		DoubleColumn columnL_SV            = new DoubleColumn("<L>-S&V");   //mean L
 
 		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
-		tableOut.add(columnKMax);
-		tableOut.add(columnNumRegStart);
-		tableOut.add(columnNumRegEnd);
-		tableOut.add(columnMethod);
-		tableOut.add(columnSkipZeroes);
-		tableOut.add(columnDh);
-		tableOut.add(columnR2);
-		tableOut.add(columnStdErr);
+		tableOut.add(columnMaxNumBoxes);
+		//tableOut.add(columnNumRegStart);
+		//tableOut.add(columnNumRegEnd);
+		tableOut.add(columnScanningType);
+		tableOut.add(columnColorModelType);
+		//tableOut.add(columnPixelPercentage);
+		tableOut.add(columnL_RP);
+		tableOut.add(columnL_SV);
+		
+		String preString = "L";
+//		int epsWidth = 1;
+//		for (int i = 0; i < numBoxes; i++) {
+//			table.add(new DoubleColumn(preString + "-" + (2*epsWidth+1) + "x" + (2*epsWidth+1)));
+//			epsWidth = epsWidth * 2;
+//		}
+		for (int n = 0; n < numBoxes; n++) {
+			tableOut.add(new DoubleColumn(preString + " " + (int)Math.round(Math.pow(2, n)) + "x" + (int)Math.round(Math.pow(2, n))));
+		}
 
 	}
 
@@ -790,22 +811,48 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 	 */
 	private void writeToTable(CsajContainer_ProcessMethod containerPM) { 
 
-		int numRegStart = spinnerInteger_NumRegStart;
-		int numRegEnd   = spinnerInteger_NumRegEnd;
-		int numKMax     = spinnerInteger_KMax;
-
+		int numBoxes = spinnerInteger_NumBoxes;
+		//int numRegStart  = spinnerInteger_NumRegStart;
+		//int numRegEnd  = spinnerInteger_NumRegEnd;
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
+		int accuracy 	      = 0; //spinnerInteger_NumAcurracy;
+		int confidence        = 0; //spinnerInteger_NumConfidence;
+		String scanningType   = choiceRadioButt_ScanningType;  //Raster box     Sliding box
+		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
+		
+		int tableColStart = 0;
+		int tableColEnd   = 0;
+		int tableColLast  = 0;
+		
 		int row = 0;
 		// fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",   row, datasetName);	
-		tableOut.set("k",           row, numKMax);
-		tableOut.set("Reg Start",   row, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-		tableOut.set("Reg End",     row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
-		tableOut.set("Method",      row, choiceRadioButt_Method);
-		tableOut.set("Skip zeroes", row, booleanSkipZeroes);
-		tableOut.set("3D Dh",       row, containerPM.item1_Values[1]);
-		tableOut.set("R2",          row, containerPM.item1_Values[4]);
-		tableOut.set("StdErr",      row, containerPM.item1_Values[3]);
+		tableOut.set("File name",		row, datasetName);	
+		tableOut.set("# Boxes",			row, numBoxes);
+		//tableOut.set("Reg Start",       row, "("+numRegStart+")" + epsRegStartEnd[0]); //(NumRegStart)epsRegStart
+		//tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + epsRegStartEnd[1]); //(NumRegEnd)epsRegEnd
+		if (scanningType.equals("Tug of war")) {
+			tableOut.set("Scanning type",   row, "Tug of war Acc" + accuracy + " Conf" + confidence);
+		}
+		else if (scanningType.equals("Sliding box")) {
+			tableOut.set("Scanning type",   row, "Sliding box "  + pixelPercentage + "%");
+		}
+		else {
+			tableOut.set("Scanning type",   row, scanningType);
+		}
+		tableOut.set("Color model",	    	row, colorModelType);
+		if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", row, pixelPercentage);	
+		tableOut.set("<L>-R&P",   		   row, containerPM.item1_Values[containerPM.item1_Values.length - 2]); //
+		tableOut.set("<L>-S&V",   		   row, containerPM.item1_Values[containerPM.item1_Values.length - 1]); //last entry	
+		tableColLast = 5;
+		
+		int numParameters = containerPM.item1_Values.length - 2; 
+		tableColStart = tableColLast + 1;
+		tableColEnd = tableColStart + numParameters;
+		for (int c = tableColStart; c < tableColEnd; c++ ) {
+			tableOut.set(c, row, containerPM.item1_Values[c-tableColStart]);
+		}	
+
 	}
 
 	/**
@@ -818,49 +865,45 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		int numRegStart      = spinnerInteger_NumRegStart;
-		int numRegEnd        = spinnerInteger_NumRegEnd;
-		int numKMax          = spinnerInteger_KMax;
-		boolean skipZeroes   = booleanSkipZeroes;
-		boolean optShowPlot  = booleanShowDoubleLogPlot;
+		//int numRegStart      = spinnerInteger_NumRegStart;
+		//int numRegEnd        = spinnerInteger_NumRegEnd;
+		int numBoxes          = spinnerInteger_NumBoxes;
+		String scanningType   = choiceRadioButt_ScanningType;    //Raster box     Sliding box
+		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
+		boolean optShowPlot   = booleanShowDoubleLogPlot;
+
+
+//		if ((!colorModelType.equals("Binary")) && (numRegStart == 1)){
+//			numRegStart = 2; //numRegStart == 1 (single pixel box is not possible for DBC algorithms)
+//		}
 
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		long depth  = rai.dimension(2);
 		
 		double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
-		double[] regressionParams = null;
-		double[] resultValues = null;
+		
+		// data array
+		int[]    eps;
+		//totals == lacunarities
+		double[]totals = new double[numBoxes + 2]; //+2 because of weighted mean L and mean L
+		for (int l = 0; l < totals.length; l++) totals[l] = Double.NaN;
 	
-		String plot_method = "3D Higuchi dimension";
+		String plot_method = "3D Lacunarities";
 		String xAxis = "ln(eps)";
 		String yAxis = "ln(Count)";
 		
-		Higuchi3DMethods hig3Method = null;
+		Lacunarity3DMethods cd3D = null;
 		
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 			//*****************************************************************************************************************************************
-			if (choiceRadioButt_Method.equals("Multiplicated differences")) {
-				hig3Method = new Higuchi3D_Grey_MultDiff(rai, numKMax, skipZeroes, dlgProgress, statusService);	
-				plot_method="Higuchi 3D - Multiplicated differences";
-				xAxis = "ln(k^3)";
-				yAxis = "ln(V(k))";
-			}
-			//******************************************************************************************************************************************
-			if (choiceRadioButt_Method.equals("Squared differences")) {
-				hig3Method = new Higuchi3D_Grey_SqrDiff(rai, numKMax, skipZeroes, dlgProgress, statusService);
-				plot_method="Higuchi 3D - Squared differences";
-				xAxis = "ln(k^2)";
-				yAxis = "ln(A(k))";
-			}
-			//******************************************************************************************************************************************
-			if (choiceRadioButt_Method.equals("Direct differences")) {
-				hig3Method = new Higuchi3D_Grey_DirDiff(rai, numKMax, skipZeroes, dlgProgress, statusService);
-				plot_method="Higuchi 3D - Direct differences";
-				xAxis = "ln(k)";
-				yAxis = "ln(L(k))";	
-			}
+			cd3D = new Lacunarity3D_Grey(rai, numBoxes, scanningType, colorModelType, pixelPercentage, dlgProgress, statusService);	
+			plot_method="3D Lacunarity";
+			xAxis = "ln(Box size)";
+			yAxis = "ln(L)";
 		
+			//******************************************************************************************************************************************
 			
 		} else if (imageType.equals("RGB")) { // RGB image  //additional check, is already checked during validation of active dataset
 		
@@ -868,60 +911,71 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 
 		}
 		
-		double[] eps    = hig3Method.calcEps();
-		double[] totals = hig3Method.calcTotals();
+		eps    = cd3D.calcEps();
+		totals = cd3D.calcTotals();
 		
-		if (eps == null || totals == null) return null;
+		if (   eps == null || totals == null) return null;
 		
-		double[] lnEps    = new double[numKMax];
-		double[] lnTotals = new double[numKMax];
-	
-		//logService.info(this.getClass().getName() + " 3D Higuchi");
-		//logService.info(this.getClass().getName() + " lnEps: \t  lnTotals:");	
-		for (int i = 0; i < eps.length; i++) {
-			lnEps[i]    = Math.log(eps[i]);
-			lnTotals[i] = Math.log(totals[i]);
-			//logService.info(this.getClass().getName() + (String.valueOf(lnEps[i]) + "\t "   + String.valueOf(lnTotals[i])));
+		//Compute weighted mean Lacunarity according to Equ.3 of Roy&Perfect, 2014, Fractals, Vol22, No3
+		//DOI: 10.1142/S0218348X14400039
+		double L_RP = 0.0;
+		double sumBoxSize = 0.0;
+		for (int n = 0; n < numBoxes; n++) {	
+			L_RP = L_RP + Math.log10(totals[n]) * Math.log10(   eps[n]);
+			sumBoxSize = sumBoxSize + Math.log10(   eps[n]);
 		}
+		totals[numBoxes] = L_RP/sumBoxSize; //append it to the list of lacunarities	
 		
-		
+		//Compute mean Lacunarity according to Equ.29 of Sengupta and Vinoy, 2006, Fractals, Vol14 No4 p271-282
+		//DOI: 10.1142/S0218348X06003313 
+		double L_SV = 0.0;
+		for (int n = 0; n < numBoxes; n++) {	
+			L_SV = L_SV + totals[n] *    eps[n];
+		}
+		totals[numBoxes + 1] = Math.log(L_SV/(   eps[numBoxes-1] -    eps[0])); //append it to the list of lacunarities	
+			
+		//prepare plot
+		double[] lnDataX = new double[numBoxes];
+		double[] lnDataY = new double[numBoxes];
+		for (int n = 0; n < numBoxes; n++) {	
+				if (totals[n] == 0) {
+					lnDataY[n]= Math.log(Float.MIN_VALUE);
+				} else {
+					lnDataY[n] = Math.log(totals[n]);
+				}
+				lnDataX[n] = Math.log(   eps[n]);
+				// System.out.println("Lacunarity: " );	
+		}
+				
 		//Create double log plot	
 		boolean isLineVisible = false; //?		
 		if (optShowPlot) {
 			if ((imageType.equals("Grey")) || (imageType.equals("RGB"))) { //both are OK
 				String preName = "Volume-";
-				CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnEps, lnTotals, isLineVisible, plot_method, 
+				CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, plot_method, 
 						preName + datasetName, xAxis, yAxis, "",
-						numRegStart, numRegEnd);
+						1, numBoxes);
 				doubleLogPlotList.add(doubleLogPlot);
 			}
 			else {
-		
+	
 			}
 		}
 		
 		// Compute regression
-		CsajRegression_Linear lr = new CsajRegression_Linear();
-
-		regressionParams = lr.calculateParameters(lnEps, lnTotals, numRegStart, numRegEnd);
+		//LinearRegression lr = new LinearRegression();
+		//regressionParams = lr.calculateParameters(lnEps, lnTotals, numRegStart, numRegEnd);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 			
-		//Compute result values
-		resultValues = regressionParams;
-		double dim = Double.NaN;	
-		dim = -regressionParams[1];
-		if (choiceRadioButt_Method.equals("Multiplicated differences")) dim = dim + 2;
-		if (choiceRadioButt_Method.equals("Squared differences"))  		dim = dim + 2;
-		if (choiceRadioButt_Method.equals("Direct differences"));       //Do nothing, slope = dim	
-		resultValues[1] = dim;
-		logService.info(this.getClass().getName() + " 3D Higuchi dimension: " + dim);
+		logService.info(this.getClass().getName() + " 3D Lacunarities[0]: " + totals[0]);
 		
-		epsRegStartEnd[0] = eps[numRegStart-1];
-		epsRegStartEnd[1] = eps[numRegEnd-1];
+		epsRegStartEnd[0] = eps[0];            //eps[numRegStart-1];
+		epsRegStartEnd[1] = eps[eps.length-1]; //eps[numRegEnd-1];
 	
-		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
+		return new CsajContainer_ProcessMethod(totals, epsRegStartEnd);
+	
 		// Output
-		// uiService.show("Table - Higuchi dimension", table);
+		// uiService.show("Table - 3D Lacunarities", table);
 	}
 
 	// This method shows the double log plot
@@ -951,7 +1005,7 @@ public class Csaj3DFracDimHiguchi3DCommand<T extends RealType<T>> extends Contex
 			}
 			boolean isLineVisible = false; // ?
 			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-					"Double log plot - 3D Higuchi dimension", preName + datasetName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
+					"Double log plot - 3D Lacunarity", preName + datasetName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
 		if (!imageType.equals("Grey")) {

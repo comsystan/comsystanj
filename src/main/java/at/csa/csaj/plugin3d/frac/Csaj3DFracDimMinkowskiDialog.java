@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimMinkowskiDialog.java
+ * File: Csaj3DFracDimMinkowskiDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.plugin2d.frac;
+package at.csa.csaj.plugin3d.frac;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -54,13 +54,14 @@ import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
 
-import at.csa.csaj.commons.CsajDialog_2DPluginWithRegression;
+import at.csa.csaj.commons.CsajDialog_3DPluginWithRegression;
+
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegression {
+public class Csaj3DFracDimMinkowskiDialog extends CsajDialog_3DPluginWithRegression {
 
-	private static final long serialVersionUID = -1971118263202932507L;
+	private static final long serialVersionUID = 4366056438586831392L;
 
 	@Parameter
 	private LogService logService;
@@ -110,7 +111,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DFracDimMinkowskiDialog(Context context, Dataset datasetIn) {
+	public Csaj3DFracDimMinkowskiDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -121,7 +122,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D Minkowski dimension");
+		setTitle("3D Minkowski dimension");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************
@@ -129,7 +130,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 	    labelShapeType.setToolTipText("Shape of morphological structuring element");
 	    labelShapeType.setHorizontalAlignment(JLabel.RIGHT);
 		
-		String options[] = {"Square", "Disk", "Diamond", "Horizontal", "Vertical"};
+		String options[] = {"Square", "Disk", "Diamond"};
 		comboBoxShapeType = new JComboBox<String>(options);
 		comboBoxShapeType.setToolTipText("Shape of morphological structuring element");
 	    comboBoxShapeType.setEditable(false);
@@ -139,7 +140,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_ShapeType = (String)comboBoxShapeType.getSelectedItem();
 				logService.info(this.getClass().getName() + " Kernel shape set to " + choiceRadioButt_ShapeType);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 			}
 		});
 	    
@@ -162,14 +163,14 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 		
 		buttonGroupMorphologicalOperator = new ButtonGroup();
 		radioButtonBinaryDilation        = new JRadioButton("Binary dilation");
-		radioButtonBlanketDilation       = new JRadioButton("Blanket dilation/erosion");
+		radioButtonBlanketDilation       = new JRadioButton("Blanket dilation/erosion"); //Grey value algorithms not ready yet
 		radioButtonVariationDilation     = new JRadioButton("Variation dilation/erosion");
 		radioButtonBinaryDilation.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				if (radioButtonBinaryDilation.isSelected())  choiceRadioButt_MorphologicalOperator = radioButtonBinaryDilation.getText();
 				logService.info(this.getClass().getName() + " Morphological operator set to " + choiceRadioButt_MorphologicalOperator);		
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 			}
 		});
 		radioButtonBlanketDilation.addActionListener(new ActionListener() {
@@ -177,7 +178,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 			public void actionPerformed(final ActionEvent arg0) {
 				if (radioButtonBlanketDilation.isSelected())  choiceRadioButt_MorphologicalOperator = radioButtonBlanketDilation.getText();
 				logService.info(this.getClass().getName() + " Morphological operator set to " + choiceRadioButt_MorphologicalOperator);
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 			}
 		});
 		radioButtonVariationDilation.addActionListener(new ActionListener() {
@@ -185,7 +186,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 			public void actionPerformed(final ActionEvent arg0) {
 				if (radioButtonVariationDilation.isSelected())  choiceRadioButt_MorphologicalOperator = radioButtonVariationDilation.getText();
 				logService.info(this.getClass().getName() + " Morphological operator set to " + choiceRadioButt_MorphologicalOperator);			
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 			}
 		});
 		buttonGroupMorphologicalOperator.add(radioButtonBinaryDilation);
@@ -228,7 +229,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 		    public void itemStateChanged(ItemEvent e) {
 		    	booleanShowLastMorphImg = checkBoxShowLastMorphImg.isSelected();
 		    	logService.info(this.getClass().getName() + " Show last dilated/eroded image option set to " + booleanShowLastMorphImg);
-		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    	if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 		    }
 		});
 		gbc.insets = INSETS_STANDARD;
@@ -246,7 +247,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of dilations");
-		//int numEpsMax = Csaj2DFracDimMinkowskiCommand.getMaxBoxNumber((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+		//int numEpsMax = Csaj3DFracDimMinkowskiCmd.getMaxBoxNumber((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
 		int numEpsMax = 999999999; 
 		spinnerModelNumEps= new SpinnerNumberModel(20, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
@@ -265,9 +266,8 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimMinkowskiCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj3DFracDimMinkowskiCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
-														"processAll",					  processAll, //true for all
 													
 														"choiceRadioButt_ShapeType",      choiceRadioButt_ShapeType,
 														"choiceRadioButt_MorphologicalOperator",  choiceRadioButt_MorphologicalOperator,
@@ -280,8 +280,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 														"booleanShowLastMorphImg",        booleanShowLastMorphImg,
 														
 														"booleanOverwriteDisplays",       booleanOverwriteDisplays,
-														"booleanProcessImmediately",	  booleanProcessImmediately,
-														"spinnerInteger_NumImageSlice",	  spinnerInteger_NumImageSlice
+														"booleanProcessImmediately",	  booleanProcessImmediately
 														);
 		CommandModule commandModule = null;
 		try {
@@ -294,7 +293,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimMinkowskiCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj3DFracDimMinkowskiCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}
