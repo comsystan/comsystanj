@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DGeneralisedEntropiesCommand.java
+ * File: Csaj3DGeneralisedEntropiesCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -27,7 +27,7 @@
  */
 
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin3d.ent;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -35,6 +35,7 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -92,6 +93,7 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_GeneralisedEntropies;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
@@ -122,21 +124,13 @@ import io.scif.MetaTable;
  * <li>SGamma  according to Amigo etal. and Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S61
  */
 @Plugin(type = ContextCommand.class,
-headless = true,
-label = "3D Generalised entropies",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj3DGeneralisedEntropiesCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "3D Generalised entropies",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {})
+
+public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Computes 3D Generalised entropies</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -176,12 +170,12 @@ public class Csaj3DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	private static float minGamma;
 	private static float maxGamma;
 	
-	private static int   stepQ;
-	private static float stepEta;
-	private static float stepKappa;
-	private static float stepB;
-	private static float stepBeta;
-	private static float stepGamma;
+	private static int   stepQ = 1;
+	private static float stepEta = 0.1f;
+	private static float stepKappa = 0.1f;
+	private static float stepB = 1.0f;
+	private static float stepBeta = 0.1f;
+	private static float stepGamma = 0.1f;
 	
 	private static int numQ;
 	private static int numEta;
@@ -688,90 +682,64 @@ public class Csaj3DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForSingleVolume();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+		
+		//Set field variables
+		minQ     = spinnerInteger_MinQ;
+		maxQ     = spinnerInteger_MaxQ;
+		minEta   = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
+		maxEta 	 = Precision.round(spinnerFloat_MaxEta, 1);
+		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
+		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
+		minB 	 = Precision.round(spinnerFloat_MinB, 1);
+		maxB 	 = Precision.round(spinnerFloat_MaxB, 1);
+		minBeta  = Precision.round(spinnerFloat_MinBeta, 1);
+		maxBeta  = Precision.round(spinnerFloat_MaxBeta, 1);
+		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
+		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
+		
+//		stepQ     = 1;
+//		stepEta   = 0.1f;
+//		stepKappa = 0.1f;
+//		stepB     = 1.0f;
+//		stepBeta  = 0.1f;
+//		stepGamma = 0.1f;
+		
+		numQ = (maxQ - minQ)/stepQ + 1;;
+		numEta = (int)((maxEta - minEta)/stepEta + 1);;
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
+		numB = (int)((maxB - minB)/stepB + 1);
+		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
+
+		checkItemIOIn();
+		startWorkflowForSingleVolume();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//datasetIn = imageDisplayService.getActiveDataset();
-		if (datasetIn == null) {
-			logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
-			cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
-			return;
-		}
-
-		if ( (datasetIn.firstElement() instanceof UnsignedByteType) ||
-			 (datasetIn.firstElement() instanceof FloatType) ){
-			//That is OK, proceed
+		//Define supported image types for this plugin
+		String[] supportedImageTypes = {"Grey"};
+		//String[] supportedImageTypes = {"RGB"};
+		//String[] supportedImageTypes = {"Grey", "RGB"};
+		
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 3D plugin cannot be started - Initial check failed.");
 		} else {
-			logService.warn(this.getClass().getName() + " WARNING: Data type is not Byte or Float");
-			cancel("ComsystanJ 3D plugin cannot be started - data type is not Byte or Float.");
-			return;
-		}
-		
-		// get some info
-		width = datasetIn.dimension(0);
-		height = datasetIn.dimension(1);
-		//depth = dataset.getDepth(); //does not work if third axis ist not specifyed as z-Axis
-		numDimensions = datasetIn.numDimensions();
-	
-		//compositeChannelCount = datasetIn.getImgPlus().getCompositeChannelCount(); //1  Grey,   3 RGB
-		compositeChannelCount = datasetIn.getCompositeChannelCount();
-		if ((numDimensions == 2) && (compositeChannelCount == 1)) { //single Grey image
-			numSlices = 1;
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 1)) { // Grey stack	
-			numSlices = datasetIn.dimension(2); //x,y,z
-			imageType = "Grey";
-		} else if ((numDimensions == 3) && (compositeChannelCount == 3)) { //Single RGB image	
-			numSlices = 1;
-			imageType = "RGB";
-		} else if ((numDimensions == 4) && (compositeChannelCount == 3)) { // RGB stack	x,y,composite,z
-			numSlices = datasetIn.dimension(3); //x,y,composite,z
-			imageType = "RGB";
-		}
-
-		// get the name of dataset
-		datasetName = datasetIn.getName();
-		
-		try {
-			Map<String, Object> prop = datasetIn.getProperties();
-			DefaultImageMetadata metaData = (DefaultImageMetadata) prop.get("scifio.metadata.image");
-			MetaTable metaTable = metaData.getTable();
-		} catch (NullPointerException npe) {
-			// TODO Auto-generated catch block
-			//npe.printStackTrace();
-			logService.info(this.getClass().getName() + " WARNING: It was not possible to read scifio metadata."); 
-		}
-  	
-		logService.info(this.getClass().getName() + " Name: " + datasetName); 
-		logService.info(this.getClass().getName() + " Image size = " + width+"x"+height); 
-		logService.info(this.getClass().getName() + " Image type: " + imageType); 
-		logService.info(this.getClass().getName() + " Number of images = "+ numSlices); 
-		
-		stepQ     = 1;
-		stepEta   = 0.1f;
-		stepKappa = 0.1f;
-		stepB     = 1.0f;
-		stepBeta  = 0.1f;
-		stepGamma = 0.1f;
-		
-		//RGB not allowed
-		if (!imageType.equals("Grey")) { 
-			logService.warn(this.getClass().getName() + " WARNING: Grey value image volume expected!");
-			cancel("ComsystanJ 3D plugin cannot be started - grey value image volume expected!");
-		}
-		//Image volume expected
-		if (numSlices == 1) { 
-			logService.warn(this.getClass().getName() + " WARNING: Single image instead of image volume detected");
-			cancel("ComsystanJ 3D plugin cannot be started - image volume expected!");
+			width  =       			(long)datasetInInfo.get("width");
+			height =       			(long)datasetInInfo.get("height");
+			depth  =       			(long)datasetInInfo.get("depth");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			imageType =   			(String)datasetInInfo.get("imageType");
+			datasetName = 			(String)datasetInInfo.get("datasetName");
+			//sliceLabels = 		(String[])datasetInInfo.get("sliceLabels");
 		}
 	}
 

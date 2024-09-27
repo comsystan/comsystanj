@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DKolmogorovComplexityDialog.java
+ * File: Csaj3DKolmogorovComplexityDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.plugin2d.cplx;
+package at.csa.csaj.plugin3d.cplx;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -50,14 +50,14 @@ import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
-import at.csa.csaj.commons.CsajDialog_2DPlugin;
+import at.csa.csaj.commons.CsajDialog_3DPlugin;
 
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
+public class Csaj3DKolmogorovComplexityDialog extends CsajDialog_3DPlugin {
 
-	private static final long serialVersionUID = 7831666575090957096L;
+	private static final long serialVersionUID = -843590691567020006L;
 
 	@Parameter
 	private LogService logService;
@@ -101,7 +101,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj2DKolmogorovComplexityDialog(Context context, Dataset datasetIn) {
+	public Csaj3DKolmogorovComplexityDialog(Context context, Dataset datasetIn) {
 			
 		super(context, datasetIn);
 			
@@ -112,7 +112,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("2D KC and LD");
+		setTitle("3D KC and LD");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************		
@@ -120,7 +120,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	    labelCompression.setToolTipText("Type of image compression for estimating KC");
 	    labelCompression.setHorizontalAlignment(JLabel.RIGHT);
 		
-		String options[] = {"ZIP (lossless)", "ZLIB (lossless)", "GZIP (lossless)", "TIFF-LZW (lossless)", "PNG (lossless)", "J2K (lossless)", "JPG (lossy)"};
+		String options[] = {"ZIP (lossless)", "ZLIB (lossless)", "GZIP (lossless)", "TIFF-LZW (lossless)"};
 		comboBoxCompression = new JComboBox<String>(options);
 		comboBoxCompression.setToolTipText("Type of image compression for estimating KC");
 	    comboBoxCompression.setEditable(false);
@@ -137,7 +137,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 					booleanSkipZeroes = false;	
 					logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 				}
-				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 			}
 		});
 	    gbc.insets = INSETS_STANDARD;
@@ -165,7 +165,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerInteger_NumIterations = (int)spinnerNumIterations.getValue();
                 logService.info(this.getClass().getName() + " Number of iterations set to " + spinnerInteger_NumIterations);
-                if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -201,7 +201,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 					booleanSkipZeroes = false;
 				}	
 		    	logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
-		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    	if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
 		    }
 		});
 		gbc.insets = INSETS_STANDARD;
@@ -230,15 +230,15 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DKolmogorovComplexityCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj3DKolmogorovComplexityCmd.class, false,
 														"datasetIn",                    datasetIn,  //is not automatically harvested in headless mode
-														"processAll",					processAll, //true for all
+			
 														"choiceRadioButt_Compression",  choiceRadioButt_Compression,
 														"spinnerInteger_NumIterations", spinnerInteger_NumIterations,
 														"booleanSkipZeroes",            booleanSkipZeroes,
+														
 														"booleanOverwriteDisplays",     booleanOverwriteDisplays,
-														"booleanProcessImmediately",	booleanProcessImmediately,
-														"spinnerInteger_NumImageSlice",	spinnerInteger_NumImageSlice
+														"booleanProcessImmediately",	booleanProcessImmediately
 														);
 		CommandModule commandModule = null;
 		try {
@@ -251,7 +251,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DKolmogorovComplexityCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj3DKolmogorovComplexityCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}
