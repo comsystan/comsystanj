@@ -555,7 +555,7 @@ public class Csaj3DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 	@Override //Interface CommandService
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
-
+		
 		checkItemIOIn();
 		startWorkflowForSingleVolume();
 	
@@ -771,6 +771,8 @@ public class Csaj3DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
+		numBoxes = this.spinnerInteger_NumBoxes; 
+		
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");;
 		//GenericColumn columnNumRegStart   = new GenericColumn("Reg Start");
@@ -841,7 +843,7 @@ public class Csaj3DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 			tableOut.set("Scanning type",   row, scanningType);
 		}
 		tableOut.set("Color model",	    	row, colorModelType);
-		if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", row, pixelPercentage);	
+		//if (scanningType.equals("Sliding box")) tableOut.set("(Sliding Box) Pixel %", row, pixelPercentage);	
 		tableOut.set("<L>-R&P",   		   row, containerPM.item1_Values[containerPM.item1_Values.length - 2]); //
 		tableOut.set("<L>-S&V",   		   row, containerPM.item1_Values[containerPM.item1_Values.length - 1]); //last entry	
 		tableColLast = 5;
@@ -867,7 +869,7 @@ public class Csaj3DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 		
 		//int numRegStart      = spinnerInteger_NumRegStart;
 		//int numRegEnd        = spinnerInteger_NumRegEnd;
-		int numBoxes          = spinnerInteger_NumBoxes;
+		numBoxes              = spinnerInteger_NumBoxes;
 		String scanningType   = choiceRadioButt_ScanningType;    //Raster box     Sliding box
 		String colorModelType = choiceRadioButt_ColorModelType;	 //Binary  DBC   RDBC
 		int pixelPercentage   = spinnerInteger_PixelPercentage;
@@ -878,10 +880,6 @@ public class Csaj3DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 //			numRegStart = 2; //numRegStart == 1 (single pixel box is not possible for DBC algorithms)
 //		}
 
-		long width  = rai.dimension(0);
-		long height = rai.dimension(1);
-		long depth  = rai.dimension(2);
-		
 		double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
 		
 		// data array

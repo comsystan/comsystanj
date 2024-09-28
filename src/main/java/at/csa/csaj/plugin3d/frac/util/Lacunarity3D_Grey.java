@@ -236,7 +236,7 @@ public class Lacunarity3D_Grey implements Lacunarity3DMethods{
 							for (int z = 0;  z <= (depth-boxSize); z = z+delta){	
 								random_number = (int) (Math.random()*max_random_number+1);
 								if( random_number == 1 ){ // UPDATE 07.08.2013 
-									raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+									raiBox = Views.interval(rai, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
 									count = 0;
 									// Loop through all pixels of this box.
 									cursor = Views.iterable(raiBox).localizingCursor();
