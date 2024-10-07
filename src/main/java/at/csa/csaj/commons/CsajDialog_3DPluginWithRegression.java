@@ -50,7 +50,7 @@ import org.scijava.ui.UIService;
 import net.imagej.Dataset;
 
 /*
- * This is the super class for Csaj 2D dialogs
+ * This is the super class for Csaj 3D dialogs
  */
 public class CsajDialog_3DPluginWithRegression extends CsajDialog_3DPlugin {
 
@@ -102,17 +102,18 @@ public class CsajDialog_3DPluginWithRegression extends CsajDialog_3DPlugin {
 		//String[] supportedImageTypes = {"RGB"};
 		String[] supportedImageTypes = {"Grey", "RGB"};
 				
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
-		width  =       			(long)datasetInInfo.get("width");
-		height =       			(long)datasetInInfo.get("height");
-		depth  =       			(long)datasetInInfo.get("depth");
-		numDimensions =         (int)datasetInInfo.get("numDimensions");
-		compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-		numSlices =             (long)datasetInInfo.get("numSlices");
-		imageType =   			(String)datasetInInfo.get("imageType");
-		datasetName = 			(String)datasetInInfo.get("datasetName");
-		sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+//		//Get input meta data
+//		//Already collected in super class 
+//		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
+//		width  =       			(long)datasetInInfo.get("width");
+//		height =       			(long)datasetInInfo.get("height");
+//		depth  =       			(long)datasetInInfo.get("depth");
+//		numDimensions =         (int)datasetInInfo.get("numDimensions");
+//		compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+//		numSlices =             (long)datasetInInfo.get("numSlices");
+//		imageType =   			(String)datasetInInfo.get("imageType");
+//		datasetName = 			(String)datasetInInfo.get("datasetName");
+//		sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
 			
 		//CENTER regression items		
 	    //*****************************************************************************************

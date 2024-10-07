@@ -249,7 +249,7 @@ public class Csaj3DFracDimMinkowskiDialog extends CsajDialog_3DPluginWithRegress
 		labelNumEps.setText("Number of dilations");
 		//int numEpsMax = Csaj3DFracDimMinkowskiCmd.getMaxBoxNumber((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
 		int numEpsMax = 999999999; 
-		spinnerModelNumEps= new SpinnerNumberModel(20, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
+		spinnerModelNumEps = new SpinnerNumberModel(20, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(20);
 		spinnerNumRegEnd.setValue(20);

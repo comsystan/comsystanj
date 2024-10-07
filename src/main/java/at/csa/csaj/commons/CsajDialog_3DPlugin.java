@@ -29,31 +29,22 @@
 package at.csa.csaj.commons;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.HashMap;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.scijava.Context;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
@@ -64,7 +55,7 @@ import org.scijava.ui.UIService;
 import net.imagej.Dataset;
 
 /*
- * This is the super class for Csaj 2D dialogs
+ * This is the super class for Csaj 3D dialogs
  */
 public class CsajDialog_3DPlugin extends CsajDialog_PluginFrame {
 
@@ -137,16 +128,6 @@ public class CsajDialog_3DPlugin extends CsajDialog_PluginFrame {
 		imageType =   			(String)datasetInInfo.get("imageType");
 		datasetName = 			(String)datasetInInfo.get("datasetName");
 		sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-//		getContentPane().setLayout(new BorderLayout());
-//	
-//		ImageIcon icon = new ImageIcon(this.getClass().getResource("/icons/comsystan-logo-grey46-16x16.png"));
-//		setIconImage(icon.getImage());
-//		setTitle("Csaj 3D plugin"); //This should be overwritten
-//		//setBounds(400, 100, 480, 600); //offset x, offset y, width, height on screen
-//		setLocation(500, 100);
-//		//setSize(new Dimension(400, 600));
-//		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			
 		//NORTH item
 		//*****************************************************************************************

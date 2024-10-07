@@ -53,9 +53,10 @@ public class CsajCheck_ItemIn {
 	public static String   datasetName;
 	public static String[] sliceLabels;
 	
+	public static DefaultGenericTable tableIn;
 	public static String   tableInName;
-	public static long     numColumns;
-	public static long     numRows;
+	public static int      numColumns;
+	public static int      numRows;
 	public static String[] columnLabels;
 	
 	public static HashMap<String, Object> checkDatasetIn(LogService logService, Dataset datasetIn) {
@@ -152,11 +153,7 @@ public class CsajCheck_ItemIn {
 	}
 	
 	public static HashMap<String, Object> checkVolumeDatasetIn(LogService logService, Dataset datasetIn, String[] supportedImageTypes) {
-		
-		//This class has no context (@Parameter) possibility
-		//Context must be imported from caller class (ContextCommand)
-		//context.inject(this); //Important
-		
+	
 		//datasetIn = imageDisplayService.getActiveDataset();
 		if (datasetIn != null) {
 			//It is OK
@@ -255,35 +252,43 @@ public class CsajCheck_ItemIn {
 	
 	public static HashMap<String, Object> checkTableIn(LogService logService, DefaultTableDisplay defaultTableDisplay) {
 			
-			HashMap<String, Object> info = new HashMap<>();	
-			
-			DefaultGenericTable tableIn;
-			//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-			try {
-				tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-			} catch (NullPointerException npe) {
-				if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: NullPointerException, input table = null");
-				//cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-				return null;
-			}
+		if (defaultTableDisplay != null) {
+			//It is OK
+		} else {
+			if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Input table = null");
+			return null;
+		}
 		
-			// get some info
-			tableInName = defaultTableDisplay.getName();
-			numColumns  = tableIn.getColumnCount();
-			numRows     = tableIn.getRowCount();
-			
-			columnLabels = new String[(int) numColumns];
-			if (logService != null) {
-				logService.info(MethodHandles.lookup().lookupClass().getName() + " Name: "      + tableInName); 
-				logService.info(MethodHandles.lookup().lookupClass().getName() + " Columns #: " + numColumns);
-				logService.info(MethodHandles.lookup().lookupClass().getName() + " Rows #: "    + numRows); 
-			}
-			
-			info.put("tableInName", tableInName); 
-			info.put("numColumns", numColumns);
-			info.put("numRows", numRows);
-			info.put("columnLabels", columnLabels);
-			
-			return info;
+		HashMap<String, Object> info = new HashMap<>();	
+		
+		//DefaultGenericTable tableIn;
+		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
+		try {
+			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
+		} catch (NullPointerException npe) {
+			if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: NullPointerException, input table = null");
+			//cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
+			return null;
+		}
+	
+		// get some info
+		tableInName = defaultTableDisplay.getName();
+		numColumns  = tableIn.getColumnCount();
+		numRows     = tableIn.getRowCount();
+		
+		columnLabels = new String[(int) numColumns];
+		if (logService != null) {
+			logService.info(MethodHandles.lookup().lookupClass().getName() + " Name: "      + tableInName); 
+			logService.info(MethodHandles.lookup().lookupClass().getName() + " Columns #: " + numColumns);
+			logService.info(MethodHandles.lookup().lookupClass().getName() + " Rows #: "    + numRows); 
+		}
+		
+		info.put("tableIn",      tableIn);
+		info.put("tableInName",  tableInName); 
+		info.put("numColumns",   numColumns);
+		info.put("numRows",      numRows);
+		info.put("columnLabels", columnLabels);
+		
+		return info;
 	}
 }

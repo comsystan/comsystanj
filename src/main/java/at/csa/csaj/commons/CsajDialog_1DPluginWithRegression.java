@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: CsajDialog_2DPluginWithRegression.java
+ * File: CsajDialog_3DPluginWithRegression.java
  * 
  * $Id$
  * $HeadURL$
@@ -44,17 +44,16 @@ import org.scijava.Context;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
+import org.scijava.table.DefaultTableDisplay;
 import org.scijava.thread.ThreadService;
 import org.scijava.ui.UIService;
 
-import net.imagej.Dataset;
-
 /*
- * This is the super class for Csaj 2D dialogs
+ * This is the super class for Csaj 1D dialogs
  */
-public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
+public class CsajDialog_1DPluginWithRegression extends CsajDialog_1DPlugin {
 
-	private static final long serialVersionUID = -8680591800791470375L;
+	private static final long serialVersionUID = -6846521780788927467L;
 
 	@Parameter
 	private LogService logService;
@@ -89,25 +88,22 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 	/**
 	 * Create the dialog.
 	 */
-	public CsajDialog_2DPluginWithRegression(Context context, Dataset datasetIn) {
+	public CsajDialog_1DPluginWithRegression(Context context, DefaultTableDisplay defaultTableDisplay) {
 		
-		super(context, datasetIn);
+		super(context, defaultTableDisplay);
 		
 		//This dialog has no context (@Parameter) possibility
 		//Context must be imported from caller class (ContextCommand)
 		//context.inject(this); //Important //Context already injected
-	
+				
 //		//Get input meta data
 //		//Already collected in super class 
-//		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-//		width  =       			(long)datasetInInfo.get("width");
-//		height =       			(long)datasetInInfo.get("height");
-//		numDimensions =         (int)datasetInInfo.get("numDimensions");
-//		compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-//		numSlices =             (long)datasetInInfo.get("numSlices");
-//		imageType =   			(String)datasetInInfo.get("imageType");
-//		datasetName = 			(String)datasetInInfo.get("datasetName");
-//		sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+//		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+//		tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+//		tableInName =  (String)datasetInInfo.get("tableInName"); 
+//		numColumns  =  (int)datasetInInfo.get("numColumns");
+//		numRows =      (int)datasetInInfo.get("numRows");
+//		columnLabels = (String[])datasetInInfo.get("columnLabels");
 			
 		//CENTER regression items		
 	    //*****************************************************************************************
@@ -157,7 +153,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
         			spinnerInteger_NumRegStart = (int)spinnerNumRegStart.getValue();
         			logService.info(this.getClass().getName() + " Regression start set to " + spinnerInteger_NumRegStart);
         		}	
-                if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -193,7 +189,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
         		spinnerNumRegStart.setValue(valueNumRegStart);
     			spinnerInteger_NumRegStart = (int)spinnerNumRegStart.getValue();
     			logService.info(this.getClass().getName() + " Regression start set to " + spinnerInteger_NumRegStart);
-                if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -230,7 +226,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
         		spinnerNumRegEnd.setValue(valueNumRegEnd);
     			spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();
     			logService.info(this.getClass().getName() + " Regression end set to " + spinnerInteger_NumRegEnd);
-                if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -259,7 +255,7 @@ public class CsajDialog_2DPluginWithRegression extends CsajDialog_2DPlugin {
 		    public void itemStateChanged(ItemEvent e) {
 		    	booleanShowDoubleLogPlot = checkBoxShowDoubleLogPlot.isSelected();
 		    	logService.info(this.getClass().getName() + " Show double log plot set to " + booleanShowDoubleLogPlot);
-		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    	if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
 		    }
 		});
 		gbc.insets = INSETS_STANDARD;
