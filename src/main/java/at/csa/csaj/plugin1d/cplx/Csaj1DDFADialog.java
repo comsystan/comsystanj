@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DAllomScaleDialog.java
+ * File: Csaj1DDFADialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -31,7 +31,10 @@ package at.csa.csaj.plugin1d.cplx;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.scijava.Context;
 import org.scijava.command.CommandModule;
@@ -46,9 +49,9 @@ import at.csa.csaj.commons.CsajDialog_1DPluginWithRegression;
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
+public class Csaj1DDFADialog extends CsajDialog_1DPluginWithRegression {
 
-	private static final long serialVersionUID = 4844876619343675457L;
+	private static final long serialVersionUID = -7868325264739121808L;
 
 	@Parameter
 	private LogService logService;
@@ -70,7 +73,7 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj1DAllomScaleDialog(Context context, DefaultTableDisplay defaultTableDisplay) {
+	public Csaj1DDFADialog(Context context, DefaultTableDisplay defaultTableDisplay) {
 			
 		super(context, defaultTableDisplay);
 			
@@ -81,31 +84,27 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("1D Allometric Scaling");
+		setTitle("1D DFA");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************		
 	    
 	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
-		labelNumEps.setText("Number of boxes");
-		//int numEpsMax = Csaj1DAllomScale.getMaxBoxNumber((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
-		int numEpsMax = 999999999; 
-		spinnerModelNumEps = new SpinnerNumberModel(numEpsMax, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
+		labelNumEps.setText("Window size max");
+		//int numEpsMax = Csaj1DDFACmd.getMaxBoxNumber(numRows);
+		spinnerModelNumEps = new SpinnerNumberModel(8, 4, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
-		spinnerNumEps.setValue(numEpsMax);
+	
+		spinnerModelNumRegStart = new SpinnerNumberModel(4, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
+		spinnerNumRegStart.setModel(spinnerModelNumRegStart);
+	
+		spinnerModelNumRegEnd = new SpinnerNumberModel(8, 2, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
+		spinnerNumRegEnd.setModel(spinnerModelNumRegEnd);
 		
-		//spinnerIntefer_NumEps not needed for Allometric Scaling
-		//NOTE: spinnerNumEps must still be set to a maximum value, so that spinnerNumRegEnd is not limited
-		//Hide items
-		labelNumEps.setEnabled(false);
-		labelNumEps.setVisible(false);
-		spinnerNumEps.setEnabled(false);
-		spinnerNumEps.setVisible(false);
-		
-		spinnerNumRegEnd.setValue(3);
-		//spinnerInteger_NumEps    = (int)spinnerNumEps.getValue();
-		spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
+		spinnerInteger_NumEps      = (int)spinnerNumEps.getValue();
+		spinnerInteger_NumRegStart = (int)spinnerNumRegStart.getValue();	
+		spinnerInteger_NumRegEnd   = (int)spinnerNumRegEnd.getValue();	
 		
 	    //*****************************************************************************************
 	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
@@ -119,10 +118,11 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj1DAllomScaleCmd.class, false,
+		Future<CommandModule> future = commandService.run(Csaj1DDFACmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,
-															
+			
+														"spinnerInteger_WinSizeMax",     spinnerInteger_NumEps,
 														"spinnerInteger_NumRegStart",    spinnerInteger_NumRegStart,
 														"spinnerInteger_NumRegEnd",      spinnerInteger_NumRegEnd,
 														"booleanShowDoubleLogPlot",      booleanShowDoubleLogPlot,
@@ -132,7 +132,7 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 														"spinnerInteger_NumSurrogates",  spinnerInteger_NumSurrogates,
 														"spinnerInteger_BoxLength",      spinnerInteger_BoxLength,
 														"booleanSkipZeroes",             booleanSkipZeroes,
-																										
+														
 														"booleanOverwriteDisplays",      booleanOverwriteDisplays,
 														"booleanProcessImmediately",	 booleanProcessImmediately,
 														"spinnerInteger_NumColumn",      spinnerInteger_NumColumn
@@ -148,7 +148,7 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj1DAllomScaleCmd.TABLE_OUT_NAME;
+		tableOutName = Csaj1DDFACmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

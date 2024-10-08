@@ -255,7 +255,7 @@ public class CsajCheck_ItemIn {
 		if (defaultTableDisplay != null) {
 			//It is OK
 		} else {
-			if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Input table = null");
+			if (logService != null) logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Input table display = null");
 			return null;
 		}
 		

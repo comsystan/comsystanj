@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DAllomScaleCmdUI.java
+ * File: Csaj1DDFACmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -44,7 +44,7 @@ import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
 		headless = true,
-		label = "Allometric scaling",
+		label = "Detrended fluctuation analysis",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
@@ -52,17 +52,17 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Complexity analyses", weight = 4),
-		@Menu(label = "Allometric scaling(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Detrended fluctuation analysis(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-public class Csaj1DAllomScaleCmdUI extends ContextCommand implements Previewable{
+public class Csaj1DDFACmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
 	
-	@Parameter(type = ItemIO.INPUT)
+	@Parameter(type = ItemIO.INPUT, required = false)
 	private DefaultTableDisplay  defaultTableDisplay;
 
-	private Csaj1DAllomScaleDialog dialog = null;
+	private Csaj1DDFADialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -74,7 +74,7 @@ public class Csaj1DAllomScaleCmdUI extends ContextCommand implements Previewable
 	public void cancel() {
 		logService.info(this.getClass().getName() + " ComsystanJ plugin canceled");
 	}
-
+	
 	/**
 	 * Executed before run() is called 
 	 */
@@ -83,11 +83,11 @@ public class Csaj1DAllomScaleCmdUI extends ContextCommand implements Previewable
 		if (defaultTableDisplay == null) {
 			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input table");
 			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");
-		}
+		}	
 		if (context() == null) {
 			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing context");
 			cancel("ComsystanJ 1D plugin cannot be started - missing context.");
-		}
+		}	
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class Csaj1DAllomScaleCmdUI extends ContextCommand implements Previewable
 	public void run() {	
 		SwingUtilities.invokeLater(() -> {
 			if (dialog == null) {
-				dialog = new Csaj1DAllomScaleDialog(context(), defaultTableDisplay);
+				dialog = new Csaj1DDFADialog(context(), defaultTableDisplay);
 			}
 			dialog.setVisible(true);
 			dialog.btnProcessSingleColumn.requestFocusInWindow();

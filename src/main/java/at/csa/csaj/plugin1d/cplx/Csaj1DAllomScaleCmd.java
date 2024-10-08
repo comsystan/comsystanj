@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DAllomScaleCommand.java
+ * File: Csaj1DAllomScaleCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -504,11 +504,14 @@ public class Csaj1DAllomScaleCmd<T extends RealType<T>> extends ContextCommand i
 			numRows =      (int)datasetInInfo.get("numRows");
 			columnLabels = (String[])datasetInInfo.get("columnLabels");
 
-			numBoxLength = spinnerInteger_BoxLength;
-			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
-			numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
-			
 			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
 	}
 	

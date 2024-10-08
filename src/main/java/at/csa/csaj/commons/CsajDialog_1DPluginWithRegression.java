@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: CsajDialog_3DPluginWithRegression.java
+ * File: CsajDialog_1DPluginWithRegression.java
  * 
  * $Id$
  * $HeadURL$
@@ -72,13 +72,15 @@ public class CsajDialog_1DPluginWithRegression extends CsajDialog_1DPlugin {
 	public JSpinner           spinnerNumEps;
 	public int                spinnerInteger_NumEps;
 	
-	public JLabel   labelNumRegStart;
-	public JSpinner spinnerNumRegStart;
-	public int      spinnerInteger_NumRegStart;
+	public JLabel             labelNumRegStart;
+	public SpinnerNumberModel spinnerModelNumRegStart;
+	public JSpinner           spinnerNumRegStart;
+	public int                spinnerInteger_NumRegStart;
 	
-	public JLabel   labelNumRegEnd;
-	public JSpinner spinnerNumRegEnd;
-	public int      spinnerInteger_NumRegEnd;
+	public JLabel             labelNumRegEnd;
+	public SpinnerNumberModel spinnerModelNumRegEnd;
+	public JSpinner           spinnerNumRegEnd;
+	public int                spinnerInteger_NumRegEnd;
 	
 	public JLabel    labelShowDoubleLogPlot;
 	public JCheckBox checkBoxShowDoubleLogPlot;
@@ -125,7 +127,7 @@ public class CsajDialog_1DPluginWithRegression extends CsajDialog_1DPlugin {
 	   
 	    //Override
 	    //Model may be overwritten with new parameters (e.g.maximum) in sub class
-	    spinnerModelNumEps= new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step   
+	    spinnerModelNumEps = new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step   
 	   
 	    spinnerNumEps = new JSpinner(spinnerModelNumEps);
         spinnerNumEps.setToolTipText("Number of distinct Scales/Boxes/Eps");
@@ -174,7 +176,7 @@ public class CsajDialog_1DPluginWithRegression extends CsajDialog_1DPlugin {
 	    labelNumRegStart.setToolTipText("Minimum number of linear regression");
 	    labelNumRegStart.setHorizontalAlignment(JLabel.RIGHT);
 	   
-	    SpinnerNumberModel spinnerModelNumRegStart= new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerModelNumRegStart= new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
 	    spinnerNumRegStart = new JSpinner(spinnerModelNumRegStart);
         spinnerNumRegStart.setToolTipText("Minimum number of linear regression");
         spinnerNumRegStart.addChangeListener(new ChangeListener() {
@@ -210,7 +212,7 @@ public class CsajDialog_1DPluginWithRegression extends CsajDialog_1DPlugin {
 	    labelNumRegEnd.setToolTipText("Maximum number of linear regression");
 	    labelNumRegEnd.setHorizontalAlignment(JLabel.RIGHT);
 	   
-	    SpinnerNumberModel spinnerModelNumRegEnd= new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerModelNumRegEnd= new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
 	    spinnerNumRegEnd = new JSpinner(spinnerModelNumRegEnd);
         spinnerNumRegEnd.setToolTipText("Maximum number of linear regression");
         spinnerNumRegEnd.addChangeListener(new ChangeListener() {
