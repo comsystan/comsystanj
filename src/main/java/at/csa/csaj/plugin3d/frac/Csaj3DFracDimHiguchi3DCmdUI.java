@@ -80,10 +80,10 @@ public class Csaj3DFracDimHiguchi3DCmdUI extends ContextCommand implements Previ
 	}
 
 	/**
-	 * Show the GUI dialog
+	 * Executed before run() is called 
 	 */
-	@Override
-	public void run() {	
+	protected void initialPluginLaunch() {
+		//Check if input is available
 		if (datasetIn == null) {
 			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image volume");
 			cancel("ComsystanJ 3D plugin cannot be started - missing input volume.");
@@ -92,6 +92,13 @@ public class Csaj3DFracDimHiguchi3DCmdUI extends ContextCommand implements Previ
 			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing context");
 			cancel("ComsystanJ 3D plugin cannot be started - missing context.");
 		}	
+	}
+
+	/**
+	 * Show the GUI dialog
+	 */
+	@Override
+	public void run() {	
 		SwingUtilities.invokeLater(() -> {
 			if (dialog == null) {
 				dialog = new Csaj3DFracDimHiguchi3DDialog(context(), datasetIn);

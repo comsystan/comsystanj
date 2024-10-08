@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DVolumeGeneratorCommand.java
+ * File: Csaj3DVolumeGeneratorCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -98,7 +98,7 @@ import javax.swing.UIManager;
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
 
-public class Csaj3DVolumeGeneratorCommand<T extends RealType<T>, C> extends ContextCommand implements Previewable {
+public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextCommand implements Previewable {
 		
 	private static final String PLUGIN_LABEL 			= "<html><b>Generates 3D image volumes</b></html>";
 	private static final String SPACE_LABEL 			= "";
