@@ -378,11 +378,11 @@ public class Csaj3DFracDimGeneralisedDialog extends CsajDialog_3DPluginWithRegre
 		});
 		gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 150;
+	    gbc.gridy = 5;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelShowDqPlot, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 150;
+	    gbc.gridy = 5;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(checkBoxShowDqPlot, gbc);	
 	 
@@ -409,11 +409,11 @@ public class Csaj3DFracDimGeneralisedDialog extends CsajDialog_3DPluginWithRegre
 		});
 		gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 160;
+	    gbc.gridy = 6;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelShowFSpectrum, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 160;
+	    gbc.gridy = 6;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(checkBoxShowFSpectrum, gbc);	
 	 
