@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DGeneralisedDFACommand.java
+ * File: Csaj1DGeneralisedDFACmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -306,7 +306,7 @@ public class Csaj1DGeneralisedDFACmd<T extends RealType<T>> extends ContextComma
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
-	@Parameter(label = "Process all images",
+	@Parameter(label = "Process all columns",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")

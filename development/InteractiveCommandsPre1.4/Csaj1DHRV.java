@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DHRVCommand.java
+ * File: Csaj1DHRV.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.cplx;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
@@ -50,7 +50,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -79,7 +79,7 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 
 /**
- * A {@link ContextCommand} plugin computing <Standard HRV measurements</a> of a sequence.
+ * A {@link InteractiveCommand} plugin computing <Standard HRV measurements</a> of a sequence.
  * according to
  *  Heart rate variability Standards of measurement, physiological interpretation, and clinical use
  *  Task Force of The European Society of Cardiology and The North American Society of Pacing and Electrophysiology
@@ -115,12 +115,17 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * @since  2021 03
  
  */
-@Plugin(type = ContextCommand.class, 
+@Plugin(type = InteractiveCommand.class, 
 	headless = true,
 	label = "Standard HRV measurements",
 	initializer = "initialPluginLaunch",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "1D Sequence(s)"),
+	@Menu(label = "Complexity analyses", weight = 4),
+	@Menu(label = "Standard HRV measurements ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
@@ -130,7 +135,7 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  *
  *
  */
-public class Csaj1DHRVCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL              = "<html><b>Standard HRV measurements</b></html>";
 	private static final String SPACE_LABEL               = "";
@@ -942,7 +947,6 @@ public class Csaj1DHRVCommand<T extends RealType<T>> extends ContextCommand impl
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
 		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
-	
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
@@ -1261,7 +1265,7 @@ public class Csaj1DHRVCommand<T extends RealType<T>> extends ContextCommand impl
 		
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
-			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
+			resultValues = new double[(int) (1*numSubsequentBoxes)]; // Dim R2 would be two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			subdomain1D = new double[(int) numBoxLength];
@@ -1349,7 +1353,7 @@ public class Csaj1DHRVCommand<T extends RealType<T>> extends ContextCommand impl
 			}	
 		//********************************************************************************************************			
 		} else if (sequenceRange.equals("Gliding box")){
-			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
+			resultValues = new double[(int) (1*numGlidingBoxes)]; // Dim R2 would be two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			subdomain1D = new double[(int) numBoxLength];

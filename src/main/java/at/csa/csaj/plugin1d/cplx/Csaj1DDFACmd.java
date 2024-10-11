@@ -267,7 +267,7 @@ public class Csaj1DDFACmd<T extends RealType<T>> extends ContextCommand implemen
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
-	@Parameter(label = "Process all images",
+	@Parameter(label = "Process all columns",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DGeneralisedDFACmdUI.java
+ * File: Csaj1DHRVCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -44,7 +44,7 @@ import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
 		headless = true,
-		label = "Generalised DFAs",
+		label = "Standard HRV measurements",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
@@ -52,9 +52,9 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Complexity analyses", weight = 4),
-		@Menu(label = "Generalised DFA(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Standard HRV measurements(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-public class Csaj1DGeneralisedDFACmdUI extends ContextCommand implements Previewable{
+public class Csaj1DHRVCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -62,7 +62,7 @@ public class Csaj1DGeneralisedDFACmdUI extends ContextCommand implements Preview
 	@Parameter(type = ItemIO.INPUT, required = false)
 	private DefaultTableDisplay  defaultTableDisplay;
 
-	private Csaj1DGeneralisedDFADialog dialog = null;
+	private Csaj1DHRVDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -97,7 +97,7 @@ public class Csaj1DGeneralisedDFACmdUI extends ContextCommand implements Preview
 	public void run() {	
 		SwingUtilities.invokeLater(() -> {
 			if (dialog == null) {
-				dialog = new Csaj1DGeneralisedDFADialog(context(), defaultTableDisplay);
+				dialog = new Csaj1DHRVDialog(context(), defaultTableDisplay);
 			}
 			dialog.setVisible(true);
 			dialog.btnProcessSingleColumn.requestFocusInWindow();

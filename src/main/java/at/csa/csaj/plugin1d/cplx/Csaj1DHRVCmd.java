@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DHRV.java
+ * File: Csaj1DHRVCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -31,6 +31,7 @@ package at.csa.csaj.plugin1d.cplx;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.Vector;
@@ -49,14 +50,11 @@ import org.apache.commons.math3.transform.TransformType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -71,15 +69,15 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 
 /**
- * A {@link InteractiveCommand} plugin computing <Standard HRV measurements</a> of a sequence.
+ * A {@link ContextCommand} plugin computing <Standard HRV measurements</a> of a sequence.
  * according to
  *  Heart rate variability Standards of measurement, physiological interpretation, and clinical use
  *  Task Force of The European Society of Cardiology and The North American Society of Pacing and Electrophysiology
@@ -115,27 +113,14 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * @since  2021 03
  
  */
-@Plugin(type = InteractiveCommand.class, 
-	headless = true,
-	label = "Standard HRV measurements",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {
-	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-	@Menu(label = "ComsystanJ"),
-	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Complexity analyses", weight = 4),
-	@Menu(label = "Standard HRV measurements ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand implements Previewable {
+@Plugin(type = ContextCommand.class, 
+		headless = true,
+		label = "Standard HRV measurements",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+public class Csaj1DHRVCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL              = "<html><b>Standard HRV measurements</b></html>";
 	private static final String SPACE_LABEL               = "";
@@ -153,7 +138,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -350,6 +335,12 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
+	
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
@@ -568,36 +559,38 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-				
-		sliceLabels = new String[(int) numColumns];
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**
@@ -826,16 +819,16 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
 		
-			String entropyHeader = choiceRadioButt_MeasurementType;	
+			String header = choiceRadioButt_MeasurementType;	
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn(entropyHeader+"-#" + n));	
+				tableOut.add(new DoubleColumn(header+"-#" + n));	
 			}	
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
 		
-			String entropyHeader = choiceRadioButt_MeasurementType;		
+			String header = choiceRadioButt_MeasurementType;		
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn(entropyHeader+"-#" + n));	
+				tableOut.add(new DoubleColumn(header+"-#" + n));	
 			}	
 		}	
 	}
@@ -946,7 +939,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 	
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
@@ -1266,7 +1259,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 		
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
-			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
+			resultValues = new double[(int) (1*numSubsequentBoxes)]; // Dim R2 would be two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			subdomain1D = new double[(int) numBoxLength];
@@ -1354,7 +1347,7 @@ public class Csaj1DHRV<T extends RealType<T>> extends InteractiveCommand impleme
 			}	
 		//********************************************************************************************************			
 		} else if (sequenceRange.equals("Gliding box")){
-			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
+			resultValues = new double[(int) (1*numGlidingBoxes)]; // Dim R2 would be two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Float.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			subdomain1D = new double[(int) numBoxLength];

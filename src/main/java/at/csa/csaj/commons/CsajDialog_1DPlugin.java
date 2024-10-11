@@ -336,7 +336,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_SurrogateType = (String)comboBoxSurrogateType.getSelectedItem();
-				logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_SurrogateType);
+				logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
 				
 				//Reset all spinners and options
 				labelNumSurrogates.setEnabled(false);

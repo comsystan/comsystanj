@@ -255,7 +255,7 @@ public class Csaj1DAllomScaleCmd<T extends RealType<T>> extends ContextCommand i
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
-	@Parameter(label = "Process all images",
+	@Parameter(label = "Process all columns",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")
