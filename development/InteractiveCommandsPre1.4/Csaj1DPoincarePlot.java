@@ -256,6 +256,9 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 	
+	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+	private Button buttonProcessAllColumns;
+	
 	// ---------------------------------------------------------------------
 		
 	
@@ -617,7 +620,7 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends InteractiveComman
 		CsajContainer_ProcessMethod containerPM = process(tableIn, s); 
 		logService.info(this.getClass().getName() + " Processing finished.");
 		
-		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Poincare plot?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			if (containerPM == null) return;
 			int[] cols = new int[1]; 
@@ -653,6 +656,7 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends InteractiveComman
 	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
+		double dataX[][] = new double[(int) numColumns][(int) numRows];
 		double dataY[][] = new double[(int) numColumns][(int) numRows];
 		
 		CsajContainer_ProcessMethod containerPM;
@@ -673,6 +677,7 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends InteractiveComman
 				
 				if (containerPM != null) {
 					for (int i = 0; i < containerPM.item1_Values.length; i++) {
+						dataX[s][i] = sequence1D[i];
 						dataY[s][i] = containerPM.item1_Values[i]; 
 					}
 				}
@@ -687,7 +692,7 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends InteractiveComman
 			//}
 		} //s
 
-		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Poincare plots?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			int[] cols = new int[(int) numColumns]; 
 			boolean isLineVisible = true;
@@ -699,7 +704,7 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends InteractiveComman
 				cols[c] = c;
 				seriesLabels[c] = tableIn.getColumnHeader(c);					
 			}
-			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(sequence1D, dataY, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(dataX, dataY, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -754,7 +759,7 @@ public class Csaj1DPoincarePlot<T extends RealType<T>> extends InteractiveComman
 		//numBoxLength        = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		boolean skipZeroes    = booleanSkipZeroes;
-		int numLag            = this.numLag; 
+		this.numLag           = spinnerInteger_NumLag; 
 		
 		//******************************************************************************************************
 		//domain1D = new double[numDataPoints];

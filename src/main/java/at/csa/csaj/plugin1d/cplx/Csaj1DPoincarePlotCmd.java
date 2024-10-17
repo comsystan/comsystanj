@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DPoincarePlotCommand.java
+ * File: Csaj1DPoincarePlotCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,13 +26,14 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.cplx;
 
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,6 +66,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
@@ -75,21 +77,13 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * of a sequence.
  */
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Poincare plot",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Poincare plot",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+public class Csaj1DPoincarePlotCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL                = "<html><b>Poincare plot</b></html>";
 	private static final String SPACE_LABEL                 = "";
@@ -106,7 +100,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static int  numSurrogates = 0;
@@ -248,12 +242,19 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 	
-	// ---------------------------------------------------------------------
-		
+	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+	private Button buttonProcessAllColumns;
 	
+	// ---------------------------------------------------------------------	
 	protected void initialPluginLaunch() {
 		initialNumLag();
 		checkItemIOIn();
@@ -445,44 +446,43 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
-		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-			
-//		sliceLabels = new String[(int) numColumns];
-		
-		numLag = spinnerInteger_NumLag;
-		// number of lags > numDataPoints is not allowed
-		if (numLag >= numRows) {
-			numLag = (int)numRows - 1;
-			spinnerInteger_NumLag = numLag;
-		}
-	   
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+//			numSurrogates = spinnerInteger_NumSurrogates;
+//			numBoxLength  = spinnerInteger_BoxLength;
+//			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+//			numLag = spinnerInteger_NumLag;
+//			// number of lags > numDataPoints is not allowed
+//			if (numLag >= numRows) {
+//				numLag = (int)numRows - 1;
+//				spinnerInteger_NumLag = numLag;
+//			}			
+			//*****************************************************************************************
+		}		
 	}
 
 	/**
@@ -612,7 +612,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 		CsajContainer_ProcessMethod containerPM = process(tableIn, s); 
 		logService.info(this.getClass().getName() + " Processing finished.");
 		
-		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Poincare plot?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			if (containerPM == null) return;
 			int[] cols = new int[1]; 
@@ -648,6 +648,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
+		double dataX[][] = new double[(int) numColumns][(int) numRows];
 		double dataY[][] = new double[(int) numColumns][(int) numRows];
 		
 		CsajContainer_ProcessMethod containerPM;
@@ -668,6 +669,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 				
 				if (containerPM != null) {
 					for (int i = 0; i < containerPM.item1_Values.length; i++) {
+						dataX[s][i] = sequence1D[i];
 						dataY[s][i] = containerPM.item1_Values[i]; 
 					}
 				}
@@ -682,7 +684,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 			//}
 		} //s
 
-		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Poincare plots?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			int[] cols = new int[(int) numColumns]; 
 			boolean isLineVisible = true;
@@ -694,7 +696,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 				cols[c] = c;
 				seriesLabels[c] = tableIn.getColumnHeader(c);					
 			}
-			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(sequence1D, dataY, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(dataX, dataY, isLineVisible, "Poincare plot(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -749,7 +751,7 @@ public class Csaj1DPoincarePlotCommand<T extends RealType<T>> extends ContextCom
 		//numBoxLength        = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		boolean skipZeroes    = booleanSkipZeroes;
-		int numLag            = this.numLag; 
+		this.numLag           = spinnerInteger_NumLag; 
 		
 		//******************************************************************************************************
 		//domain1D = new double[numDataPoints];

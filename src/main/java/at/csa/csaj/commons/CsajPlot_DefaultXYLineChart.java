@@ -76,7 +76,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	private boolean isLineVisible = false;
 	private ChartPanel chartPanel = null;
 
-	private String imageTitle = null;
+	private String title = null;
 	private String xLabel = null;
 	private String yLabel = null;
 
@@ -89,10 +89,10 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	private int delta = 1000 * 60 * 60 * 24 * 30;
 
 	@SuppressWarnings("rawtypes")
-	public CsajPlot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
+	public CsajPlot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible, String title, String xLabel, String yLabel) {
 
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 		
@@ -129,16 +129,16 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @param dataX
 	 * @param dataY
 	 * @param isLineVisible
-	 * @param imageTitle
+	 * @param title
 	 * @param xLabel
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
-	public CsajPlot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String imageTitle, String xLabel,
+	public CsajPlot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String title, String xLabel,
 			String yLabel, String[] colNames) {
 		
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
@@ -181,10 +181,10 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public CsajPlot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int col,  boolean isLineVisible, String imageTitle, String xLabel, String yLabel) {
+	public CsajPlot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int col,  boolean isLineVisible, String title, String xLabel, String yLabel) {
 
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 		
@@ -221,16 +221,16 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @param dataX
 	 * @param dataY
 	 * @param isLineVisible
-	 * @param imageTitle
+	 * @param title
 	 * @param xLabel
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
-	public CsajPlot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String imageTitle, String xLabel,
+	public CsajPlot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int[] cols, boolean isLineVisible, String title, String xLabel,
 			String yLabel, String[] colNames) {
 		
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
@@ -263,10 +263,10 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public CsajPlot_DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String imageTitle, String xLabel, String yLabel, String legendLabel) {
+	public CsajPlot_DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String title, String xLabel, String yLabel, String legendLabel) {
 
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 
@@ -290,16 +290,47 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @param dataX
 	 * @param dataY
 	 * @param isLineVisible
-	 * @param imageTitle
+	 * @param title
 	 * @param xLabel
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
-	public CsajPlot_DefaultXYLineChart(double[] dataX, double[][] dataY, boolean isLineVisible, String imageTitle, String xLabel,
+	public CsajPlot_DefaultXYLineChart(double[] dataX, double[][] dataY, boolean isLineVisible, String title, String xLabel,
 			String yLabel, String[] legendLabels) {
 		
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
+		this.xLabel = xLabel;
+		this.yLabel = yLabel;
+		this.chartPanel = new ChartPanel((JFreeChart) null, true);
+
+		XYDataset dataset = this.createXYDataset(dataX, dataY, legendLabels);
+		this.chartPanel.setChart(createChart(dataset));
+		// this.setHorizontalAxisTrace(true);
+		// this.setVerticalAxisTrace(true);
+		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
+		this.chartPanel.setMouseZoomable(true, false);
+
+		this.setLayout(new BorderLayout());
+		this.add(this.chartPanel, BorderLayout.CENTER);
+	}
+	
+	/**
+	 * This class displays multiple data series in a single plot window.
+	 * 
+	 * @param dataX
+	 * @param dataY
+	 * @param isLineVisible
+	 * @param title
+	 * @param xLabel
+	 * @param yLabel
+	 */
+	@SuppressWarnings("rawtypes")
+	public CsajPlot_DefaultXYLineChart(double[][] dataX, double[][] dataY, boolean isLineVisible, String title, String xLabel,
+			String yLabel, String[] legendLabels) {
+		
+		this.isLineVisible = isLineVisible;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
@@ -315,6 +346,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		this.add(this.chartPanel, BorderLayout.CENTER);
 	}
 
+
 	/**
 	 * 2017-07- Adam Dolgos added second double[] for additional signs for points
 	 * 
@@ -323,16 +355,16 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @param dataX2
 	 * @param dataY2
 	 * @param isLineVisible
-	 * @param imageTitle
+	 * @param title
 	 * @param xLabel
 	 * @param yLabel
 	 */
 	@SuppressWarnings("rawtypes")
 	public CsajPlot_DefaultXYLineChart(double[] dataX, double[] dataY, double[] dataX2, double[] dataY2, boolean isLineVisible,
-			String imageTitle, String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
+			String title, String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
 
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 
@@ -357,10 +389,10 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 
 	@SuppressWarnings("rawtypes")
 	public CsajPlot_DefaultXYLineChart(double[] dataX, double[][] dataY, double[] dataX2, double[][] dataY2, boolean isLineVisible,
-			String imageTitle, String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
+			String title, String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
 
 		this.isLineVisible = isLineVisible;
-		this.imageTitle = imageTitle;
+		this.title = title;
 		this.xLabel = xLabel;
 		this.yLabel = yLabel;
 
@@ -386,7 +418,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 
 	private JFreeChart createChart(XYDataset xyDataset, XYDataset xyDataset2) {
 
-		JFreeChart chart = ChartFactory.createXYLineChart(imageTitle, // "", //
+		JFreeChart chart = ChartFactory.createXYLineChart(title, // "", //
 				// title
 				xLabel, // x-axis label
 				yLabel, // y-axis label
@@ -450,7 +482,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 */
 	private JFreeChart createChart(XYDataset xyDataset) {
 
-		JFreeChart chart = ChartFactory.createXYLineChart(imageTitle, // "", // // title
+		JFreeChart chart = ChartFactory.createXYLineChart(title, // "", // // title
 				this.xLabel, // x-axis label
 				this.yLabel, // y-axis label
 				xyDataset, // data
@@ -575,6 +607,36 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		int countIdenticalKeys = 0; //identical keys are not allowed
 		for (int v = 0; v < dataY.length; v++) {
 			for (int i = 0; i < dataX.length; i++) s[v].add(dataX[i], dataY[v][i]);
+			if (xySeriesColl.indexOf(s[v].getKey()) >= 0) { //found identical key
+				countIdenticalKeys += 1;
+				s[v].setKey(s[v].getKey().toString() + "("+countIdenticalKeys+")"); //Rename key by addin a number 
+			}
+			xySeriesColl.addSeries(s[v]);		
+		}
+		// xyDataset.addSeries(s2);
+		return xySeriesColl;
+	}
+	
+	/**
+	 * Creates a xySeriesColl, consisting of multiple series.
+	 * 
+	 * @return the xySeriesColl
+	 */
+	@SuppressWarnings({ "rawtypes" })
+	private XYDataset createXYDataset(double[][] dataX, double[][] dataY, String[] legendLabels) {
+
+		XYSeries[] s = new XYSeries[dataY.length];
+		XYSeriesCollection xySeriesColl = null;
+
+		colSeries1 = Color.black;
+		for (int v = 0; v < dataY.length; v++)
+			//s[v] = new XYSeries("Series " + (v + 1)); // several data series
+			s[v] = new XYSeries(legendLabels[v]); // several data series
+			//s = new XYSeries("");
+		xySeriesColl = new XYSeriesCollection();
+		int countIdenticalKeys = 0; //identical keys are not allowed
+		for (int v = 0; v < dataY.length; v++) {
+			for (int i = 0; i < dataX[v].length; i++) s[v].add(dataX[v][i], dataY[v][i]);
 			if (xySeriesColl.indexOf(s[v].getKey()) >= 0) { //found identical key
 				countIdenticalKeys += 1;
 				s[v].setKey(s[v].getKey().toString() + "("+countIdenticalKeys+")"); //Rename key by addin a number 
