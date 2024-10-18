@@ -233,7 +233,6 @@ public class Csaj1DGeneralisedDFADialog extends CsajDialog_1DPluginWithRegressio
 	    //initialize command variable
 	    booleanShowFSpectrum = checkBoxShowFSpectrum.isSelected();
 		
-				
 	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Window size max");

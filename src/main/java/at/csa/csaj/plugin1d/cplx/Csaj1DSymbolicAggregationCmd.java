@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DSymbolicAggregationCommand.java
+ * File: Csaj1DSymbolicAggregationCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,13 +26,14 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.cplx;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,13 +56,10 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -74,6 +72,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
@@ -83,21 +82,13 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * of a sequence.
  */
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Symbolic aggregation",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Symbolic aggregation",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+public class Csaj1DSymbolicAggregationCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL                      = "<html><b>Symbolic aggregation</b></html>";
 	private static final String SPACE_LABEL                       = "";
@@ -115,7 +106,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 	//Column<? extends Object> domainColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 //	private static int  numSurrogates = 0;
@@ -127,7 +118,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 	private static String sequenceString = null; //Symbolic representation of sequence
 	private static String[][] LUMatrix;
 	
-	private static final String datasetOutName = "Symbolic aggregation";
+	public static final String DATASET_OUT_NAME = "Symbolic aggregation";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -171,7 +162,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 	//@Parameter(type = ItemIO.INPUT)
 	private DefaultGenericTable tableIn;
 		
-	@Parameter(label = datasetOutName, type = ItemIO.OUTPUT)
+	@Parameter(label = DATASET_OUT_NAME, type = ItemIO.OUTPUT)
 	private Dataset datasetOut;
 	
 	private Img<UnsignedByteType> singleImg;
@@ -297,9 +288,9 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-//	@Parameter(label = "Skip zero values", persist = false,
-//		       callback = "callbackSkipZeroes")
-//	private boolean booleanSkipZeroes;
+	@Parameter(label = "Skip zero values", persist = false,
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -325,10 +316,15 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
-
-
+	
 	// ---------------------------------------------------------------------
 		
 	protected void initialPluginLaunch() {
@@ -379,9 +375,9 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 //		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 //	}
 	
-//	protected void initialSkipZeroes() {
-//		booleanSkipZeroes = false;
-//	}	
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
+	}	
 	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
@@ -465,10 +461,10 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 //		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 //	}
 
-//	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
-//	protected void callbackSkipZeroes() {
-//		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
-//	}
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
@@ -497,7 +493,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	    	    startWorkflowForSingleColumn();
-	    	   	uiService.show(datasetOutName, datasetOut);
+	    	   	uiService.show(DATASET_OUT_NAME, datasetOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -521,7 +517,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 	   	exec.execute(new Runnable() {
 	        public void run() {
 	        	startWorkflowForAllColumns();
-	    	   	uiService.show(datasetOutName, datasetOut);
+	    	   	uiService.show(DATASET_OUT_NAME, datasetOut);
 	        }
 	    });
 	   	exec.shutdown(); //No new tasks
@@ -542,7 +538,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 		   	exec.execute(new Runnable() {
 		        public void run() {
 		    	    startWorkflowForSingleColumn();
-		    	   	uiService.show(datasetOutName, datasetOut);   //Show dataset because it did not go over the run() method
+		    	   	uiService.show(DATASET_OUT_NAME, datasetOut);   //Show dataset because it did not go over the run() method
 		        }
 		    });
 		   	exec.shutdown(); //No new tasks
@@ -575,37 +571,38 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+//			numSurrogates = spinnerInteger_NumSurrogates;
+//			numBoxLength  = spinnerInteger_BoxLength;
+//			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-				
-//		sliceLabels = new String[(int) numColumns];
-		
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**
@@ -706,7 +703,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 				frame = listFrames[i];
 				//System.out.println("frame name: " + frame.getTitle());
-				if (frame.getTitle().contains(datasetOutName)) {
+				if (frame.getTitle().contains(DATASET_OUT_NAME)) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 				}
@@ -737,7 +734,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 			datasetOut.axis(2).setType(Axes.CHANNEL);
 			datasetOut.setCompositeChannelCount(3);
 		}
-		datasetOut.setName(datasetOutName);
+		datasetOut.setName(DATASET_OUT_NAME);
 		logService.info(this.getClass().getName() + " Processing finished.");
 
 		long duration = System.currentTimeMillis() - startTime;
@@ -783,7 +780,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 				if (singleImg != null) {	
 					//create stack datasetOut with info from first image
 					if (firstImageIsGenerated == false) {
-						String name = datasetOutName;
+						String name = DATASET_OUT_NAME;
 						int bitsPerPixel;
 						AxisType[] axes;
 						long[] dims;
@@ -873,7 +870,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 	 */
 	private void showImage() {
 		// Show table
-		uiService.show(datasetOutName, datasetOut);
+		uiService.show(DATASET_OUT_NAME, datasetOut);
 	}
 	
 	/**
@@ -891,7 +888,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 		//numSurrogates         = spinnerInteger_NumSurrogates;
 		//numBoxLength          = spinnerInteger_BoxLength;
 		int     numDataPoints   = dgt.getRowCount();
-		//boolean skipZeroes    = booleanSkipZeroes;
+		boolean skipZeroes      = booleanSkipZeroes;
 		int     aggLength       = spinnerInteger_AggLength;
 		int     alphabetSize    = spinnerInteger_AlphabetSize;
 		int     wordLength      = spinnerInteger_WordLength;
@@ -921,7 +918,7 @@ public class Csaj1DSymbolicAggregationCommand<T extends RealType<T>> extends Con
 		}	
 		
 		sequence1D = removeNaN(sequence1D);
-		//if (skipZeroes) sequence1D = removeZeroes(sequence1D);
+		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;
