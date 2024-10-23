@@ -113,6 +113,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	public JSpinner spinnerBoxLength;
 	public int      spinnerInteger_BoxLength;
 	
+	public JLabel    labelSkipZeroes;
 	public JCheckBox checkBoxSkipZeroes;
 	public boolean   booleanSkipZeroes;
 
@@ -436,7 +437,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	    spinnerInteger_BoxLength = (int)spinnerBoxLength.getValue();
 	    
 	    //*****************************************************************************************
-	    JLabel labelSkipZeroes = new JLabel("Skip zero values");
+	    labelSkipZeroes = new JLabel("Skip zero values");
 	    labelSkipZeroes.setToolTipText("Delete zeroes or not");
 	    labelSkipZeroes.setHorizontalAlignment(JLabel.RIGHT);
 	    

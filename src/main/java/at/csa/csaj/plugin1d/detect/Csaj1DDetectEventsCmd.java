@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DDetectEventsCommand.java
+ * File: Csaj1DDetectEventsCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.detect;
 
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -34,6 +34,7 @@ import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -73,6 +74,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.plugin1d.detect.util.Osea4Java_BeatDetectionAndClassification;
@@ -89,21 +91,13 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * in a sequence.
  */
 @Plugin(type = ContextCommand.class,
-	headless = true,
-	label = "Event detection",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Event detection",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+public class Csaj1DDetectEventsCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 
 	private static final String PLUGIN_LABEL                = "<html><b>Event detection</b></html>";
@@ -122,7 +116,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 	Column<? extends Object> domainColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 //	private static int  numSurrogates = 0;
@@ -220,7 +214,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 	@Parameter(label = "Threshold type",
 			description = "Threshold type",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"(Peaks, Valleys, Slope) Threshold", "(Slope) MAC"}, //Simple threshold or Moving Average Curves (MACs) according to Lu et al., Med. Phys. 33, 3634 (2006); http://dx.doi.org/10.1118/1"
+			choices = {"Threshold", "MAC"}, //Simple threshold or Moving Average Curves (MACs) according to Lu et al., Med. Phys. 33, 3634 (2006); http://dx.doi.org/10.1118/1"
 			persist = true,  //restore previous value default = true
 			initializer = "initialThresholdType",
 			callback = "callbackThresholdType")
@@ -320,8 +314,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 	@Parameter(label = "Output type",
 			   description = "Output type",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values", 
-					"(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals", "(Peaks, Valleys) Heights", "(Peaks, Valleys) Energies", "(Peaks, Valleys) delta Heights"}, 
+			   choices = {"Event domain values", "Event values", "Intervals", "Heights", "Energies", "delta Heights"}, 
 			   persist = true,  //restore previous value default = true
 			   initializer = "initialOutputType",
 			   callback = "callbackOutputType")
@@ -424,6 +417,12 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
@@ -882,37 +881,38 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
-		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+//			numSurrogates = spinnerInteger_NumSurrogates;
+//			numBoxLength  = spinnerInteger_BoxLength;
+//			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
 			
-//		sliceLabels = new String[(int) numColumns];
-				   
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
+			//*****************************************************************************************
+		}
 	}
 
 	/**
@@ -1009,7 +1009,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 		
 		//"Peaks", "Valleys", "Slope", "QRS peaks (Chen&Chen)", "QRS peaks (Osea)"},	
 		if (this.choiceRadioButt_EventType.equals("Peaks")) {
-			if (this.choiceRadioButt_ThresholdType.equals("(Peaks, Valleys, Slope) Threshold")) {
+			if (this.choiceRadioButt_ThresholdType.equals("Threshold")) {
 				tableOut.appendRow();
 				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: Threshold");
 				tableOut.appendRow();
@@ -1017,7 +1017,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			}	
 		}	
 		else if (this.choiceRadioButt_EventType.equals("Valleys")) {		
-			if (this.choiceRadioButt_ThresholdType.equals("(Peaks, Valleys, Slope) Threshold")) {
+			if (this.choiceRadioButt_ThresholdType.equals("Threshold")) {
 				tableOut.appendRow();
 				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: Threshold");
 				tableOut.appendRow();
@@ -1025,13 +1025,13 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			}
 		}
 		else if (this.choiceRadioButt_EventType.equals("Slope")) {// Thresholding or MAC)
-			if (this.choiceRadioButt_ThresholdType.equals("(Peaks, Valleys, Slope) Threshold")) {
+			if (this.choiceRadioButt_ThresholdType.equals("Threshold")) {
 				tableOut.appendRow();
 				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: Threshold");
 				tableOut.appendRow();
 				tableOut.set(0, tableOut.getRowCount()-1, "Threshold: "  + this.spinnerFloat_Threshold);
 			}
-			else if (this.choiceRadioButt_ThresholdType.equals("(Slope) MAC")) {
+			else if (this.choiceRadioButt_ThresholdType.equals("MAC")) {
 				tableOut.appendRow();
 				tableOut.set(0, tableOut.getRowCount()-1, "Threshold type: MAC");
 				tableOut.appendRow();
@@ -1061,17 +1061,17 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			
 		String outputType = "";
 		//"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals", "(Peaks, Valleys) Heights", "(Peaks, Valleys) Energies", "(Peaks, Valleys) delta Heights"}, 
-		if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values")) {
+		if (choiceRadioButt_OutputType.equals("Event domain values")) {
 			outputType = "Output: Event domain values";
-		} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values")) {
+		} else if (choiceRadioButt_OutputType.equals("Event values")) {
 				outputType = "Output: Event values";
-		} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals")) {
+		} else if (choiceRadioButt_OutputType.equals("Intervals")) {
 			outputType = "Output: Intervals";
-		} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) Heights")) {
+		} else if (choiceRadioButt_OutputType.equals("(Heights")) {
 			outputType = "Output: Heights";
-		} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) Energies")) {
+		} else if (choiceRadioButt_OutputType.equals("Energies")) {
 			outputType = "Output: Energies";
-		} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) delta Heights")) {
+		} else if (choiceRadioButt_OutputType.equals("delta Heights")) {
 			outputType = "Output: delta Heights";
 		} 	
 		tableOut.appendRow();
@@ -1154,17 +1154,17 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			boolean isLineVisible = false;
 			String sequenceTitle = "Events - ";			
 			// {"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals", "(Peaks, Valleys) Heights", "(Peaks, Valleys) Energies", "(Peaks, Valleys) delta Heights"}, 
-			if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values")) {
+			if (choiceRadioButt_OutputType.equals("Event domain values")) {
 				sequenceTitle = "Event domain values";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values")) {
+			} else if (choiceRadioButt_OutputType.equals("Event values")) {
 				sequenceTitle = "Event values";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals")) {
+			} else if (choiceRadioButt_OutputType.equals("Intervals")) {
 				sequenceTitle = "Intervals";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) Heights")) {
+			} else if (choiceRadioButt_OutputType.equals("Heights")) {
 				sequenceTitle = "Heights";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) Energies")) {
+			} else if (choiceRadioButt_OutputType.equals("Energies")) {
 				sequenceTitle = "Energies";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) delta Heights")) {
+			} else if (choiceRadioButt_OutputType.equals("delta Heights")) {
 				sequenceTitle = "delta Heights";
 			} 
 			String xLabel = "#";
@@ -1267,17 +1267,17 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			boolean isLineVisible = true;
 			String sequenceTitle = "Events - ";			
 			// {"(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values", "(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values",  "(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals", "(Peaks, Valleys) Heights", "(Peaks, Valleys) Energies", "(Peaks, Valleys) delta Heights"}, 
-			if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values")) {
+			if (choiceRadioButt_OutputType.equals("Event domain values")) {
 				sequenceTitle = "Events - Domain values";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values")) {
+			} else if (choiceRadioButt_OutputType.equals("Event values")) {
 				sequenceTitle = "Events - Values";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals")) {
+			} else if (choiceRadioButt_OutputType.equals("Intervals")) {
 				sequenceTitle = "Events - Intervals";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) Heights")) {
+			} else if (choiceRadioButt_OutputType.equals("Heights")) {
 				sequenceTitle = "Events - Heights";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) Energies")) {
+			} else if (choiceRadioButt_OutputType.equals("Energies")) {
 				sequenceTitle = "Events - Energies";
-			} else if (choiceRadioButt_OutputType.equals("(Peaks, Valleys) delta Heights")) {
+			} else if (choiceRadioButt_OutputType.equals("delta Heights")) {
 				sequenceTitle = "Events - delta Heights";
 			} 
 			String xLabel = "#";
@@ -1520,10 +1520,10 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			}
 			else if (eventType.equals("Slope")) {// Thresholding or MAC)
 				//"(Peaks, Valleys, Slope) Threshold", "(Slope) MAC"
-				if (thresholdType.equals("(Peaks, Valleys, Slope) Threshold")) {// Thresholding	
+				if (thresholdType.equals("Threshold")) {// Thresholding	
 					this.lookingForSlopePointsUsingThresholding(threshold, slopeType, domain1D, sequence1D);	
 				}	
-				if (thresholdType.equals("(Slope) MAC")) { // Moving Average Curves (MACs):/ Lu et al., Med. Phys. 33, 3634 (2006); http://dx.doi.org/10.1118/1.2348764
+				if (thresholdType.equals("MAC")) { // Moving Average Curves (MACs):/ Lu et al., Med. Phys. 33, 3634 (2006); http://dx.doi.org/10.1118/1.2348764
 					this.lookingForSlopePointsUsingMAC(threshold, tau, offset, intersections, slopeType, domain1D, sequence1D );
 				}				
 			}	
@@ -1535,7 +1535,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 			}
 			//Output options
 			//###############################################################################################	
-			if (outputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event domain values")) {
+			if (outputType.equals("Event domain values")) {
 				if (eventDataIdx == null || eventDataIdx.isEmpty()){
 					logService.info(this.getClass().getName() + " No coordinates found! Maybe that threshold is not well set");
 					return;
@@ -1552,7 +1552,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 				}
 				detectedEvents = eventDataX2;
 			}	
-			else if (outputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Event values")) {
+			else if (outputType.equals("Event values")) {
 				if (eventDataIdx == null || eventDataIdx.isEmpty()){
 					logService.info(this.getClass().getName() + " No coordinates found! Maybe that threshold is not well set");
 					return;
@@ -1569,7 +1569,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 				}
 				detectedEvents = eventDataY2;
 			}	
-			else if (outputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals")) {
+			else if (outputType.equals("Intervals")) {
 				if (eventDataIdx == null || eventDataIdx.isEmpty()){
 					logService.info(this.getClass().getName() + " No intervals found! Maybe that threshold is not well set");
 					//DialogUtil.getInstance().showDefaultErrorMessage("No intervals found! Maybe that threshold is not well set");	
@@ -1595,7 +1595,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 				eventDataX2.remove(0);
 				eventDataY2.remove(0);
 				
-				if (outputType.equals("(Peaks, Valleys, Slope, Chen&Chen, Osea) Intervals")) {
+				if (outputType.equals("Intervals")) {
 					if (eventType.equals("QRS peaks (Osea)")) {
 						double meanInterval = 0.0;
 						for ( double e:  detectedEvents) meanInterval += meanInterval;
@@ -1605,7 +1605,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 					}
 				}	
 			}	
-			else if (outputType.equals("(Peaks, Valleys) Heights")) {
+			else if (outputType.equals("Heights")) {
 				if (eventDataIdx == null || eventDataIdx.isEmpty()){
 					logService.info(this.getClass().getName() + " No heights found! Maybe that threshold is not well set");
 					//DialogUtil.getInstance().showDefaultErrorMessage("No heights found! Maybe that threshold is not well set");	
@@ -1649,7 +1649,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 					detectedEvents.add(sequence1D[timeStampIdx2] - median);
 				}		
 			}
-			else if (outputType.equals("(Peaks, Valleys) delta Heights")) {
+			else if (outputType.equals("delta Heights")) {
 				if (eventDataIdx == null || eventDataIdx.isEmpty()) {
 					logService.info(this.getClass().getName() + " No delta Heights found! Maybe that threshold is not well set");
 					//DialogUtil.getInstance().showDefaultErrorMessage("No delta Heights found! Maybe that threshold is not well set");	
@@ -1699,7 +1699,7 @@ public class Csaj1DDetectEventsCommand<T extends RealType<T>> extends ContextCom
 				eventDataX2.remove(0);
 				eventDataY2.remove(0);	
 			}
-			else if (outputType.equals("(Peaks, Valleys) Energies")) {
+			else if (outputType.equals("Energies")) {
 				if (eventDataIdx == null || eventDataIdx.isEmpty()){
 					logService.info(this.getClass().getName() + " No energies found! Maybe that threshold is not well set");
 					//DialogUtil.getInstance().showDefaultErrorMessage("No energies found! Maybe that threshold is not well set");

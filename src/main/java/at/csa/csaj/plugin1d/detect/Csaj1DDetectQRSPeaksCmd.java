@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DDetectQRSPeaksCommand.java
+ * File: Csaj1DDetectQRSPeaksCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.detect;
 
 import net.imagej.ImageJ;
 
@@ -69,17 +69,19 @@ import javax.swing.UIManager;
 	headless = true,
 	label = "QRS peaks detection (from file)",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DDetectQRSPeaksCommand  extends ContextCommand implements Previewable {
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "1D Sequence(s)"),
+	@Menu(label = "Detection", weight = 2),
+	@Menu(label = "QRS peaks detection(New dialog) (from file) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+//NOTE: This Command class is an exception
+//It deviates from the ComsystanJ structure of having three files (Cmd, CmdUI, Dialog)
+//This Cmd class already implements the menu entries
+//There is no CmdUI file
+//There is no Dialog file
+public class Csaj1DDetectQRSPeaksCmd  extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL = "<html><b>Detects QRS complexes and RR intervals</b></html>";
 	private static final String SPACE_LABEL = "";
