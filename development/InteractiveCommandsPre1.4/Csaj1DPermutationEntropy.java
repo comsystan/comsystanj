@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DPermutationEntropyCommand.java
+ * File: Csaj1DPermutationEntropy.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.ent;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
@@ -43,8 +43,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -73,15 +72,20 @@ import at.csa.csaj.plugin1d.ent.util.PermutationEntropy;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
- * A {@link ContextCommand} plugin computing <Permutation entropy</a>
+ * A {@link InteractiveCommand} plugin computing <Permutation entropy</a>
  * of a sequence.
  */
-@Plugin(type = ContextCommand.class, 
+@Plugin(type = InteractiveCommand.class, 
 	headless = true,
 	label = "Permutaion entropy",
 	initializer = "initialPluginLaunch",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "1D Sequence(s)"),
+	@Menu(label = "Entropy analyses", weight = 5),
+	@Menu(label = "Permuation entropy ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
@@ -91,7 +95,7 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  *
  *
  */
-public class Csaj1DPermutationEntropyCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj1DPermutationEntropy<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Permutation entropy</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -120,7 +124,7 @@ public class Csaj1DPermutationEntropyCommand<T extends RealType<T>> extends Cont
 	private static int   numParamN = 2;
 	private static int   numParamD = 1;
 	
-	public static final String TABLE_OUT_NAME = "Table - Entropy";
+	public static final String TABLE_OUT_NAME = "Table - Permutation entropy";
 	
 	CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -919,7 +923,7 @@ public class Csaj1DPermutationEntropyCommand<T extends RealType<T>> extends Cont
 			} 
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
-			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
+			resultValues = new double[(int) (1*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
@@ -942,7 +946,7 @@ public class Csaj1DPermutationEntropyCommand<T extends RealType<T>> extends Cont
 			}	
 		//********************************************************************************************************			
 		} else if (sequenceRange.equals("Gliding box")){
-			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
+			resultValues = new double[(int) (1*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller because of NaNs or removed zeroes

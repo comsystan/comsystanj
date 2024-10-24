@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DSampleEntropyCommand.java
+ * File: Csaj1DSampleEntropy.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.ent;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
@@ -43,8 +43,7 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -75,15 +74,20 @@ import at.csa.csaj.plugin1d.ent.util.SampleEntropy;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
- * A {@link ContextCommand} plugin computing <Sample entropy and Approximate entropy</a>
+ * A {@link InteractiveCommand} plugin computing <Sample entropy and Approximate entropy</a>
  * of a sequence.
  */
-@Plugin(type = ContextCommand.class, 
+@Plugin(type = InteractiveCommand.class, 
 	headless = true,
 	label = "Sample entropy",
 	initializer = "initialPluginLaunch",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {})
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "1D Sequence(s)"),
+	@Menu(label = "Entropy analyses", weight = 5),
+	@Menu(label = "Sample entropy ")})
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
@@ -93,7 +97,7 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  *
  *
  */
-public class Csaj1DSampleEntropyCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Sample entropy / Approximate entropy</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -123,7 +127,7 @@ public class Csaj1DSampleEntropyCommand<T extends RealType<T>> extends ContextCo
 	private static float numParamR = 0.15f;
 	private static int   numParamD = 1;
 	
-	public static final String TABLE_OUT_NAME = "Table - Entropy";
+	public static final String TABLE_OUT_NAME = "Table - Sample entropy";
 	
 	CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -184,12 +188,12 @@ public class Csaj1DSampleEntropyCommand<T extends RealType<T>> extends ContextCo
 	private final String labelEntropyType = ENTROPYTYPE_LABEL;
 	
 	@Parameter(label = "Entropy type",
-			description = "Sample entropy or Approximate entropy",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Sample entropy", "Approximate entropy"}, 
-			persist = true,  //restore previous value default = true
-			initializer = "initialEntropyType",
-			callback = "callbackEntropyType")
+				description = "Sample entropy or Approximate entropy",
+				style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+				choices = {"Sample entropy", "Approximate entropy"}, 
+				persist = true,  //restore previous value default = true
+				initializer = "initialEntropyType",
+				callback = "callbackEntropyType")
 		private String choiceRadioButt_EntropyType;
 
 	@Parameter(label = "m", description = "parameter m", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
@@ -353,17 +357,17 @@ public class Csaj1DSampleEntropyCommand<T extends RealType<T>> extends ContextCo
 	
 	/** Executed whenever the {@link #spinnerInteger_ParamM} parameter changes. */
 	protected void callbackParamM() {
-		logService.info(this.getClass().getName() + " Window size set to " + spinnerInteger_ParamM);
+		logService.info(this.getClass().getName() + " Param m set to " + spinnerInteger_ParamM);
 	}
 
 	/** Executed whenever the {@link #spinnerInteger_ParamR} parameter changes. */
 	protected void callbackParamR() {
-		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerFloat_ParamR);
+		logService.info(this.getClass().getName() + " Param r set to " + spinnerFloat_ParamR);
 	}
 
 	/** Executed whenever the {@link #spinnerInteger_ParamD} parameter changes. */
 	protected void callbackParamD() {
-		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_ParamD);
+		logService.info(this.getClass().getName() + " Param d set  to " + spinnerInteger_ParamD);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
@@ -938,7 +942,7 @@ public class Csaj1DSampleEntropyCommand<T extends RealType<T>> extends ContextCo
 			} 
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
-			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
+			resultValues = new double[(int) (1*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
@@ -967,7 +971,7 @@ public class Csaj1DSampleEntropyCommand<T extends RealType<T>> extends ContextCo
 			}	
 		//********************************************************************************************************			
 		} else if (sequenceRange.equals("Gliding box")){
-			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
+			resultValues = new double[(int) (1*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller because of NaNs or removed zeroes

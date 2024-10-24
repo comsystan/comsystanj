@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DSampleEntropy.java
+ * File: Csaj1DPermutationEntropyCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -31,6 +31,7 @@ package at.csa.csaj.plugin1d.ent;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -39,18 +40,15 @@ import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
-
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
-import org.scijava.command.InteractiveCommand;
+import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -59,7 +57,6 @@ import org.scijava.table.Column;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
 import org.scijava.table.DoubleColumn;
-import org.scijava.table.FloatColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
 import org.scijava.ui.UIService;
@@ -68,41 +65,28 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin1d.ent.util.ApproximateEntropy;
-import at.csa.csaj.plugin1d.ent.util.SampleEntropy;
+import at.csa.csaj.plugin1d.ent.util.PermutationEntropy;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
- * A {@link InteractiveCommand} plugin computing <Sample entropy and Approximate entropy</a>
+ * A {@link ContextCommand} plugin computing <Permutation entropy</a>
  * of a sequence.
  */
-@Plugin(type = InteractiveCommand.class, 
-	headless = true,
-	label = "Sample entropy",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {
-	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-	@Menu(label = "ComsystanJ"),
-	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Entropy analyses", weight = 5),
-	@Menu(label = "Sample entropy ")})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveCommand implements Previewable {
+@Plugin(type = ContextCommand.class, 
+		headless = true,
+		label = "Permutaion entropy",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-	private static final String PLUGIN_LABEL            = "<html><b>Sample entropy / Approximate entropy</b></html>";
+public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "<html><b>Permutation entropy</b></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String ENTROPYTYPE_LABEL       = "<html><b>Entropy type</b></html>";
+	private static final String ENTROPYTYPE_LABEL       = "<html><b>Parameter settings</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";
@@ -115,7 +99,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -124,11 +108,10 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
-	private static int   numParamM = 2;
-	private static float numParamR = 0.15f;
+	private static int   numParamN = 2;
 	private static int   numParamD = 1;
 	
-	public static final String TABLE_OUT_NAME = "Table - Sample entropy";
+	public static final String TABLE_OUT_NAME = "Table - Permutation entropy";
 	
 	CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -188,28 +171,26 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelEntropyType = ENTROPYTYPE_LABEL;
 	
-	@Parameter(label = "Entropy type",
-			description = "Sample entropy or Approximate entropy",
-			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			choices = {"Sample entropy", "Approximate entropy"}, 
-			persist = true,  //restore previous value default = true
-			initializer = "initialEntropyType",
-			callback = "callbackEntropyType")
-		private String choiceRadioButt_EntropyType;
-
-	@Parameter(label = "m", description = "parameter m", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
+	@Parameter(label = "Order n",
+			   description = "Order must be >=2",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "2",
+			   max = "100",
+			   stepSize = "1",
 			   persist = true, // restore  previous value  default  =  true
-			   initializer = "initialParamM", callback = "callbackParamM")
-	private int spinnerInteger_ParamM;
+			   initializer = "initialParamN",
+			   callback = "callbackParamN")
+	private int spinnerInteger_ParamN;
 
-	@Parameter(label = "r", description = "parameter r", style = NumberWidget.SPINNER_STYLE, min = "0.05", max = "1.0", stepSize = "0.05",
+	@Parameter(label = "Delay d",
+			   description = "Delay d",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "1",
+			   max = "100",
+			   stepSize = "1",
 			   persist = true, //restore previous value default = true
-			   initializer = "initialParamR", callback = "callbackParamR")
-	private float spinnerFloat_ParamR;
-
-	@Parameter(label = "d", description = "delay d", style = NumberWidget.SPINNER_STYLE, min = "1", max = "100", stepSize = "1",
-			   persist = true, //restore previous value default = true
-			   initializer = "initialParamD", callback = "callbackParamD")
+			   initializer = "initialParamD",
+			   callback = "callbackParamD")
 	private int spinnerInteger_ParamD;
 	
 	//-----------------------------------------------------------------------------------------------------
@@ -246,7 +227,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	private int spinnerInteger_NumSurrogates;
 	
 	@Parameter(label = "Box length",
-			   description = "Length of subsequent or gliding box - Shoud be at least three times ParamM",
+			   description = "Length of subsequent or gliding box - Shoud be at least three times ParamN",
 			   style = NumberWidget.SPINNER_STYLE, 
 			   min = "2",
 			   max = "9999999999999999999",
@@ -272,7 +253,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	@Parameter(label = "Overwrite result display(s)",
 	    	   description = "Overwrite already existing result images, plots or tables",
 	    	   persist = true,  //restore previous value default = true
-	    	   initializer = "initialOverwriteDisplays")
+			   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
@@ -289,6 +270,12 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 	
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
@@ -301,16 +288,9 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	protected void initialPluginLaunch() {
 		checkItemIOIn();
 	}
-	protected void initialEntropyType() {
-		choiceRadioButt_EntropyType = "Sample entropy";
-	} 
 	
-	protected void initialParamM() {
-		spinnerInteger_ParamM = 2;
-	}
-	
-	protected void initialParamR() {
-		spinnerFloat_ParamR = 0.15f;
+	protected void initialParamN() {
+		spinnerInteger_ParamN = 2;
 	}
 	
 	protected void initialParamD() {
@@ -343,27 +323,20 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
-}
+	}
 	
 	protected void initialNumColumn() {
 		spinnerInteger_NumColumn = 1;
 	}
 
 	// ------------------------------------------------------------------------------
-
-	/** Executed whenever the {@link #choiceRadioButt_EntropyType} parameter changes. */
-	protected void callbackEntropyType() {
-		logService.info(this.getClass().getName() + " Entropy type set to " + choiceRadioButt_EntropyType);
-	}
 	
-	/** Executed whenever the {@link #spinnerInteger_ParamM} parameter changes. */
-	protected void callbackParamM() {
-		logService.info(this.getClass().getName() + " Window size set to " + spinnerInteger_ParamM);
-	}
-
-	/** Executed whenever the {@link #spinnerInteger_ParamR} parameter changes. */
-	protected void callbackParamR() {
-		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerFloat_ParamR);
+	/** Executed whenever the {@link #spinnerInteger_ParamN} parameter changes. */
+	protected void callbackParamN() {
+		if (spinnerInteger_ParamN < 2) { //values smaller than 2 are not allowed
+			spinnerInteger_ParamN = 2;
+		}
+		logService.info(this.getClass().getName() + " Window size set to " + spinnerInteger_ParamN);
 	}
 
 	/** Executed whenever the {@link #spinnerInteger_ParamD} parameter changes. */
@@ -513,45 +486,46 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
-	
+
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
-		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
 			
-		sliceLabels = new String[(int) numColumns];
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
+			//*****************************************************************************************
+		}
 	}
-	
+
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing "+choiceRadioButt_EntropyType+", please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Permutation, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -559,7 +533,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	
     	logService.info(this.getClass().getName() + " Processing single sequence");
     	deleteExistingDisplays();
-		generateTableHeader();
+		generateTableHeader();		//int activeColumnIndex = getActiveColumnIndex();
 		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
 		dlgProgress.addMessage("Processing finished!");		
 		dlgProgress.setVisible(false);
@@ -572,7 +546,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing "+choiceRadioButt_EntropyType+", please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Permutation entropy, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -621,9 +595,10 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		String entropyHeader  = "";
-		if (choiceRadioButt_EntropyType.equals("Sample entropy"))      entropyHeader = "SampEn";	
-		if (choiceRadioButt_EntropyType.equals("Approximate entropy")) entropyHeader = "AppEn";	
+		String entropyHeader           = "PermEn";
+		String entropyPerSymbolHeader  = "PermEn per symbol";
+		String entropyNormalizedHeader = "PermEn normalized";
+		String entropySortingHeader    = "SortingEn";
 		
 		tableOut = new DefaultGenericTable();
 		tableOut.add(new GenericColumn("File name"));
@@ -634,14 +609,15 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		tableOut.add(new IntColumn("Box length"));
 		tableOut.add(new BoolColumn("Skip zeroes"));
 	
-		tableOut.add(new IntColumn("m"));
-		tableOut.add(new FloatColumn("r"));
-		tableOut.add(new IntColumn("d"));
+		tableOut.add(new IntColumn("Order n"));
+		tableOut.add(new IntColumn("Delay d"));
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
-			tableOut.add(new DoubleColumn(entropyHeader));		
-			
+			tableOut.add(new DoubleColumn(entropyHeader));	
+			tableOut.add(new DoubleColumn(entropyPerSymbolHeader));	
+			tableOut.add(new DoubleColumn(entropyNormalizedHeader));
+			tableOut.add(new DoubleColumn(entropySortingHeader));	
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
@@ -700,10 +676,8 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		// Compute result values
 		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 0 Entropy
-		if (choiceRadioButt_EntropyType.equals("Sample entropy"))      logService.info(this.getClass().getName() + " Sample entropy: "      + containerPM.item1_Values[0]);
-		if (choiceRadioButt_EntropyType.equals("Approximate entropy")) logService.info(this.getClass().getName() + " Approximate entropy: " + containerPM.item1_Values[0]);
+		logService.info(this.getClass().getName() + " Permutation entropy: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
-		
 		writeToTable(0, c, containerPM); //write always to the first row
 		
 		long duration = System.currentTimeMillis() - startTime;
@@ -773,7 +747,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 	
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
@@ -789,10 +763,9 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		}	
 		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		
-		tableOut.set(7, row, spinnerInteger_ParamM); // ParamM
-		tableOut.set(8, row, spinnerFloat_ParamR); //ParamR
-		tableOut.set(9, row, spinnerInteger_ParamD); //ParamD		
-		tableColLast = 9;
+		tableOut.set(7, row, spinnerInteger_ParamN); // ParamN
+		tableOut.set(8, row, spinnerInteger_ParamD); //ParamD		
+		tableColLast = 8;
 		
 		if (containerPM == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
@@ -833,18 +806,17 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		numSurrogates         = spinnerInteger_NumSurrogates;
 		numBoxLength          = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
-		int     numParamM     = spinnerInteger_ParamM;
-		float   numParamR     = spinnerFloat_ParamR;
+		int     numParamN     = spinnerInteger_ParamN;
 		int     numParamD     = spinnerInteger_ParamD;
 		boolean skipZeroes    = booleanSkipZeroes;
 		
-		double[] resultValues = new double[1]; // only 1   SampEn or AppEn
+		double[] resultValues = new double[2]; // only 2   PermEn and normalized PermEn
 		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 		
-//		double[]totals = new double[numParamM];
-//		double[]eps = new double[numParamM];
+//		double[]totals = new double[numParamN];
+//		double[]eps = new double[numParamN];
 //		// definition of eps
-//		for (int kk = 0; kk < numParamM; kk++) {
+//		for (int kk = 0; kk < numParamN; kk++) {
 //			eps[kk] = kk + 1;		
 //			//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
 //		}
@@ -879,38 +851,45 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		//int numActualRows = 0;
 		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + numDataPoints);	
 		if (numDataPoints == 0) return null; //e.g. if sequence had only NaNs
-	
+		
 		//domain1D = new double[numDataPoints];
 		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
-			
-		SampleEntropy      se;
-		ApproximateEntropy ae;
-		double entropyValue = Double.NaN;
+				
+		PermutationEntropy pe;
+		PermutationEntropy pe2;
+		double entropyValue  = Double.NaN;
+		double entropyValue2 = Double.NaN;
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		if (sequenceRange.equals("Entire sequence")){	
 			if (surrType.equals("No surrogates")) {
-				resultValues = new double[1]; // SampEn or AppEn
+				resultValues = new double[4]; // PermEn, PermEn per symbol, normalized PermEn, Sorting entropy
 			} else {
-				resultValues = new double[1+1+1*numSurrogates]; // Entropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
+				resultValues = new double[4+1+1*numSurrogates]; // 4xEntropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
 			}
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
 			//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 			
-			if (sequence1D.length > (numParamM * 2)) { // only data series which are large enough
-				if (choiceRadioButt_EntropyType.equals("Sample entropy")) {
-					se = new SampleEntropy(logService);
-					entropyValue = se.calcSampleEntropy(sequence1D, numParamM, numParamR, numParamD);
-				}
-				else if (choiceRadioButt_EntropyType.equals("Approximate entropy")) {
-					ae = new ApproximateEntropy(logService);
-					entropyValue = ae.calcApproximateEntropy(sequence1D, numParamM, numParamR, numParamD);
-				}
+			if (sequence1D.length > (numParamN * 2)) { // only data series which are large enough
+				
+				pe = new PermutationEntropy(logService);
+				entropyValue = pe.calcPermutationEntropy(sequence1D, numParamN, numParamD);
+					
 				resultValues[0] = entropyValue; //entropy
-				int lastMainResultsIndex = 0;
+				resultValues[1] = entropyValue/(numParamN - 1); //entropy per symbol
+				resultValues[2] = entropyValue/Math.log10(CombinatoricsUtils.factorial(numParamN));
+				if (numParamN == 2){
+					resultValues[3] = entropyValue; //Sorting entropy
+				} else if (numParamN > 2){
+					pe2 = new PermutationEntropy(logService);
+					entropyValue2 = pe2.calcPermutationEntropy(sequence1D, numParamN-1, numParamD);
+					resultValues[3] = entropyValue - entropyValue2; //Sorting entropy
+				}
+				
+				int lastMainResultsIndex = 3;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
 					surrSequence1D = new double[sequence1D.length];
@@ -925,14 +904,9 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 						if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
 						if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
-						if (choiceRadioButt_EntropyType.equals("Sample entropy")) {
-							se = new SampleEntropy(logService);
-							entropyValue = se.calcSampleEntropy(surrSequence1D, numParamM, numParamR, numParamD);
-						}
-						else if (choiceRadioButt_EntropyType.equals("Approximate entropy")) {
-							ae = new ApproximateEntropy(logService);
-							entropyValue = ae.calcApproximateEntropy(surrSequence1D, numParamM, numParamR, numParamD);
-						}
+						pe = new PermutationEntropy(logService);
+						entropyValue = pe.calcPermutationEntropy(surrSequence1D, numParamN, numParamD);
+			
 						resultValues[lastMainResultsIndex + 2 + s] = entropyValue;
 						
 						sumEntropies += entropyValue;
@@ -943,7 +917,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 			} 
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
-			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
+			resultValues = new double[(int) (1*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
@@ -957,22 +931,16 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 					subSequence1D[ii-start] = sequence1D[ii];
 				}
 				//Compute specific values************************************************
-				if (subSequence1D.length > (numParamM * 2)) { // only data series which are large enough
-					if (choiceRadioButt_EntropyType.equals("Sample entropy")) {
-						se = new SampleEntropy(logService);
-						entropyValue = se.calcSampleEntropy(subSequence1D, numParamM, numParamR, numParamD);
-					}
-					else if (choiceRadioButt_EntropyType.equals("Approximate entropy")) {
-						ae = new ApproximateEntropy(logService);
-						entropyValue = ae.calcApproximateEntropy(subSequence1D, numParamM, numParamR, numParamD);
-					}
+				if (subSequence1D.length > (numParamN * 2)) { // only data series which are large enough
+					pe = new PermutationEntropy(logService);
+					entropyValue = pe.calcPermutationEntropy(subSequence1D, numParamN, numParamD);
 					resultValues[i] = entropyValue;	
 				} 
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
 		} else if (sequenceRange.equals("Gliding box")){
-			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
+			resultValues = new double[(int) (1*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller because of NaNs or removed zeroes
@@ -986,15 +954,9 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 					subSequence1D[ii-start] = sequence1D[ii];
 				}	
 				//Compute specific values************************************************
-				if (subSequence1D.length > (numParamM * 2)) { // only data series which are large enough
-					if (choiceRadioButt_EntropyType.equals("Sample entropy")) {
-						se = new SampleEntropy(logService);
-						entropyValue = se.calcSampleEntropy(subSequence1D, numParamM, numParamR, numParamD);
-					}
-					else if (choiceRadioButt_EntropyType.equals("Approximate entropy")) {
-						ae = new ApproximateEntropy(logService);
-						entropyValue = ae.calcApproximateEntropy(subSequence1D, numParamM, numParamR, numParamD);
-					}
+				if (subSequence1D.length > (numParamN * 2)) { // only data series which are large enough
+						pe = new PermutationEntropy(logService);
+						entropyValue = pe.calcPermutationEntropy(subSequence1D, numParamN, numParamD);
 					resultValues[i] = entropyValue;		
 				}
 				//***********************************************************************
@@ -1002,7 +964,7 @@ public class Csaj1DSampleEntropy<T extends RealType<T>> extends InteractiveComma
 		}
 		
 		return new CsajContainer_ProcessMethod(resultValues);
-		// SampEn or AppEn
+		// PermEn
 		// Output
 		// uiService.show(TABLE_OUT_NAME, table);
 	}

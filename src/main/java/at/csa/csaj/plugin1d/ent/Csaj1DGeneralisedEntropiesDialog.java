@@ -200,6 +200,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    contentPanel.add(spinnerLag, gbc);	    
 	    //initialize command variable
 	    spinnerInteger_Lag = (int)spinnerLag.getValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMinQ = new JLabel("Min q");
 	    labelMinQ.setToolTipText("Minimum q for Renyi, Tsallis, SNorm and SEscort entropies");
@@ -231,7 +232,8 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinQ, gbc);	    
 	    //initialize command variable
-	    spinnerInteger_MinQ = (int)spinnerMinQ.getValue();    
+	    spinnerInteger_MinQ = (int)spinnerMinQ.getValue();  
+	    
 	    //*****************************************************************************************
 	    JLabel labelMaxQ = new JLabel("Max q");
 	    labelMaxQ.setToolTipText("Maximum q for Renyi, Tsallis, SNorm and SEscort entropies");
@@ -263,7 +265,8 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxQ, gbc);	    
 	    //initialize command variable
-	    spinnerInteger_MaxQ = (int)spinnerMaxQ.getValue();    
+	    spinnerInteger_MaxQ = (int)spinnerMaxQ.getValue(); 
+	    
 	    //*****************************************************************************************
 	    JLabel labelMinEta = new JLabel("Min eta");
 	    labelMinEta.setToolTipText("Minimum eta for SEta entropies");
@@ -291,6 +294,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    contentPanel.add(spinnerMinEta, gbc);	    
 	    //initialize command variable
 	    spinnerFloat_MinEta = (float)((SpinnerNumberModel)spinnerMinEta.getModel()).getNumber().doubleValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMaxEta = new JLabel("Max eta");
 	    labelMaxEta.setToolTipText("Maximum eta for SEta entropies");
@@ -318,6 +322,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    contentPanel.add(spinnerMaxEta, gbc);	    
 	    //initialize command variable
 	    spinnerFloat_MaxEta = (float)((SpinnerNumberModel)spinnerMaxEta.getModel()).getNumber().doubleValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMinKappa = new JLabel("Min kappa");
 	    labelMinKappa.setToolTipText("Minimum kappa for SKappa entropies");
@@ -345,6 +350,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    contentPanel.add(spinnerMinKappa, gbc);	    
 	    //initialize command variable
 	    spinnerFloat_MinKappa = (float)((SpinnerNumberModel)spinnerMinKappa.getModel()).getNumber().doubleValue();  
+	    
 	    //*****************************************************************************************
 	    JLabel labelMaxKappa = new JLabel("Max kappa");
 	    labelMaxKappa.setToolTipText("Maximum kappa for SKappa entropies");
@@ -372,6 +378,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    contentPanel.add(spinnerMaxKappa, gbc);	    
 	    //initialize command variable
 	    spinnerFloat_MaxKappa = (float)((SpinnerNumberModel)spinnerMaxKappa.getModel()).getNumber().doubleValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMinB = new JLabel("Min B");
 	    labelMinB.setToolTipText("Minimum B for SB entropies");
@@ -399,6 +406,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    contentPanel.add(spinnerMinB, gbc);	    
 	    //initialize command variable
 	    spinnerFloat_MinB = (float)((SpinnerNumberModel)spinnerMinB.getModel()).getNumber().doubleValue();   
+	    
 	    //*****************************************************************************************
 	    JLabel labelMaxB = new JLabel("Max B");
 	    labelMaxB.setToolTipText("Maximum B for SB entropies");
@@ -425,7 +433,8 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxB, gbc);	    
 	    //initialize command variable
-	    spinnerFloat_MaxB = (float)((SpinnerNumberModel)spinnerMaxB.getModel()).getNumber().doubleValue(); 
+	    spinnerFloat_MaxB = (float)((SpinnerNumberModel)spinnerMaxB.getModel()).getNumber().doubleValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMinBeta = new JLabel("Min beta");
 	    labelMinBeta.setToolTipText("Minimum beta for SBeta entropies");
@@ -452,7 +461,8 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinBeta, gbc);	    
 	    //initialize command variable
-	    spinnerFloat_MinBeta = (float)((SpinnerNumberModel)spinnerMinBeta.getModel()).getNumber().doubleValue();  
+	    spinnerFloat_MinBeta = (float)((SpinnerNumberModel)spinnerMinBeta.getModel()).getNumber().doubleValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMaxBeta = new JLabel("Max beta");
 	    labelMaxBeta.setToolTipText("Maximum beta for SBeta entropies");
@@ -479,7 +489,8 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxBeta, gbc);	    
 	    //initialize command variable
-	    spinnerFloat_MaxBeta = (float)((SpinnerNumberModel)spinnerMaxBeta.getModel()).getNumber().doubleValue();  
+	    spinnerFloat_MaxBeta = (float)((SpinnerNumberModel)spinnerMaxBeta.getModel()).getNumber().doubleValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMinGamma = new JLabel("Min gamma");
 	    labelMinGamma.setToolTipText("Minimum gamma for SGamma entropies");
@@ -506,7 +517,8 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinGamma, gbc);	    
 	    //initialize command variable
-	    spinnerFloat_MinGamma = (float)((SpinnerNumberModel)spinnerMinGamma.getModel()).getNumber().doubleValue();  
+	    spinnerFloat_MinGamma = (float)((SpinnerNumberModel)spinnerMinGamma.getModel()).getNumber().doubleValue();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMaxGamma = new JLabel("Max gamma");
 	    labelMaxGamma.setToolTipText("Maximum gamma for SGamma entropies");
@@ -533,7 +545,8 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxGamma, gbc);	    
 	    //initialize command variable
-	    spinnerFloat_MaxGamma = (float)((SpinnerNumberModel)spinnerMaxGamma.getModel()).getNumber().doubleValue();   
+	    spinnerFloat_MaxGamma = (float)((SpinnerNumberModel)spinnerMaxGamma.getModel()).getNumber().doubleValue(); 
+	    
 	    //*****************************************************************************************
 	    labelShowRenyiPlot = new JLabel("Show Renyi plot");
 	    labelShowRenyiPlot.setToolTipText("Show Renyi plot");
