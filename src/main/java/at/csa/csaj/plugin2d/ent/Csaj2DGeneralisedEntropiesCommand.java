@@ -1186,7 +1186,7 @@ public class Csaj2DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 			String axisNameX = "";
 			String axisNameY = "";
 			if (numSlices > 1) {
-				preName = "Slice-"+String.format("%03d", plane) +"-";
+				preName = "Slice-"+String.format("%03d", plane+1) +"-";
 			}
 			axisNameX = "q";
 			axisNameY = "Renyi";

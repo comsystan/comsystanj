@@ -466,7 +466,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	 	numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 	 }
 	   
-	   protected void initialShowRenyiPlot() {
+	 protected void initialShowRenyiPlot() {
 	   	booleanShowRenyiPlot = true;
 	 }
 	 
@@ -1068,8 +1068,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		start = end;
 		end   = start + numGamma;
 		for (int i = start; i < end; i++) resultValues[i] = genEntSGamma[i-start];
-		
-		
+			
 		//Collect some entropies for display
 		double[] entList;
 		double[] qList;		

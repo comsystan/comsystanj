@@ -41,13 +41,11 @@ import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
 import org.apache.commons.math3.random.EmpiricalDistribution;
-import org.apache.commons.math3.special.Gamma;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;

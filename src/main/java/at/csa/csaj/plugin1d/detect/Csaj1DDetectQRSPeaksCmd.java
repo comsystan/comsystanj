@@ -31,7 +31,6 @@ import net.imagej.ImageJ;
 
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 
 import org.scijava.command.Previewable;

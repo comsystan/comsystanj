@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DGeneralisedEntropiesDialog.java
+ * File: Csaj1DGeneralisedEntropiesDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.plugin3d.ent;
+package at.csa.csaj.plugin1d.ent;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -35,6 +35,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -42,22 +43,23 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import net.imagej.Dataset;
+
 import org.scijava.Context;
 import org.scijava.command.CommandModule;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
+import org.scijava.table.DefaultTableDisplay;
 import org.scijava.ui.UIService;
-import at.csa.csaj.commons.CsajDialog_3DPlugin;
+import at.csa.csaj.commons.CsajDialog_1DPlugin;
 
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
+public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 
-	private static final long serialVersionUID = 285935914241862120L;
+	private static final long serialVersionUID = 6243623536761241706L;
 
 	@Parameter
 	private LogService logService;
@@ -68,12 +70,12 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 	@Parameter
 	private UIService uiService;
 	
-  	private Dataset datasetIn;
+  	private DefaultTableDisplay defaultTableDisplay;
   	private String tableOutName;
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
-  	private JComboBox<String> comboBoxProbabilityType;
+ 	private JComboBox<String> comboBoxProbabilityType;
 	private String   choiceRadioButt_ProbabilityType;
 	
 	private JSpinner spinnerLag;
@@ -115,39 +117,31 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 	private JSpinner spinnerMaxGamma;
 	private float spinnerFloat_MaxGamma;
 	
+	private JLabel    labelShowRenyiPlot;
 	private JCheckBox checkBoxShowRenyiPlot;
-	private boolean booleanShowRenyiPlot;
+	private boolean   booleanShowRenyiPlot;
 	
-	/**Some default @Parameters are already defined in the super class
-	 * public JCheckBox checkBoxOverwriteDisplays;
-	 * public boolean   booleanOverwriteDisplays;
-	 * 
-	 * public JCheckBox checkBoxProcessImmediately;
-	 * public boolean	booleanProcessImmediately;
-	 * 
-	 * public JSpinner spinnerNumImageSlice;
-	 * public int      spinnerInteger_NumImageSlice;
-	 * 
-	 * public JButton btnProcessSingleImage;
-	 * public JButton btnProcessAllImages;
-	 */
+	private JLabel			  labelEntropyType;
+	private JComboBox<String> comboBoxEntropyType;
+	private String            choiceRadioButt_EntropyType;
 	
-		
+	//Some default @Parameters are already defined in the super class
+
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj3DGeneralisedEntropiesDialog(Context context, Dataset datasetIn) {
+	public Csaj1DGeneralisedEntropiesDialog(Context context, DefaultTableDisplay defaultTableDisplay) {
 			
-		super(context, datasetIn);
+		super(context, defaultTableDisplay);
 			
 		//This dialog has no context (@Parameter) possibility
 		//Context must be imported from caller class (ContextCommand)
 		//context.inject(this); //Important but already injected in super class
-		this.datasetIn = datasetIn;
+		this.defaultTableDisplay = defaultTableDisplay;
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("3D Generalised entropies");
+		setTitle("1D Generalised entropies");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************		
@@ -155,7 +149,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 	    labelProbabilityType.setToolTipText("Selection of probability type");
 	    labelProbabilityType.setHorizontalAlignment(JLabel.RIGHT);
 		
-		String options[] = {"Grey values", "Pairwise differences"};// "Sum of differences", "SD"}, 
+		String options[] = {"Sequence values", "Pairwise differences", "Sum of differences", "SD"}; 
 		comboBoxProbabilityType = new JComboBox<String>(options);
 		comboBoxProbabilityType.setToolTipText("Selection of probability type");
 	    comboBoxProbabilityType.setEditable(false);
@@ -164,7 +158,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_ProbabilityType = (String)comboBoxProbabilityType.getSelectedItem();
 				logService.info(this.getClass().getName() + " Probability type set to " + choiceRadioButt_ProbabilityType);
-				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
 			}
 		});
 	    gbc.insets = INSETS_STANDARD;
@@ -192,7 +186,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerInteger_Lag = (int)spinnerLag.getValue();
                 logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
-                if (booleanProcessImmediately) btnProcessSingleVolume .doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn .doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -224,7 +218,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             		spinnerInteger_MinQ = (int)spinnerMinQ.getValue();
             	}	
                 logService.info(this.getClass().getName() + " MinQ set to " + spinnerInteger_MinQ);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -256,7 +250,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             		spinnerInteger_MaxQ = (int)spinnerMaxQ.getValue();
             	}
                 logService.info(this.getClass().getName() + " MaxQ set to " + spinnerInteger_MaxQ);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -283,7 +277,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MinEta = (float)((SpinnerNumberModel)spinnerMinEta.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Min eta set to " + spinnerFloat_MinEta);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -310,7 +304,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MaxEta = (float)((SpinnerNumberModel)spinnerMaxEta.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Max eta set to " + spinnerFloat_MaxEta);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -337,7 +331,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MinKappa = (float)((SpinnerNumberModel)spinnerMinKappa.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Min kappa set to " + spinnerFloat_MinKappa);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -364,7 +358,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MaxKappa = (float)((SpinnerNumberModel)spinnerMaxKappa.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Max kappa set to " + spinnerFloat_MaxKappa);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -391,7 +385,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MinB = (float)((SpinnerNumberModel)spinnerMinB.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Min B set to " + spinnerFloat_MinB);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -418,7 +412,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MaxB = (float)((SpinnerNumberModel)spinnerMaxB.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Max B set to " + spinnerFloat_MaxB);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -445,7 +439,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MinBeta = (float)((SpinnerNumberModel)spinnerMinBeta.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Min beta set to " + spinnerFloat_MinBeta);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -472,7 +466,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MaxBeta = (float)((SpinnerNumberModel)spinnerMaxBeta.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Max beta set to " + spinnerFloat_MaxBeta);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -499,7 +493,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MinGamma = (float)((SpinnerNumberModel)spinnerMinGamma.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Min gamma set to " + spinnerFloat_MinGamma);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -526,7 +520,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
             public void stateChanged(ChangeEvent e) {
             	spinnerFloat_MaxGamma = (float)((SpinnerNumberModel)spinnerMaxGamma.getModel()).getNumber().doubleValue();
                 logService.info(this.getClass().getName() + " Max gamma set to " + spinnerFloat_MaxGamma);
-                if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
             }
         });
         gbc.insets = INSETS_STANDARD;
@@ -541,7 +535,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 	    //initialize command variable
 	    spinnerFloat_MaxGamma = (float)((SpinnerNumberModel)spinnerMaxGamma.getModel()).getNumber().doubleValue();   
 	    //*****************************************************************************************
-	    JLabel labelShowRenyiPlot = new JLabel("Show Renyi plot");
+	    labelShowRenyiPlot = new JLabel("Show Renyi plot");
 	    labelShowRenyiPlot.setToolTipText("Show Renyi plot");
 	    labelShowRenyiPlot.setHorizontalAlignment(JLabel.RIGHT);
 	  
@@ -552,7 +546,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 		    public void itemStateChanged(ItemEvent e) {
 		    	booleanShowRenyiPlot = checkBoxShowRenyiPlot.isSelected();	    
 				logService.info(this.getClass().getName() + " Show Renyi plot set to " + booleanShowRenyiPlot);	
-				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
 		    }
 		});
 		gbc.insets = INSETS_STANDARD;
@@ -566,13 +560,104 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 	    contentPanel.add(checkBoxShowRenyiPlot, gbc);	
 	
 	    //initialize command variable
-	    booleanShowRenyiPlot = checkBoxShowRenyiPlot.isSelected();	 
+	    booleanShowRenyiPlot = checkBoxShowRenyiPlot.isSelected();	
+	    
+		//*****************************************************************************************
+	    labelEntropyType = new JLabel("Entropy type");
+	    labelEntropyType.setToolTipText("Entropy for Surrogates, Subsequent boxes or Gliding box");
+	    labelEntropyType.setEnabled(false);
+	    labelEntropyType.setHorizontalAlignment(JLabel.RIGHT);
+		
+		String optionsEntropyType[] = {"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"};
+		comboBoxEntropyType = new JComboBox<String>(optionsEntropyType);
+		comboBoxEntropyType.setToolTipText("Entropy for Surrogates, Subsequent boxes or Gliding box");
+	    comboBoxEntropyType.setEnabled(false);
+	    comboBoxEntropyType.setEditable(false);
+	    comboBoxEntropyType.setSelectedItem("Renyi");
+	    comboBoxEntropyType.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				choiceRadioButt_EntropyType = (String)comboBoxEntropyType.getSelectedItem();
+				logService.info(this.getClass().getName() + " Image type set to " + choiceRadioButt_EntropyType);
+				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
+			}
+		});    
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 15;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelEntropyType, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 15;
+	    gbc.anchor = GridBagConstraints.WEST; //left 
+	    contentPanel.add(comboBoxEntropyType, gbc);
+	    //initialize command variable
+	    choiceRadioButt_EntropyType = (String)comboBoxEntropyType.getSelectedItem();
 	    
 	    //*****************************************************************************************
-		//Change items defined in the super class(es)
-		
+		//Change/Override items defined in the super class(es)
+	    //add a second listener
+	    comboBoxSequenceRange.addActionListener(new ActionListener() {
+ 			@Override
+ 			public void actionPerformed(final ActionEvent arg0) {
+ 				choiceRadioButt_SequenceRange = (String)comboBoxSequenceRange.getSelectedItem();
+ 				
+ 				labelEntropyType.setEnabled(false);
+				comboBoxEntropyType.setEnabled(false);		
+ 				if (   choiceRadioButt_SequenceRange.equals("Entire sequence")
+ 				    ) {	
+ 					// Do nothing
+ 				}
+ 				if (   choiceRadioButt_SequenceRange.equals("Subsequent boxes")
+ 					|| choiceRadioButt_SequenceRange.equals("Gliding box") 				
+ 					) {		
+ 					labelEntropyType.setEnabled(true);
+					comboBoxEntropyType.setEnabled(true);
+ 				}
+ 			}
+ 		});
+	    
+	    //add a second listener
+	    comboBoxSurrogateType.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				choiceRadioButt_SurrogateType = (String)comboBoxSurrogateType.getSelectedItem();
+				
+				//Reset all spinners and options
+				labelShowRenyiPlot.setEnabled(false);
+				checkBoxShowRenyiPlot.setEnabled(false);
+				labelEntropyType.setEnabled(false);
+				comboBoxEntropyType.setEnabled(false);							
+				if (   choiceRadioButt_SurrogateType.equals("No surrogates")
+				    ) {		
+					//Surrogate event is also called after a Sequence range event, so we need to check this here again.
+					if (   choiceRadioButt_SequenceRange.equals("Entire sequence")
+	 				  ) {	
+						labelShowRenyiPlot.setEnabled(true);
+						checkBoxShowRenyiPlot.setEnabled(true);					
+	 				}
+	
+					if (   choiceRadioButt_SequenceRange.equals("Subsequent boxes")
+	 					|| choiceRadioButt_SequenceRange.equals("Gliding box") 				
+	 					) {		
+	 					labelEntropyType.setEnabled(true);
+						comboBoxEntropyType.setEnabled(true);
+	 				}
+				}
+				if (   choiceRadioButt_SurrogateType.equals("Shuffle")
+					|| choiceRadioButt_SurrogateType.equals("Gaussian") 
+					|| choiceRadioButt_SurrogateType.equals("Random phase") 
+					|| choiceRadioButt_SurrogateType.equals("AAFT") 			
+					) {
+					labelEntropyType.setEnabled(true);
+					comboBoxEntropyType.setEnabled(true);		
+				}
+			}
+		});
+			
 	    //*****************************************************************************************
 	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
+	    
 	    //*****************************************************************************************
 		//Do additional things
 	}
@@ -582,9 +667,10 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj3DGeneralisedEntropiesCmd.class, false,
-														"datasetIn",                        datasetIn,  //is not automatically harvested in headless mode
-														
+		Future<CommandModule> future = commandService.run(Csaj1DGeneralisedEntropiesCmd.class, false,
+														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
+														"processAll",                    processAll,
+															
 														"choiceRadioButt_ProbabilityType",	choiceRadioButt_ProbabilityType,
 														"spinnerInteger_Lag",				spinnerInteger_Lag,
 														"spinnerInteger_MinQ",				spinnerInteger_MinQ,
@@ -600,9 +686,17 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 														"spinnerFloat_MinGamma",			spinnerFloat_MinGamma,
 														"spinnerFloat_MaxGamma",			spinnerFloat_MaxGamma,
 														"booleanShowRenyiPlot",				booleanShowRenyiPlot,
-															
-														"booleanOverwriteDisplays",			booleanOverwriteDisplays,
-														"booleanProcessImmediately",		booleanProcessImmediately
+														"choiceRadioButt_EntropyType",      choiceRadioButt_EntropyType,
+																										
+														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,
+														"choiceRadioButt_SurrogateType", choiceRadioButt_SurrogateType,
+														"spinnerInteger_NumSurrogates",  spinnerInteger_NumSurrogates,
+														"spinnerInteger_BoxLength",      spinnerInteger_BoxLength,
+														"booleanSkipZeroes",             booleanSkipZeroes,
+																										
+														"booleanOverwriteDisplays",      booleanOverwriteDisplays,
+														"booleanProcessImmediately",	 booleanProcessImmediately,
+														"spinnerInteger_NumColumn",      spinnerInteger_NumColumn
 														);
 		CommandModule commandModule = null;
 		try {
@@ -615,7 +709,7 @@ public class Csaj3DGeneralisedEntropiesDialog extends CsajDialog_3DPlugin {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj3DGeneralisedEntropiesCmd.TABLE_OUT_NAME;
+		tableOutName = Csaj1DGeneralisedEntropiesCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DGeneralisedEntropiesCommand.java
+ * File: Csaj1DGeneralisedEntropiesCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,35 +26,35 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.ent;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
 import org.apache.commons.math3.random.EmpiricalDistribution;
-import org.apache.commons.math3.special.Gamma;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -72,7 +72,9 @@ import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_GeneralisedEntropies;
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
@@ -106,21 +108,13 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * 
  */
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Generalised entropies",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Generalised entropies",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Generalised entropies</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -137,7 +131,7 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -159,12 +153,12 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	private static float minGamma;
 	private static float maxGamma;
 	
-	private static int   stepQ;
-	private static float stepEta;
-	private static float stepKappa;
-	private static float stepB;
-	private static float stepBeta;
-	private static float stepGamma;
+	private static int   stepQ = 1;
+	private static float stepEta = 0.1f;
+	private static float stepKappa = 0.1f;
+	private static float stepB = 1.0f;
+	private static float stepBeta = 0.1f;
+	private static float stepGamma = 0.1f;
 	
 	private static int numQ;
 	private static int numEta;
@@ -188,6 +182,8 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
+	
+	private static ArrayList<CsajPlot_SequenceFrame> genRenyiPlotList = new ArrayList<CsajPlot_SequenceFrame>();
 	
 	public static final String TABLE_OUT_NAME = "Table - Generalised entropies";
 	
@@ -394,6 +390,11 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
+	
+	@Parameter(label = "Show Renyi plot",
+		       persist = true,  //restore previous value default = true
+		       initializer = "initialShowRenyiPlot")
+	 private boolean booleanShowRenyiPlot;
 
 	@Parameter(label = "Overwrite result display(s)",
 	    	   description = "Overwrite already existing result images, plots or tables",
@@ -414,6 +415,12 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
+	
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
@@ -534,6 +541,10 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	protected void initialSkipZeroes() {
 		booleanSkipZeroes = false;
 	}	
+	
+	protected void initialShowRenyiPlot() {
+		booleanShowRenyiPlot = true;
+	}
 	
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
@@ -794,44 +805,66 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+		
+		//Set field variables
+		minQ     = spinnerInteger_MinQ;
+		maxQ     = spinnerInteger_MaxQ;
+		minEta   = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
+		maxEta 	 = Precision.round(spinnerFloat_MaxEta, 1);
+		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
+		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
+		minB 	 = Precision.round(spinnerFloat_MinB, 1);
+		maxB 	 = Precision.round(spinnerFloat_MaxB, 1);
+		minBeta  = Precision.round(spinnerFloat_MinBeta, 1);
+		maxBeta  = Precision.round(spinnerFloat_MaxBeta, 1);
+		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
+		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
+		
+//		stepQ     = 1;
+//		stepEta   = 0.1f;
+//		stepKappa = 0.1f;
+//		stepB     = 1.0f;
+//		stepBeta  = 0.1f;
+//		stepGamma = 0.1f;
+		
+		numQ = (maxQ - minQ)/stepQ + 1;;
+		numEta = (int)((maxEta - minEta)/stepEta + 1);;
+		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
+		numB = (int)((maxB - minB)/stepB + 1);
+		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
+		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-		
-		sliceLabels = new String[(int) numColumns];
-		
-		stepQ     = 1;
-		stepEta   = 0.1f;
-		stepKappa = 0.1f;
-		stepB     = 1.0f;
-		stepBeta  = 0.1f;
-		stepGamma = 0.1f;
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**
@@ -1065,6 +1098,27 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 			optDeleteExistingImgs   = true;
 		}
 		
+		if (optDeleteExistingPlots) {
+//			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
+			if (genRenyiPlotList != null) {
+				for (int l = 0; l < genRenyiPlotList.size(); l++) {
+					genRenyiPlotList.get(l).setVisible(false);
+					genRenyiPlotList.get(l).dispose();
+					//genDimPlotList.remove(l);  /
+				}
+				genRenyiPlotList.clear();		
+			}
+//			//ImageJ PlotWindows aren't recognized by DeafultDisplayService!!?
+//			List<Display<?>> list = defaultDisplayService.getDisplays();
+//			for (int i = 0; i < list.size(); i++) {
+//				Display<?> display = list.get(i);
+//				System.out.println("display name: " + display.getName());
+//				if (display.getName().contains("Grey value profile"))
+//					display.close();
+//			}
+	
+		}
+		
 		if (optDeleteExistingTables) {
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
@@ -1157,7 +1211,7 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 	
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
@@ -1218,6 +1272,7 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 		int     numDataPoints = dgt.getRowCount();
 		String  probType      = choiceRadioButt_ProbabilityType;
 		int     lag           = spinnerInteger_Lag;
+		boolean optShowRenyiPlot = booleanShowRenyiPlot;
 		boolean skipZeroes    = booleanSkipZeroes;
 		
 		//min max and step values are already set in the table header generation method
@@ -1337,6 +1392,31 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 					
 				//int lastMainResultsIndex =  numOfEntropies - 1;
 				
+				//Collect some entropies for display
+				double[] entList;
+				double[] qList;		
+				if (optShowRenyiPlot) {	
+					int offset = 4; //S, H1, H2, H3
+					entList = new double[numQ];
+					qList   = new double[numQ];
+					for (int q = 0; q < numQ; q++) {
+						qList[q] = q + minQ;
+						entList[q] = resultValues[offset + q];
+					}
+					
+					boolean isLineVisible = false; //?
+					String preName = "Sequence-"+String.format("%03d", col+1) +"-";
+					String axisNameX = "";
+					String axisNameY = "";
+					
+					axisNameX = "q";
+					axisNameY = "Renyi";
+				
+					CsajPlot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, entList, isLineVisible, "Generalised Renyi entropies", 
+							preName + tableInName, axisNameX, axisNameY, "");
+					genRenyiPlotList.add(dimGenPlot);
+				}		
+				
 			} else {
 				resultValues = new double[1+1+1*numSurrogates]; // Entropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
 				
@@ -1396,7 +1476,7 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 				}
 				resultValues[lastMainResultsIndex + 1] = sumEntropies/numSurrogates;
 			}
-		
+			
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
 			resultValues = new double[(int) (numSubsequentBoxes)]; // only one of possible Entropy values, Dim R2 == two * number of boxes		
@@ -1663,6 +1743,36 @@ public class Csaj1DGeneralisedEntropiesCommand<T extends RealType<T>> extends Co
 			}
 		}
 		return sequence1D;
+	}
+	
+	/**
+	 * Displays a single plot in a separate window.
+	 * @param dataX
+	 * @param dataY
+	 * @param isLineVisible
+	 * @param frameTitle
+	 * @param plotLabel
+	 * @param xAxisLabel
+	 * @param yAxisLabel
+	 * @param legendLabel
+	 * @param numRegStart
+	 * @param numRegEnd
+	 * @return
+	 */
+	private CsajPlot_SequenceFrame DisplaySinglePlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
+			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel) {
+		// jFreeChart
+		CsajPlot_SequenceFrame pl = new CsajPlot_SequenceFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
+				yAxisLabel, legendLabel);
+		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		pl.pack();
+		// int horizontalPercent = 5;
+		// int verticalPercent = 5;
+		// RefineryUtilities.positionFrameOnScreen(pl, horizontalPercent,
+		// verticalPercent);
+		//CommonTools.centerFrameOnScreen(pl);
+		pl.setVisible(true);
+		return pl;	
 	}
 	
 	// ---------------------------------------------------------------------------------------------
