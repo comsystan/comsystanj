@@ -82,7 +82,8 @@ public class CsajDialog_PluginFrame extends JDialog {
 	public CsajDialog_PluginFrame() {
 	
 		getContentPane().setLayout(new BorderLayout());
-		ImageIcon icon = new ImageIcon(this.getClass().getResource("/icons/comsystan-logo-grey46-16x16.png"));
+		//ImageIcon icon = new ImageIcon(this.getClass().getResource("/icons/comsystan-logo-grey46-16x16.png")); //Windows OK,  Linux No icon
+		ImageIcon icon = new ImageIcon(this.getClass().getClassLoader().getResource("icons/comsystan-logo-grey46-16x16.png")); //Windows OK, Linux ??
 		setIconImage(icon.getImage());
 		setTitle("Csaj plugin"); //This should be overwritten
 		setLocation(500, 100);
