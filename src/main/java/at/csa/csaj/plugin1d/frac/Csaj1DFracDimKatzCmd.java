@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DFracDimSevcikCommand.java
+ * File: Csaj1DFracDimKatzCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,12 +26,13 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.frac;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -45,14 +46,11 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -69,35 +67,28 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin1d.frac.util.Sevcik;
+import at.csa.csaj.plugin1d.frac.util.Katz;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
- * A {@link ContextCommand} plugin computing <the Sevcik dimension</a>
+ * A {@link ContextCommand} plugin computing <the Katz dimension</a>
 * of a sequence.
- * According to  Sevcik, C., 1998, Complexity International, 5
+ * According to Katz, M., 1988, Comput. Biol. Med., 18, 145–156
  */
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Sevcik dimension",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {})
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Katz dimension",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-	private static final String PLUGIN_LABEL            = "<html><b>Sevcik dimension</b></html>";
+public class Csaj1DFracDimKatzCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "<html><b>Katz dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
@@ -112,7 +103,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -123,7 +114,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 	
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Sevcik dimension";
+	public static final String TABLE_OUT_NAME = "Table - Katz dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -204,7 +195,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 			   persist = true,  //restore previous value default = true
 			   initializer = "initialSurrogateType",
 			   callback = "callbackSurrogateType")
-		private String choiceRadioButt_SurrogateType;
+	private String choiceRadioButt_SurrogateType;
 	
 	@Parameter(label = "Surrogates #",
 			   description = "Number of computed surrogates",
@@ -224,8 +215,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 			   max = "9999999999999999999",
 			   stepSize = "1",
 			   persist = true, // restore  previous value  default  =  true
-			   initializer = "initialBoxLength",
-			   callback = "callbackBoxLength")
+			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
 	
 	//-----------------------------------------------------------------------------------------------------
@@ -265,6 +255,12 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
+	
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
@@ -306,9 +302,9 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 	protected void initialNumColumn() {
 		spinnerInteger_NumColumn = 1;
 	}
+
 	// ------------------------------------------------------------------------------
 	
-		
 	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
 	protected void callbackSequenceRange() {
 		logService.info(this.getClass().getName() + " Sequence range set to " + choiceRadioButt_SequenceRange);
@@ -452,46 +448,46 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
-		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
 			
-		sliceLabels = new String[(int) numColumns];
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
+			//*****************************************************************************************
+		} 
 	}
-	
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
 	protected void startWorkflowForSingleColumn() {
 		
-			dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Sevcik dimensions, please wait... Open console window for further info.",
-								logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Katz dimensions, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
 		dlgProgress.setVisible(true);
@@ -511,7 +507,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 	*/
 	protected void startWorkflowForAllColumns() {
 		
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Sevcik dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Katz dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -524,7 +520,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
 	}
-
+	
 	/**
 	 * This methods gets the index of the active column in the table
 	 * @return int index
@@ -571,24 +567,24 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
-			tableOut.add(new DoubleColumn("Ds"));	
+			tableOut.add(new DoubleColumn("Dk"));	
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
-				tableOut.add(new DoubleColumn("Ds_Surr")); //Mean surrogate value	
+				tableOut.add(new DoubleColumn("Dk_Surr")); //Mean surrogate value	
 			
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("DsSurr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("DkSurr-#"+(s+1))); 
 			}	
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn("Ds-#" + n));	
+				tableOut.add(new DoubleColumn("Dk-#" + n));	
 			}
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn("Ds-#" + n));	
+				tableOut.add(new DoubleColumn("Dk-#" + n));	
 			}
 		}	
 	}
@@ -649,7 +645,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 		// Compute result values
 		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 0 D, 1 R2, 2 StdErr
-		logService.info(this.getClass().getName() + " Sevcik dimension: " + containerPM.item1_Values[0]);
+		logService.info(this.getClass().getName() + " Katz dimension: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, containerPM); //write always to the first row
 		
@@ -681,7 +677,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 				
 				// Compute result values
 				containerPM = process(tableIn, s);
-				// 0 Dh, 1 R2, 2 StdErr
+				// 0 Dk, 1 R2, 2 StdErr
 				logService.info(this.getClass().getName() + " Processing finished.");
 				writeToTable(s, s, containerPM);
 	
@@ -720,7 +716,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
@@ -770,12 +766,13 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		String sequenceRange  = choiceRadioButt_SequenceRange;
-		String surrType       = choiceRadioButt_SurrogateType;
-		numSurrogates         = spinnerInteger_NumSurrogates;
-		numBoxLength          = spinnerInteger_BoxLength;
-		int numDataPoints     = dgt.getRowCount();
-		boolean skipZeroes    = booleanSkipZeroes;
+		String sequenceRange = choiceRadioButt_SequenceRange;
+		String surrType      = choiceRadioButt_SurrogateType;
+		numSurrogates        = spinnerInteger_NumSurrogates;
+		numBoxLength         = spinnerInteger_BoxLength;
+		int numDataPoints    = dgt.getRowCount();
+		boolean skipZeroes   = booleanSkipZeroes;
+	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
 		double[] resultValues = new double[3]; // Dim, R2, StdErr
@@ -807,11 +804,11 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			sequence1D[n] = Double.valueOf((Double)sequenceColumn.get(n));
-		}	
+		}
 		
 		sequence1D = removeNaN(sequence1D);
 		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
-
+		
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;
 		
@@ -821,8 +818,8 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 		//domain1D = new double[numDataPoints];
 		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
 
-		Sevcik sevcik;
-		double Ds;
+		Katz katz;
+		double Dk;
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
@@ -835,11 +832,11 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
 			//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
+
+			katz = new Katz();
+			Dk = katz.calcDimension(sequence1D);
 			
-			sevcik = new Sevcik();
-			Ds = sevcik.calcDimension(sequence1D);
-			
-			resultValues[0] = Ds; //Ds
+			resultValues[0] = Dk; //Dk
 			int lastMainResultsIndex = 0;
 				
 			if (!surrType.equals("No surrogates")) { //Add surrogate analysis
@@ -855,13 +852,13 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 					if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
 					if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
-					sevcik = new Sevcik();
-					Ds = sevcik.calcDimension(surrSequence1D);
+					katz = new Katz();
+					Dk = katz.calcDimension(surrSequence1D);
 					
-					resultValues[lastMainResultsIndex + 2 + s] = Ds;
+					resultValues[lastMainResultsIndex + 2 + s] = Dk;
 					//resultValues[lastMainResultsIndex + 2 + numSurrogates + s]    = ;
 					//resultValues[lastMainResultsIndex + 2 + (2*numSurrogates) +s] = ;
-					sumDims  += Ds;
+					sumDims  += Dk;
 				}
 				resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
 
@@ -884,9 +881,9 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 				}
 				//Compute specific values************************************************
 			
-				sevcik = new Sevcik();
-				Ds = sevcik.calcDimension(subSequence1D);
-				resultValues[i] = Ds; // Ds	
+				katz = new Katz();
+				Dk = katz.calcDimension(subSequence1D);
+				resultValues[i] = Dk; // Dk	
 				
 				//***********************************************************************
 			}	
@@ -907,9 +904,9 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 				}	
 				//Compute specific values************************************************
 				
-				sevcik = new Sevcik();
-				Ds = sevcik.calcDimension(subSequence1D);
-				resultValues[i] = Ds; // Ds
+				katz = new Katz();
+				Dk = katz.calcDimension(subSequence1D);
+				resultValues[i] = Dk; // Dk
 								
 				//***********************************************************************
 			}
@@ -949,7 +946,7 @@ public class Csaj1DFracDimSevcikCommand<T extends RealType<T>> extends ContextCo
 		}
 		boolean isLineVisible = false; // ?
 		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-				"Double log plot - Sevcik imension", preName + "-" + tableInName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
+				"Double log plot - Katz dimension", preName + "-" + tableInName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
 	}

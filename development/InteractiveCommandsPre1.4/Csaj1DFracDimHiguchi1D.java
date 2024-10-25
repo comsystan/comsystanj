@@ -79,16 +79,16 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 * of a sequence.
  */
 @Plugin(type = InteractiveCommand.class, 
-	headless = true,
-	label = "Higuchi dimension",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {
-	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-	@Menu(label = "ComsystanJ"),
-	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Fractal analyses", weight = 6),
-	@Menu(label = "Higuchi dimension ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		headless = true,
+		label = "Higuchi dimension",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "1D Sequence(s)"),
+		@Menu(label = "Fractal analyses", weight = 6),
+		@Menu(label = "Higuchi dimension ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)

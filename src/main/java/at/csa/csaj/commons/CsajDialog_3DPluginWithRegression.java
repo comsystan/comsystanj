@@ -137,7 +137,7 @@ public class CsajDialog_3DPluginWithRegression extends CsajDialog_3DPlugin {
 	   
 	    //Override
 	    //Model may be overwritten with new parameters (e.g.maximum) in sub class
-	    spinnerModelNumEps = new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step   
+	    spinnerModelNumEps = new SpinnerNumberModel(999999999, 1, 999999999, 1); // initial, min, max, step   
 	   
 	    spinnerNumEps = new JSpinner(spinnerModelNumEps);
         spinnerNumEps.setToolTipText("Number of distinct Scales/Boxes/Eps");
@@ -222,7 +222,7 @@ public class CsajDialog_3DPluginWithRegression extends CsajDialog_3DPlugin {
 	    labelNumRegEnd.setToolTipText("Maximum number of linear regression");
 	    labelNumRegEnd.setHorizontalAlignment(JLabel.RIGHT);
 	   
-	    spinnerModelNumRegEnd = new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerModelNumRegEnd = new SpinnerNumberModel(999999999, 1, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
 	    spinnerNumRegEnd = new JSpinner(spinnerModelNumRegEnd);
         spinnerNumRegEnd.setToolTipText("Maximum number of linear regression");
         spinnerNumRegEnd.addChangeListener(new ChangeListener() {

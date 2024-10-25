@@ -98,6 +98,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
   	
 	public boolean processAll;
 	
+	public JLabel            labelSequenceRange;
 	public JComboBox<String> comboBoxSequenceRange;
 	public String            choiceRadioButt_SequenceRange;
 	
@@ -105,26 +106,32 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	public JComboBox<String> comboBoxSurrogateType;
 	public String            choiceRadioButt_SurrogateType;
 
-	public JLabel   labelNumSurrogates;
-	public JSpinner spinnerNumSurrogates;
-	public int      spinnerInteger_NumSurrogates;
+	public JLabel             labelNumSurrogates;
+	public SpinnerNumberModel spinnerModelNumSurrogates;
+	public JSpinner           spinnerNumSurrogates;
+	public int                spinnerInteger_NumSurrogates;
 	
-	public JLabel   labelBoxLength;
-	public JSpinner spinnerBoxLength;
-	public int      spinnerInteger_BoxLength;
+	public JLabel             labelBoxLength;
+	public SpinnerNumberModel spinnerModelBoxLength;
+	public JSpinner           spinnerBoxLength;
+	public int                spinnerInteger_BoxLength;
 	
 	public JLabel    labelSkipZeroes;
 	public JCheckBox checkBoxSkipZeroes;
 	public boolean   booleanSkipZeroes;
 
+	public JLabel    labelOverWriteDisplays;
 	public JCheckBox checkBoxOverwriteDisplays;
 	public boolean   booleanOverwriteDisplays;
 	
+	public JLabel     labelProcessImmediate;
 	public JCheckBox  checkBoxProcessImmediately;
 	public boolean	  booleanProcessImmediately;
 
-	public JSpinner spinnerNumColumn;
-	public int      spinnerInteger_NumColumn;
+	public JLabel             labelNumColumn;
+	public SpinnerNumberModel spinnerModelNumColumn;
+	public JSpinner           spinnerNumColumn;
+	public int                spinnerInteger_NumColumn;
 	
 	public JButton btnProcessSingleColumn;
 	public JButton btnProcessAllColumns;
@@ -260,7 +267,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 		gbc.gridwidth = 1; //reset to default
 		
 		//*****************************************************************************************
-	    JLabel labelSequenceRange = new JLabel("Sequence range");
+	    labelSequenceRange = new JLabel("Sequence range");
 	    labelSequenceRange.setToolTipText("Range of sequence data values to be processed");
 	    labelSequenceRange.setHorizontalAlignment(JLabel.RIGHT);
 		
@@ -380,7 +387,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	    labelNumSurrogates.setEnabled(false);
 	    labelNumSurrogates.setHorizontalAlignment(JLabel.RIGHT);
 	  
-	    SpinnerNumberModel spinnerModelNumSurrogates= new SpinnerNumberModel(0, 0, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerModelNumSurrogates = new SpinnerNumberModel(0, 0, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
         spinnerNumSurrogates = new JSpinner(spinnerModelNumSurrogates);
         spinnerNumSurrogates.setToolTipText("Number of generated surrogates");
         spinnerNumSurrogates.setEnabled(false);
@@ -411,7 +418,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	    labelBoxLength.setEnabled(false);
 	    labelBoxLength.setHorizontalAlignment(JLabel.RIGHT);
 	  
-	    SpinnerNumberModel spinnerModelBoxLength= new SpinnerNumberModel(100, 2, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerModelBoxLength = new SpinnerNumberModel(100, 2, 999999999, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
         spinnerBoxLength = new JSpinner(spinnerModelBoxLength);
         spinnerBoxLength.setToolTipText("Length of subsequent or gliding boxes");
         spinnerBoxLength.setEnabled(false);
@@ -465,7 +472,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	    booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
 		
 		//*****************************************************************************************
-		JLabel labelOverWriteDisplays = new JLabel("Overwrite result display(s)");
+		labelOverWriteDisplays = new JLabel("Overwrite result display(s)");
 		labelOverWriteDisplays.setToolTipText("Overwrite already existing result images, plots or tables");
 		labelOverWriteDisplays.setHorizontalAlignment(JLabel.RIGHT);
 		
@@ -494,7 +501,7 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	    booleanOverwriteDisplays = checkBoxOverwriteDisplays.isSelected();	 
 	    
 	    //*****************************************************************************************
-	    JLabel labelProcessImmediate = new JLabel("Immediate processing");
+	    labelProcessImmediate = new JLabel("Immediate processing");
 	    labelProcessImmediate.setToolTipText("Immediate processing of active table whenever a parameter is changed");
 	    labelProcessImmediate.setHorizontalAlignment(JLabel.RIGHT);
 	  
@@ -522,11 +529,11 @@ public class CsajDialog_1DPlugin extends CsajDialog_PluginFrame {
 	    booleanProcessImmediately = checkBoxProcessImmediately.isSelected();	 
 	    
 	    //*****************************************************************************************
-	    JLabel labelNumColumn = new JLabel("Column number");
+	    labelNumColumn = new JLabel("Column number");
 	    labelNumColumn.setToolTipText("Table column number");
 	    labelNumColumn.setHorizontalAlignment(JLabel.RIGHT);
 	  
-	    SpinnerNumberModel spinnerModelNumColumn= new SpinnerNumberModel(1, 1, numColumns, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
+	    spinnerModelNumColumn = new SpinnerNumberModel(1, 1, numColumns, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double 
         spinnerNumColumn = new JSpinner(spinnerModelNumColumn);
         spinnerNumColumn.setToolTipText("Table column number");
         spinnerNumColumn.addChangeListener(new ChangeListener() {

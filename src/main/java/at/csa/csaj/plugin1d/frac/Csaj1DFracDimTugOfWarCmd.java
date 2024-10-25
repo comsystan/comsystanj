@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DFracDimFragmentationCommand.java
+ * File: Csaj1DFracDimTugOfWarCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,12 +25,13 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.frac;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -44,14 +45,11 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -68,36 +66,30 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin1d.frac.util.FragmentationDimension;
+import at.csa.csaj.plugin1d.frac.util.TugOfWar;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
- * A {@link ContextCommand} plugin computing <the Fragmentation index</a>
- * of a sequence of distinct sizes.
+ * A {@link ContextCommand} plugin computing <the Tug of war dimension</a>
+* of a sequence.
  */
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Fragmentation dimension",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Tug of war dimension",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-	private static final String PLUGIN_LABEL            = "<html><b>Fragmentation dimension</b></html>";
+public class Csaj1DFracDimTugOfWarCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "<html><b>Tug of war dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
@@ -110,7 +102,7 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -119,11 +111,11 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
-	private static int numNumRegEnd = 1000;
+	private static final int  numBoxes = 1000;
 	
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Fragmentation dimension";
+	public static final String TABLE_OUT_NAME = "Table - Tug of war dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -183,6 +175,16 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
+	@Parameter(label = "Boxes #",
+			   description = "Number of boxes",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "3",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialNumBoxes", callback = "callbackNumBoxes")
+	private int spinnerInteger_NumBoxes;
+
 	@Parameter(label = "Regression Start",
 			   description = "Minimum x value of linear regression",
 			   style = NumberWidget.SPINNER_STYLE,
@@ -202,6 +204,32 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 			   persist = false, //restore previous value default = true
 			   initializer = "initialNumRegEnd", callback = "callbackNumRegEnd")
 	private int spinnerInteger_NumRegEnd = 3;
+	
+	//-----------------------------------------------------------------------------------------------------
+    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+    private final String labelMethodOptions = METHODOPTIONS_LABEL;
+    
+    @Parameter(label = "Accuracy",
+		       description = "Accuracy (default=90)",
+	       	   style = NumberWidget.SPINNER_STYLE,
+	           min = "1",
+	           max = "99999999999999",
+	           stepSize = "1",
+	           persist = true,  //restore previous value default = true
+	           initializer = "initialNumAccuracy",
+	           callback    = "callbackNumAccuracy")
+    private int spinnerInteger_NumAcurracy;
+    
+    @Parameter(label = "Confidence",
+		       description = "Confidence (default=15)",
+	       	   style = NumberWidget.SPINNER_STYLE,
+	           min = "1",
+	           max = "99999999999999",
+	           stepSize = "1",
+	           persist = true,  //restore previous value default = true
+	           initializer = "initialNumConfidence",
+	           callback    = "callbackNumConfidence")
+    private int spinnerInteger_NumConfidence;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -237,7 +265,7 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	private int spinnerInteger_NumSurrogates;
 	
 	@Parameter(label = "Box length",
-			   description = "Length of subsequent or gliding box",
+			   description = "Length of subsequent or gliding box - Shoud be at least three times the number of boxes",
 			   style = NumberWidget.SPINNER_STYLE, 
 			   min = "2",
 			   max = "9999999999999999999",
@@ -285,6 +313,12 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
@@ -298,13 +332,34 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		checkItemIOIn();
 	}
 	
+	protected void initialNumBoxes() {
+//		int numMax = 0;
+//		try {
+//			numMax = (int) Math.floor((double)tableIn.getRowCount() / 3.0);
+//		} catch (NullPointerException npe) {
+//			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
+//			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
+//		}
+		spinnerInteger_NumBoxes = 8;
+	}
 	protected void initialNumRegStart() {
 		spinnerInteger_NumRegStart = 1;
 	}
 	protected void initialNumRegEnd() {
-		//numNumRegEnd is already set in method checkItemIO;
-		spinnerInteger_NumRegEnd = numNumRegEnd;
-		
+//		int numMax = 0;
+//		try {
+//			numMax = (int) Math.floor((double)tableIn.getRowCount() / 3.0);
+//		} catch (NullPointerException npe) {
+//			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
+//			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
+//		}
+		spinnerInteger_NumRegEnd = 8;
+	}
+	 protected void initialNumAccuracy() {
+    	spinnerInteger_NumAcurracy = 90; //s1=30 Wang paper
+    }
+	protected void initialNumConfidence() {
+		spinnerInteger_NumConfidence = 15; //s2=5 Wang paper
 	}
 	protected void initialSequenceRange() {
 		choiceRadioButt_SequenceRange = "Entire sequence";
@@ -336,6 +391,25 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	}
 
 	// ------------------------------------------------------------------------------
+	
+	
+	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
+	protected void callbackNumBoxes() {
+
+		if (spinnerInteger_NumBoxes < 3) {
+			spinnerInteger_NumBoxes = 3;
+		}
+		if (spinnerInteger_NumBoxes > numBoxes) {
+			spinnerInteger_NumBoxes = numBoxes;
+		}
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumBoxes) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumBoxes;
+		}
+		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
+			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
+		}
+		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
+	}
 
 	/** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
 	protected void callbackNumRegStart() {
@@ -350,14 +424,26 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 
 	/** Executed whenever the {@link #spinnerInteger_NumRegEnd} parameter changes. */
 	protected void callbackNumRegEnd() {
-		
-		if (spinnerInteger_NumRegEnd > numNumRegEnd) spinnerInteger_NumRegEnd = numNumRegEnd; 
-		
 		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
 			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
 		}
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumBoxes) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumBoxes;
+		}
+
 		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_NumRegEnd);
 	}
+	
+	/** Executed whenever the {@link #spinnerInteger_NumAccuracy} parameter changes. */
+	protected void callbackNumAccuracy() {
+		logService.info(this.getClass().getName() + " Accuracy set to " + spinnerInteger_NumAcurracy);
+	}
+	
+	/** Executed whenever the {@link #spinnerInteger_NumConfidence} parameter changes. */
+	protected void callbackNumConfidence() {
+		logService.info(this.getClass().getName() + " Confidence set to " + spinnerInteger_NumConfidence);
+	}
+
 	
 	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
 	protected void callbackSequenceRange() {
@@ -502,39 +588,38 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
-		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
 			
-		sliceLabels = new String[(int) numColumns];
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
-		
-		numNumRegEnd = (int)numRows;
+			//*****************************************************************************************
+		}
 	}
 
 	/**
@@ -542,7 +627,7 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Fragmentation dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Tug of war dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -563,7 +648,7 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Fragmentation dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Tug of war dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -621,29 +706,33 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		tableOut.add(new IntColumn("Box length"));
 		tableOut.add(new BoolColumn("Skip zeroes"));
 		
+		tableOut.add(new IntColumn("k"));
 		tableOut.add(new GenericColumn("Reg Start"));
 		tableOut.add(new GenericColumn("Reg End"));
+		
+		tableOut.add(new IntColumn("Accuracy"));
+		tableOut.add(new IntColumn("Confidence"));
 	
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
-			tableOut.add(new DoubleColumn("Dfrag"));	
+			tableOut.add(new DoubleColumn("Dtow"));	
 			tableOut.add(new DoubleColumn("R2"));
 			tableOut.add(new DoubleColumn("StdErr"));
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
-				tableOut.add(new DoubleColumn("Dfrag_Surr")); //Mean surrogate value	
-				tableOut.add(new DoubleColumn("R2_Surr"));    //Mean surrogate value
+				tableOut.add(new DoubleColumn("Dtow_Surr")); //Mean surrogate value	
+				tableOut.add(new DoubleColumn("R2_Surr")); //Mean surrogate value
 				tableOut.add(new DoubleColumn("StdErr_Surr")); //Mean surrogate value
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Dfrag_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Dtow_Surr-#"+(s+1))); 
 				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
 				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("StdErr_Surr-#"+(s+1))); 
 			}	
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn("Dfrag-#" + n));	
+				tableOut.add(new DoubleColumn("Dtow-#" + n));	
 			}
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableOut.add(new DoubleColumn("R2-#" + n));	
@@ -651,7 +740,7 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn("Dfrag-#" + n));	
+				tableOut.add(new DoubleColumn("Dtow-#" + n));	
 			}
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableOut.add(new DoubleColumn("R2-#" + n));	
@@ -714,8 +803,8 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		
 		// Compute result values
 		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
-		// 0 D, 1 R2, 2 StdErr
-		logService.info(this.getClass().getName() + " Fragmentation dimension: " + containerPM.item1_Values[0]);
+		// 0 Dtow, 1 R2, 2 StdErr
+		logService.info(this.getClass().getName() + " Tug of War dimension: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, containerPM); //write always to the first row
 		
@@ -746,7 +835,7 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 				
 				// Compute result values
 				containerPM = process(tableIn, s);
-				// 0 D, 1 R2, 2 StdErr
+				// 0 Dtow, 1 R2, 2 StdErr
 				logService.info(this.getClass().getName() + " Processing finished.");
 				writeToTable(s, s, containerPM);
 	
@@ -781,11 +870,11 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		int tableColEnd   = 0;
 		int tableColLast  = 0;
 		
-		// 0 Dh, 1 R2, 2 StdErr
+		// 0 Dtow, 1 R2, 2 StdErr
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
@@ -800,9 +889,12 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		}	
 		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		
-		tableOut.set(7, row, "("+spinnerInteger_NumRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-		tableOut.set(8, row, "("+spinnerInteger_NumRegEnd  +")" + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd	
-		tableColLast = 8;
+		tableOut.set(7, row, spinnerInteger_NumBoxes); // numBoxes
+		tableOut.set(8, row, "("+spinnerInteger_NumRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
+		tableOut.set(9, row, "("+spinnerInteger_NumRegEnd  +")" + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
+		tableOut.set(10, row, spinnerInteger_NumAcurracy); //Tug of war acurracy
+		tableOut.set(11, row, spinnerInteger_NumConfidence); //Tug of war confidence
+		tableColLast = 11;
 		
 		if (containerPM == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
@@ -831,6 +923,9 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 	/**
 	*
 	* Processing
+	* 
+	* Martin Reiss
+	* TUG OF WAR - KORRELATIONSDIMENSION 
 	*/
 	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
@@ -843,8 +938,11 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		numSurrogates         = spinnerInteger_NumSurrogates;
 		numBoxLength          = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
+		int numBoxes          = spinnerInteger_NumBoxes;
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
+		int accuracy 	      = spinnerInteger_NumAcurracy;
+		int confidence        = spinnerInteger_NumConfidence;
 		boolean skipZeroes    = booleanSkipZeroes;
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
@@ -852,7 +950,6 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		double[] resultValues   = new double[3]; // Dim, R2, StdErr
 		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 		
-
 		//******************************************************************************************************
 		//domain1D = new double[numDataPoints];
 		sequence1D = new double[numDataPoints];
@@ -886,7 +983,8 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		//domain1D = new double[numDataPoints];
 		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
 		
-		FragmentationDimension fragD;
+		TugOfWar tow;
+		double[] totals;
 		double[] regressionParams = null;
 		
 		
@@ -902,19 +1000,20 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
 			//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 			
-			if (sequence1D.length > 2) { // only data series which are large enough
-				fragD = new FragmentationDimension();
-				regressionParams = fragD.calcRegression(sequence1D, numRegStart, numRegEnd);
+			if (sequence1D.length > (numBoxes * 2)) { // only data series which are large enough
+				tow = new TugOfWar();
+				totals = tow.calcTotals(sequence1D, numBoxes, accuracy, confidence);
+				regressionParams = tow.calcRegression(totals, numRegStart, numRegEnd);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
-				epsRegStartEnd[0] = fragD.getEps()[numRegStart-1]; //epsRegStart
-				epsRegStartEnd[1] = fragD.getEps()[numRegEnd-1];   //epsRegEnd
+				epsRegStartEnd[0] = tow.getEps()[numRegStart-1]; //epsRegStart
+				epsRegStartEnd[1] = tow.getEps()[numRegEnd-1];   //epsRegEnd
 				
 				if (optShowPlot) {
 					String preName = sequenceColumn.getHeader();
-					showPlot(fragD.getLnDataX(), fragD.getLnDataY(), preName, col, numRegStart, numRegEnd);
+					showPlot(tow.getLnDataX(), tow.getLnDataY(), preName, col, numRegStart, numRegEnd);
 				}	
-				resultValues[0] = -regressionParams[1]; // D= -slope
+				resultValues[0] = regressionParams[1]; // Dtow = slope
 				resultValues[1] = regressionParams[4]; //R2
 				resultValues[2] = regressionParams[3]; //StdErr
 				int lastMainResultsIndex = 2;
@@ -934,13 +1033,14 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 						if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
 						if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
-						fragD = new FragmentationDimension();
-						regressionParams = fragD.calcRegression(surrSequence1D, numRegStart, numRegEnd);
+						tow = new TugOfWar();
+						totals = tow.calcTotals(surrSequence1D, numBoxes, accuracy, confidence);
+						regressionParams = tow.calcRegression(totals, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						resultValues[lastMainResultsIndex + 4 + s]                   = -regressionParams[1];
+						resultValues[lastMainResultsIndex + 4 + s]                   = regressionParams[1];
 						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionParams[4];
 						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionParams[3];
-						sumDims    += -regressionParams[1];
+						sumDims    += regressionParams[1];
 						sumR2s     +=  regressionParams[4];
 						sumStdErr  +=  regressionParams[3];
 					}
@@ -965,20 +1065,21 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 					subSequence1D[ii-start] = sequence1D[ii];
 				}
 				//Compute specific values************************************************
-				if (subSequence1D.length > 2) { // only data series which are large enough
-					fragD = new FragmentationDimension();
-					regressionParams = fragD.calcRegression(subSequence1D, numRegStart, numRegEnd);
+				if (subSequence1D.length > (numBoxes * 2)) { // only data series which are large enough
+					tow = new TugOfWar();
+					totals = tow.calcTotals(subSequence1D, numBoxes, accuracy, confidence);
+					regressionParams = tow.calcRegression(totals, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						
-					epsRegStartEnd[0] = fragD.getEps()[numRegStart-1]; //epsRegStart
-					epsRegStartEnd[1] = fragD.getEps()[numRegEnd-1];   //epsRegEnd
+					
+					epsRegStartEnd[0] = tow.getEps()[numRegStart-1]; //epsRegStart
+					epsRegStartEnd[1] = tow.getEps()[numRegEnd-1];   //epsRegEnd
 					
 					//if (optShowPlot){ //show all plots
 					if ((optShowPlot) && (i==0)){ //show only first plot
 						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
-						showPlot(fragD.getLnDataX(), fragD.getLnDataY(), preName, col, numRegStart, numRegEnd);
+						showPlot(tow.getLnDataX(), tow.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = -regressionParams[1]; //D = -slope;
+					resultValues[i]                             = regressionParams[1]; // Dtow = slope;
 					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				} 
 				//***********************************************************************
@@ -999,20 +1100,21 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 					subSequence1D[ii-start] = sequence1D[ii];
 				}	
 				//Compute specific values************************************************
-				if (subSequence1D.length > 2) { // only data series which are large enough
-					fragD = new FragmentationDimension();
-					regressionParams = fragD.calcRegression(subSequence1D, numRegStart, numRegEnd);
+				if (subSequence1D.length > (numBoxes * 2)) { // only data series which are large enough
+					tow = new TugOfWar();
+					totals = tow.calcTotals(sequence1D, numBoxes, accuracy, confidence);
+					regressionParams = tow.calcRegression(totals, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
-					epsRegStartEnd[0] = fragD.getEps()[numRegStart-1]; //epsRegStart
-					epsRegStartEnd[1] = fragD.getEps()[numRegEnd-1];   //epsRegEnd
+					epsRegStartEnd[0] = tow.getEps()[numRegStart-1]; //epsRegStart
+					epsRegStartEnd[1] = tow.getEps()[numRegEnd-1];   //epsRegEnd
 					
 					//if (optShowPlot){ //show all plots
 					if ((optShowPlot) && (i==0)){ //show only first plot
 						String preName = sequenceColumn.getHeader() + "-Box #" + (i+1);
-						showPlot(fragD.getLnDataX(), fragD.getLnDataY(), preName, col, numRegStart, numRegEnd);
+						showPlot(tow.getLnDataX(), tow.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}	
-					resultValues[i]                          = -regressionParams[1]; //D = -slope;
+					resultValues[i]                          = regressionParams[1]; // Dtow = slope;
 					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
 				}
 				//***********************************************************************
@@ -1053,7 +1155,7 @@ public class Csaj1DFracDimFragmentationCommand<T extends RealType<T>> extends Co
 		}
 		boolean isLineVisible = false; // ?
 		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-				"Double log plot - Fragmentation dimension", preName + "-" + tableInName, "ln(x)", "ln(N)", "", numRegStart, numRegEnd);
+				"Double log plot - Tug of war dimension", preName + "-" + tableInName, "ln(box width)", "ln(Totals)", "", numRegStart, numRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
 	}

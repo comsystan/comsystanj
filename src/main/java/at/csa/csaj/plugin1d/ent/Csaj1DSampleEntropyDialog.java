@@ -111,7 +111,7 @@ public class Csaj1DSampleEntropyDialog extends CsajDialog_1DPlugin {
 		setTitle("1D Sample entropy");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements  
-		  //*****************************************************************************************		
+		//*****************************************************************************************		
 	    JLabel labelEntropyType = new JLabel("Entropy type");
 	    labelEntropyType.setToolTipText("Sample entropy or Approximate entropy");
 	    labelEntropyType.setHorizontalAlignment(JLabel.RIGHT);

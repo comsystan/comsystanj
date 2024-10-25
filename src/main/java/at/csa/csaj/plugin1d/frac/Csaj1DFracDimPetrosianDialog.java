@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DAllomScaleDialog.java
+ * File: Csaj1DFracDimPetrosianDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,12 +26,16 @@
  * #L%
  */
 
-package at.csa.csaj.plugin1d.cplx;
+package at.csa.csaj.plugin1d.frac;
 
+import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.swing.SpinnerNumberModel;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 
 import org.scijava.Context;
 import org.scijava.command.CommandModule;
@@ -41,14 +45,14 @@ import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
 import org.scijava.ui.UIService;
-import at.csa.csaj.commons.CsajDialog_1DPluginWithRegression;
+import at.csa.csaj.commons.CsajDialog_1DPlugin;
 
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
+public class Csaj1DFracDimPetrosianDialog extends CsajDialog_1DPlugin {
 
-	private static final long serialVersionUID = 4844876619343675457L;
+	private static final long serialVersionUID = 5824023482607948775L;
 
 	@Parameter
 	private LogService logService;
@@ -64,13 +68,15 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
+	private JComboBox<String> comboBoxCriterion;
+	private String   choiceRadioButt_Criterion;
 
 	//Some default @Parameters are already defined in the super class
 
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj1DAllomScaleDialog(Context context, DefaultTableDisplay defaultTableDisplay) {
+	public Csaj1DFracDimPetrosianDialog(Context context, DefaultTableDisplay defaultTableDisplay) {
 			
 		super(context, defaultTableDisplay);
 			
@@ -81,19 +87,43 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("1D Allometric Scaling");
+		setTitle("1D Petrosian dimension");
 
-		//Add specific GUI elements according to Command @Parameter GUI elements
-	    //*****************************************************************************************		
-	    
+		//Add specific GUI elements according to Command @Parameter GUI elements  
 	    //*****************************************************************************************
-		//Change/Override items defined in the super class(es)
-		contentPanel.remove(labelNumEps);
-		contentPanel.remove(spinnerNumEps);
+	    JLabel labelCriterion = new JLabel("Criterion");
+	    labelCriterion.setToolTipText("Binarisation criterion");
+	    labelCriterion.setHorizontalAlignment(JLabel.RIGHT);
 		
-		spinnerNumRegEnd.setValue(3);
-		spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
+		String options[] = {"Mean", "Mean+-SD", "Sign of Difference", "SD of Differences"};
+		comboBoxCriterion = new JComboBox<String>(options);
+		comboBoxCriterion.setToolTipText("Binarisation criterion");
+	    comboBoxCriterion.setEditable(false);
+	    comboBoxCriterion.setSelectedItem("Mean");
+	    comboBoxCriterion.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {
+				choiceRadioButt_Criterion = (String)comboBoxCriterion.getSelectedItem();
+				logService.info(this.getClass().getName() + " Criterion set to " + choiceRadioButt_Criterion);
+				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
+			}
+		});
+	    
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelCriterion, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.WEST; //left 
+	    contentPanel.add(comboBoxCriterion, gbc);
+	    //initialize command variable
+	    choiceRadioButt_Criterion = (String)comboBoxCriterion.getSelectedItem();
 		
+		//Change/Override items defined in the super class(es)	
+	    //*****************************************************************************************
+	    
 	    //*****************************************************************************************
 	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
 	    
@@ -106,20 +136,18 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj1DAllomScaleCmd.class, false,
+		Future<CommandModule> future = commandService.run(Csaj1DFracDimPetrosianCmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,
-															
-														"spinnerInteger_NumRegStart",    spinnerInteger_NumRegStart,
-														"spinnerInteger_NumRegEnd",      spinnerInteger_NumRegEnd,
-														"booleanShowDoubleLogPlot",      booleanShowDoubleLogPlot,
+														
+														"choiceRadioButt_Criterion",     choiceRadioButt_Criterion,
 														
 														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,
 														"choiceRadioButt_SurrogateType", choiceRadioButt_SurrogateType,
 														"spinnerInteger_NumSurrogates",  spinnerInteger_NumSurrogates,
 														"spinnerInteger_BoxLength",      spinnerInteger_BoxLength,
 														"booleanSkipZeroes",             booleanSkipZeroes,
-																										
+														
 														"booleanOverwriteDisplays",      booleanOverwriteDisplays,
 														"booleanProcessImmediately",	 booleanProcessImmediately,
 														"spinnerInteger_NumColumn",      spinnerInteger_NumColumn
@@ -135,7 +163,7 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj1DAllomScaleCmd.TABLE_OUT_NAME;
+		tableOutName = Csaj1DFracDimPetrosianCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

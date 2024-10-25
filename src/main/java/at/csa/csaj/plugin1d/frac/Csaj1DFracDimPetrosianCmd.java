@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DFracDimHiguchi1DCommand.java
+ * File: Csaj1DFracDimPetrosianCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,12 +25,14 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+
+package at.csa.csaj.plugin1d.frac;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -44,14 +46,11 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -68,36 +67,29 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin1d.frac.util.Higuchi;
+import at.csa.csaj.plugin1d.frac.util.Petrosian;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
- * A {@link ContextCommand} plugin computing <the Higuchi dimension</a>
+ * A {@link ContextCommand} plugin computing <the Petrosian dimension</a>
 * of a sequence.
  */
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Higuchi dimension",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Petrosian dimension",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-	private static final String PLUGIN_LABEL            = "<html><b>Genuin Higuchi 1D algorithm</b></html>";
+public class Csaj1DFracDimPetrosianCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "<html><b>Petrosian dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
+	private static final String BINARIZATIONCRITERION_LABEL= "<html><b>Binarization criterion</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
@@ -110,7 +102,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -119,11 +111,9 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
-	private static final int  numKMax = 1000;
-	
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Higuchi dimension";
+	public static final String TABLE_OUT_NAME = "Table - Petrosian dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -180,38 +170,19 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 
 
 	//-----------------------------------------------------------------------------------------------------
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelRegression = REGRESSION_LABEL;
+
+	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelRegression = REGRESSION_LABEL;
-
-	@Parameter(label = "k",
-			   description = "Maximal delay between data points",
-			   style = NumberWidget.SPINNER_STYLE,
-			   min = "3",
-			   max = "9999999999999999999",
-			   stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialKMax", callback = "callbackKMax")
-	private int spinnerInteger_KMax;
-
-	@Parameter(label = "Regression Start",
-			   description = "Minimum x value of linear regression",
-			   style = NumberWidget.SPINNER_STYLE,
-			   min = "1",
-			   max = "9999999999999999999",
-			   stepSize = "1",
-			   persist = false, //restore previous value default = true
-			   initializer = "initialNumRegStart", callback = "callbackNumRegStart")
-	private int spinnerInteger_NumRegStart = 1;
-
-	@Parameter(label = "Regression End",
-			   description = "Maximum x value of linear regression",
-			   style = NumberWidget.SPINNER_STYLE,
-			   min = "3",
-			   max = "9999999999999999999",
-			   stepSize = "1",
-			   persist = false, //restore previous value default = true
-			   initializer = "initialNumRegEnd", callback = "callbackNumRegEnd")
-	private int spinnerInteger_NumRegEnd = 3;
+	private final String labelBinCriterium = BINARIZATIONCRITERION_LABEL;
+	
+	@Parameter(label = "Criterion",
+		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+		       choices = {"Mean", "Mean+-SD", "Sign of Difference", "SD of Differences"},
+		       persist = true,  //restore previous value default = true
+               callback = "changedCriterion")
+	private String choiceRadioButt_Criterion;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -247,7 +218,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	private int spinnerInteger_NumSurrogates;
 	
 	@Parameter(label = "Box length",
-			   description = "Length of subsequent or gliding box - Shoud be at least three times kMax",
+			   description = "Length of subsequent or gliding box",
 			   style = NumberWidget.SPINNER_STYLE, 
 			   min = "2",
 			   max = "9999999999999999999",
@@ -294,6 +265,12 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
+	
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
@@ -307,29 +284,8 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	protected void initialPluginLaunch() {
 		checkItemIOIn();
 	}
-	
-	protected void initialKMax() {
-//		int numMax = 0;
-//		try {
-//			numMax = (int) Math.floor((double)tableIn.getRowCount() / 3.0);
-//		} catch (NullPointerException npe) {
-//			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-//			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-//		}
-		spinnerInteger_KMax = 8;
-	}
-	protected void initialNumRegStart() {
-		spinnerInteger_NumRegStart = 1;
-	}
-	protected void initialNumRegEnd() {
-//		int numMax = 0;
-//		try {
-//			numMax = (int) Math.floor((double)tableIn.getRowCount() / 3.0);
-//		} catch (NullPointerException npe) {
-//			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-//			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-//		}
-		spinnerInteger_NumRegEnd = 8;
+	protected void initialCriterion() {
+	    choiceRadioButt_Criterion = "Mean";
 	}
 	protected void initialSequenceRange() {
 		choiceRadioButt_SequenceRange = "Entire sequence";
@@ -362,46 +318,10 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 
 	// ------------------------------------------------------------------------------
 	
-	
-	/** Executed whenever the {@link #spinnerInteger_KMax} parameter changes. */
-	protected void callbackKMax() {
-
-		if (spinnerInteger_KMax < 3) {
-			spinnerInteger_KMax = 3;
-		}
-		if (spinnerInteger_KMax > numKMax) {
-			spinnerInteger_KMax = numKMax;
-		}
-		if (spinnerInteger_NumRegEnd > spinnerInteger_KMax) {
-			spinnerInteger_NumRegEnd = spinnerInteger_KMax;
-		}
-		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
-			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
-		}
-		logService.info(this.getClass().getName() + " k set to " + spinnerInteger_KMax);
-	}
-
-	/** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
-	protected void callbackNumRegStart() {
-		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
-			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
-		}
-		if (spinnerInteger_NumRegStart < 1) {
-			spinnerInteger_NumRegStart = 1;
-		}
-		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_NumRegStart);
-	}
-
-	/** Executed whenever the {@link #spinnerInteger_NumRegEnd} parameter changes. */
-	protected void callbackNumRegEnd() {
-		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
-		}
-		if (spinnerInteger_NumRegEnd > spinnerInteger_KMax) {
-			spinnerInteger_NumRegEnd = spinnerInteger_KMax;
-		}
-
-		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_NumRegEnd);
+		
+	/** Executed whenever the {@link #choiceRadioButt_Criterion} parameter changes. */
+	protected void changedCriterion() {
+		logService.info(this.getClass().getName() + " Criterion changed to " + choiceRadioButt_Criterion);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
@@ -547,45 +467,45 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
-	}
+		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
-		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-			
-		sliceLabels = new String[(int) numColumns];
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
-	}
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
 
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
+		}
+	}
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Petrosian dimension, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -595,8 +515,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
     	deleteExistingDisplays();
 		generateTableHeader();
   		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-	
-  		dlgProgress.addMessage("Processing finished! Preparing result table...");		
+		dlgProgress.addMessage("Processing finished! Preparing result table...");		
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
@@ -606,8 +525,8 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	* This method starts the workflow for all columns of the active display
 	*/
 	protected void startWorkflowForAllColumns() {
-	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Higuchi1D dimensions, please wait... Open console window for further info.",
+		
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Petrosian dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -620,7 +539,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
 	}
-
+	
 	/**
 	 * This methods gets the index of the active column in the table
 	 * @return int index
@@ -665,41 +584,26 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		tableOut.add(new IntColumn("Box length"));
 		tableOut.add(new BoolColumn("Skip zeroes"));
 		
-		tableOut.add(new IntColumn("k"));
-		tableOut.add(new GenericColumn("Reg Start"));
-		tableOut.add(new GenericColumn("Reg End"));
-	
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
-			tableOut.add(new DoubleColumn("Dh"));	
-			tableOut.add(new DoubleColumn("R2"));
-			tableOut.add(new DoubleColumn("StdErr"));
+			tableOut.add(new DoubleColumn("Dpet"));	
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
-				tableOut.add(new DoubleColumn("Dh_Surr")); //Mean surrogate value	
-				tableOut.add(new DoubleColumn("R2_Surr")); //Mean surrogate value
-				tableOut.add(new DoubleColumn("StdErr_Surr")); //Mean surrogate value
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Dh_Surr-#"+(s+1))); 
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("StdErr_Surr-#"+(s+1))); 
+				tableOut.add(new DoubleColumn("Dpet_Surr")); //Mean surrogate value	
+			
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("DpetSurr-#"+(s+1))); 
 			}	
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn("Dh-#" + n));	
-			}
-			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn("R2-#" + n));	
+				tableOut.add(new DoubleColumn("Dpet-#" + n));	
 			}
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn("Dh-#" + n));	
-			}
-			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn("R2-#" + n));	
+				tableOut.add(new DoubleColumn("Dpet-#" + n));	
 			}
 		}	
 	}
@@ -759,8 +663,8 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		
 		// Compute result values
 		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
-		// 0 Dh, 1 R2, 2 StdErr
-		logService.info(this.getClass().getName() + " Higuchi dimension: " + containerPM.item1_Values[0]);
+		// 0 D, 1 R2, 2 StdErr
+		logService.info(this.getClass().getName() + " Petrosian dimension: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, containerPM); //write always to the first row
 		
@@ -776,6 +680,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 	private void processAllInputColumns() {
 		
 		long startTimeAll = System.currentTimeMillis();
+		
 		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
 		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
@@ -830,7 +735,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
@@ -844,11 +749,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 			tableOut.set(5, row, null);
 		}	
 		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
-		
-		tableOut.set(7, row, spinnerInteger_KMax); // KMax
-		tableOut.set(8, row, "("+spinnerInteger_NumRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-		tableOut.set(9, row, "("+spinnerInteger_NumRegEnd  +")" + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd	
-		tableColLast = 9;
+		tableColLast = 6;
 		
 		if (containerPM == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
@@ -883,29 +784,18 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
-
+		
+		String criterion      = choiceRadioButt_Criterion;
 		String sequenceRange  = choiceRadioButt_SequenceRange;
 		String surrType       = choiceRadioButt_SurrogateType;
 		numSurrogates         = spinnerInteger_NumSurrogates;
 		numBoxLength          = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
-		int numKMax           = spinnerInteger_KMax;
-		int numRegStart       = spinnerInteger_NumRegStart;
-		int numRegEnd         = spinnerInteger_NumRegEnd;
 		boolean skipZeroes    = booleanSkipZeroes;
-		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
-		double[] epsRegStartEnd = new double[2];  // epsRegStart, epsRegEnd
-		double[] resultValues   = new double[3]; // Dim, R2, StdErr
+		double[] resultValues = new double[3]; // Dim, R2, StdErr
 		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
-		
-//		double[]totals = new double[numKMax];
-//		double[]eps = new double[numKMax];
-//		// definition of eps
-//		for (int kk = 0; kk < numKMax; kk++) {
-//			eps[kk] = kk + 1;		
-//			//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
-//		}
+	
 		//******************************************************************************************************
 		//domain1D = new double[numDataPoints];
 		sequence1D = new double[numDataPoints];
@@ -925,11 +815,11 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			sequence1D[n] = Double.valueOf((Double)sequenceColumn.get(n));
-		}
+		}	
 		
 		sequence1D = removeNaN(sequence1D);
 		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
-		
+
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;
 		
@@ -939,75 +829,55 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		//domain1D = new double[numDataPoints];
 		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
 		
-		Higuchi hig;
-		double[] L;
-		double[] regressionParams = null;
-		
+		Petrosian petrosian;
+		double Dpet;
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		if (sequenceRange.equals("Entire sequence")){	
 			if (surrType.equals("No surrogates")) {
-				resultValues = new double[3]; // Dim, R2, StdErr	
+				resultValues = new double[1]; // Dim,	
 			} else {
-				resultValues = new double[3+3+3*numSurrogates]; // Dim_Surr, R2_Surr, StdErr_Surr,	Dim_Surr1, Dim_Surr2,  Dim_Surr3, ......R2_Surr1,.... 2, 3......
+				resultValues = new double[1+1+1*numSurrogates]; // Dim_Surr, Dim_Surr1, Dim_Surr2,  Dim_Surr3, ...
 			}
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
 			//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 			
-			if (sequence1D.length > (numKMax * 2)) { // only data series which are large enough
-				hig = new Higuchi();
-				L = hig.calcLengths(sequence1D, numKMax);
-				regressionParams = hig.calcRegression(L, numRegStart, numRegEnd);
-				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+			petrosian = new Petrosian();
+			Dpet = petrosian.calcDimension(sequence1D, criterion);
+			
+			resultValues[0] = Dpet; //Dpet
+			int lastMainResultsIndex = 0;
 				
-				epsRegStartEnd[0] = hig.getEps()[numRegStart-1]; //epsRegStart
-				epsRegStartEnd[1] = hig.getEps()[numRegEnd-1];   //epsRegEnd
-				
-				if (optShowPlot) {
-					String preName = sequenceColumn.getHeader();
-					showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, col, numRegStart, numRegEnd);
-				}	
-				resultValues[0] = -regressionParams[1]; // Dh = -slope
-				resultValues[1] = regressionParams[4]; //R2
-				resultValues[2] = regressionParams[3]; //StdErr
-				int lastMainResultsIndex = 2;
-				
-				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
-					surrSequence1D = new double[sequence1D.length];
+			if (!surrType.equals("No surrogates")) { //Add surrogate analysis
+				surrSequence1D = new double[sequence1D.length];
 					
-					double sumDims   = 0.0;
-					double sumR2s    = 0.0;
-					double sumStdErr = 0.0;
-					CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
-					String windowingType = "Rectangular";
-					for (int s = 0; s < numSurrogates; s++) {
-						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-						if (surrType.equals("Shuffle"))      surrSequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
-						if (surrType.equals("Gaussian"))     surrSequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
-						if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
-						if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
+				double sumDims   = 0.0;
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
+				String windowingType = "Rectangular";
+				for (int s = 0; s < numSurrogates; s++) {
+					//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+					if (surrType.equals("Shuffle"))      surrSequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
+					if (surrType.equals("Gaussian"))     surrSequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
+					if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
+					if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
-						hig = new Higuchi();
-						L = hig.calcLengths(surrSequence1D, numKMax);
-						regressionParams = hig.calcRegression(L, numRegStart, numRegEnd);
-						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						resultValues[lastMainResultsIndex + 4 + s]                   = -regressionParams[1];
-						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionParams[4];
-						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionParams[3];
-						sumDims    += -regressionParams[1];
-						sumR2s     +=  regressionParams[4];
-						sumStdErr  +=  regressionParams[3];
-					}
-					resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
-					resultValues[lastMainResultsIndex + 2] = sumR2s/numSurrogates;
-					resultValues[lastMainResultsIndex + 3] = sumStdErr/numSurrogates;
-				}	
-			} 
+					petrosian = new Petrosian();
+					Dpet = petrosian.calcDimension(surrSequence1D, criterion);
+					
+					resultValues[lastMainResultsIndex + 2 + s] = Dpet;
+					//resultValues[lastMainResultsIndex + 2 + numSurrogates + s]    = ;
+					//resultValues[lastMainResultsIndex + 2 + (2*numSurrogates) +s] = ;
+					sumDims  += Dpet;
+				}
+				resultValues[lastMainResultsIndex + 1] = sumDims/numSurrogates;
+
+			}	
+			 
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
-			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
+			resultValues = new double[(int) (1*numSubsequentBoxes)]; // Dim  == one * number of boxes		
 			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
@@ -1021,23 +891,11 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 					subSequence1D[ii-start] = sequence1D[ii];
 				}
 				//Compute specific values************************************************
-				if (subSequence1D.length > (numKMax * 2)) { // only data series which are large enough
-					hig = new Higuchi();
-					L = hig.calcLengths(subSequence1D, numKMax);
-					regressionParams = hig.calcRegression(L, numRegStart, numRegEnd);
-					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-					
-					epsRegStartEnd[0] = hig.getEps()[numRegStart-1]; //epsRegStart
-					epsRegStartEnd[1] = hig.getEps()[numRegEnd-1];   //epsRegEnd
-					
-					//if (optShowPlot){ //show all plots
-					if ((optShowPlot) && (i==0)){ //show only first plot
-						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
-						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, col, numRegStart, numRegEnd);
-					}
-					resultValues[i]                             = -regressionParams[1]; // Dh = -slope;
-					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
-				} 
+			
+				petrosian = new Petrosian();
+				Dpet = petrosian.calcDimension(subSequence1D, criterion);
+				resultValues[i] = Dpet; // Dpet	
+				
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
@@ -1056,28 +914,16 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 					subSequence1D[ii-start] = sequence1D[ii];
 				}	
 				//Compute specific values************************************************
-				if (subSequence1D.length > (numKMax * 2)) { // only data series which are large enough
-					hig = new Higuchi();
-					L = hig.calcLengths(subSequence1D, numKMax);
-					regressionParams = hig.calcRegression(L, numRegStart, numRegEnd);
-					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-					
-					epsRegStartEnd[0] = hig.getEps()[numRegStart-1]; //epsRegStart
-					epsRegStartEnd[1] = hig.getEps()[numRegEnd-1];   //epsRegEnd
-					
-					//if (optShowPlot){ //show all plots
-					if ((optShowPlot) && (i==0)){ //show only first plot
-						String preName = sequenceColumn.getHeader() + "-Box #" + (i+1);
-						showPlot(hig.getLnDataX(), hig.getLnDataY(), preName, col, numRegStart, numRegEnd);
-					}	
-					resultValues[i]                          = -regressionParams[1]; // Dh = -slope;
-					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
-				}
+				
+				petrosian = new Petrosian();
+				Dpet = petrosian.calcDimension(subSequence1D, criterion);
+				resultValues[i] = Dpet; // Dpet
+								
 				//***********************************************************************
 			}
 		}
 		
-		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
+		return new CsajContainer_ProcessMethod(resultValues);
 		// Dim, R2, StdErr
 		// Output
 		// uiService.show(TABLE_OUT_NAME, table);
@@ -1111,7 +957,7 @@ public class Csaj1DFracDimHiguchi1DCommand<T extends RealType<T>> extends Contex
 		}
 		boolean isLineVisible = false; // ?
 		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-				"Double log plot - Higuchi dimension", preName + "-" + tableInName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
+				"Double log plot - Petrosian dimension", preName + "-" + tableInName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
 	}

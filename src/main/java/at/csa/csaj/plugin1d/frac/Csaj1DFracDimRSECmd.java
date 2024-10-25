@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DFracDimWalkingDividerCommand.java
+ * File: Csaj1DFracDimRSECmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,17 +25,17 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.frac;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import net.imagej.ImageJ;
@@ -45,17 +45,15 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
+import org.scijava.table.BoolColumn;
 import org.scijava.table.Column;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
@@ -68,57 +66,43 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin1d.frac.util.WalkingDivider;
+import at.csa.csaj.plugin1d.frac.util.RSE;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 
 /**
- * A {@link ContextCommand} plugin computing <the Walking divider dimension</a>
- * of a sequence of x,y coordinates representing a contour in a 2D image.
+ * A {@link ContextCommand} plugin computing <the RSE dimension</a>
+* of a sequence.
  */
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Walking divider dimension",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "RSE dimension",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-	private static final String PLUGIN_LABEL            = "<html><b>Walking divider dimension</b></html>";
+public class Csaj1DFracDimRSECmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "<html><b>RSE dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Fractal regression parameters</b></html>";
+	private static final String RSEOPTIONS_LABEL        = "<html><b>RSE options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
-	private static double[] sequenceX;
-	private static double[] sequenceY;
 	private static double[] sequence1D;
 	private static double[] domain1D;
-	private static double[] subSequenceX;
-	private static double[] subSequenceY;
-	private static double[] surrSequenceX;
-	private static double[] surrSequenceY;
-	//private static double[] subSequence1D;
-	//private static double[] surrSequence1D;
-	//Column<? extends Object> sequenceColumn;
-	Column<? extends Object> sequenceColumnX;
-	Column<? extends Object> sequenceColumnY;
+	private static double[] subSequence1D;
+	private static double[] surrSequence1D;
+	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -127,11 +111,11 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
-	private static int  numRulers = 1000;
+	private static final int  numLMax = 1000;
 	
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Walking divider dimension";
+	public static final String TABLE_OUT_NAME = "Table - RSE dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -191,25 +175,25 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRegression = REGRESSION_LABEL;
 
-	@Parameter(label = "# Rulers",
-			   description = "Number of rulers following 2^i",
+	@Parameter(label = "Maximal length",
+			   description = "Maximal length of sub-sequences",
 			   style = NumberWidget.SPINNER_STYLE,
 			   min = "3",
 			   max = "9999999999999999999",
 			   stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialNumRulers", callback = "callbackNumRulers")
-	private int spinnerInteger_NumRulers;
+			   initializer = "initialLMax", callback = "callbackLMax")
+	private int spinnerInteger_LMax;
 
 	@Parameter(label = "Regression Start",
 			   description = "Minimum x value of linear regression",
 			   style = NumberWidget.SPINNER_STYLE,
-			   min = "1",
+			   min = "2",
 			   max = "9999999999999999999",
 			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialNumRegStart", callback = "callbackNumRegStart")
-	private int spinnerInteger_NumRegStart = 1;
+	private int spinnerInteger_NumRegStart = 3;
 
 	@Parameter(label = "Regression End",
 			   description = "Maximum x value of linear regression",
@@ -219,19 +203,31 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialNumRegEnd", callback = "callbackNumRegEnd")
-	private int spinnerInteger_NumRegEnd = 3;
-	//-----------------------------------------------------------------------------------------------------
-//	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-//	private final String labelOptions = OPTIONS_LABEL;
+	private int spinnerInteger_NumRegEnd = 8;
 	
-	@Parameter(label = "Scaling option",
-			   description = "Radial distance scaling or coordinates (x,y) scaling",
-			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"Radial distance", "Coordinates"}, 
-			   persist = true,  //restore previous value default = true
-			   initializer = "initialScalingType",
-			   callback = "callbackScalingType")
-	private String choiceRadioButt_ScalingType;
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelRSEOptions = RSEOPTIONS_LABEL;
+
+	@Parameter(label = "M",
+			   description = "Number of randomly chosen sub-sequences for each length (M=50 recommended)",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "1",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = false, //restore previous value default = true
+			   initializer = "initialNumM", callback = "callbackNumM")
+	private int spinnerInteger_NumM = 50;
+	
+	@Parameter(label = "Polynomial Order",
+			   description = "Order of polynomial flattening (1.. recommended, 0.. without flattening)",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "0",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = false, //restore previous value default = true
+			   initializer = "initialFlatteningOrder", callback = "callbackFlatteningOrder")
+	private int spinnerInteger_FlatteningOrder = 1;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -267,25 +263,24 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	private int spinnerInteger_NumSurrogates;
 	
 	@Parameter(label = "Box length",
-			   description = "Length of subsequent or gliding box - Shoud be at least three times kMax",
+			   description = "Length of subsequent or gliding box - Shoud be at least three times LMax",
 			   style = NumberWidget.SPINNER_STYLE, 
 			   min = "2",
 			   max = "9999999999999999999",
 			   stepSize = "1",
 			   persist = true, // restore  previous value  default  =  true
-			   initializer = "initialBoxLength",
-			   callback = "callbackBoxLength")
+			   initializer = "initialBoxLength", callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
 	
 	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 //	private final String labelBackgroundOptions = BACKGROUNDOPTIONS_LABEL;
 
-//	@Parameter(label = "Skip zero values",
-//			   persist = true,
-//		       callback = "callbackSkipZeroes")
-//	private boolean booleanSkipZeroes;
-//	
+	@Parameter(label = "Skip zero values",
+			   persist = true,
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
+	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
@@ -310,11 +305,17 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 			callback = "callbackProcessImmediately")
 	private boolean booleanProcessImmediately;
 	
-	@Parameter(label = "Column X #", description = "column number for the x values, next column holds the y values", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "2", //stepSize = 2 because data comes in pairs
+	@Parameter(label = "Column #", description = "column number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
@@ -327,20 +328,34 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	protected void initialPluginLaunch() {
 		checkItemIOIn();
 	}
-	
-	protected void initialNumRulers() {
-		numRulers = getMaxRulersNumber();
-		spinnerInteger_NumRulers = numRulers;
+	protected void initialLMax() {
+//		int numMax = 0;
+//		try {
+//			numMax = (int) Math.floor((double)tableIn.getRowCount() / 3.0);
+//		} catch (NullPointerException npe) {
+//			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
+//			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
+//		}
+		spinnerInteger_LMax = 8;
 	}
 	protected void initialNumRegStart() {
-		spinnerInteger_NumRegStart = 1;
+		spinnerInteger_NumRegStart = 3;
 	}
 	protected void initialNumRegEnd() {
-		numRulers = getMaxRulersNumber();
-		spinnerInteger_NumRegEnd = numRulers;
+//		int numMax = 0;
+//		try {
+//			numMax = (int) Math.floor((double)tableIn.getRowCount() / 3.0);
+//		} catch (NullPointerException npe) {
+//			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
+//			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
+//		}
+		spinnerInteger_NumRegEnd = 8;
 	}
-	protected void initialScalingType() {
-		choiceRadioButt_ScalingType = "Radial distance";
+	protected void initialNumM() {
+		spinnerInteger_NumM = 50;
+	}
+	protected void initialFlatteningOrder() {
+		spinnerInteger_FlatteningOrder = 1;
 	}
 	protected void initialSequenceRange() {
 		choiceRadioButt_SequenceRange = "Entire sequence";
@@ -358,9 +373,9 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
 		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 	}
-//	protected void initialSkipZeroes() {
-//		booleanSkipZeroes = false;
-//	}	
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
+	}	
 	protected void initialShowDoubleLogPlots() {
 		booleanShowDoubleLogPlot = true;
 	}
@@ -374,22 +389,22 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	// ------------------------------------------------------------------------------
 	
 	
-	/** Executed whenever the {@link #spinnerInteger_NumRulers} parameter changes. */
-	protected void callbackNumRulers() {
+	/** Executed whenever the {@link #spinnerInteger_LMax} parameter changes. */
+	protected void callbackLMax() {
 
-		if (spinnerInteger_NumRulers < 3) {
-			spinnerInteger_NumRulers = 3;
+		if (spinnerInteger_LMax < 3) {
+			spinnerInteger_LMax = 3;
 		}
-		if (spinnerInteger_NumRulers > numRulers) {
-			spinnerInteger_NumRulers = numRulers;
+		if (spinnerInteger_LMax > numLMax) {
+			spinnerInteger_LMax = numLMax;
 		}
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumRulers) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumRulers;
+		if (spinnerInteger_NumRegEnd > spinnerInteger_LMax) {
+			spinnerInteger_NumRegEnd = spinnerInteger_LMax;
 		}
 		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
 			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
 		}
-		logService.info(this.getClass().getName() + " # Rulers set to " + spinnerInteger_NumRulers);
+		logService.info(this.getClass().getName() + " LMax set to " + spinnerInteger_LMax);
 	}
 
 	/** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
@@ -397,8 +412,8 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
 			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
 		}
-		if (spinnerInteger_NumRegStart < 1) {
-			spinnerInteger_NumRegStart = 1;
+		if (spinnerInteger_NumRegStart < 2) {
+			spinnerInteger_NumRegStart = 2;
 		}
 		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_NumRegStart);
 	}
@@ -408,16 +423,21 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
 			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
 		}
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumRulers) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumRulers;
+		if (spinnerInteger_NumRegEnd > spinnerInteger_LMax) {
+			spinnerInteger_NumRegEnd = spinnerInteger_LMax;
 		}
 
-		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_NumRegEnd);
+		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
 	}
 	
-	/** Executed whenever the {@link #spinnerInteger_ScalingType} parameter changes. */
-	protected void callbackScalingType() {
-		logService.info(this.getClass().getName() + " Scaling type set to " + choiceRadioButt_ScalingType);
+	/** Executed whenever the {@link #spinnerInteger_NumM} parameter changes. */
+	protected void callbackNumM() {
+		logService.info(this.getClass().getName() + " M set to " + spinnerInteger_NumM);
+	}
+	
+	/** Executed whenever the {@link #spinnerInteger_FlatteningOrder} parameter changes. */
+	protected void callbackFlatteningOrder() {
+		logService.info(this.getClass().getName() + " Flattening order set to " + spinnerInteger_FlatteningOrder);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
@@ -452,10 +472,10 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
 	}
 
-//	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
-//	protected void callbackSkipZeroes() {
-//		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
-//	}
+	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
+	protected void callbackSkipZeroes() {
+		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
+	}
 
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
@@ -467,7 +487,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	protected void callbackNumColumn() {
 		if (spinnerInteger_NumColumn > tableIn.getColumnCount()){
 			logService.info(this.getClass().getName() + " No more columns available");
-			spinnerInteger_NumColumn = tableIn.getColumnCount() - 1; // -1 because of Walking divider
+			spinnerInteger_NumColumn = tableIn.getColumnCount();
 		}
 		logService.info(this.getClass().getName() + " Column number set to " + spinnerInteger_NumColumn);
 	}
@@ -563,56 +583,46 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
-	}
+		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
-		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		
-		//Walking divider algorithm expects a column pair of x and y data for ever object
-		//Therefore, number of columns must always be >= 2 and even.
-		if ((numColumns < 2) || (numColumns % 2 != 0)) { //<2 or odd
-			logService.info(this.getClass().getName() + " Columns #: "    + numColumns); 
-			logService.error(this.getClass().getName() + " ERROR: Number of columns must be >=2 and even"); 
-			cancel("Walking divider algorithm expects pairs of x,y values (coordinates)\nNumber of columns must be >=2 and even");
-			return;
-		}
-		
-		numColumns  = numColumns/2; //Walking divider
-		numRows     = tableIn.getRowCount();
-			
-		sliceLabels = new String[(int) numColumns];
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
-	}
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
 
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
+		}
+	}
+	
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Walking divider dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing RSE dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -633,7 +643,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Walking divider dimensions, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing RSE dimensions, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -644,9 +654,9 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		dlgProgress.addMessage("Processing finished! Preparing result table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
+		Toolkit.getDefaultToolkit().beep();   
 	}
-
+	
 	/**
 	 * This methods gets the index of the active column in the table
 	 * @return int index
@@ -689,33 +699,34 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		tableOut.add(new GenericColumn("Surrogate type"));
 		tableOut.add(new IntColumn("# Surrogates"));
 		tableOut.add(new IntColumn("Box length"));
-		//tableOut.add(new BoolColumn("Skip zeroes"));
+		tableOut.add(new BoolColumn("Skip zeroes"));
 		
-		tableOut.add(new IntColumn("# Rulers"));
+		tableOut.add(new IntColumn("L Max"));
 		tableOut.add(new GenericColumn("Reg Start"));
 		tableOut.add(new GenericColumn("Reg End"));
-		tableOut.add(new GenericColumn("Scaling type"));	
+		tableOut.add(new IntColumn("M"));
+		tableOut.add(new IntColumn("Flattening order"));
 	
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
-			tableOut.add(new DoubleColumn("Dwd"));	
+			tableOut.add(new DoubleColumn("Drse"));	
 			tableOut.add(new DoubleColumn("R2"));
 			tableOut.add(new DoubleColumn("StdErr"));
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
-				tableOut.add(new DoubleColumn("Dwd_Surr")); //Mean surrogate value	
+				tableOut.add(new DoubleColumn("Drse_Surr")); //Mean surrogate value	
 				tableOut.add(new DoubleColumn("R2_Surr")); //Mean surrogate value
 				tableOut.add(new DoubleColumn("StdErr_Surr")); //Mean surrogate value
-				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Dwd_Surr-#"+(s+1))); 
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("Drse_Surr-#"+(s+1))); 
 				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("R2_Surr-#"+(s+1))); 
 				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("StdErr_Surr-#"+(s+1))); 
 			}	
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn("Dwd-#" + n));	
+				tableOut.add(new DoubleColumn("Drse-#" + n));	
 			}
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableOut.add(new DoubleColumn("R2-#" + n));	
@@ -723,7 +734,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn("Dwd-#" + n));	
+				tableOut.add(new DoubleColumn("Drse-#" + n));	
 			}
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableOut.add(new DoubleColumn("R2-#" + n));	
@@ -786,8 +797,8 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		
 		// Compute result values
 		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
-		// 0 Dh, 1 R2, 2 StdErr
-		logService.info(this.getClass().getName() + " Walking divider dimension: " + containerPM.item1_Values[0]);
+		// 0 Drse, 1 R2, 2 StdErr
+		logService.info(this.getClass().getName() + " RSE dimension: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, containerPM); //write always to the first row
 		
@@ -805,7 +816,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		long startTimeAll = System.currentTimeMillis();
 		CsajContainer_ProcessMethod containerPM;
 		// loop over all slices of stack
-		for (int s = 0; s < numColumns; s=s+2) { // s... number of sequence column, Column pairs for Walking divider algorithm 
+		for (int s = 0; s < numColumns; s++) { // s... number of sequence column
 			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numColumns)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
@@ -818,7 +829,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 				
 				// Compute result values
 				containerPM = process(tableIn, s);
-				// 0 Dh, 1 R2, 2 StdErr
+				// 0 Drse, 1 R2, 2 StdErr
 				logService.info(this.getClass().getName() + " Processing finished.");
 				writeToTable(s, s, containerPM);
 	
@@ -844,7 +855,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 	 * 
 	 * @param int numRow to write in the result table
 	 * @param in sequenceNumber column number of sequence from tableIn.
-	 * @param double[][] result values
+	 * @param CsajContainer_ProcessMethod containerPM
 	 */
 	private void writeToTable(int numRow, int sequenceNumber, CsajContainer_ProcessMethod containerPM) {
 		logService.info(this.getClass().getName() + " Writing to the table...");
@@ -853,11 +864,11 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		int tableColEnd   = 0;
 		int tableColLast  = 0;
 		
-		// 0 Dh, 1 R2, 2 StdErr
+		// 0 Drse, 1 R2, 2 StdErr
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber) + "," + tableIn.getColumnHeader(sequenceNumber+1)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 		tableOut.set(2, row, choiceRadioButt_SequenceRange); //Sequence Method
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
@@ -870,13 +881,14 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		} else {
 			tableOut.set(5, row, null);
 		}	
-		//tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
+		tableOut.set(6,  row, booleanSkipZeroes); //Zeroes removed
 		
-		tableOut.set(6, row, spinnerInteger_NumRulers); // NumRulers
-		tableOut.set(7, row, "("+spinnerInteger_NumRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-		tableOut.set(8, row, "("+spinnerInteger_NumRegEnd  +")" + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
-		tableOut.set(9, row, choiceRadioButt_ScalingType); //Scaling type
-		tableColLast = 9;
+		tableOut.set(7,  row, spinnerInteger_LMax); // LMax
+		tableOut.set(8,  row, "("+spinnerInteger_NumRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
+		tableOut.set(9,  row, "("+spinnerInteger_NumRegEnd  +")" + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
+		tableOut.set(10, row, spinnerInteger_NumM); //M number of randomly chosen sub-sequences for each length 	
+		tableOut.set(11, row, spinnerInteger_FlatteningOrder); //FlatteningOrder 	
+		tableColLast = 11;
 		
 		if (containerPM == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
@@ -911,43 +923,41 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
-
+		
 		String sequenceRange  = choiceRadioButt_SequenceRange;
 		String surrType       = choiceRadioButt_SurrogateType;
 		numSurrogates         = spinnerInteger_NumSurrogates;
 		numBoxLength          = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
-		int numRulers         = spinnerInteger_NumRulers;
+		int numLMax           = spinnerInteger_LMax;
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
-		String scalingType    = choiceRadioButt_ScalingType;
-		//boolean skipZeroes    = booleanSkipZeroes;
+		int numM			  = spinnerInteger_NumM;
+		int flatteningOrder   = spinnerInteger_FlatteningOrder;
+		boolean skipZeroes    = booleanSkipZeroes;
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		
 		double[] epsRegStartEnd = new double[2];  // epsRegStart, epsRegEnd
-		double[] resultValues    = new double[3];  // Dim, R2, StdErr
-		for (int i = 0; i < resultValues.length; i++) resultValues[i] = Double.NaN;
+		double[] resultValues   = new double[3]; // Dim, R2, StdErr
+		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 		
-//		double[]totals = new double[numKMax];
-//		double[]eps = new double[numKMax];
+//		double[]totals = new double[numLMax];
+//		double[]eps = new double[numLMax];
 //		// definition of eps
-//		for (int kk = 0; kk < numKMax; kk++) {
+//		for (int kk = 0; kk < numLMax; kk++) {
 //			eps[kk] = kk + 1;		
 //			//logService.info(this.getClass().getName() + " k=" + kk + " eps= " + eps[kk][b]);
 //		}
 		//******************************************************************************************************
 		//domain1D = new double[numDataPoints];
-		sequenceX = new double[numDataPoints];
-		sequenceY = new double[numDataPoints];
+		sequence1D = new double[numDataPoints];
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n] = Double.NaN;
-			sequenceX[n] = Double.NaN;
-			sequenceY[n] = Double.NaN;
+			sequence1D[n] = Double.NaN;
 		}
 		
-		sequenceColumnX = dgt.get(col);
-		sequenceColumnY = dgt.get(col+1);
-		String columnType = sequenceColumnX.get(0).getClass().getSimpleName();	
+		sequenceColumn = dgt.get(col);
+		String columnType = sequenceColumn.get(0).getClass().getSimpleName();	
 		logService.info(this.getClass().getName() + " Column type: " + columnType);	
 		if (!columnType.equals("Double")) {
 			logService.info(this.getClass().getName() + " NOTE: Column type is not supported");	
@@ -956,25 +966,23 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
-			sequenceX[n] = Double.valueOf((Double)sequenceColumnX.get(n));
-			sequenceY[n] = Double.valueOf((Double)sequenceColumnY.get(n));
-		}
+			sequence1D[n] = Double.valueOf((Double)sequenceColumn.get(n));
+		}	
 		
-		//sequence1D = removeNaN(sequence1D);
-		
-		//if (skipZeroes) sequence1D = removeZeroes(sequence1D);
-		
+		sequence1D = removeNaN(sequence1D);
+		if (skipZeroes) sequence1D = removeZeroes(sequence1D);
+
 		//numDataPoints may be smaller now
-		numDataPoints = sequenceX.length;
+		numDataPoints = sequence1D.length;
 		
-		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumnX.getHeader() + "  Size of sequence = " + numDataPoints);
+		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + numDataPoints);
 		if (numDataPoints == 0) return null; //e.g. if sequence had only NaNs
-		
+
 		//domain1D = new double[numDataPoints];
 		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
 		
-		WalkingDivider walkDivider;
-		double[] pathLengths;
+		RSE rse;
+		double[] Rq;
 		double[] regressionParams = null;
 		
 		
@@ -982,36 +990,34 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		//********************************************************************************************************
 		if (sequenceRange.equals("Entire sequence")){	
 			if (surrType.equals("No surrogates")) {
-				resultValues = new double[3]; // epsRegStart, epsRegEnd // Dim, R2, StdErr	
+				resultValues = new double[3]; // Dim, R2, StdErr	
 			} else {
-				resultValues = new double[3+3+3*numSurrogates]; // epsRegStart, epsRegEnd // Dim_Surr, R2_Surr, StdErr_Surr,	Dim_Surr1, Dim_Surr2,  Dim_Surr3, ......R2_Surr1,.... 2, 3......
+				resultValues = new double[3+3+3*numSurrogates]; // Dim_Surr, R2_Surr, StdErr_Surr,	Dim_Surr1, Dim_Surr2,  Dim_Surr3, ......R2_Surr1,.... 2, 3......
 			}
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
-	          
-			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
+			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);
 			//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 			
-			if (sequenceX.length > (numRulers * 2)) { // only data series which are large enough
-				walkDivider = new WalkingDivider(scalingType);
-				pathLengths = walkDivider.calcLengths(sequenceX, sequenceY, numRulers);
-				regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+			if (sequence1D.length > (numLMax * 2)) { // only data series which are large enough
+				rse = new RSE();
+				Rq = rse.calcRqs(sequence1D, numLMax, numM, flatteningOrder);
+				regressionParams = rse.calcRegression(Rq, numRegStart, numRegEnd);
 				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-			
-				epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
-				epsRegStartEnd[1] = walkDivider.getEps()[numRegEnd-1];   //epsRegEnd
+				
+				epsRegStartEnd[0] = rse.getEps()[numRegStart-1]; //epsRegStart
+				epsRegStartEnd[1] = rse.getEps()[numRegEnd-1];   //epsRegEnd
 				
 				if (optShowPlot) {
-					String preName = sequenceColumnX.getHeader() + "," + sequenceColumnY.getHeader();
-					showPlot(walkDivider.getLnDataX(), walkDivider.getLnDataY(), preName, col, numRegStart, numRegEnd);
+					String preName = sequenceColumn.getHeader();
+					showPlot(rse.getLnDataX(), rse.getLnDataY(), preName, col, numRegStart, numRegEnd);
 				}	
-				resultValues[0] = 1.0-regressionParams[1]; // Dwd = 1-slope
+				resultValues[0] = 2.0-regressionParams[1]; // Drse = 2-slope
 				resultValues[1] = regressionParams[4]; //R2
 				resultValues[2] = regressionParams[3]; //StdErr
 				int lastMainResultsIndex = 2;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
-					surrSequenceX = new double[sequenceX.length];
-					surrSequenceY = new double[sequenceY.length];
+					surrSequence1D = new double[sequence1D.length];
 					
 					double sumDims   = 0.0;
 					double sumR2s    = 0.0;
@@ -1019,32 +1025,20 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 					CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();
 					String windowingType = "Rectangular";
 					for (int s = 0; s < numSurrogates; s++) {
-						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-						if (surrType.equals("Shuffle")) {
-							surrSequenceX = surrogate1D.calcSurrogateShuffle(sequenceX);
-							surrSequenceY = surrogate1D.calcSurrogateShuffle(sequenceY);
-						}
-						if (surrType.equals("Gaussian")) {
-							surrSequenceX = surrogate1D.calcSurrogateGaussian(sequenceX);
-							surrSequenceY = surrogate1D.calcSurrogateGaussian(sequenceY);
-						}
-						if (surrType.equals("Random phase")) {
-							surrSequenceX = surrogate1D.calcSurrogateRandomPhase(sequenceX, windowingType);
-							surrSequenceY = surrogate1D.calcSurrogateRandomPhase(sequenceY, windowingType);
-						}
-						if (surrType.equals("AAFT")) {
-							surrSequenceX = surrogate1D.calcSurrogateAAFT(sequenceX, windowingType);
-							surrSequenceY = surrogate1D.calcSurrogateAAFT(sequenceY, windowingType);
-						}
+						//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 		
+						if (surrType.equals("Shuffle"))      surrSequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
+						if (surrType.equals("Gaussian"))     surrSequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
+						if (surrType.equals("Random phase")) surrSequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
+						if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
-						walkDivider = new WalkingDivider(scalingType);
-						pathLengths = walkDivider.calcLengths(surrSequenceX, surrSequenceY, numRulers);
-						regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+						rse = new RSE();
+						Rq = rse.calcRqs(surrSequence1D, numLMax, numM, flatteningOrder);
+						regressionParams = rse.calcRegression(Rq, numRegStart, numRegEnd);
 						// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-						resultValues[lastMainResultsIndex + 4 + s]                   = 1.0-regressionParams[1];
-						resultValues[lastMainResultsIndex + 4 +   numSurrogates + s] = regressionParams[4];
-						resultValues[lastMainResultsIndex + 4 + 2*numSurrogates + s] = regressionParams[3];
-						sumDims    += 1.0-regressionParams[1];
+						resultValues[lastMainResultsIndex + 4 + s]                    = 2.0-regressionParams[1];
+						resultValues[lastMainResultsIndex + 4 + numSurrogates + s]    = regressionParams[4];
+						resultValues[lastMainResultsIndex + 4 + (2*numSurrogates) +s] = regressionParams[3];
+						sumDims    +=  2.0-regressionParams[1];
 						sumR2s     +=  regressionParams[4];
 						sumStdErr  +=  regressionParams[3];
 					}
@@ -1056,37 +1050,34 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){
 			resultValues = new double[(int) (2*numSubsequentBoxes)]; // Dim R2 == two * number of boxes		
-			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
-	           
-			subSequenceX = new double[(int) numBoxLength];
-			subSequenceY = new double[(int) numBoxLength];
+			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
+			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller than intended because of NaNs or removed zeroes
-			long actualNumSubsequentBoxes = (long) Math.floor((double)sequenceX.length/(double)spinnerInteger_BoxLength);
+			long actualNumSubsequentBoxes = (long) Math.floor((double)sequence1D.length/(double)spinnerInteger_BoxLength);
 		
 			//get sub-sequences and compute dimensions
 			for (int i = 0; i < actualNumSubsequentBoxes; i++) {	
 				logService.info(this.getClass().getName() + " Processing subsequent box #: "+(i+1) + "/" + actualNumSubsequentBoxes);	
 				int start = (i*numBoxLength);
 				for (int ii = start; ii < (start + numBoxLength); ii++){ 
-					subSequenceX[ii-start] = sequenceX[ii];
-					subSequenceY[ii-start] = sequenceY[ii];
+					subSequence1D[ii-start] = sequence1D[ii];
 				}
 				//Compute specific values************************************************
-				if (subSequenceX.length > (numRulers * 2)) { // only data series which are large enough
-					walkDivider = new WalkingDivider(scalingType);
-					pathLengths = walkDivider.calcLengths(subSequenceX, subSequenceX, numRulers);
-					regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+				if (subSequence1D.length > (numLMax * 2)) { // only data series which are large enough
+					rse = new RSE();
+					Rq = rse.calcRqs(subSequence1D, numLMax, numM, flatteningOrder);
+					regressionParams = rse.calcRegression(Rq, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
-					epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
-					epsRegStartEnd[1] = walkDivider.getEps()[numRegEnd-1];   //epsRegEnd
+					epsRegStartEnd[0] = rse.getEps()[numRegStart-1]; //epsRegStart
+					epsRegStartEnd[1] = rse.getEps()[numRegEnd-1];   //epsRegEnd
 					
 					//if (optShowPlot){ //show all plots
 					if ((optShowPlot) && (i==0)){ //show only first plot
-						String preName = sequenceColumnX.getHeader() + "-Box#" + (i+1);
-						showPlot(walkDivider.getLnDataX(), walkDivider.getLnDataY(), preName, col, numRegStart, numRegEnd);
+						String preName = sequenceColumn.getHeader() + "-Box#" + (i+1);
+						showPlot(rse.getLnDataX(), rse.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}
-					resultValues[i]                             = 1.0-regressionParams[1]; // Dwd = 1-slope;
+					resultValues[i]                             = 2.0-regressionParams[1]; // Drse = 2-slope;
 					resultValues[(int)(i + numSubsequentBoxes)] = regressionParams[4];  //R2		
 				} 
 				//***********************************************************************
@@ -1094,37 +1085,34 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		//********************************************************************************************************			
 		} else if (sequenceRange.equals("Gliding box")){
 			resultValues = new double[(int) (2*numGlidingBoxes)]; // Dim R2 == two * number of boxes	
-			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
-	     
-			subSequenceX = new double[(int) numBoxLength];
-			subSequenceY = new double[(int) numBoxLength];
+			for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
+			subSequence1D = new double[(int) numBoxLength];
 			//number of boxes may be smaller because of NaNs or removed zeroes
-			long actualNumGlidingBoxes = sequenceX.length - spinnerInteger_BoxLength + 1;
+			long actualNumGlidingBoxes = sequence1D.length - spinnerInteger_BoxLength + 1;
 			
 			//get sub-sequences and compute dimensions
 			for (int i = 0; i < actualNumGlidingBoxes; i++) {
 				logService.info(this.getClass().getName() + " Processing gliding box #: "+(i+1) + "/" + actualNumGlidingBoxes);	
 				int start = i;
 				for (int ii = start; ii < (start + numBoxLength); ii++){ 
-					subSequenceX[ii-start] = sequenceX[ii];
-					subSequenceY[ii-start] = sequenceY[ii];
+					subSequence1D[ii-start] = sequence1D[ii];
 				}	
 				//Compute specific values************************************************
-				if (subSequenceX.length > (numRulers * 2)) { // only data series which are large enough
-					walkDivider = new WalkingDivider(scalingType);
-					pathLengths = walkDivider.calcLengths(subSequenceX, subSequenceY, numRulers);
-					regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+				if (subSequence1D.length > (numLMax * 2)) { // only data series which are large enough
+					rse = new RSE();
+					Rq = rse.calcRqs(subSequence1D, numLMax, numM, flatteningOrder);
+					regressionParams = rse.calcRegression(Rq, numRegStart, numRegEnd);
 					// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 					
-					epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
-					epsRegStartEnd[1] = walkDivider.getEps()[numRegEnd-1];   //epsRegEnd
+					epsRegStartEnd[0] = rse.getEps()[numRegStart-1]; //epsRegStart
+					epsRegStartEnd[1] = rse.getEps()[numRegEnd-1];   //epsRegEnd
 					
 					//if (optShowPlot){ //show all plots
 					if ((optShowPlot) && (i==0)){ //show only first plot
-						String preName = sequenceColumnX.getHeader() + "-Box #" + (i+1);
-						showPlot(walkDivider.getLnDataX(), walkDivider.getLnDataY(), preName, col, numRegStart, numRegEnd);
+						String preName = sequenceColumn.getHeader() + "-Box #" + (i+1);
+						showPlot(rse.getLnDataX(), rse.getLnDataY(), preName, col, numRegStart, numRegEnd);
 					}	
-					resultValues[i]                          = 1.0-regressionParams[1]; // Dwd = 1-slope;
+					resultValues[i]                          = 2.0-regressionParams[1]; // Drse = 2-slope;
 					resultValues[(int)(i + numGlidingBoxes)] = regressionParams[4];  //R2		
 				}
 				//***********************************************************************
@@ -1165,7 +1153,7 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 		}
 		boolean isLineVisible = false; // ?
 		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-				"Double log plot - Walking divider dimension", preName + "-" + tableInName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
+				"Double log plot - RSE Dimension", preName + "-" + tableInName, "ln(L)", "ln(Rq)", "", numRegStart, numRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
 	}
@@ -1208,40 +1196,6 @@ public class Csaj1DFracDimWalkingDividerCommand<T extends RealType<T>> extends C
 			}
 		}
 		return sequence1D;
-	}
-	
-
-	/** This method computes the maximal number of distance for dist = i^2*/
-	private int getMaxRulersNumber() { 
-		int maxNumRulers = 0;
-		double minX = 0.0, minY = 0.0;
-		double maxX = 0.0, maxY = 0.0;
-		double valueX, valueY;
-		double maxDist;
-		
-		try {
-			sequenceColumnX = tableIn.get(0);
-			sequenceColumnY = tableIn.get(1);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-		}
-
-		//Find bounding box corner points
-		for (int n = 0; n < numRows; n++) {
-			valueX = Double.valueOf((Double)sequenceColumnX.get(n));
-			valueY = Double.valueOf((Double)sequenceColumnY.get(n));
-			
-			if (valueX < minX) minX = valueX; 
-			if (valueY < minY) minY = valueY; 
-			if (valueX > maxX) maxX = valueX; 
-			if (valueY > maxY) maxY = valueY; 
-		}
-		//maximum distance (diagonal)
-		maxDist = Math.sqrt(Math.pow(maxX-minX, 2) + Math.pow(maxY-minY, 2));
-		maxNumRulers = (int) (Math.log(maxDist) / Math.log(2));
-		
-		return maxNumRulers;
 	}
 
 	/**

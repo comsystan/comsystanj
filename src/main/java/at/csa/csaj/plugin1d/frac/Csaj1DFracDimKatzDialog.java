@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DAllomScaleDialog.java
+ * File: Csaj1DFracDimKatzDialog.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,12 +26,10 @@
  * #L%
  */
 
-package at.csa.csaj.plugin1d.cplx;
+package at.csa.csaj.plugin1d.frac;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import javax.swing.SpinnerNumberModel;
 
 import org.scijava.Context;
 import org.scijava.command.CommandModule;
@@ -41,14 +39,14 @@ import org.scijava.plugin.Parameter;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
 import org.scijava.ui.UIService;
-import at.csa.csaj.commons.CsajDialog_1DPluginWithRegression;
+import at.csa.csaj.commons.CsajDialog_1DPlugin;
 
 /*
  * This is a custom dialog for a CSAJ plugin
  */
-public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
+public class Csaj1DFracDimKatzDialog extends CsajDialog_1DPlugin {
 
-	private static final long serialVersionUID = 4844876619343675457L;
+	private static final long serialVersionUID = -1560259578850789458L;
 
 	@Parameter
 	private LogService logService;
@@ -70,7 +68,7 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 	/**
 	 * Create the dialog.
 	 */
-	public Csaj1DAllomScaleDialog(Context context, DefaultTableDisplay defaultTableDisplay) {
+	public Csaj1DFracDimKatzDialog(Context context, DefaultTableDisplay defaultTableDisplay) {
 			
 		super(context, defaultTableDisplay);
 			
@@ -81,18 +79,11 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 			
 		//Title of plugin
 		//Overwrite
-		setTitle("1D Allometric Scaling");
+		setTitle("1D Katz dimension");
 
-		//Add specific GUI elements according to Command @Parameter GUI elements
-	    //*****************************************************************************************		
-	    
+		//Add specific GUI elements according to Command @Parameter GUI elements  
 	    //*****************************************************************************************
-		//Change/Override items defined in the super class(es)
-		contentPanel.remove(labelNumEps);
-		contentPanel.remove(spinnerNumEps);
-		
-		spinnerNumRegEnd.setValue(3);
-		spinnerInteger_NumRegEnd = (int)spinnerNumRegEnd.getValue();	
+		//Change/Override items defined in the super class(es)	
 		
 	    //*****************************************************************************************
 	    pack(); //IMPORTANT //Otherwise some unexpected padding may occur
@@ -106,20 +97,16 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj1DAllomScaleCmd.class, false,
+		Future<CommandModule> future = commandService.run(Csaj1DFracDimKatzCmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,
-															
-														"spinnerInteger_NumRegStart",    spinnerInteger_NumRegStart,
-														"spinnerInteger_NumRegEnd",      spinnerInteger_NumRegEnd,
-														"booleanShowDoubleLogPlot",      booleanShowDoubleLogPlot,
 														
 														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,
 														"choiceRadioButt_SurrogateType", choiceRadioButt_SurrogateType,
 														"spinnerInteger_NumSurrogates",  spinnerInteger_NumSurrogates,
 														"spinnerInteger_BoxLength",      spinnerInteger_BoxLength,
 														"booleanSkipZeroes",             booleanSkipZeroes,
-																										
+														
 														"booleanOverwriteDisplays",      booleanOverwriteDisplays,
 														"booleanProcessImmediately",	 booleanProcessImmediately,
 														"spinnerInteger_NumColumn",      spinnerInteger_NumColumn
@@ -135,7 +122,7 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj1DAllomScaleCmd.TABLE_OUT_NAME;
+		tableOutName = Csaj1DFracDimKatzCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

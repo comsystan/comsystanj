@@ -5,7 +5,7 @@ echo off
 @REM echo Part 1/2 finished
 @REM pause
 
-@REM Usuall build
+@REM Usual build
 call mvn clean install
 @REM echo Part 2/2 finished
 pause

@@ -213,6 +213,12 @@ public class FragmentationDimension {
 	public double[] calcRegression(double[] data, int numRegStart, int numRegEnd) {
 	
 		eps = this.calcSizes(data); //X
+		if (eps == null) { //Might be in case of negative values
+			//JOptionPane.showMessageDialog(null, "Negative value detected\nFragmentation dimension algorithm expects positive values", "Computation not possible", JOptionPane.WARNING_MESSAGE);
+			return null;
+		}
+		
+		
 		double[] N = this.calcNumbers(data, eps);
 		
 		if (N == null) { //negative values
