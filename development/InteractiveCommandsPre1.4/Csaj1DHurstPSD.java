@@ -456,11 +456,8 @@ public class Csaj1DHurstPSD<T extends RealType<T>> extends InteractiveCommand im
 	protected void initialNumColumn() {
 		spinnerInteger_NumColumn = 1;
 	}
-
+	
 	// ------------------------------------------------------------------------------
-	
-
-	
 	/** Executed whenever the {@link #spinnerInteger_PSDType} parameter changes. */
 	protected void callbackPSDType() {
 		logService.info(this.getClass().getName() + " PSD type set to " + choiceRadioButt_PSDType);

@@ -76,46 +76,46 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
    
 	//Specific dialog items
  	private JComboBox<String> comboBoxProbabilityType;
-	private String   choiceRadioButt_ProbabilityType;
+	private String            choiceRadioButt_ProbabilityType;
 	
 	private JSpinner spinnerLag;
 	private int      spinnerInteger_Lag;
 
 	private JSpinner spinnerMinQ;
-	private int spinnerInteger_MinQ;
+	private int      spinnerInteger_MinQ;
 
 	private JSpinner spinnerMaxQ;
-	private int spinnerInteger_MaxQ;
+	private int      spinnerInteger_MaxQ;
 
 	private JSpinner spinnerMinEta;
-	private float spinnerFloat_MinEta;
+	private float    spinnerFloat_MinEta;
 	
 	private JSpinner spinnerMaxEta;
-	private float spinnerFloat_MaxEta;
+	private float    spinnerFloat_MaxEta;
 
 	private JSpinner spinnerMinKappa;
-	private float spinnerFloat_MinKappa;
+	private float    spinnerFloat_MinKappa;
 	
 	private JSpinner spinnerMaxKappa;
-	private float spinnerFloat_MaxKappa;
+	private float     spinnerFloat_MaxKappa;
 	
 	private JSpinner spinnerMinB;
-	private float spinnerFloat_MinB;
+	private float    spinnerFloat_MinB;
 	
 	private JSpinner spinnerMaxB;
-	private float spinnerFloat_MaxB;
+	private float    spinnerFloat_MaxB;
 
 	private JSpinner spinnerMinBeta;
-	private float spinnerFloat_MinBeta;
+	private float    spinnerFloat_MinBeta;
 	
 	private JSpinner spinnerMaxBeta;
-	private float spinnerFloat_MaxBeta;
+	private float    spinnerFloat_MaxBeta;
 	
 	private JSpinner spinnerMinGamma;
-	private float spinnerFloat_MinGamma;
+	private float    spinnerFloat_MinGamma;
 	
 	private JSpinner spinnerMaxGamma;
-	private float spinnerFloat_MaxGamma;
+	private float    spinnerFloat_MaxGamma;
 	
 	private JLabel    labelShowRenyiPlot;
 	private JCheckBox checkBoxShowRenyiPlot;
@@ -591,7 +591,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_EntropyType = (String)comboBoxEntropyType.getSelectedItem();
-				logService.info(this.getClass().getName() + " Image type set to " + choiceRadioButt_EntropyType);
+				logService.info(this.getClass().getName() + " Entropy type set to " + choiceRadioButt_EntropyType);
 				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
 			}
 		});    

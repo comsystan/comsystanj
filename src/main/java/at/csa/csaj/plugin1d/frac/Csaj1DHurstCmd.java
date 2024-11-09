@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DHurstCommand.java
+ * File: Csaj1DHurstCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,13 +25,14 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.frac;
 
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -47,14 +48,11 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -71,6 +69,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
@@ -104,21 +103,13 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
 */
  
 @Plugin(type = ContextCommand.class, 
-	headless = true,
-	label = "Hurst coefficient (HK,RS,SP)",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Hurst coefficient (HK,RS,SP)",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+public class Csaj1DHurstCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL            = "<html><b>Hurst coefficient (HK,RS,SP)</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -134,7 +125,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static long numDimensions = 0;
@@ -144,9 +135,9 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	private static long numGlidingBoxes = 0;
 	
 	private static int   hkN;
-	private static int   epsRegStart;
+	private static int   numRegStart;
 	private static int   epsRegEnd;
-	private static int   epsN;
+	private static int   numEps;
 	private static int[] epsInterval;
 	private static int   spMaxLag;
 	
@@ -238,6 +229,16 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		       callback = "callbackHurstSP")
 	private boolean booleanHurstSP;
 	
+	@Parameter(label = "(SP) Max lag",
+			   description = "Maximum lag between data values",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "3",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = false, //restore previous value default = true
+			   initializer = "initialSPMaxLag", callback = "callbackSPMaxLag")
+	private int spinnerInteger_SPMaxLag = 10;
+	
 	@Parameter(label = "(HK) n",
 			   description = "Number of samples from the posterior distribution - default=500",
 			   style = NumberWidget.SPINNER_STYLE,
@@ -248,6 +249,16 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			   initializer = "initialHKN", callback = "callbackHKN")
 	private int spinnerInteger_HKN = 500;
 
+	@Parameter(label = "(RS) Win #",
+			   description = "Number of unique window sizes - default=10",
+			   style = NumberWidget.SPINNER_STYLE,
+			   min = "3",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = false, //restore previous value default = true
+			   initializer = "initialNumEps", callback = "callbackNumEps")
+	private int spinnerInteger_NumEps = 10;
+	
 	@Parameter(label = "(RS) Win Min",
 			   description = "Minimum size of window",
 			   style = NumberWidget.SPINNER_STYLE,
@@ -255,8 +266,8 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			   max = "9999999999999999999",
 			   stepSize = "1",
 			   persist = false, //restore previous value default = true
-			   initializer = "initialEpsRegStart", callback = "callbackEpsRegStart")
-	private int spinnerInteger_EpsRegStart = 1;
+			   initializer = "initialNumRegStart", callback = "callbackNumRegStart")
+	private int spinnerInteger_NumRegStart = 1;
 
 	@Parameter(label = "(RS) Win Max",
 			   description = "Maximum size of window",
@@ -266,27 +277,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			   stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialEpsRegEnd", callback = "callbackEpsRegEnd")
-	private int spinnerInteger_EpsRegEnd = 3;
-	
-	@Parameter(label = "(RS) Win #",
-			   description = "Number of unique window sizes - default=10",
-			   style = NumberWidget.SPINNER_STYLE,
-			   min = "3",
-			   max = "9999999999999999999",
-			   stepSize = "1",
-			   persist = false, //restore previous value default = true
-			   initializer = "initialEpsN", callback = "callbackEpsN")
-	private int spinnerInteger_EpsN = 10;
-	
-	@Parameter(label = "(SP) Max lag",
-			   description = "Maximum lag of data values",
-			   style = NumberWidget.SPINNER_STYLE,
-			   min = "3",
-			   max = "9999999999999999999",
-			   stepSize = "1",
-			   persist = false, //restore previous value default = true
-			   initializer = "initialSPMaxLag", callback = "callbackSPMaxLag")
-	private int spinnerInteger_SPMaxLag = 10;
+	private int spinnerInteger_NumRegEnd = 3;
 	
 //	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -383,6 +374,12 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
+	
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
@@ -399,18 +396,26 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	protected void initialHurstHK() {
 		booleanHurstHK = false;
 	}	
-	protected void initialHurstRS() {
-		booleanHurstRS = false;
-	}
 	protected void initialHurstSP() {
 		booleanHurstSP = false;
+	}
+	protected void initialHurstRS() {
+		booleanHurstRS = false;
 	}
 	protected void initialHKN() {
 		spinnerInteger_HKN = 500;	
 	}
-	protected void initialEpsRegStart() {
-		epsRegStart = 2;
-		spinnerInteger_EpsRegStart = epsRegStart;
+	protected void initialNumEps() {
+		if (epsRegEnd - numRegStart + 1  < 10) {
+			numEps = epsRegEnd - numRegStart + 1;
+		} else {
+			numEps = 10;
+		}
+		spinnerInteger_NumEps = numEps;
+	}
+	protected void initialNumRegStart() {
+		numRegStart = 2;
+		spinnerInteger_NumRegStart = numRegStart;
 	}
 	protected void initialEpsRegEnd() {
 		epsRegEnd = 0;
@@ -420,15 +425,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
 			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
 		}	
-		spinnerInteger_EpsRegEnd = epsRegEnd;
-	}
-	protected void initialEpsN() {
-		if (epsRegEnd - epsRegStart + 1  < 10) {
-			epsN = epsRegEnd - epsRegStart + 1;
-		} else {
-			epsN = 10;
-		}
-		spinnerInteger_EpsN = epsN;
+		spinnerInteger_NumRegEnd = epsRegEnd;
 	}
 	protected void initialSPMaxLag() {
 		spinnerInteger_SPMaxLag = 10;	
@@ -477,18 +474,18 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		logService.info(this.getClass().getName() + " fBm SP set to " + booleanHurstSP);
 		}	
 	}
-	/** Executed whenever the {@link #booleanHurstRS} parameter changes. */
-	protected void callbackHurstRS() {
-		logService.info(this.getClass().getName() + " fBm RS set to " + booleanHurstRS);
-		if (booleanHurstRS == true) {
-		booleanHurstHK = false;
-		logService.info(this.getClass().getName() + " fGn HK set to " + booleanHurstHK);
-		}
-	}
 	/** Executed whenever the {@link #booleanHurstSP} parameter changes. */
 	protected void callbackHurstSP() {
 		logService.info(this.getClass().getName() + " fBm SP set to " + booleanHurstSP);
 		if (booleanHurstSP == true) {
+		booleanHurstHK = false;
+		logService.info(this.getClass().getName() + " fGn HK set to " + booleanHurstHK);
+		}
+	}
+	/** Executed whenever the {@link #booleanHurstRS} parameter changes. */
+	protected void callbackHurstRS() {
+		logService.info(this.getClass().getName() + " fBm RS set to " + booleanHurstRS);
+		if (booleanHurstRS == true) {
 		booleanHurstHK = false;
 		logService.info(this.getClass().getName() + " fGn HK set to " + booleanHurstHK);
 		}
@@ -503,47 +500,47 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		}
 		logService.info(this.getClass().getName() + " n set to " + spinnerInteger_HKN);
 	}
-	/** Executed whenever the {@link #spinnerInteger_EpsRegStart} parameter changes. */
-	protected void callbackEpsRegStart() {
+	/** Executed whenever the {@link #spinnerInteger_NumEps} parameter changes. */
+	protected void callbackNumEps() {
+		if (spinnerInteger_NumRegEnd - spinnerInteger_NumRegStart + 1 < spinnerInteger_NumEps) {
+			spinnerInteger_NumEps = spinnerInteger_NumRegEnd - spinnerInteger_NumRegStart + 1;
+		}
+		numEps = spinnerInteger_NumEps;
+		epsInterval = CsajUtil_GenerateInterval.getIntLogDistributedInterval(numRegStart, epsRegEnd, numEps);
 		
-		if (spinnerInteger_EpsRegStart >= spinnerInteger_EpsRegEnd - 2) {
-			spinnerInteger_EpsRegStart = spinnerInteger_EpsRegEnd - 2;
-		}
-		if (spinnerInteger_EpsRegStart < 1) {
-			spinnerInteger_EpsRegStart = 1;
-		}
-		epsRegStart = spinnerInteger_EpsRegStart;
-		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_EpsRegStart);
-		callbackEpsN();
-	}
-	/** Executed whenever the {@link #spinnerInteger_EpsRegEnd} parameter changes. */
-	protected void callbackEpsRegEnd() {
-		if (spinnerInteger_EpsRegEnd <= spinnerInteger_EpsRegStart + 2) {
-			spinnerInteger_EpsRegEnd = spinnerInteger_EpsRegStart + 2;
-		}
-		if (spinnerInteger_EpsRegEnd > numRows) {
-			spinnerInteger_EpsRegEnd = (int)numRows;
-		}
-		epsRegEnd = spinnerInteger_EpsRegEnd;
-		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_EpsRegEnd);
-		callbackEpsN();
-	}
-	/** Executed whenever the {@link #spinnerInteger_EpsN} parameter changes. */
-	protected void callbackEpsN() {
-		if (spinnerInteger_EpsRegEnd - spinnerInteger_EpsRegStart + 1 < spinnerInteger_EpsN) {
-			spinnerInteger_EpsN = spinnerInteger_EpsRegEnd - spinnerInteger_EpsRegStart + 1;
-		}
-		epsN = spinnerInteger_EpsN;
-		epsInterval = CsajUtil_GenerateInterval.getIntLogDistributedInterval(epsRegStart, epsRegEnd, epsN);
-		
-		if (epsInterval.length < epsN) {
+		if (epsInterval.length < numEps) {
 			logService.info(this.getClass().getName() + " Note: Eps interval is limited to a sequence of unique values");
-			epsN =epsInterval.length;
-			spinnerInteger_EpsN = epsN;
+			numEps = epsInterval.length;
+			spinnerInteger_NumEps = numEps;
 		}
-		logService.info(this.getClass().getName() + " Regression # set to: " + spinnerInteger_EpsN);
+		logService.info(this.getClass().getName() + " Regression # set to: " + spinnerInteger_NumEps);
 		logService.info(this.getClass().getName() + " Eps #        set to: " + epsInterval.length);
 		logService.info(this.getClass().getName() + " Eps interval set to: " + Arrays.toString(epsInterval));
+	}
+	/** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
+	protected void callbackNumRegStart() {
+		
+		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
+			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
+		}
+		if (spinnerInteger_NumRegStart < 1) {
+			spinnerInteger_NumRegStart = 1;
+		}
+		numRegStart = spinnerInteger_NumRegStart;
+		logService.info(this.getClass().getName() + " Regression Min set to " + spinnerInteger_NumRegStart);
+		callbackNumEps();
+	}
+	/** Executed whenever the {@link #spinnerInteger_NumRegEnd} parameter changes. */
+	protected void callbackEpsRegEnd() {
+		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
+		}
+		if (spinnerInteger_NumRegEnd > numRows) {
+			spinnerInteger_NumRegEnd = (int)numRows;
+		}
+		epsRegEnd = spinnerInteger_NumRegEnd;
+		logService.info(this.getClass().getName() + " Regression Max set  to " + spinnerInteger_NumRegEnd);
+		callbackNumEps();
 	}
 	/** Executed whenever the {@link #spinnerIntegerSPMaxLag} parameter changes. */
 	protected void callbackSPMaxLag() {	
@@ -699,37 +696,38 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 		
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+			numSurrogates = spinnerInteger_NumSurrogates;
+			numBoxLength  = spinnerInteger_BoxLength;
+			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-				
-		sliceLabels = new String[(int) numColumns];
-	      
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 	
 	/**
@@ -817,17 +815,17 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		tableOut.add(new BoolColumn("Skip zeroes"));
 		
 		tableOut.add(new IntColumn("(HK) n"));
+		tableOut.add(new IntColumn("(SP) Max lag"));
 		tableOut.add(new IntColumn("(RS) Win Min"));
 		tableOut.add(new IntColumn("(RS) Win Max"));
 		tableOut.add(new IntColumn("(RS) Win #"));
-		tableOut.add(new IntColumn("(SP) Max lag"));
 
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
 			tableOut.add(new DoubleColumn("H (HK)"));	
-			tableOut.add(new DoubleColumn("H (RS)"));	
 			tableOut.add(new DoubleColumn("H (SP)"));
-					
+			tableOut.add(new DoubleColumn("H (RS)"));	
+			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
@@ -974,7 +972,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		// fill table with values
 		tableOut.appendRow();
 		tableOut.set(0, row, tableInName);//File Name
-		if (sliceLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
+		if (columnLabels != null)  tableOut.set(1, row, tableIn.getColumnHeader(sequenceNumber)); //Column Name
 		tableOut.set(2, row, choiceRadioButt_SequenceRange);  //Sequence range
 		tableOut.set(3, row, choiceRadioButt_SurrogateType); //Surrogate Method
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence") && (!choiceRadioButt_SurrogateType.equals("No surrogates"))) {
@@ -993,20 +991,21 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		} else {
 			tableOut.set(7,  row, null); 
 		}
-		if (booleanHurstRS) {
-			tableOut.set(8,  row, epsRegStart); //may be changed by the algorithm
-			tableOut.set(9,  row, epsRegEnd); //may be changed by the algorithm
-			tableOut.set(10, row, epsN);   //may be changed by the algorithm
+		if (booleanHurstSP) {
+			tableOut.set(8, row, spMaxLag);
 		} else {
-			tableOut.set(8,  row, null);
+			tableOut.set(8, row, null);
+		}
+		if (booleanHurstRS) {
+			tableOut.set(9,  row, numRegStart); //may be changed by the algorithm
+			tableOut.set(10, row, epsRegEnd); //may be changed by the algorithm
+			tableOut.set(11, row, numEps);   //may be changed by the algorithm
+		} else {
 			tableOut.set(9,  row, null);
 			tableOut.set(10, row, null);
-		}
-		if (booleanHurstSP) {
-			tableOut.set(11, row, spMaxLag);
-		} else {
 			tableOut.set(11, row, null);
 		}
+		
 		tableColLast = 11;
 		
 		if (containerPM == null) { //set missing result values to NaN
@@ -1051,15 +1050,15 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		booleanHurstRS        = booleanHurstRS;
 		booleanHurstSP        = booleanHurstSP;
 		hkN                   = spinnerInteger_HKN;
-		epsRegStart                = spinnerInteger_EpsRegStart; //may be changed later
-		epsRegEnd                = spinnerInteger_EpsRegEnd; //may be changed later
-		epsN                  = spinnerInteger_EpsN;   //may be changed later
+		numRegStart           = spinnerInteger_NumRegStart; //may be changed later
+		epsRegEnd             = spinnerInteger_NumRegEnd;   //may be changed later
+		numEps                = spinnerInteger_NumEps;      //may be changed later
 		spMaxLag              = spinnerInteger_SPMaxLag;
 		
 		int numDataPoints     = dgt.getRowCount();
 		boolean skipZeroes    = booleanSkipZeroes;	
 		boolean optShowPlot   = booleanShowDoubleLogPlot;
-		epsInterval = CsajUtil_GenerateInterval.getIntLogDistributedInterval(epsRegStart, epsRegEnd, epsN);
+		epsInterval = CsajUtil_GenerateInterval.getIntLogDistributedInterval(numRegStart, epsRegEnd, numEps);
 		
 		double[] resultValues = new double[3]; // hkH, rsH, spH
 		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
@@ -1291,7 +1290,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	}
 
 	// This method shows the double log plot
-	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int col, String labelX, String labelY, int epsRegStart, int epsRegEnd) {
+	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int col, String labelX, String labelY, int numRegStart, int epsRegEnd) {
 		if (lnDataX == null) {
 			logService.info(this.getClass().getName() + " lnDataX == null, cannot display the plot!");
 			return;
@@ -1304,12 +1303,12 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 			logService.info(this.getClass().getName() + " col < 0, cannot display the plot!");
 			return;
 		}
-		if (epsRegStart >= epsRegEnd) {
-			logService.info(this.getClass().getName() + " epsRegStart >= epsRegEnd, cannot display the plot!");
+		if (numRegStart >= epsRegEnd) {
+			logService.info(this.getClass().getName() + " numRegStart >= epsRegEnd, cannot display the plot!");
 			return;
 		}
-		if (epsRegEnd <= epsRegStart) {
-			logService.info(this.getClass().getName() + " epsRegEnd <= epsRegStart, cannot display the plot!");
+		if (epsRegEnd <= numRegStart) {
+			logService.info(this.getClass().getName() + " epsRegEnd <= numRegStart, cannot display the plot!");
 			return;
 		}
 		// String preName = "";
@@ -1318,7 +1317,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 		}
 		boolean isLineVisible = false; // ?
 		CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
-				"Double log plot - ", preName + "-" + tableInName, labelX, labelY, "", epsRegStart, epsRegEnd);
+				"Double log plot - ", preName + "-" + tableInName, labelX, labelY, "", numRegStart, epsRegEnd);
 		doubleLogPlotList.add(doubleLogPlot);
 		
 	}
@@ -1377,7 +1376,7 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	 * @param plotLabel             label of plot
 	 * @param xAxisLabel            label of x-axis
 	 * @param yAxisLabel            label of y-axis
-	 * @param epsRegStart                minimum value for regression range
+	 * @param numRegStart                minimum value for regression range
 	 * @param epsRegEnd                maximal value for regression range
 	 * @param optDeleteExistingPlot option if existing plot should be deleted before
 	 *                              showing a new plot
@@ -1386,10 +1385,10 @@ public class Csaj1DHurstCommand<T extends RealType<T>> extends ContextCommand im
 	 */
 	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel,
-			int epsRegStart, int epsRegEnd) {
+			int numRegStart, int epsRegEnd) {
 		// jFreeChart
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabel, epsRegStart, epsRegEnd);
+				yAxisLabel, legendLabel, numRegStart, epsRegEnd);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;
