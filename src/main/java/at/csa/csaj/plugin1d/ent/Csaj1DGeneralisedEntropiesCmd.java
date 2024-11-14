@@ -76,7 +76,7 @@ import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 
 
 /**
@@ -1791,7 +1791,7 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get();
+		ij.command().run(Csaj1DOpenerCmd.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

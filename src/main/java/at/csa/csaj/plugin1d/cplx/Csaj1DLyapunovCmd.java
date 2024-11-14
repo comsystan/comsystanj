@@ -72,7 +72,7 @@ import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.cplx.util.Lyapunov;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 
 /**
  * A {@link ContextCommand} plugin computing <the Lyapunov exponent</a>
@@ -1506,7 +1506,7 @@ public class Csaj1DLyapunovCmd<T extends RealType<T>> extends ContextCommand imp
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get();
+		ij.command().run(Csaj1DOpenerCmd.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

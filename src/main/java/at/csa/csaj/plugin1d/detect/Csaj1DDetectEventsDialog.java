@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -900,8 +901,11 @@ public class Csaj1DDetectEventsDialog extends CsajDialog_1DPlugin {
 	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
  	   //Restricted options
-		String optionsSequenceRange[] = {"Entire sequence"}; 
-		comboBoxSequenceRange = new JComboBox<String>(optionsSequenceRange);
+ 		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)comboBoxSequenceRange.getModel();
+		model.removeElement("Subsequent boxes");
+		model.removeElement("Gliding box");	
+		comboBoxSequenceRange.setSelectedItem("Entire sequence");
+		choiceRadioButt_SequenceRange = (String)comboBoxSequenceRange.getSelectedItem();
 	    
 		labelNumSurrogates.setEnabled(false);
 		labelNumSurrogates.setVisible(false);

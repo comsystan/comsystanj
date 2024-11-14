@@ -80,7 +80,7 @@ import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.cplx.util.Leshao_LimitedQueue;
 import at.csa.csaj.plugin1d.cplx.util.Leshao_RecurrentMatrix;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 
 /**
  * A {@link ContextCommand} plugin computing <Recurrence quantification analysis</a>
@@ -1598,7 +1598,7 @@ public class Csaj1DRQACmd<T extends RealType<T>> extends ContextCommand implemen
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get();
+		ij.command().run(Csaj1DOpenerCmd.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

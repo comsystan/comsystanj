@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DOpenerCommand.java
+ * File: Csaj1DOpenerCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -75,7 +75,7 @@ import javax.swing.UIManager;
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin
 
-public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
+public class Csaj1DOpenerCmd<T extends RealType<T>> extends ContextCommand {
 	
 	private static final String PLUGIN_LABEL = "Opens single or multiple sequences";
 	private static final String SPACE_LABEL = "";
@@ -107,9 +107,7 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	//No widget
 	
     protected void initialPluginLaunch() {
-    	if (!this.getClass().getName().contains("Command")) { //Processing only if class is NOT a Csaj***Command.class
-			startWorkflow();
-		}
+    	//checkItemIOIn();
 	}
     
  	/** 
@@ -130,7 +128,9 @@ public class Csaj1DOpenerCommand<T extends RealType<T>> extends ContextCommand {
 	@Override //Interface CommandService
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
+		
 		startWorkflow();
+		
 		logService.info(this.getClass().getName() + " Finished command run");	
 	}
     

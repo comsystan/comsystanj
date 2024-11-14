@@ -39,7 +39,7 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.table.DefaultTableDisplay;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
@@ -118,7 +118,7 @@ public class Csaj1DFracDimWalkingDividerCmdUI extends ContextCommand implements 
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get();
+		ij.command().run(Csaj1DOpenerCmd.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}

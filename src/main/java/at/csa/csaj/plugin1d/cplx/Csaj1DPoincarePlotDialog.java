@@ -32,6 +32,7 @@ import java.awt.GridBagConstraints;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
@@ -125,8 +126,11 @@ public class Csaj1DPoincarePlotDialog extends CsajDialog_1DPlugin {
 	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 	    //Restricted options
-		String optionsSequenceRange[] = {"Entire sequence"}; 
-		comboBoxSequenceRange = new JComboBox<String>(optionsSequenceRange);
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)comboBoxSequenceRange.getModel();
+		model.removeElement("Subsequent boxes");
+		model.removeElement("Gliding box");	
+		comboBoxSequenceRange.setSelectedItem("Entire sequence");
+		choiceRadioButt_SequenceRange = (String)comboBoxSequenceRange.getSelectedItem();
 	    
 		labelNumSurrogates.setEnabled(false);
 		labelNumSurrogates.setVisible(false);

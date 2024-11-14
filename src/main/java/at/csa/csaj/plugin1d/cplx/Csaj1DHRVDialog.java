@@ -79,7 +79,7 @@ public class Csaj1DHRVDialog extends CsajDialog_1DPlugin {
 	private String       choiceRadioButt_TimeBase;
 	
 	private JComboBox<String> comboBoxWindowingType;
-	private String   choiceRadioButt_WindowingType;
+	private String            choiceRadioButt_WindowingType;
 	
 	private JLabel			  labelMeasurementType;
 	private JComboBox<String> comboBoxMeasurementType;

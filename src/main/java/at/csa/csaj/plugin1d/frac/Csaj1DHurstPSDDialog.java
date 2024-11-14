@@ -264,8 +264,7 @@ public class Csaj1DHurstPSDDialog extends CsajDialog_1DPluginWithRegression {
 	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		int numMaxRegEnd = (int) Math.floor((double)tableIn.getRowCount() / 1.0);
-	    
-	   
+	       
 		labelNumEps.setEnabled(false);
 		labelNumEps.setVisible(false);
 		

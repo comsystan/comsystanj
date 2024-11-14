@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DOpenerCommandUI.java
+ * File: Csaj1DOpenerCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -45,7 +45,6 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.ui.UIService;
-import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
@@ -58,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "1D sequence opener(New dialog) ", weight = 10)}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin
 
-public class Csaj1DOpenerCommandUI extends ContextCommand implements Previewable{
+public class Csaj1DOpenerCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	private LogService logService;
@@ -88,7 +87,7 @@ public class Csaj1DOpenerCommandUI extends ContextCommand implements Previewable
 	@Override
 	public void run() {
 		
-		Future<CommandModule> future = commandService.run(Csaj1DOpenerCommand.class, false);
+		Future<CommandModule> future = commandService.run(Csaj1DOpenerCmd.class, false);
 		CommandModule commandModule = null;
 		try {
 			commandModule = future.get();

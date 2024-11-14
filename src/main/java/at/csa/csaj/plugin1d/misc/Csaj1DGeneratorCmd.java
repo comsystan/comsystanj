@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DGeneratorCommand.java
+ * File: Csaj1DGeneratorCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -39,8 +39,6 @@ import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.io.IOService;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -60,8 +58,7 @@ import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.swing.JOptionPane;
+ 
 import javax.swing.UIManager;
 /**
  * This is an ImageJ {@link ContextCommand} plugin to generate single or multiple sequences.
@@ -73,12 +70,12 @@ import javax.swing.UIManager;
  * </p>
  */
 @Plugin(type = ContextCommand.class,
-	headless = true,
-	label = "1D sequence generator",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		headless = true,
+		label = "1D sequence generator",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-public class Csaj1DGeneratorCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj1DGeneratorCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL = "Generates single or multiple sequences";
 	private static final String SPACE_LABEL = "";
@@ -388,14 +385,11 @@ public class Csaj1DGeneratorCommand<T extends RealType<T>> extends ContextComman
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-// 			if (ij != null) { //might be null in Fiji
-// 				if (ij.ui().isHeadless()) {
-// 				}
-// 			}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflow();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		startWorkflow();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 
 	/**

@@ -73,10 +73,10 @@ public class Csaj1DGeneralisedDFADialog extends CsajDialog_1DPluginWithRegressio
    
 	//Specific dialog items
 	private JSpinner spinnerMinQ;
-	private int spinnerInteger_MinQ;
+	private int      spinnerInteger_MinQ;
 
 	private JSpinner spinnerMaxQ;
-	private int spinnerInteger_MaxQ;
+	private int      spinnerInteger_MaxQ;
 	
 	private JLabel    labelShowHPlot;
 	private JCheckBox checkBoxShowHPlot;

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DGeneratorCommandUI.java
+ * File: Csaj1DGeneratorCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "1D sequence generator(New dialog) ", weight = 20)}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-public class Csaj1DGeneratorCommandUI extends ContextCommand implements Previewable{
+public class Csaj1DGeneratorCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
