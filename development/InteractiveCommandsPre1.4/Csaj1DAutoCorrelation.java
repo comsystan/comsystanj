@@ -83,16 +83,16 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * of a sequence.
  */
 @Plugin(type = InteractiveCommand.class,
-	headless = true,
-	label = "Autocorrelation",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {
-	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-	@Menu(label = "ComsystanJ"),
-	@Menu(label = "1D Sequence(s)"),
-	@Menu(label = "Linear analyses", weight = 3),
-	@Menu(label = "Autocorrelation ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		headless = true,
+		label = "Autocorrelation",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "1D Sequence(s)"),
+		@Menu(label = "Linear analyses", weight = 3),
+		@Menu(label = "Autocorrelation ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
@@ -126,8 +126,6 @@ public class Csaj1DAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 	private static int  numBoxLength = 0;
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
-	
-	private static int numMaxLag = 1;
 
 	private static final int numTableOutPreCols = 2; //Number of text columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
 	public static final String TABLE_OUT_NAME = "Table - Autocorrelation";
@@ -299,19 +297,9 @@ public class Csaj1DAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 	
 	protected void initialNumMaxLag() {
 		spinnerInteger_NumMaxLag = 10;	
-		numMaxLag = this.spinnerInteger_NumMaxLag;
 	
 		// number of lags > numDataPoints is not allowed
-		if (numMaxLag >= numRows) {
-			numMaxLag = (int)numRows - 1;
-			spinnerInteger_NumMaxLag = numMaxLag;
-		}
-
-		if (this.booleanLimitToMaxLag) {
-			//numMaxLag = numMaxLag;// - 1;
-		} else {
-			numMaxLag = (int)numRows;
-		}	
+		if (spinnerInteger_NumMaxLag >= numRows) spinnerInteger_NumMaxLag = (int)numRows - 1;
 	}
 
 	protected void initialSequenceRange() {
@@ -364,19 +352,10 @@ public class Csaj1DAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 	
 	/** Executed whenever the {@link #spinnerInteger_NumMaxLag} parameter changes. */
 	protected void callbackNumMaxLag() {
-		numMaxLag = this.spinnerInteger_NumMaxLag;
 		
 		// number of lags > numDataPoints is not allowed
-		if (numMaxLag >= numRows) {
-			numMaxLag = (int)numRows - 1;
-			spinnerInteger_NumMaxLag = numMaxLag;
-		}
-
-		if (this.booleanLimitToMaxLag) {
-			//numMaxLag = numMaxLag;// - 1;
-		} else {
-			numMaxLag = (int)numRows;
-		}	
+		if (spinnerInteger_NumMaxLag >= numRows) spinnerInteger_NumMaxLag = (int)numRows - 1;
+	
 		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_NumMaxLag);
 	}
 	
@@ -632,6 +611,15 @@ public class Csaj1DAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 	
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
+	
+		boolean limitToMaxLag = booleanLimitToMaxLag;
+		int numMaxLag         = spinnerInteger_NumMaxLag; 
+		
+		if (limitToMaxLag) {
+			numMaxLag = spinnerInteger_NumMaxLag; 
+		} else {
+			numMaxLag = (int)numRows;
+		}
 		
 		tableOut = new DefaultGenericTable();
 		tableOut.add(new GenericColumn("Surrogate type"));
@@ -862,7 +850,14 @@ public class Csaj1DAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 		//numBoxLength         = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		boolean skipZeroes    = booleanSkipZeroes;
-		int numMaxLag         = this.numMaxLag; 
+		boolean limitToMaxLag = booleanLimitToMaxLag;
+		int numMaxLag         = spinnerInteger_NumMaxLag; 
+		
+		if (limitToMaxLag) {
+			numMaxLag = spinnerInteger_NumMaxLag; 
+		} else {
+			numMaxLag = (int)numRows;
+		}	
 		
 		//******************************************************************************************************
 		//domain1D  = new double[numDataPoints];
@@ -1002,7 +997,7 @@ public class Csaj1DAutoCorrelation<T extends RealType<T>> extends InteractiveCom
 				
 				// data length must have a power of 2
 				int powerSize = 1;
-				while (numMaxLag > powerSize) {
+				while (numRows > powerSize) {
 					powerSize = powerSize * 2;
 				}
 				double[] data = new double[powerSize];

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DAutoCorrelationCommand.java
+ * File: Csaj1DAutoCorrelationCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,13 +26,14 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.lin;
 
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -51,14 +52,11 @@ import org.apache.commons.math3.transform.TransformType;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -72,10 +70,11 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
+import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 
 
 /**
@@ -83,21 +82,13 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCommand;
  * of a sequence.
  */
 @Plugin(type = ContextCommand.class,
-	headless = true,
-	label = "Autocorrelation",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Autocorrelation",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+
+public class Csaj1DAutoCorrelationCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL                = "<html><b>Autocorrelation</b></html>";
 	private static final String SPACE_LABEL                 = "";
@@ -114,7 +105,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	Column<? extends Object> sequenceColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 	private static int  numSurrogates = 0;
@@ -122,7 +113,6 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	private static long numSubsequentBoxes = 0;
 	private static long numGlidingBoxes = 0;
 	
-	private static int numMaxLag = 1;
 
 	private static final int numTableOutPreCols = 2; //Number of text columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
 	public static final String TABLE_OUT_NAME = "Table - Autocorrelation";
@@ -199,7 +189,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 		       callback = "callbackLimitToMaxLag")
 	private boolean booleanLimitToMaxLag;
 	
-	@Parameter(label = "(Limit) Max lag", description = "maximal (time) lag",
+	@Parameter(label = "(Limit) Max lag", description = "Maximum (time) lag",
 			   style = NumberWidget.SPINNER_STYLE,
 			   min = "1",
 			   max = "1000",
@@ -274,6 +264,12 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
+	
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
 
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
@@ -293,20 +289,10 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	} 
 	
 	protected void initialNumMaxLag() {
-		spinnerInteger_NumMaxLag = 10;	
-		numMaxLag = this.spinnerInteger_NumMaxLag;
+		spinnerInteger_NumMaxLag = 10;
 	
 		// number of lags > numDataPoints is not allowed
-		if (numMaxLag >= numRows) {
-			numMaxLag = (int)numRows - 1;
-			spinnerInteger_NumMaxLag = numMaxLag;
-		}
-
-		if (this.booleanLimitToMaxLag) {
-			//numMaxLag = numMaxLag;// - 1;
-		} else {
-			numMaxLag = (int)numRows;
-		}	
+		if (spinnerInteger_NumMaxLag >= numRows) spinnerInteger_NumMaxLag = (int)numRows - 1;
 	}
 
 	protected void initialSequenceRange() {
@@ -359,19 +345,10 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	
 	/** Executed whenever the {@link #spinnerInteger_NumMaxLag} parameter changes. */
 	protected void callbackNumMaxLag() {
-		numMaxLag = this.spinnerInteger_NumMaxLag;
-		
-		// number of lags > numDataPoints is not allowed
-		if (numMaxLag >= numRows) {
-			numMaxLag = (int)numRows - 1;
-			spinnerInteger_NumMaxLag = numMaxLag;
-		}
 
-		if (this.booleanLimitToMaxLag) {
-			//numMaxLag = numMaxLag;// - 1;
-		} else {
-			numMaxLag = (int)numRows;
-		}	
+		// number of lags > numDataPoints is not allowed
+		if (spinnerInteger_NumMaxLag >= numRows) spinnerInteger_NumMaxLag = (int)numRows - 1;
+		
 		logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_NumMaxLag);
 	}
 	
@@ -517,40 +494,38 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 		
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+//			numSurrogates = spinnerInteger_NumSurrogates;
+//			numBoxLength  = spinnerInteger_BoxLength;
+//			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-		
-//		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
-//		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
-		
-//		sliceLabels = new String[(int) numColumns];
-			   
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**
@@ -627,6 +602,15 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 	
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
+		
+		boolean limitToMaxLag = booleanLimitToMaxLag;
+		int numMaxLag         = spinnerInteger_NumMaxLag; 
+		
+		if (limitToMaxLag) {
+			numMaxLag = spinnerInteger_NumMaxLag; 
+		} else {
+			numMaxLag = (int)numRows;
+		}
 		
 		tableOut = new DefaultGenericTable();
 		tableOut.add(new GenericColumn("Surrogate type"));
@@ -857,7 +841,14 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 		//numBoxLength         = spinnerInteger_BoxLength;
 		int     numDataPoints = dgt.getRowCount();
 		boolean skipZeroes    = booleanSkipZeroes;
-		int numMaxLag         = this.numMaxLag; 
+		boolean limitToMaxLag = booleanLimitToMaxLag;
+		int numMaxLag         = spinnerInteger_NumMaxLag; 
+		
+		if (limitToMaxLag) {
+			numMaxLag = spinnerInteger_NumMaxLag; 
+		} else {
+			numMaxLag = (int)numRows;
+		}	
 		
 		//******************************************************************************************************
 		//domain1D  = new double[numDataPoints];
@@ -997,7 +988,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 				
 				// data length must have a power of 2
 				int powerSize = 1;
-				while (numMaxLag > powerSize) {
+				while (numRows > powerSize) {
 					powerSize = powerSize * 2;
 				}
 				double[] data = new double[powerSize];
@@ -1138,7 +1129,7 @@ public class Csaj1DAutoCorrelationCommand<T extends RealType<T>> extends Context
 		ij.ui().showUI();
 		
 		// open and display a sequence, waiting for the operation to finish.
-		ij.command().run(Csaj1DOpenerCommand.class, true).get();
+		ij.command().run(Csaj1DOpenerCmd.class, true).get();
 		//open and run Plugin
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
