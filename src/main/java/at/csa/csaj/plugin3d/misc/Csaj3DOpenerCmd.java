@@ -110,9 +110,7 @@ public class Csaj3DOpenerCmd<T extends RealType<T>> extends ContextCommand {
 	//No widget
 	
     protected void initialPluginLaunch() {
-    	if (!this.getClass().getName().contains("Command")) { //Processing only if class is NOT a Csaj***Command.class
-			startWorkflow();
-		}
+			//startWorkflow();
   	}
     
     /** 
