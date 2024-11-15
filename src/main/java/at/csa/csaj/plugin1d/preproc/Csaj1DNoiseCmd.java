@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DFilterCommand.java
+ * File: Csaj1DNoiseCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,14 +26,16 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.preproc;
 
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,24 +46,16 @@ import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
-import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
-import org.apache.commons.math3.stat.descriptive.rank.Median;
-import org.apache.commons.math3.transform.DftNormalization;
-import org.apache.commons.math3.transform.FastFourierTransformer;
-import org.apache.commons.math3.transform.TransformType;
+import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -76,6 +70,7 @@ import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
@@ -83,29 +78,21 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 
 
 /**
- * A {@link ContextCommand} plugin computing <Filtering</a>
- * of a sequence.
+ * A {@link ContextCommand} plugin for adding <noise</a>
+ * to a sequence.
  */
 @Plugin(type = ContextCommand.class,
-	headless = true,
-	label = "Filter",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Noise",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-	private static final String PLUGIN_LABEL                = "<html><b>Filter</b></html>";
+public class Csaj1DNoiseCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL                = "<html><b>Noise</b></html>";
 	private static final String SPACE_LABEL                 = "";
-	private static final String FILTEROPTIONS_LABEL         = "<html><b>Filter options</b></html>";
+	private static final String NOISEOPTIONS_LABEL          = "<html><b>Noise adding options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL       = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL     = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL        = "<html><b>Display option</b></html>";
@@ -120,7 +107,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	//Column<? extends Object> domainColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
 //	private static int  numSurrogates = 0;
@@ -129,7 +116,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 //	private static long numGlidingBoxes = 0;
 	
 	private static final int numTableOutPreCols = 1; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
-	public static final String TABLE_OUT_NAME = "Table - Filter";
+	public static final String TABLE_OUT_NAME = "Table - Noise";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -187,27 +174,27 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelFilterOptions = FILTEROPTIONS_LABEL;
+	private final String labelNoiseOptions = NOISEOPTIONS_LABEL;
 	
-	@Parameter(label = "Filter",
-			   description = "Filter type",
+	@Parameter(label = "Noise",
+			   description = "Noise type",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"Moving Average", "Moving Median"}, //Mean or Median in the range of (i-range/2) to (i+range/2)")
+			   choices = {"Shot", "Salt&Pepper", "Uniform", "Gaussian", "Rayleigh", "Exponential"}, //
 			   persist = true,  //restore previous value default = true
-			   initializer = "initialFilterType",
-			   callback = "callbackFilterType")
-	private String choiceRadioButt_FilterType;
+			   initializer = "initialNoiseType",
+			   callback = "callbackNoiseType")
+	private String choiceRadioButt_NoiseType;
 	
-	@Parameter(label = "Range",
-			   description = "Computation range from (i-range/2) to (i+range/2)",
+	@Parameter(label = "Percentage(%) or scale",
+			   description = "Maximal percentage of affected data points or scaling parameter (e.g. sigma for Gaussian)",
 			   style = NumberWidget.SPINNER_STYLE, 
-			   min = "3",
+			   min = "0",
 			   max = "9999999999999999999",
-			   stepSize = "2", //even numbers are not allowed
+			   stepSize = "0.1",
 			   persist = true, // restore  previous value  default  =  true
-			   initializer = "initialRange",
-			   callback = "callbackRange")
-	private int spinnerInteger_Range;
+			   initializer = "initialPercentage",
+			   callback = "callbackPercentage")
+	private float spinnerFloat_Percentage;
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -275,6 +262,12 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
@@ -287,12 +280,12 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		checkItemIOIn();
 	}
 	
-	protected void initialFilterType() {
-		choiceRadioButt_FilterType = "Moving Average";
+	protected void initialNoiseType() {
+		choiceRadioButt_NoiseType = "Gaussian";
 	} 
 		
-	protected void initialRange() {
-		spinnerInteger_Range = 3;
+	protected void initialPercentage() {
+		spinnerFloat_Percentage = 10;
 	}
 	
 	protected void initialSequenceRange() {
@@ -329,19 +322,17 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 
 	// ------------------------------------------------------------------------------
 	
-	
-	/** Executed whenever the {@link #choiceRadioButt_FilterType} parameter changes. */
-	protected void callbackFilterType() {
-		logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_FilterType);
+	/** Executed whenever the {@link #choiceRadioButt_NoiseType} parameter changes. */
+	protected void callbackNoiseType() {
+		logService.info(this.getClass().getName() + " Noise type set to " + choiceRadioButt_NoiseType);
 	}
 	
-	/** Executed whenever the {@link #spinnerInteger_Range} parameter changes. */
-	protected void callbackRange() {
-		 if ( spinnerInteger_Range % 2 == 0 ) {
-			 spinnerInteger_Range = spinnerInteger_Range + 1;  //even numbers are not allowed
-			 logService.info(this.getClass().getName() + " Even numbers are not allowed!");
-		 }
-		logService.info(this.getClass().getName() + " Range set to " + spinnerInteger_Range);
+	/** Executed whenever the {@link #spinnerFloat_Percentage} parameter changes. */
+	protected void callbackPercentage() {
+	 	//round to ?? decimal after the comma
+	 	//spinnerFloat_Percentage_ = Math.round(spinnerFloat_Percentage * 10f)/10f;
+	 	spinnerFloat_Percentage = Precision.round(spinnerFloat_Percentage, 2);
+		logService.info(this.getClass().getName() + " Sigma/Percentage set to " + spinnerFloat_Percentage);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
@@ -486,37 +477,38 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
+		logService.info(this.getClass().getName() + " Starting command run");
+
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+//			numSurrogates = spinnerInteger_NumSurrogates;
+//			numBoxLength  = spinnerInteger_BoxLength;
+//			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-				
-//		sliceLabels = new String[(int) numColumns];
-		   
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**
@@ -598,8 +590,12 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		tableOut.add(new GenericColumn("Surrogate type"));
 		
 		String preString = "";
-		if      (this.choiceRadioButt_FilterType.equals("Moving Average")) preString = "MovaAv-" + this.spinnerInteger_Range;
-		else if (this.choiceRadioButt_FilterType.equals("Moving Median"))  preString = "MovMe-"  + this.spinnerInteger_Range;
+		if      (this.choiceRadioButt_NoiseType.equals("Shot"))			preString = "Shot-"  + this.spinnerFloat_Percentage;
+		else if (this.choiceRadioButt_NoiseType.equals("Salt&Pepper"))	preString = "S&P-"   + this.spinnerFloat_Percentage;
+		else if (this.choiceRadioButt_NoiseType.equals("Uniform"))  	preString = "Uni-"   + this.spinnerFloat_Percentage;
+		else if (this.choiceRadioButt_NoiseType.equals("Gaussian")) 	preString = "Gauss-" + this.spinnerFloat_Percentage;
+		else if (this.choiceRadioButt_NoiseType.equals("Rayleigh"))    	preString = "Ray-" 	 + this.spinnerFloat_Percentage;
+		else if (this.choiceRadioButt_NoiseType.equals("Exponential"))  preString = "Exp-"   + this.spinnerFloat_Percentage;
 			
 		for (int c = 0; c < numColumns; c++) {
 			tableOut.add(new DoubleColumn(preString+"-" + tableIn.getColumnHeader(c)));
@@ -637,7 +633,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
 				frame = listFrames[i];
 				//System.out.println("frame name: " + frame.getTitle());
-				if (frame.getTitle().contains("Filtered sequence(s)")) {
+				if (frame.getTitle().contains("Noise added sequence(s)")) {
 					frame.setVisible(false); //Successfully closes also in Fiji
 					frame.dispose();
 				}
@@ -667,7 +663,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			if (containerPM != null) { 
 				int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 				boolean isLineVisible = true;
-				String sequenceTitle = "Filter - " + this.choiceRadioButt_FilterType;
+				String sequenceTitle = "Noise - " + this.choiceRadioButt_NoiseType;
 				String xLabel = "#";
 				String yLabel = "Value";
 				String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
@@ -675,7 +671,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 					cols[c-numTableOutPreCols] = c; //- because of first text columns	
 					seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
 				}
-				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Filtered sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Noise added sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 				Point pos = pdf.getLocation();
 				pos.x = (int) (pos.getX() - 100);
 				pos.y = (int) (pos.getY() + 100);
@@ -745,7 +741,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = true;
-			String sequenceTitle = "Filter - " + this.choiceRadioButt_FilterType;
+			String sequenceTitle = "Noise - " + this.choiceRadioButt_NoiseType;
 			String xLabel = "#";
 			String yLabel = "Value";
 			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns		
@@ -753,7 +749,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
 				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//-because of first text columns				
 			}
-			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Filtered sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Noise added sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -797,6 +793,7 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 				}
 			}
 		}
+		
 	}
 
 	/**
@@ -819,15 +816,15 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		
 		String  sequenceRange  = choiceRadioButt_SequenceRange;
 		String  surrType       = choiceRadioButt_SurrogateType;
-		//numSurrogates         = spinnerInteger_NumSurrogates;
-		//numBoxLength          = spinnerInteger_BoxLength;
+		//numSurrogates        = spinnerInteger_NumSurrogates;
+		//numBoxLength         = spinnerInteger_BoxLength;
 		int     numDataPoints  = dgt.getRowCount();
 		//boolean skipZeroes   = booleanSkipZeroes;
-		String  filterType     = choiceRadioButt_FilterType;//"Moving Average", "Moving Median"
-		int     range          = spinnerInteger_Range;
+		String  noiseType      = choiceRadioButt_NoiseType;//"Shot" "Salt&Pepper", "Uniform" "Gaussian" "Rayleigh" "Exponential"
+		double  fraction       = (double)spinnerFloat_Percentage/100.0;
+		double  scaleParam     = spinnerFloat_Percentage; //That is not a good practice
 		//******************************************************************************************************
 		
-	
 		//domain1D = new double[numDataPoints];
 		sequence1D = new double[numDataPoints];
 		for (int n = 0; n < numDataPoints; n++) {
@@ -846,19 +843,21 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			sequence1D[n] = Double.valueOf((Double)sequenceColumn.get(n));
-		}
+		}	
 		
 		sequence1D = removeNaN(sequence1D);
 		//if (skipZeroes) sequence1D = removeZeroes(sequence1D);
-		
+
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;
 		
+		//int numActualRows = 0;
 		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + numDataPoints);	
+		//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
 		if (numDataPoints == 0) return null; //e.g. if sequence had only NaNs
 		
 		//domain1D = new double[numDataPoints];
-		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1;
 		
 		sequenceOut = null;
 		
@@ -866,15 +865,16 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 //		for (double d: sequenceOut) {
 //			d = Double.NaN;
 //		}
-				
+		
+			
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		if (sequenceRange.equals("Entire sequence")){	//only this option is possible for FFT
 			
 			if (!surrType.equals("No surrogates")) {
 				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();	
-				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 				String windowingType = "Rectangular";
+				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
 				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
 				if (surrType.equals("Gaussian"))     sequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
 				if (surrType.equals("Random phase")) sequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
@@ -887,40 +887,111 @@ public class Csaj1DFilterCommand<T extends RealType<T>> extends ContextCommand i
 			sequenceOut = new double[numDataPoints];
 			//rangeOut  = new double[numDataPoints];
 			
-			if (filterType.equals("Moving Average")) {
-				
-				Mean movingMean = new Mean();
-				
-				for (int i = 0; i < (range-1)/2; i++) {
-					sequenceOut [i] = movingMean.evaluate(sequence1D, 0, i + (range-1)/2 +1);
-				}
-				for (int i = (range-1)/2; i < numDataPoints-(range-1)/2; i++) {
-					sequenceOut [i] = movingMean.evaluate(sequence1D, i - (range-1)/2, range);
-				}
-				for (int i = numDataPoints-(range-1)/2; i < numDataPoints; i++) {
-					sequenceOut [i] = movingMean.evaluate(sequence1D, i - (range-1)/2, (numDataPoints-i) + (range-1)/2 );				
-				}
+			Random random = new Random();
+			random.setSeed(System.currentTimeMillis());
+			int randomInt;
 			
-			} else 	if (filterType.equals("Moving Median")) {
+			if (noiseType.equals("Shot")) {
+				//The percentage of all pixels are changed 
+				double max = -Double.MAX_VALUE;
+				//double min = Double.MAX_VALUE;
 				
-				Median movingMedian = new Median();
+				for (int i = 0; i < numDataPoints; i++) {
+					if (sequence1D[i] > max) max = sequence1D[i];
+					//if (sequence1D[i] < min) min = sequence1D[i];
+				}
 				
-				for (int i = 0; i < (range-1)/2; i++) {
-					sequenceOut [i] = movingMedian.evaluate(sequence1D, 0, i + (range-1)/2 +1);
+				for (int i = 0; i < numDataPoints; i++) {
+					if (random.nextDouble() < fraction) {
+						sequenceOut[i] = max;
+					}
+					else {
+						sequenceOut[i] = sequence1D[i];
+					}
+				}				
+			
+			}
+			
+			else if (noiseType.equals("Salt&Pepper")) {
+				//The percentage of all values are changed  
+				double max = -Double.MAX_VALUE;
+				double min = Double.MAX_VALUE;
+				
+				for (int i = 0; i < numDataPoints; i++) {
+					if (sequence1D[i] > max) max = sequence1D[i];
+					if (sequence1D[i] < min) min = sequence1D[i];
 				}
-				for (int i = (range-1)/2; i < numDataPoints-(range-1)/2; i++) {
-					sequenceOut [i] = movingMedian.evaluate(sequence1D, i - (range-1)/2, range);
+				
+				for (int i = 0; i < numDataPoints; i++) {
+					if (random.nextDouble() < fraction) {
+						randomInt = random.nextInt(2);
+						if 		(randomInt == 0) sequenceOut[i] = max;
+						else if (randomInt == 1) sequenceOut[i] = min;
+					}
+					else {
+						sequenceOut[i] = sequence1D[i];
+					}
+					
 				}
-				for (int i = numDataPoints-(range-1)/2; i < numDataPoints; i++) {
-					sequenceOut [i] = movingMedian.evaluate(sequence1D, i - (range-1)/2, (numDataPoints-i) + (range-1)/2 );				
-				}
+				
+			}
+			
+			else if (noiseType.equals("Uniform")) {
+				//The percentage of each original value is computed.
+				//A value between 0 and this percentage is added or subtracted to the original value
+				for (int i = 0; i < numDataPoints; i++) {
+					
+					randomInt = random.nextInt(2);
+					if 		(randomInt == 0) sequenceOut [i] = sequence1D[i] + random.nextDouble()*fraction*sequence1D[i];
+					else if (randomInt == 1) sequenceOut [i] = sequence1D[i] - random.nextDouble()*fraction*sequence1D[i];
+				}	
+				
+			}
+			
+			else if (noiseType.equals("Gaussian")) {
+				//Gaussian noise with mean=0 and the specified sigma is added
+				double sigma = scaleParam;
+				for (int i = 0; i < numDataPoints; i++) {
+					sequenceOut [i] = sequence1D[i] + random.nextGaussian() * sigma;
+				}			
 			}
 				
+			else if (noiseType.equals("Rayleigh")) {
+				//Rayleigh noise with the specified scale parameter is added
+				//see https://www.randomservices.org/random/special/Rayleigh.html      point 35.
+				//or
+				//https://en.wikipedia.org/wiki/Rayleigh_distribution
+			
+				for (int i = 0; i < numDataPoints; i++) {
+					//random or 1-random, it does not matter
+					randomInt = random.nextInt(2);
+					if      (randomInt == 0) sequenceOut [i] = sequence1D[i] + scaleParam * Math.sqrt(-2*Math.log(random.nextDouble()));
+					else if (randomInt == 1) sequenceOut [i] = sequence1D[i] - scaleParam * Math.sqrt(-2*Math.log(random.nextDouble()));
+					
+				}								
+			}
+			
+			else if (noiseType.equals("Exponential")) {
+				//Exponential noise with the specified scale parameter is added
+				//see https://randomservices.org/random/poisson/Exponential.html     Point 5
+				//scale parameter = 1/lamda chosen. Otherwise noise level would go to the opposite direction compared to the other methods;
+				//or
+				//https://en.wikipedia.org/wiki/Exponential_distribution  Chapter: Generating exponential variates
+						
+				for (int i = 0; i < numDataPoints; i++) {
+					//random or 1-random, it does not matter
+					randomInt = random.nextInt(2);
+					if      (randomInt == 0) sequenceOut [i] = sequence1D[i] + (-scaleParam*Math.log(random.nextDouble()));
+					else if (randomInt == 1) sequenceOut [i] = sequence1D[i] - (-scaleParam*Math.log(random.nextDouble())); 				
+				}		
+			}
+			
+				
 		//********************************************************************************************************	
-		} else if (sequenceRange.equals("Subsequent boxes")){ //not for Filter
+		} else if (sequenceRange.equals("Subsequent boxes")){ //not for Noise
 		
 		//********************************************************************************************************			
-		} else if (sequenceRange.equals("Gliding box")){ //not for Filter
+		} else if (sequenceRange.equals("Gliding box")){ //not for Noise
 		
 		}
 		

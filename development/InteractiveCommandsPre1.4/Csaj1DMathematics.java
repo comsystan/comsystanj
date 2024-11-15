@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DMathematicsCommand.java
+ * File: Csaj1DMathematics.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,7 +26,7 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.preproc;
 
 import java.awt.Frame;
 import java.awt.Point;
@@ -48,7 +48,7 @@ import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
-import org.scijava.command.ContextCommand;
+import org.scijava.command.InteractiveCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
@@ -75,15 +75,20 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 
 
 /**
- * A {@link ContextCommand} plugin computing <Mathematical functions</a>
+ * A {@link InteractiveCommand} plugin computing <Mathematical functions</a>
  * of a sequence.
  */
-@Plugin(type = ContextCommand.class,
+@Plugin(type = InteractiveCommand.class,
 	headless = true,
 	label = "Mathematics",
 	initializer = "initialPluginLaunch",
 	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+	menu = {
+	@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+	@Menu(label = "ComsystanJ"),
+	@Menu(label = "1D Sequence(s)"),
+	@Menu(label = "Preprocessing", weight = 1),
+	@Menu(label = "Mathematics ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 /**
  * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
  * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
@@ -93,7 +98,7 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
  *
  *
  */
-public class Csaj1DMathematicsCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj1DMathematics<T extends RealType<T>> extends InteractiveCommand implements Previewable {
 
 	private static final String PLUGIN_LABEL                = "<html><b>Mathematical functions</b></html>";
 	private static final String SPACE_LABEL                 = "";
@@ -191,7 +196,7 @@ public class Csaj1DMathematicsCommand<T extends RealType<T>> extends ContextComm
 	private String choiceRadioButt_Operator;
 	
 	@Parameter(label = "(Diff/Integral) Domain",
-			   description = "Mathematical function",
+			   description = "Domain",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
 			   choices = {"Unity", "Column #1"},  
 			   persist = true,  //restore previous value default = true

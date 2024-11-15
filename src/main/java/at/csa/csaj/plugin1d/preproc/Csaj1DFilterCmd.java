@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DCutOutCommand.java
+ * File: Csaj1DFilterCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -26,45 +26,51 @@
  * #L%
  */
 
-package at.csa.csaj.command;
+package at.csa.csaj.plugin1d.preproc;
 
+import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
 import net.imglib2.type.numeric.RealType;
 
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
+
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.table.Column;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DefaultTableDisplay;
+import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
+import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
+import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
+import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
@@ -72,28 +78,21 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 
 
 /**
- * A {@link ContextCommand} plugin for cutting out a sub-sequence.
+ * A {@link ContextCommand} plugin computing <Filtering</a>
+ * of a sequence.
  */
 @Plugin(type = ContextCommand.class,
-	headless = true,
-	label = "Cut out",
-	initializer = "initialPluginLaunch",
-	iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-	menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
-/**
- * Csaj Interactive: InteractiveCommand (nonmodal GUI without OK and cancel button, NOT for Scripting!)
- * Csaj Macros:      ContextCommand     (modal GUI with OK and Cancel buttons, for scripting)
- * Developer note:
- * Develop the InteractiveCommand plugin Csaj***.java
- * The Maven build will execute CreateCommandFiles.java which creates Csaj***Command.java files
- *
- *
- */
-public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+		headless = true,
+		label = "Filter",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-	private static final String PLUGIN_LABEL                = "<html><b>Cut out</b></html>";
+public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL                = "<html><b>Filter</b></html>";
 	private static final String SPACE_LABEL                 = "";
-	private static final String RANGE_LABEL                 = "<html><b>Cut range</b></html>";
+	private static final String FILTEROPTIONS_LABEL         = "<html><b>Filter options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL       = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL     = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL        = "<html><b>Display option</b></html>";
@@ -101,24 +100,23 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 	
 	private static double[] sequence1D;
 	private static double[] domain1D;
-//	private static double[] subSequence1D;
-//	private static double[] surrSequence1D;
+	private static double[] subSequence1D;
+	private static double[] surrSequence1D;
 	private static double[] sequenceOut;
 	Column<? extends Object> sequenceColumn;
-	Column<? extends Object> domainColumn;
+	//Column<? extends Object> domainColumn;
 	
 	private static String tableInName;
-	private static String[] sliceLabels;
+	private static String[] columnLabels;
 	private static long numColumns = 0;
 	private static long numRows = 0;
-	private static long numNewRows = 0;
 //	private static int  numSurrogates = 0;
 //	private static int  numBoxLength = 0;
 //	private static long numSubsequentBoxes = 0;
 //	private static long numGlidingBoxes = 0;
 	
-	public static final String TABLE_OUT_NAME = "Table - Cut out";
-	private static ArrayList<CsajPlot_SequenceFrame> plotDisplayFrameList = new ArrayList<CsajPlot_SequenceFrame>();
+	private static final int numTableOutPreCols = 1; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
+	public static final String TABLE_OUT_NAME = "Table - Filter";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -176,45 +174,49 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelOperator = RANGE_LABEL;
+	private final String labelFilterOptions = FILTEROPTIONS_LABEL;
 	
-	@Parameter(label = "Range Start", description = "Start index for cutting out", style = NumberWidget.SPINNER_STYLE, 
-			   min = "1",
-			   max = "9999999999999999999",
-			   stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialRangeStart", callback = "callbackRangeStart")
-	private int spinnerInteger_RangeStart;
+	@Parameter(label = "Filter",
+			   description = "Filter type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Moving average", "Moving median"}, //Mean or Median in the range of (i-range/2) to (i+range/2)")
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialFilterType",
+			   callback = "callbackFilterType")
+	private String choiceRadioButt_FilterType;
 	
-		@Parameter(label = "Range End", description = "End index for cutting out", style = NumberWidget.SPINNER_STYLE, 
-			   min = "2",
+	@Parameter(label = "Range",
+			   description = "Computation range from (i-range/2) to (i+range/2)",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "3",
 			   max = "9999999999999999999",
-			   stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialRangeEnd", callback = "callbackRangeEnd")
-	private int spinnerInteger_RangeEnd;
+			   stepSize = "2", //even numbers are not allowed
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialRange",
+			   callback = "callbackRange")
+	private int spinnerInteger_Range;
 
 	//-----------------------------------------------------------------------------------------------------
-//	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-//	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
-//
-//	@Parameter(label = "Sequence type",
-//			description = "Entire sequence, Subsequent boxes or Gliding box",
-//			style = ChoiceWidget.LIST_BOX_STYLE,
-//			choices = {"Entire sequence"}, //, "Subsequent boxes", "Gliding box"}, 
-//			persist = true,  //restore previous value default = true
-//			initializer = "initialSequenceRange",
-//			callback = "callbackSequenceRange")
-//	private String choiceRadioButt_SequenceRange;
-//	
-//	@Parameter(label = "(Entire sequence) Surrogates",
-//			description = "Surrogates types - Only for Entire sequence type!",
-//			style = ChoiceWidget.LIST_BOX_STYLE,
-//			choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-//			persist = false,  //restore previous value default = true
-//			initializer = "initialSurrogateType",
-//			callback = "callbackSurrogateType")
-//	private String choiceRadioButt_SurrogateType;
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
+
+	@Parameter(label = "Sequence range",
+			   description = "Entire sequence, Subsequent boxes or Gliding box",
+			   style = ChoiceWidget.LIST_BOX_STYLE,
+			   choices = {"Entire sequence"}, //, "Subsequent boxes", "Gliding box"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialSequenceRange",
+			   callback = "callbackSequenceRange")
+	private String choiceRadioButt_SequenceRange;
+	
+	@Parameter(label = "(Entire sequence) Surrogates",
+			  description = "Surrogates types - Only for Entire sequence type!",
+			  style = ChoiceWidget.LIST_BOX_STYLE,
+			  choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+			  persist = true,  //restore previous value default = true
+			  initializer = "initialSurrogateType",
+			  callback = "callbackSurrogateType")
+	private String choiceRadioButt_SurrogateType;
 	
 //	@Parameter(label = "Surrogates #", description = "Number of computed surrogates", style = NumberWidget.SPINNER_STYLE, 
 //			   min = "1", max = "9999999999999999999", stepSize = "1",
@@ -241,9 +243,9 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
 	@Parameter(label = "Overwrite result display(s)",
-	    	description = "Overwrite already existing result images, plots or tables",
-	    	persist = true,  //restore previous value default = true
-			initializer = "initialOverwriteDisplays")
+	    	   description = "Overwrite already existing result images, plots or tables",
+	    	   persist = true,  //restore previous value default = true
+	    	   initializer = "initialOverwriteDisplays")
 	private boolean booleanOverwriteDisplays;
 
 	//-----------------------------------------------------------------------------------------------------
@@ -260,6 +262,12 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
+	@Parameter(label = "Process all columns",
+			   description = "Set for final Command.run execution",
+			   persist = false, // restore  previous value  default  =  true
+			   initializer = "initialProcessAll")
+	private boolean processAll;
+	
 	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
@@ -272,23 +280,21 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 		checkItemIOIn();
 	}
 	
-	protected void initialRangeStart() {
-		spinnerInteger_RangeStart = 1;
-		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
+	protected void initialFilterType() {
+		choiceRadioButt_FilterType = "Moving average";
+	} 
+		
+	protected void initialRange() {
+		spinnerInteger_Range = 3;
+	}
+	
+	protected void initialSequenceRange() {
+		choiceRadioButt_SequenceRange = "Entire sequence";
 	} 
 	
-	protected void initialRangeEnd() {
-		spinnerInteger_RangeEnd = 2;
-		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
+	protected void initialSurrogateType() {
+		choiceRadioButt_SurrogateType = "No surrogates";
 	} 
-	
-//	protected void initialSequenceRange() {
-//		choiceRadioButt_SequenceRange = "Entire sequence";
-//	} 
-//	
-//	protected void initialSurrogateType() {
-//		choiceRadioButt_SurrogateType = "No surrogates";
-//	} 
 	
 //	protected void initialNumSurrogates() {
 //		numSurrogates = 10;
@@ -299,7 +305,7 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 //		numBoxLength = 100;
 //		spinnerInteger_BoxLength =  (int) numBoxLength;
 //		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
-//		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
+//		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;	
 //	}
 	
 //	protected void initialSkipZeroes() {
@@ -317,38 +323,37 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 	// ------------------------------------------------------------------------------
 	
 	
-	
-	/** Executed whenever the {@link #spinnerInteger_RangeStart} parameter changes. */
-	protected void callbackRangeStart() {
-		if (spinnerInteger_RangeStart > spinnerInteger_RangeEnd) spinnerInteger_RangeStart = spinnerInteger_RangeEnd; 
-		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
-		logService.info(this.getClass().getName() + " Start index set to " + spinnerInteger_RangeStart);
+	/** Executed whenever the {@link #choiceRadioButt_FilterType} parameter changes. */
+	protected void callbackFilterType() {
+		logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_FilterType);
 	}
 	
-		/** Executed whenever the {@link #spinnerInteger_RangeEnd} parameter changes. */
-	protected void callbackRangeEnd() {
-		if (spinnerInteger_RangeEnd < spinnerInteger_RangeStart) spinnerInteger_RangeEnd = spinnerInteger_RangeStart; 
-		numNewRows  = spinnerInteger_RangeEnd - spinnerInteger_RangeStart + 1;
-		logService.info(this.getClass().getName() + " End index set to " + spinnerInteger_RangeEnd);
+	/** Executed whenever the {@link #spinnerInteger_Range} parameter changes. */
+	protected void callbackRange() {
+		 if ( spinnerInteger_Range % 2 == 0 ) {
+			 spinnerInteger_Range = spinnerInteger_Range + 1;  //even numbers are not allowed
+			 logService.info(this.getClass().getName() + " Even numbers are not allowed!");
+		 }
+		logService.info(this.getClass().getName() + " Range set to " + spinnerInteger_Range);
 	}
 	
-//	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
-//	protected void callbackSequenceRange() {
-//		logService.info(this.getClass().getName() + " Sequence range set to " + choiceRadioButt_SequenceRange);
-//		if (!choiceRadioButt_SequenceRange.equals("Entire sequence")){
-//			choiceRadioButt_SurrogateType = "No surrogates";
-//			callbackSurrogateType();
-//		}
-//	}
+	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
+	protected void callbackSequenceRange() {
+		logService.info(this.getClass().getName() + " Sequence range set to " + choiceRadioButt_SequenceRange);
+		if (!choiceRadioButt_SequenceRange.equals("Entire sequence")){
+			choiceRadioButt_SurrogateType = "No surrogates";
+			callbackSurrogateType();
+		}
+	}
 	
-//	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
-//	protected void callbackSurrogateType() {	
-//		if (!choiceRadioButt_SequenceRange.equals("Entire sequence")){
-//			choiceRadioButt_SurrogateType = "No surrogates";
-//			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
-//		}	
-//		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
-//	}
+	/** Executed whenever the {@link #choiceRadioButt_SurrogateType} parameter changes. */
+	protected void callbackSurrogateType() {	
+		if (!choiceRadioButt_SequenceRange.equals("Entire sequence")){
+			choiceRadioButt_SurrogateType = "No surrogates";
+			logService.info(this.getClass().getName() + " Surrogates not allowed for subsequent or gliding boxes!");
+		}	
+		logService.info(this.getClass().getName() + " Surrogate type set to " + choiceRadioButt_SurrogateType);
+	}
 	
 //	/** Executed whenever the {@link #spinnerInteger_NumSurrogates} parameter changes. */
 //	protected void callbackNumSurrogates() {
@@ -368,7 +373,7 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 //	protected void callbackSkipZeroes() {
 //		logService.info(this.getClass().getName() + " Skip zeroes set to " + booleanSkipZeroes);
 //	}
-	
+
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
@@ -474,54 +479,56 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 	 */
 	@Override //Interface CommandService
 	public void run() {
-		logService.info(this.getClass().getName() + " Run");
-		if (ij != null) { //might be null in Fiji
-			if (ij.ui().isHeadless()) {
-			}
-		}
-		if (this.getClass().getName().contains("Command")) { //Processing only if class is a Csaj***Command.class
-			startWorkflowForAllColumns();
-		}
-	}
+		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllColumns();
+		else			startWorkflowForSingleColumn();
+
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
 	public void checkItemIOIn() {
 
-		//DefaultTableDisplay dtd = (DefaultTableDisplay) displays.get(0);
-		try {
-			tableIn = (DefaultGenericTable) defaultTableDisplay.get(0);
-		} catch (NullPointerException npe) {
-			logService.error(this.getClass().getName() + " ERROR: NullPointerException, input table = null");
-			cancel("ComsystanJ 1D plugin cannot be started - missing input table.");;
-			return;
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkTableIn(logService, defaultTableDisplay);
+		if (datasetInInfo == null) {
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 1D plugin cannot be started - Initial check failed.");
+		} else {
+			tableIn =      (DefaultGenericTable)datasetInInfo.get("tableIn");
+			tableInName =  (String)datasetInInfo.get("tableInName"); 
+			numColumns  =  (int)datasetInInfo.get("numColumns");
+			numRows =      (int)datasetInInfo.get("numRows");
+			columnLabels = (String[])datasetInInfo.get("columnLabels");
+
+//			numSurrogates = spinnerInteger_NumSurrogates;
+//			numBoxLength  = spinnerInteger_BoxLength;
+//			numSubsequentBoxes = (long)Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
+//			numGlidingBoxes    = numRows - spinnerInteger_BoxLength + 1;
+					
+			//Set additional plugin specific values****************************************************
+			
+			//*****************************************************************************************
 		}
-	
-		// get some info
-		tableInName = defaultTableDisplay.getName();
-		numColumns  = tableIn.getColumnCount();
-		numRows     = tableIn.getRowCount();
-		
-//		sliceLabels = new String[(int) numColumns];
-	   
-		logService.info(this.getClass().getName() + " Name: "      + tableInName); 
-		logService.info(this.getClass().getName() + " Columns #: " + numColumns);
-		logService.info(this.getClass().getName() + " Rows #: "    + numRows); 
 	}
 
 	/**
 	* This method starts the workflow for a single column of the active display
 	*/
 	protected void startWorkflowForSingleColumn() {
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Cutting out a sub-sequence, please wait... Open console window for further info.",
+	
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing FFT, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
 		dlgProgress.setVisible(true);
-		
+
     	logService.info(this.getClass().getName() + " Processing single sequence");
     	deleteExistingDisplays();
 		generateTableHeader();
   		if (spinnerInteger_NumColumn <= numColumns) processSingleInputColumn(spinnerInteger_NumColumn - 1);
-		dlgProgress.addMessage("Processing finished! Preparing result table...");		
+		dlgProgress.addMessage("Processing finished! Preparing result table...");			
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
@@ -532,7 +539,7 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Cutting out a sub-sequence, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing FFT, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -582,12 +589,19 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 	private void generateTableHeader() {
 		
 		tableOut = new DefaultGenericTable();
+		tableOut.add(new GenericColumn("Surrogate type"));
+		
+		String preString = "";
+		if      (this.choiceRadioButt_FilterType.equals("Moving average")) preString = "MovaAv-" + this.spinnerInteger_Range;
+		else if (this.choiceRadioButt_FilterType.equals("Moving median"))  preString = "MovMe-"  + this.spinnerInteger_Range;
+			
 		for (int c = 0; c < numColumns; c++) {
-			tableOut.add(new GenericColumn("Cutout-" + tableIn.getColumnHeader(c)));
+			tableOut.add(new DoubleColumn(preString+"-" + tableIn.getColumnHeader(c)));
 		}	
-		tableOut.appendRows((int) numNewRows);
+		tableOut.appendRows((int) numRows);
 	}
-
+	
+	
 	/**
 	 * This method deletes already open displays
 	 * 
@@ -602,18 +616,6 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 			optDeleteExistingImgs   = true;
 		}
 		
-
-		if (optDeleteExistingPlots) {
-			if (plotDisplayFrameList != null) {
-				for (int l = 0; l < plotDisplayFrameList.size(); l++) {
-					plotDisplayFrameList.get(l).setVisible(false);
-					plotDisplayFrameList.get(l).dispose();
-					//plotDisplayFrameList.remove(l);  /
-				}
-				plotDisplayFrameList.clear();		
-			}
-		}
-		
 		if (optDeleteExistingTables) {
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
@@ -621,6 +623,18 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 				//System.out.println("display name: " + display.getName());
 				if (display.getName().contains(TABLE_OUT_NAME))
 					display.close();
+			}
+		}
+		if (optDeleteExistingImgs) {
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().contains("Filtered sequence(s)")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
 			}
 		}
 	}
@@ -640,27 +654,26 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 		writeToTable(s, containerPM);
 		
 		//eliminate empty columns
-		leaveOverOnlyOneSequenceColumn(s);
+		leaveOverOnlyOneSequenceColumn(s+numTableOutPreCols); // +  because of text columns
 		
-		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the Autocorrelation?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
 			if (containerPM != null) { 
-				int[] cols = new int[tableOut.getColumnCount()]; 
+				int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 				boolean isLineVisible = true;
-				String sequenceTitle = "Cutout";
+				String sequenceTitle = "Filter - " + this.choiceRadioButt_FilterType;
 				String xLabel = "#";
 				String yLabel = "Value";
-				String[] seriesLabels = new String[tableOut.getColumnCount()]; 			
-				for (int c = 0; c < tableOut.getColumnCount(); c++) { 	
-					cols[c] = c; 	
-					seriesLabels[c] = tableOut.getColumnHeader(c); 					
+				String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns			
+				for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
+					cols[c-numTableOutPreCols] = c; //- because of first text columns	
+					seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c); //- because of first two text columns					
 				}
-				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Sub-sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
-				plotDisplayFrameList.add(pdf);
+				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Filtered sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 				Point pos = pdf.getLocation();
 				pos.x = (int) (pos.getX() - 100);
 				pos.y = (int) (pos.getY() + 100);
-				pdf.setLocation(pos);		
+				pdf.setLocation(pos);
 				pdf.setVisible(true);
 			}
 		//}
@@ -680,7 +693,7 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 	private void leaveOverOnlyOneSequenceColumn(int c) {
 		String header = tableOut.getColumnHeader(c);
 		int numCols = tableOut.getColumnCount();
-		for (int i = numCols-1; i >= 0; i--) {   
+		for (int i = numCols-1; i >= numTableOutPreCols; i--) {    //leave also first text column
 			if (!tableOut.getColumnHeader(i).equals(header))  tableOut.removeColumn(i);	
 		}	
 	}
@@ -722,20 +735,19 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
 		
-		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the new sequences?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
+		//int selectedOption = JOptionPane.showConfirmDialog(null, "Do you want to display the FFT result?\nNot recommended for a large number of sequences", "Display option", JOptionPane.YES_NO_OPTION); 
 		//if (selectedOption == JOptionPane.YES_OPTION) {
-			int[] cols = new int[tableOut.getColumnCount()]; 
+			int[] cols = new int[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns	
 			boolean isLineVisible = true;
-			String sequenceTitle = "Cutout";
+			String sequenceTitle = "Filter - " + this.choiceRadioButt_FilterType;
 			String xLabel = "#";
 			String yLabel = "Value";
-			String[] seriesLabels = new String[tableOut.getColumnCount()]; 
-			for (int c = 0; c < tableOut.getColumnCount(); c++) { 
-				cols[c] = c;  
-				seriesLabels[c] = tableOut.getColumnHeader(c);				
+			String[] seriesLabels = new String[tableOut.getColumnCount()-numTableOutPreCols]; //- because of first text columns		
+			for (int c = numTableOutPreCols; c < tableOut.getColumnCount(); c++) { //because of first text columns	
+				cols[c-numTableOutPreCols] = c;  //-2 because of first two text columns	
+				seriesLabels[c-numTableOutPreCols] = tableOut.getColumnHeader(c);	//-because of first text columns				
 			}
-			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Sub-sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
-			plotDisplayFrameList.add(pdf);
+			CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(tableOut, cols, isLineVisible, "Filtered sequence(s)", sequenceTitle, xLabel, yLabel, seriesLabels);
 			Point pos = pdf.getLocation();
 			pos.x = (int) (pos.getX() - 100);
 			pos.y = (int) (pos.getY() + 100);
@@ -761,21 +773,24 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 		
 		if (containerPM == null) {
 			for (int r = 0; r < tableOut.getRowCount(); r++ ) {
-				tableOut.set(sequenceNumber, r, Double.NaN);		
+				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+				tableOut.set(numTableOutPreCols + sequenceNumber, r, Double.NaN); //+ because of first text columns	
 			}
 		}
 		else {
 			for (int r = 0; r < containerPM.item1_Values.length; r++ ) {
-				tableOut.set(sequenceNumber, r, containerPM.item1_Values[r]);	
+				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+				tableOut.set(numTableOutPreCols + sequenceNumber, r, containerPM.item1_Values[r]); //+ because of first text columns	
 			}
 			
 			//Fill up with NaNs (this can be because of NaNs in the input sequence or deletion of zeroes)
 			if (tableOut.getRowCount() > containerPM.item1_Values.length) {
 				for (int r = containerPM.item1_Values.length; r < tableOut.getRowCount(); r++ ) {
-					tableOut.set(sequenceNumber, r, Double.NaN);	
+					tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
+					tableOut.set(numTableOutPreCols + sequenceNumber, r, Double.NaN); //+ because of first text columns	
 				}
 			}
-		}	
+		}
 	}
 
 	/**
@@ -796,18 +811,17 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
 		}
 		
-		//String sequenceRange = choiceRadioButt_SequenceRange;
-		//String surrType      = choiceRadioButt_SurrogateType;
-		//numSurrogates        = spinnerInteger_NumSurrogates;
-		//numBoxLength         = spinnerInteger_BoxLength;
-		int    numDataPoints = dgt.getRowCount();
-		//boolean skipZeroes  = booleanSkipZeroes;
-		
-		int rangeStart       = spinnerInteger_RangeStart;
-		int rangeEnd         = spinnerInteger_RangeEnd;
-		int numNewDataPoints = rangeEnd - rangeStart + 1;
+		String  sequenceRange  = choiceRadioButt_SequenceRange;
+		String  surrType       = choiceRadioButt_SurrogateType;
+		//numSurrogates         = spinnerInteger_NumSurrogates;
+		//numBoxLength          = spinnerInteger_BoxLength;
+		int     numDataPoints  = dgt.getRowCount();
+		//boolean skipZeroes   = booleanSkipZeroes;
+		String  filterType     = choiceRadioButt_FilterType;//"Moving average", "Moving median"
+		int     range          = spinnerInteger_Range;
 		//******************************************************************************************************
 		
+	
 		//domain1D = new double[numDataPoints];
 		sequence1D = new double[numDataPoints];
 		for (int n = 0; n < numDataPoints; n++) {
@@ -826,39 +840,90 @@ public class Csaj1DCutOutCommand<T extends RealType<T>> extends ContextCommand i
 		for (int n = 0; n < numDataPoints; n++) {
 			//domain1D[n]  = n+1;
 			sequence1D[n] = Double.valueOf((Double)sequenceColumn.get(n));
-		}	
+		}
 		
-		//Do not remove NaNs and zeros for Mathematical functions
-		//sequence1D = removeNaN(sequence1D);
+		sequence1D = removeNaN(sequence1D);
 		//if (skipZeroes) sequence1D = removeZeroes(sequence1D);
 		
 		//numDataPoints may be smaller now
 		numDataPoints = sequence1D.length;
 		
-		//int numActualRows = 0;
 		logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + numDataPoints);	
-		if (numDataPoints <= 2) return null; //e.g. if sequence had only NaNs
+		if (numDataPoints == 0) return null; //e.g. if sequence had only NaNs
 		
-		domain1D = new double[numDataPoints];
-		for (int n = 0; n < numDataPoints; n++) domain1D[n] = Double.NaN;
+		//domain1D = new double[numDataPoints];
+		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
 		
-		sequenceOut = new double[numNewDataPoints];
-		for (double d: sequenceOut) {
-			d = Double.NaN;
+		sequenceOut = null;
+		
+//		sequenceOut = new double[numDataPoints];
+//		for (double d: sequenceOut) {
+//			d = Double.NaN;
+//		}
+				
+		//"Entire sequence", "Subsequent boxes", "Gliding box" 
+		//********************************************************************************************************
+		if (sequenceRange.equals("Entire sequence")){	//only this option is possible for FFT
+			
+			if (!surrType.equals("No surrogates")) {
+				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();	
+				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
+				String windowingType = "Rectangular";
+				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
+				if (surrType.equals("Gaussian"))     sequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
+				if (surrType.equals("Random phase")) sequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
+				if (surrType.equals("AAFT"))         sequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
+			}
+			
+			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
+			//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
+			
+			sequenceOut = new double[numDataPoints];
+			//rangeOut  = new double[numDataPoints];
+			
+			if (filterType.equals("Moving average")) {
+				
+				Mean movingMean = new Mean();
+				
+				for (int i = 0; i < (range-1)/2; i++) {
+					sequenceOut [i] = movingMean.evaluate(sequence1D, 0, i + (range-1)/2 +1);
+				}
+				for (int i = (range-1)/2; i < numDataPoints-(range-1)/2; i++) {
+					sequenceOut [i] = movingMean.evaluate(sequence1D, i - (range-1)/2, range);
+				}
+				for (int i = numDataPoints-(range-1)/2; i < numDataPoints; i++) {
+					sequenceOut [i] = movingMean.evaluate(sequence1D, i - (range-1)/2, (numDataPoints-i) + (range-1)/2 );				
+				}
+			
+			} else 	if (filterType.equals("Moving median")) {
+				
+				Median movingMedian = new Median();
+				
+				for (int i = 0; i < (range-1)/2; i++) {
+					sequenceOut [i] = movingMedian.evaluate(sequence1D, 0, i + (range-1)/2 +1);
+				}
+				for (int i = (range-1)/2; i < numDataPoints-(range-1)/2; i++) {
+					sequenceOut [i] = movingMedian.evaluate(sequence1D, i - (range-1)/2, range);
+				}
+				for (int i = numDataPoints-(range-1)/2; i < numDataPoints; i++) {
+					sequenceOut [i] = movingMedian.evaluate(sequence1D, i - (range-1)/2, (numDataPoints-i) + (range-1)/2 );				
+				}
+			}
+				
+		//********************************************************************************************************	
+		} else if (sequenceRange.equals("Subsequent boxes")){ //not for Filter
+		
+		//********************************************************************************************************			
+		} else if (sequenceRange.equals("Gliding box")){ //not for Filter
+		
 		}
-						
-		int idx;
-		for (int i = 0 ; i < numNewDataPoints; i++){
-			idx = i + rangeStart - 1;
-			if (idx >= numDataPoints) sequenceOut[i] = Double.NaN;
-			else sequenceOut[i] = sequence1D[idx];
-		}		
 		
 		return new CsajContainer_ProcessMethod(sequenceOut);
 		// 
 		// Output
 		// uiService.show(TABLE_OUT_NAME, table);
 	}
+
 	
 	/**
 	 * This method calculates the mean of a data series
