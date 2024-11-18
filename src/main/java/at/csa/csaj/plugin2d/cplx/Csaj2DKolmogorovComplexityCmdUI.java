@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimBoxCountingCommandUI.java
+ * File: Csaj2DKolmogorovComplexityCommandUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,16 +25,14 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.frac;
+package at.csa.csaj.plugin2d.cplx;
 
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
-
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
 import org.scijava.ItemIO;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
@@ -44,23 +42,22 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.FileWidget;
-
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-label = "Box counting dimension",
-initializer = "initialPluginLaunch",
-iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-menu = {
-@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
-@Menu(label = "ComsystanJ"),
-@Menu(label = "2D Image(s)"),
-@Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Box counting dimension(New Dialog)")})
+		label = "KC and LD",
+		initializer = "initialPluginLaunch",
+		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+		menu = {
+		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
+		@Menu(label = "ComsystanJ"),
+		@Menu(label = "2D Image(s)"),
+		@Menu(label = "Complexity analyses", weight = 4),
+		@Menu(label = "Kolmogorov complexity and LD(NewDialog)")})
 
-public class Csaj2DFracDimBoxCountingCommandUI extends ContextCommand implements Previewable{
+public class Csaj2DKolmogorovComplexityCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -68,7 +65,7 @@ public class Csaj2DFracDimBoxCountingCommandUI extends ContextCommand implements
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj2DFracDimBoxCountingDialog dialog = null;
+	private Csaj2DKolmogorovComplexityDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -86,29 +83,15 @@ public class Csaj2DFracDimBoxCountingCommandUI extends ContextCommand implements
 	 */
 	@Override
 	public void run() {
-		
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			String imageType = (String)datasetInInfo.get("imageType");			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			} else {
-				SwingUtilities.invokeLater(() -> {
-					if (dialog == null) {
-						dialog = new Csaj2DFracDimBoxCountingDialog(context(), datasetIn);
-					}
-					dialog.setVisible(true);
-					dialog.btnProcessSingleImage.requestFocusInWindow();
-				});
+		SwingUtilities.invokeLater(() -> {
+			if (dialog == null) {
+				dialog = new Csaj2DKolmogorovComplexityDialog(context(), datasetIn);
 			}
-		}
+			dialog.setVisible(true);
+			dialog.btnProcessSingleImage.requestFocusInWindow();
+		});
 	}
+	
 	
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {

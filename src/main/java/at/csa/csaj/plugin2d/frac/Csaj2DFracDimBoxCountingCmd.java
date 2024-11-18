@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimCorrelationCommand.java
+ * File: Csaj2DFracDimBoxCountingCommand.java
  * 
  * $Id$
  * $HeadURL$
@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -88,19 +89,19 @@ import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 
 /**
  * A {@link ContextCommand} plugin computing
- * <a>the fractal correlation dimension </a>
+ * <the fractal box counting dimension </a>
  * of an image.
  */
 @Plugin(type = ContextCommand.class, 
         headless = true,
-        label = "Correlation dimension",
-        initializer = "initialPluginLaunch",
-        iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-        menu = {})
+	    label = "Box counting dimension",
+	    initializer = "initialPluginLaunch",
+	    iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+	    menu = {})
 
-public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj2DFracDimBoxCountingCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes Correlation dimension</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with box counting</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -109,9 +110,8 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
-	private static RandomAccessibleInterval<?> raiBox;
-	private static RandomAccess<?> ra;
-	private static Cursor<?> cursor = null;
+	RandomAccessibleInterval<?> raiBox;
+	Cursor<?> cursor = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
 	private static long width  = 0;
@@ -123,7 +123,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Correlation dimension";
+	public static final String TABLE_OUT_NAME = "Table - Box counting dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -162,10 +162,10 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	
 	@Parameter (type = ItemIO.INPUT)
 	private Dataset datasetIn;
-	
+		
 	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
-
+	
    //Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
     //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -178,8 +178,8 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "Number of radii",
-    		   description = "Number of distinct radii following the power of 2",
+    @Parameter(label = "Number of boxes",
+    		   description = "Number of distinct box sizes with the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
@@ -215,36 +215,25 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Scanning type",
- 		    description = "Raster boxes or classical boxes (radius) over several object pixels",
- 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Raster box", "Sliding disc"}, 
-   		    persist = true,  //restore previous value default = true
- 		    initializer = "initialScanningType",
-             callback = "callbackScanningType")
+     @Parameter(label = "Scanning method",
+    		    description = "Type of box scanning",
+    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+      		    choices = {"Raster box"}, //"Sliding box" does not give the right dimension values
+      		    persist = true,  //restore previous value default = true
+    		    initializer = "initialScanningType",
+                callback = "callbackScanningType")
      private String choiceRadioButt_ScanningType;
      
      @Parameter(label = "Color model",
-  		    description = "Type of image and computation",
-  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		    choices = {"Binary", "Grey"},
-    		    persist = true,  //restore previous value default = true
-  		    initializer = "initialColorModelType",
-              callback = "callbackColorModelType")
+ 		    description = "Type of image and computation",
+ 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		    choices = {"Binary", "DBC", "RDBC"},
+   		    persist = true,  //restore previous value default = true
+ 		    initializer = "initialColorModelType",
+             callback = "callbackColorModelType")
      private String choiceRadioButt_ColorModelType;
      
-     @Parameter(label = "(Sliding disc) Pixel %",
-  		   description = "% of object pixels to be taken - to lower computation times",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "1",
-	           max = "100",
-	           stepSize = "1",
-	           //persist = false,  //restore previous value default = true
-	           initializer = "initialPixelPercentage",
-	           callback    = "callbackPixelPercentage")
-     private int spinnerInteger_PixelPercentage;
-     
- 	//-----------------------------------------------------------------------------------------------------
+ 	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
@@ -259,7 +248,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     			initializer = "initialOverwriteDisplays")
      private boolean booleanOverwriteDisplays;
      
- 	//-----------------------------------------------------------------------------------------------------
+ 	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
@@ -273,57 +262,38 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
- 	
+	
 	@Parameter(label = "Process all images",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")
 	private boolean processAll;
-	
+ 	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
-	
+    
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-//	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
+//  @Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
-     
+	
 	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
 	private Button buttonProcessAllImages;
 
-
     //---------------------------------------------------------------------
  
-    //The following initializer functions set initial values	
+    //The following initializer functions set initial values
 	protected void initialPluginLaunch() {
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			width  =       			(long)datasetInInfo.get("width");
-			height =       			(long)datasetInInfo.get("height");
-			numDimensions =         (int)datasetInInfo.get("numDimensions");
-			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-			numSlices =             (long)datasetInInfo.get("numSlices");
-			imageType =   			(String)datasetInInfo.get("imageType");
-			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			}
-		}
+		checkItemIOIn();
 	}
-    protected void initialNumBoxes() {   	
+	
+    protected void initialNumBoxes() {
+    	
     	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image = null");
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	}
       	spinnerInteger_NumBoxes = numBoxes;
     }
@@ -331,23 +301,20 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     	spinnerInteger_NumRegStart = 1;
     }
     protected void initialNumRegEnd() {
-       	if (datasetIn == null) {
+    	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image = null");
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
     	}
     	spinnerInteger_NumRegEnd =  numBoxes;
     }
     protected void initialScanningType() {
-    	choiceRadioButt_ScanningType = "Sliding disc";
+    	choiceRadioButt_ScanningType = "Raster box";
     }
     protected void initialColorModelType() {
     	choiceRadioButt_ColorModelType = "Binary";
-    } 
-    protected void initialPixelPercentage() {
-      	spinnerInteger_PixelPercentage = 10;
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
@@ -355,11 +322,10 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
-    
 	protected void initialNumImageSlice() {
     	spinnerInteger_NumImageSlice = 1;
 	}
-	
+    
 	// ------------------------------------------------------------------------------
 	
 	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
@@ -368,7 +334,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		if  (spinnerInteger_NumBoxes < 3) {
 			spinnerInteger_NumBoxes = 3;
 		}
-		int numMaxBoxes = getMaxEpsNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
+		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
 		if (spinnerInteger_NumBoxes > numMaxBoxes) {
 			spinnerInteger_NumBoxes = numMaxBoxes;
 		};
@@ -404,7 +370,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
+	/** Executed whenever the {@link #choiceRadioButtScanningType} parameter changes. */
 	protected void callbackScanningType() {
 		logService.info(this.getClass().getName() + " Scanning method set to " + choiceRadioButt_ScanningType);
 		
@@ -413,11 +379,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
 	protected void callbackColorModelType() {
 		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
-	}
-	
-	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
-	protected void callbackPixelPercentage() {
-		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
+		
 	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -433,7 +395,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		}
 		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
 	}
-
+	
 	/**
 	 * Executed whenever the {@link #buttonProcessSingleImage} button is pressed.
 	 * It is not executed in the same exact manner such as run()
@@ -527,6 +489,14 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+
+	public void checkItemIOIn() {
 		//Get input meta data
 		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
 		if (datasetInInfo == null) {
@@ -540,35 +510,31 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 			numSlices =             (long)datasetInInfo.get("numSlices");
 			imageType =   			(String)datasetInInfo.get("imageType");
 			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
 			//RGB not allowed
 			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
 				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			} 
+			}
 		}
-
-		if (processAll) startWorkflowForAllImages();
-		else            startWorkflowForSingleImage();
-	
-		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	/**
 	* This method starts the workflow for a single image of the active display
 	*/
 	protected void startWorkflowForSingleImage() {
-			
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Correlation dimensions, please wait... Open console window for further info.",
+				
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Box dimension, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-	 
+		dlgProgress.setVisible(true);	
+    	
 		deleteExistingDisplays();
-		generateTableHeader();
+    	generateTableHeader();
 		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));	
 		processSingleInputImage(sliceIndex);
 	
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
@@ -581,22 +547,21 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	* This method starts the workflow for all images of the active display
 	*/
 	protected void startWorkflowForAllImages() {
-		
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Correlation dimensions, please wait... Open console window for further info.",
-					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+				
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Box dimensions, please wait... Open console window for further info.",
+						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
+			
     	logService.info(this.getClass().getName() + " Processing all available images");
-    	
-		deleteExistingDisplays();
-		generateTableHeader();
+    	deleteExistingDisplays();
+    	generateTableHeader();
 		processAllInputImages();
-	
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
 	}
-	
+		
 	/**
 	 * This methods gets the index of the active image in a stack
 	 * @return int index
@@ -681,7 +646,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	}
 	
 	/** This method computes the maximal number of possible boxes*/
-	public static int getMaxEpsNumber(long width, long height) { 
+	public static int getMaxBoxNumber(long width, long height) { 
 		float boxWidth = 1f;
 		int number = 1; 
 		while ((boxWidth <= width) && (boxWidth <= height)) {
@@ -748,6 +713,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
 
+		
 		CsajContainer_ProcessMethod containerPM;
 		//loop over all slices of stack
 		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
@@ -757,13 +723,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 				dlgProgress.updateBar(percent);
 				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
 				statusService.showStatus((s+1), (int)numSlices, "Processing " + (s+1) + "/" + (int)numSlices);
-	//			try {
-	//				Thread.sleep(3000);
-	//			} catch (InterruptedException e) {
-	//				// TODO Auto-generated catch block
-	//				e.printStackTrace();
-	//			}
-				
+ 	
 				long startTime = System.currentTimeMillis();
 				logService.info(this.getClass().getName() + " Processing image number " + (s+1) + "(" + numSlices + ")");
 				//get slice and convert to float values
@@ -781,7 +741,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 				containerPM = process(rai, s);	
 				//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
-				writeToTable(s, s, containerPM); //write always to the first row
+				writeToTable(s, s, containerPM); //write to table
 				
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -792,7 +752,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
-		
+	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;
@@ -822,10 +782,9 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
 		GenericColumn columnNumRegStart    = new GenericColumn("Reg Start");
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
-		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
+		GenericColumn columnScanType       = new GenericColumn("Scanning type");
 		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		IntColumn columnPixelPercentage    = new IntColumn("(Sliding disc) Pixel %");
-		DoubleColumn columnDc              = new DoubleColumn("Dc");
+		DoubleColumn columnDp              = new DoubleColumn("Db");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 		
@@ -835,14 +794,14 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		tableOut.add(columnMaxNumBoxes);
 		tableOut.add(columnNumRegStart);
 		tableOut.add(columnNumRegEnd);
-		tableOut.add(columnScanningType);
+		tableOut.add(columnScanType);
 		tableOut.add(columnColorModelType);
-		tableOut.add(columnPixelPercentage);
-		tableOut.add(columnDc);
+		tableOut.add(columnDp);
 		tableOut.add(columnR2);
 		tableOut.add(columnStdErr);
 	}
 	
+
 	/**
 	 * collects current result and writes to table
 	 * 
@@ -850,33 +809,31 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	 * @param int numSlice sclice number of images from datasetIn.
 	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) { 
-		
+	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) {
+	
+		int numRegStart       = spinnerInteger_NumRegStart;
+		int numRegEnd         = spinnerInteger_NumRegEnd;
 		int numBoxes         = spinnerInteger_NumBoxes;
-		int numRegStart      = spinnerInteger_NumRegStart;
-		int numRegEnd        = spinnerInteger_NumRegEnd;
-		int pixelPercentage  = spinnerInteger_PixelPercentage;
-		String scanningType  = choiceRadioButt_ScanningType;
-		String colorModelType  = choiceRadioButt_ColorModelType;	
-		
+		String scanningType   = choiceRadioButt_ScanningType;	
+		String colorModelType = choiceRadioButt_ColorModelType;	
+		if ((!colorModelType.equals("Binary")) && (numRegStart == 1)){
+			numRegStart = 2; //numRegStart == 1 (single pixel box is not possible for DBC algorithms)
+		}	
 		int row = numRow;
 	    int s = numSlice;	
-			//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
-			//fill table with values
-			tableOut.appendRow();
-			tableOut.set("File name",   	 row, datasetName);	
-			if (sliceLabels != null) 	     tableOut.set("Slice name", row, sliceLabels[s]);
-			tableOut.set("# Boxes",    	     row, numBoxes);	
-			tableOut.set("Reg Start",        row, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-			tableOut.set("Reg End",      	 row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
-			tableOut.set("Scanning type",    row, scanningType);
-			tableOut.set("Color model",      row, colorModelType);
-			if (scanningType.equals("Sliding disc")) tableOut.set("(Sliding disc) Pixel %", row, pixelPercentage);	
-			tableOut.set("Dc",          	 row, containerPM.item1_Values[1]);
-			tableOut.set("R2",          	 row, containerPM.item1_Values[4]);
-			tableOut.set("StdErr",      	 row, containerPM.item1_Values[3]);		
+		//fill table with values
+		tableOut.appendRow();
+		tableOut.set("File name",   	row, datasetName);	
+		if (sliceLabels != null) 	    tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		tableOut.set("# Boxes",    	    row, numBoxes);	
+		tableOut.set("Reg Start",       row, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
+		tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegStart)epsRegStart
+		tableOut.set("Scanning type",   row, scanningType);	
+		tableOut.set("Color model",     row, colorModelType);	
+		tableOut.set("Db",          	row, containerPM.item1_Values[1]);
+		tableOut.set("R2",          	row, containerPM.item1_Values[4]);
+		tableOut.set("StdErr",      	row, containerPM.item1_Values[3]);		
 	}
-	
 	
 							
 	/** 
@@ -892,9 +849,14 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		int numRegEnd         = spinnerInteger_NumRegEnd;
 		int numBoxes          = spinnerInteger_NumBoxes;
 		String scanningType   = choiceRadioButt_ScanningType;	
-		String colorModelType = choiceRadioButt_ColorModelType;	
-		int pixelPercentage   = spinnerInteger_PixelPercentage;
-		boolean optShowPlot   = booleanShowDoubleLogPlot;
+		String colorModelType = choiceRadioButt_ColorModelType;	 //binary  DBC   RDBC
+		
+		if ((!colorModelType.equals("Binary")) && (numRegStart == 1)){
+			numRegStart = 2; //numRegStart == 1 (single pixel box is not possible for DBC algorithms)
+		}
+		
+		boolean optShowPlot    = booleanShowDoubleLogPlot;
+		
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		
@@ -909,173 +871,161 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		//RandomAccessibleInterval<T> rai = (RandomAccessibleInterval<T>)dataset.getImgPlus();
 		//IterableInterval ii = dataset.getImgPlus();
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
-	
-		double[]totals     = new double[numBoxes];
-		//double[] totalsMax  = new double[numBoxes]; //for binary images
-		int[] eps = new int[numBoxes];
+		
+
+		double[] totals = new double[numBoxes];
+		// double[] totalsMax = new double[numBands]; //for binary images
+		double[] eps = new double[numBoxes];
 		
 		// definition of eps
-		for (int n = 0; n < numBoxes; n++) {
-		
-			eps[n] = (int)Math.round(Math.pow(2, n));
+		for (int n = 0; n < numBoxes; n++) {	
+			eps[n] = Math.pow(2, n);
 			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);	
-			
 		}		
-	
-		if (scanningType.equals("Raster box")) {
-			//Fixed grid
-			/**	KORRELATIONSDIMENSION: Fixed Grid Scan
-			 *  Martin Reiss
-			 * 	Eine schnelle Näherung der Korrelationsdimension wird durch einen Fixed-Grid Scan ermöglicht. 
-			 * 	Der Datensatz wird einer Diskretisierung durch ein Gitter bei einer festen Boxgröße unterworfen. 
-			 * 	Im Anschluss wird lediglich das Quadrat der Besetzungszahlen jeder Zelle kalkuliert. 
-			 *  Wong A, Wu L,Gibbons P, Faloutsos C, Fast estimation of fractal dimension and correlation integral on stream data. Inf.Proc.Lett 93 (2005) 91-97
-			 */ 
+		
+		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
+		if (colorModelType.equals("Binary")) {//{"Binary", "DBC", "RDBC"}
+			//Box counting
+			//n=0  2^0 = 1 ... single pixel
+			// Loop through all pixels.
+		
+			cursor = Views.iterable(rai).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				//cursor.localize(pos);			
+				if (((UnsignedByteType) cursor.get()).get() > 0) totals[0] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+				//totals[n][b] = totals[n][b]; // / totalsMax[b];
+			}
+				
 			int boxSize;		
 			int delta = 0;
-			long count = 0;
-			int sample = 0; 
-			for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
-				boxSize = eps[n];		
-				delta = boxSize;
+			for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes		
+				boxSize = (int) Math.pow(2, n);		
+				if      (scanningType.equals("Raster box"))  delta = boxSize;
+				else if (scanningType.equals("Sliding box")) delta = 1;
 				for (int x =0; x <= (width-boxSize); x=x+delta){
 					for (int y =0;  y<= (height-boxSize); y=y+delta){
 						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+						boolean isGreaterZeroFound = false;
 						// Loop through all pixels of this box.
 						cursor = Views.iterable(raiBox).localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
-							//cursorF.localize(pos);	
-							sample = ((UnsignedByteType) cursor.get()).get();
-							if ( sample > 0) { //Binary Image: 0 and [1, 255]! and not: 0 and 255
-								if (colorModelType.equals("Binary")) count = count + 1;
-								if (colorModelType.equals("Grey"))   count = count + sample;
+							//cursorF.localize(pos);				
+							if (((UnsignedByteType) cursor.get()).get() > 0) {
+								totals[n] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+								//totals[n] = totals[n]; // / totalsMax[b];
+								isGreaterZeroFound = true;
 							}			
+							if (isGreaterZeroFound) break; //do not search in this box any more
 						}//while Box
-						totals[n]   += count*count;
-						//totalsMax[n] = totalsMax[n] + count*count; // calculate total count for normalization
-						count = 0;
 					} //y	
-				} //x  
-				//totals[n] = totals[n] / totalsMax[n];
-			} //n
-		} //Fast fixed grid estimate
+				} //x                                          
+			} //n	
+		}
+		//*******************************Grey Value Image
+		if (colorModelType.equals("DBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
+			//Box counting
+			//n=0  2^0 = 1 ... single pixel
+			double greyMax = 0.0;
+			double greyMin = Double.MAX_VALUE;
+			double greyValue = Double.NaN;
+			double depthZ = Double.NaN;
+			double l = Double.NaN;
+			double k = Double.NaN;	
+			
+			//single pixel box
+			totals[0] = Double.NaN; //new in ComsystanJ
+			
+			int boxSize = (int) Math.pow(2, 0);		
+			int delta = 0;
+			
+			for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
+				boxSize = (int) Math.pow(2, n);	
+				if      (scanningType.equals("Raster box"))  delta = boxSize;
+				else if (scanningType.equals("Sliding box")) delta = 1;
+				for (int x =0; x <= (width-boxSize); x=x+delta){
+					for (int y =0;  y<= (height-boxSize); y=y+delta){
+						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+						greyMax = 0.0;
+						greyMin = Double.MAX_VALUE;
+						greyValue = Double.NaN;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos);
+							greyValue =((UnsignedByteType) cursor.get()).get();
+							if (greyValue > greyMax) greyMax = greyValue;
+							if (greyValue < greyMin) greyMin = greyValue;			
+						}//while Box
+						depthZ = boxSize * 255/((width + height) / 2.0); // epsilonZ/255 = epsilon/imageSize
+						l = greyMax/depthZ; // number of boxes in z direction
+						k = greyMin/depthZ;
+						l = Math.ceil(l);
+						k = Math.ceil(k);
+						totals[n] = totals[n] + (l - k + 1);
+					} //y	
+				} //x		                                           
+			}//n
+		}
+		//***********************************Grey value Image
+		if (colorModelType.equals("RDBC")) {// {"Binary", "DBC", "RDBC"}{ //grey value image
+			//Box counting
+			//n=0  2^0 = 1 ... single pixel
+			double greyMax = 0.0;
+			double greyMin = Double.MAX_VALUE;
+			double greyValue = Double.NaN;
+			double depthZ = Double.NaN;
+			double l = Double.NaN;
+			double k = Double.NaN;	
 		
-		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		//Correlation method	
-		else if (scanningType.equals("Sliding disc")) {
-			//Classical correlation dimension with radius over a pixel
-			//radius is estimated by box
-			ra = rai.randomAccess();
-			long number_of_points = 0; // total number of object points 
-			int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
-			int random_number = 0;
-			int radius;		
-			long count = 0;
-			int sample = 0;
-			
-			if  (max_random_number == 1) { // no statistical approach, take all image pixels
-				for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
-					radius = eps[n];			
-					for (int x = 0; x < width; x++){
-						for (int y = 0; y < height; y++){	
-							ra.setPosition(x, 0);
-							ra.setPosition(y, 1);	
-							if((((UnsignedByteType) ra.get()).get() > 0) ){
-								number_of_points++; // total number of object points 	
-								// scroll through sub-array 
-								for (int xx = x - radius + 1; xx < x + radius ; xx++) {
-									if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
-										for (int yy = y - radius + 1; yy < y + radius; yy++) {
-											if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-												if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
-													ra.setPosition(xx, 0);
-													ra.setPosition(yy, 1);	
-													sample = ((UnsignedByteType) ra.get()).get();
-													if((sample > 0) ){
-														if (colorModelType.equals("Binary")) count = count + 1;
-														if (colorModelType.equals("Grey"))   count = count + sample;
-													}
-												}//<= radius	
-											}
-										}//yy
-									}
-								}//XX
-							}
-						} //y	
-					} //x  
-					// calculate the average number of neighboring points within distance "radius":  
-					//number of neighbors = counts-total_number_of_points for correlation dimension
-					//mass = counts for mass radius dimension
-					//average number of neighbors = number of neighbors / total_number_of_points
-					totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
-					//totals[n]=(double)(count)/number_of_points; //for MR dimension 	
-					//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
-					// set counts equal to zero
-					count=0;	
-					number_of_points=0;
-				} //n Box sizes		
-			} // no statistical approach
-			else { //statistical approach
-				for (int n = 0; n < numBoxes; n++) { //2^0  to 2^numBoxes		
-					radius = eps[n];				
-					for (int x = 0; x < width; x++){
-						for (int y = 0;  y < height; y++){	
-							// if max_random_number > 1 only a fraction is taken e.g. for 50% max_random_number = 2
-							random_number = (int) (Math.random()*max_random_number+1); //+1 because (int) truncates digits after the decimal point
-							if( random_number == 1 ){ //random_number will always be 1 when percentage is 100 and therefore max_random_number is 1
-								ra.setPosition(x, 0);
-								ra.setPosition(y, 1);	
-								if((((UnsignedByteType) ra.get()).get() > 0) ){
-									number_of_points++; // total number of points 	
-									// scroll through sub-array 
-									for (int xx = x - radius + 1; xx < x + radius ; xx++) {
-										if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
-											for (int yy = y - radius + 1; yy < y + radius; yy++) {
-												if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-													if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
-														ra.setPosition(xx, 0);
-														ra.setPosition(yy, 1);	
-														sample = ((UnsignedByteType) ra.get()).get();
-														if((sample > 0) ){
-															if (colorModelType.equals("Binary")) count = count + 1;
-															if (colorModelType.equals("Grey"))   count = count + sample;
-														}
-													}//<= radius	
-												 }
-											}//yy
-										}
-									}//XX
-								}
-							}
-						} //y	
-					} //x  
-					// calculate the average number of neighboring points within distance "radius":  
-					//number of neighbors = counts-total_number_of_points for correlation dimension
-					//mass = counts for mass radius dimension
-					//average number of neighbors = number of neighbors / total_number_of_points
-					totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
-					//totals[n]=(double)(count)/number_of_points; //for MR dimension 	
-					//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
-					// set counts equal to zero
-					count=0;	
-					number_of_points=0;
-				} //n Box sizes		
-			}
-		} //
-			
+			//single pixel box
+			totals[0] = Double.NaN; //new in ComsystanJ
+
+			int boxSize = (int) Math.pow(2, 0);		
+			int delta = 0;
+		
+			for (int n = 1; n < numBoxes; n++) { //2^1  to 2^numBoxes	
+				boxSize = (int) Math.pow(2, n);	
+				if      (scanningType.equals("Raster box"))  delta = boxSize;
+				else if (scanningType.equals("Sliding box")) delta = 1;
+				for (int x =0; x <= (width-boxSize); x=x+delta){
+					for (int y =0;  y<= (height-boxSize); y=y+delta){
+						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+						greyMax = 0.0;
+						greyMin = Double.MAX_VALUE;
+						greyValue = Double.NaN;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos);
+							greyValue =((UnsignedByteType) cursor.get()).get();
+							if (greyValue > greyMax) greyMax = greyValue;
+							if (greyValue < greyMin) greyMin = greyValue;			
+						}//while Box
+						depthZ = boxSize * 255/((width + height) / 2.0); // epsilonZ/255 = epsilon/imageSize
+						double diff = greyMax-greyMin;  //only these three lines are different from DBC
+						diff = Math.ceil(diff/depthZ);
+						totals[n] = totals[n] + diff;
+					} //y	
+				} //x		                                           
+			}//n
+		}
+		
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
 		double[] lnTotals = new double[numBoxes];
 		double[] lnEps    = new double[numBoxes];
-		
-		for (int n = 0; n < numBoxes; n++) {
+	
+		for (int n = 0; n < numBoxes; n++) {				
 			if (totals[n] == 0) {
 				lnTotals[n] = Math.log(Double.MIN_VALUE);
 			} else if (Double.isNaN(totals[n])) {
 				lnTotals[n] = Double.NaN;
 			} else {
-				lnTotals[n] = Math.log(totals[n]); 
+				lnTotals[n] = Math.log(totals[n]);
 			}
 			lnEps[n] = Math.log(eps[n]);
 			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
@@ -1099,22 +1049,11 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 	
 		if (optShowPlot) {			
 			String preName = "";
-			String axisNameX = "";
-			String axisNameY = "";
 			if (numSlices > 1) {
 				preName = "Slice-"+String.format("%03d", plane) +"-";
 			}
-			if (scanningType.equals("Sliding disc")) {
-				axisNameX = "ln(Radius)";
-				axisNameY = "ln(Count)";
-			}
-			else if (scanningType.equals("Raster box")) {
-				axisNameX = "ln(Box width)";
-				axisNameY = "ln(Count^2)";
-			}
-			
-			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Correlation dimension", 
-					preName + datasetName, axisNameX, axisNameY, "",
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Box counting dimension", 
+					preName + datasetName, "ln(Box width)", "ln(Count)", "",
 					numRegStart, numRegEnd);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
@@ -1127,9 +1066,9 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		//Compute result values
 		resultValues = regressionParams;
 		double dim = Double.NaN;
-		dim = regressionParams[1]; //dim = slope
-		resultValues[1] = dim; 
-		logService.info(this.getClass().getName() + " Correlation dimension: " + dim);
+		dim = - regressionParams[1]; //dim = -slope
+		resultValues[1] = dim;
+		logService.info(this.getClass().getName() + " Box counting dimension: " + dim);
 		
 		epsRegStartEnd[0] = eps[numRegStart-1];
 		epsRegStartEnd[1] = eps[numRegEnd-1];
@@ -1137,7 +1076,7 @@ public class Csaj2DFracDimCorrelationCommand<T extends RealType<T>> extends Cont
 		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
 		//Output
 		//uiService.show(TABLE_OUT_NAME, table);
-	    ////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
 		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
 	}

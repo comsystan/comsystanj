@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DOpenerCommand.java
+ * File: Csaj2DOpenerCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -81,7 +81,7 @@ import javax.swing.UIManager;
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
 
-public class Csaj2DOpenerCommand<T extends RealType<T>> extends ContextCommand {
+public class Csaj2DOpenerCmd<T extends RealType<T>> extends ContextCommand {
 	
 	private static final String PLUGIN_LABEL = "<html><b>Opens single or multiple images</b></html>";
 	private static final String SPACE_LABEL  = "";

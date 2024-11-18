@@ -582,7 +582,7 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DGeneralisedEntropiesCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DGeneralisedEntropiesCmd.class, false,
 														"datasetIn",                        datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					    processAll, //true for all
 														
@@ -617,7 +617,7 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DGeneralisedEntropiesCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DGeneralisedEntropiesCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

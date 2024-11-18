@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DImageGeneratorCommandUI.java
+ * File: Csaj2DOpenerCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -27,10 +27,15 @@
  */
 package at.csa.csaj.plugin2d.misc;
 
+
 import java.lang.invoke.MethodHandles;
-import javax.swing.SwingUtilities;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import javax.swing.UIManager;
 import org.scijava.ItemIO;
+import org.scijava.command.CommandModule;
+import org.scijava.command.CommandService;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.log.LogService;
@@ -38,30 +43,34 @@ import org.scijava.menu.MenuConstants;
 import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-
+import org.scijava.ui.UIService;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
-		label = "2D image generator",
+		label = "2D image opener",
+		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
-		@Menu(label = "2D image generator(New Dialog)", weight = 20)})
+		@Menu(label = "2D image opener(NewDialog)", weight = 10)})
 
-public class Csaj2DImageGeneratorCommandUI extends ContextCommand implements Previewable{
+public class Csaj2DOpenerCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
-	LogService logService;
+	private LogService logService;
 	
-  	@Parameter(type = ItemIO.OUTPUT)
-  	private Dataset datasetOut;
-
-	private Csaj2DImageGeneratorDialog dialog = null;
+	@Parameter
+	private CommandService commandService;	
 	
-
+	@Parameter
+    private UIService uiService;
+	
+	@Parameter (label = "Image(s)",type = ItemIO.OUTPUT) //so that it can be displayed
+	private Dataset datasetOut;
+	
 	@Override //Interface Previewable
 	public void preview() { 
 
@@ -78,14 +87,19 @@ public class Csaj2DImageGeneratorCommandUI extends ContextCommand implements Pre
 	@Override
 	public void run() {
 		
-		SwingUtilities.invokeLater(() -> {
-			if (dialog == null) {
-				dialog = new Csaj2DImageGeneratorDialog(context());
-			}
-			dialog.setVisible(true);
-			dialog.btnGenerate.requestFocusInWindow();
-		});
-		
+		Future<CommandModule> future = commandService.run(Csaj2DOpenerCmd.class, false);
+		CommandModule commandModule = null;
+		try {
+			commandModule = future.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Dataset datasetOut = (Dataset)commandModule.getOutput("datasetOut");	
+		uiService.show(datasetOut);
 	}
 	
 	/** The main method enables standalone testing of the command. */
@@ -95,17 +109,25 @@ public class Csaj2DImageGeneratorCommandUI extends ContextCommand implements Pre
 		} catch(Throwable t) {
 		
 		}
-		
-		// create the ImageJ application context with all available services
-		final ImageJ ij = new ImageJ();
-
-		// display the user interface
-		ij.ui().showUI();
-
-		// open and display an image
-		//final File imageFile = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE);
-		//final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
-		//ij.ui().show(image);
-		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
+//        // create the ImageJ application context with all available services
+        final ImageJ ij = new ImageJ();
+        ij.ui().showUI();
+//
+//        // ask the user for a file to open
+//        final File file = ij.ui().chooseFile(null, "open");
+//
+//        if (file != null) {
+//            // load the dataset
+//            final Dataset dataset = ij.scifio().datasetIO().open(file.getPath());
+//
+//            // show the image
+//            ij.ui().show(dataset);
+//
+//            // invoke the plugin
+//            ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
+//        }
+//       
+         //invoke the plugin
+         ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }
