@@ -265,30 +265,9 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 	private Button buttonProcessAllImages;
 
 	// ---------------------------------------------------------------------
-
 	// The following initializer functions set initial value
 	protected void initialPluginLaunch() {
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			width  =       			(long)datasetInInfo.get("width");
-			height =       			(long)datasetInInfo.get("height");
-			numDimensions =         (int)datasetInInfo.get("numDimensions");
-			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-			numSlices =             (long)datasetInInfo.get("numSlices");
-			imageType =   			(String)datasetInInfo.get("imageType");
-			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-//			//RGB not allowed
-//			if (!imageType.equals("Grey")) { 
-//				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-//				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-//			}
-		}
+		checkItemIOIn();
 	}
 	protected void initialFilterType() {
 		choiceRadioButt_FilterType = "Gaussian blur";
@@ -445,6 +424,14 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
+	public void checkItemIOIn() {
 		//Get input meta data
 		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
 		if (datasetInInfo == null) {
@@ -458,18 +445,14 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			numSlices =             (long)datasetInInfo.get("numSlices");
 			imageType =   			(String)datasetInInfo.get("imageType");
 			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
 //			//RGB not allowed
 //			if (!imageType.equals("Grey")) { 
-//				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+//				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
 //				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-//			} 
+//			}
 		}
-
-		if (processAll) startWorkflowForAllImages();
-		else            startWorkflowForSingleImage();
-	
-		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	/**

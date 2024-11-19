@@ -265,7 +265,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimMinkowskiCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimMinkowskiCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
 													
@@ -294,7 +294,7 @@ public class Csaj2DFracDimMinkowskiDialog extends CsajDialog_2DPluginWithRegress
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimMinkowskiCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimMinkowskiCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

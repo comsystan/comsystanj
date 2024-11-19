@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimFFTCommand.java
+ * File: Csaj2DFracDimFFTCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -110,7 +110,7 @@ import edu.emory.mathcs.jtransforms.fft.FloatFFT_2D;
 	    iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 	    menu = {})
 
-public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 	
 	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with FFT</b></html>";
 	private static final String SPACE_LABEL             = "";
@@ -308,31 +308,11 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
 	private Button buttonProcessAllImages;
 
     //---------------------------------------------------------------------
- 
     //The following initializer functions set initial values	
 	protected void initialPluginLaunch() {
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			width  =       			(long)datasetInInfo.get("width");
-			height =       			(long)datasetInInfo.get("height");
-			numDimensions =         (int)datasetInInfo.get("numDimensions");
-			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-			numSlices =             (long)datasetInInfo.get("numSlices");
-			imageType =   			(String)datasetInInfo.get("imageType");
-			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			}
-		}
+		checkItemIOIn();
 	}
+	
     protected void initialMaxK() {
     	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image = null");
@@ -559,6 +539,14 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
+	public void checkItemIOIn() {
 		//Get input meta data
 		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
 		if (datasetInInfo == null) {
@@ -572,18 +560,14 @@ public class Csaj2DFracDimFFTCommand<T extends RealType<T>> extends ContextComma
 			numSlices =             (long)datasetInInfo.get("numSlices");
 			imageType =   			(String)datasetInInfo.get("imageType");
 			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
 			//RGB not allowed
 			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
 				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			} 
+			}
 		}
-
-		if (processAll) startWorkflowForAllImages();
-		else            startWorkflowForSingleImage();
-	
-		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	/**

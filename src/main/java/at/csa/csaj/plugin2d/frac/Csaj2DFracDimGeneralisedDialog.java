@@ -422,7 +422,7 @@ public class Csaj2DFracDimGeneralisedDialog extends CsajDialog_2DPluginWithRegre
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of boxes");
-		int numEpsMax = Csaj2DFracDimGeneralisedCommand.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+		int numEpsMax = Csaj2DFracDimGeneralisedCmd.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -440,7 +440,7 @@ public class Csaj2DFracDimGeneralisedDialog extends CsajDialog_2DPluginWithRegre
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimGeneralisedCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimGeneralisedCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
 														"choiceRadioButt_ScanningType",   choiceRadioButt_ScanningType,
@@ -471,7 +471,7 @@ public class Csaj2DFracDimGeneralisedDialog extends CsajDialog_2DPluginWithRegre
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimGeneralisedCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimGeneralisedCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

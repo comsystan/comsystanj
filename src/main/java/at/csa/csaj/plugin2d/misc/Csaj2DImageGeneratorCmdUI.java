@@ -76,16 +76,14 @@ public class Csaj2DImageGeneratorCmdUI extends ContextCommand implements Preview
 	 * Show the GUI dialog
 	 */
 	@Override
-	public void run() {
-		
+	public void run() {	
 		SwingUtilities.invokeLater(() -> {
 			if (dialog == null) {
 				dialog = new Csaj2DImageGeneratorDialog(context());
 			}
 			dialog.setVisible(true);
 			dialog.btnGenerate.requestFocusInWindow();
-		});
-		
+		});	
 	}
 	
 	/** The main method enables standalone testing of the command. */

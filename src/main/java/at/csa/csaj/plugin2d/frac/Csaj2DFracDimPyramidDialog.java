@@ -144,7 +144,7 @@ public class Csaj2DFracDimPyramidDialog extends CsajDialog_2DPluginWithRegressio
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of pyramid images");
-		int numEpsMax = Csaj2DFracDimPyramidCommand.getMaxPyramidNumber((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+		int numEpsMax = Csaj2DFracDimPyramidCmd.getMaxPyramidNumber((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -162,7 +162,7 @@ public class Csaj2DFracDimPyramidDialog extends CsajDialog_2DPluginWithRegressio
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimPyramidCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimPyramidCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
 					
@@ -188,7 +188,7 @@ public class Csaj2DFracDimPyramidDialog extends CsajDialog_2DPluginWithRegressio
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimPyramidCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimPyramidCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

@@ -358,7 +358,7 @@ public class Csaj2DLacunarityDialog extends CsajDialog_2DPluginWithRegression {
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of boxes");
-		int numEpsMax = Csaj2DLacunarityCommand.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+		int numEpsMax = Csaj2DLacunarityCmd.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -384,7 +384,7 @@ public class Csaj2DLacunarityDialog extends CsajDialog_2DPluginWithRegression {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DLacunarityCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DLacunarityCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
 												
@@ -414,7 +414,7 @@ public class Csaj2DLacunarityDialog extends CsajDialog_2DPluginWithRegression {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DLacunarityCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DLacunarityCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

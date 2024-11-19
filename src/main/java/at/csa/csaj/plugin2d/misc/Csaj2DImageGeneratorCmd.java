@@ -352,9 +352,7 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
 	@Parameter(label = "Process", callback = "callbackProcess")
 	private Button buttonProcess;
   
-    //---------------------------------------------------------------------
-    
-    
+    //---------------------------------------------------------------------  
     //The following initializer functions set initial values	
     protected void initialWidth() {
     	spinnerInteger_Width = 512;

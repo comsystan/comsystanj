@@ -142,7 +142,7 @@ public class CsajDialog_2DPlugin extends CsajDialog_PluginFrame {
 		getContentPane().add(panelInput, BorderLayout.NORTH);
 		
 		labelInput = new JLabel(datasetName);
-		labelInput.setToolTipText("Name of input image");
+		labelInput.setToolTipText("Name of input image(s)");
 		labelInput.setHorizontalAlignment(JLabel.RIGHT);
 		labelInput.setToolTipText(datasetName);
 		gbc.gridx = 0;

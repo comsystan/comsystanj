@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimMinkowskiCommand.java
+ * File: Csaj2DFracDimMassRadiusCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,6 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-
 package at.csa.csaj.plugin2d.frac;
 
 import java.awt.Frame;
@@ -36,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,20 +49,12 @@ import net.imagej.ImageJ;
 import net.imagej.Position;
 import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
-import net.imagej.display.DefaultImageDisplayService;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
-import net.imglib2.FinalInterval;
-import net.imglib2.Interval;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.morphology.Dilation;
-import net.imglib2.algorithm.morphology.Erosion;
-import net.imglib2.algorithm.morphology.StructuringElements;
-import net.imglib2.algorithm.neighborhood.HorizontalLineShape;
-import net.imglib2.algorithm.neighborhood.Shape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.Type;
@@ -78,6 +70,8 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
+import org.scijava.menu.MenuConstants;
+import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -85,53 +79,49 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
+import org.scijava.ui.DialogPrompt.MessageType;
+import org.scijava.ui.DialogPrompt.OptionType;
+import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
+
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajRegression_Linear;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
+import io.scif.DefaultImageMetadata;
+import io.scif.MetaTable;
 
 /**
  * A {@link ContextCommand} plugin computing
- * <the fractal Minkowski dimension </a>
+ * <a>the fractal mass radius dimension </a>
  * of an image.
  */
 @Plugin(type = ContextCommand.class, 
         headless = true,
-        label = "Minkowski dimension",
+        label = "Mass radius dimension",
         initializer = "initialPluginLaunch",
         iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
         menu = {})
 
-public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj2DFracDimMassRadiusCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal Minkowski dimension</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes mass radius dimension</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
-	private static final String MORPHOLOGYOPTIONS_LABEL = "<html><b>Morphology options</b></html>";
+	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
-	private static Img<FloatType> imgU;
-	private static Img<FloatType> imgB; 
-	private static Img<FloatType> imgUplusOne;
-	private static Img<FloatType> imgBminusOne; 
-	private static Img<FloatType> imgUDil;
-	private static Img<FloatType> imgBErode;
-	private static Img<FloatType> imgV;
-	private static Img<UnsignedByteType>imgUnsignedByte;
-	private static RandomAccess<FloatType> raF1;
-	private static RandomAccess<FloatType> raF2;
-	private static RandomAccessibleInterval<FloatType> raiF;	
-	private static Cursor<UnsignedByteType> cursorUBT = null;
-	private static Cursor<FloatType> cursorF = null;
+	private static RandomAccessibleInterval<?> raiBox;
+	private static RandomAccess<?> ra;
+	private static Cursor<?> cursor = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
 	private static long width  = 0;
@@ -140,9 +130,10 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 	private static long numSlices = 0;
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
+	private static int  numDiscs = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Minkowski dimension";
+	public static final String TABLE_OUT_NAME = "Table - Mass radius dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -167,9 +158,6 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 	
 	@Parameter
 	private ImageDisplayService imageDisplayService;
-	
-	@Parameter
-	private DefaultImageDisplayService defaultImageDisplayService;
 	
 	//This parameter does not work in an InteractiveCommand plugin (duplicate displayService error during startup) pom-scijava 24.0.0
 	//in Command Plugin no problem
@@ -202,16 +190,16 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "Number of dilations",
-    		   description = "Number of dilations to increase object size",
+    @Parameter(label = "Number of discs",
+    		   description = "Number of distinct discs with radii following the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
 	           persist = false,  //restore previous value default = true
-	           initializer = "initialNumDilations",
-	           callback    = "callbackNumDilations")
-    private int spinnerInteger_NumDilations;
+	           initializer = "initialNumDiscs",
+	           callback    = "callbackNumDiscs")
+    private int spinnerInteger_NumDiscs;
     
     @Parameter(label = "Regression Start",
     		   description = "Minimum x value of linear regression",
@@ -237,25 +225,36 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
     
 	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-     private final String labelMethodOptions = MORPHOLOGYOPTIONS_LABEL;
+     private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Kernel shape type",
-  		    	description = "Shape of morphological structuring element",
-  		    	style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		    choices = {"Square", "Disk", "Diamond", "Horizontal", "Vertical"},
+     @Parameter(label = "Scanning type",
+ 		    description = "Discs over center of mass or discs over several object pixels",
+ 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+   		    choices = {"Disc over center of mass", "Sliding disc"}, 
+   		    persist = true,  //restore previous value default = true
+ 		    initializer = "initialScanningType",
+             callback = "callbackScanningType")
+     private String choiceRadioButt_ScanningType;
+     
+     @Parameter(label = "Color model",
+  		    description = "Type of image and computation",
+  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+    		    choices = {"Binary", "Grey"},
     		    persist = true,  //restore previous value default = true
-    		    initializer = "initialShapeType",
-    		    callback = "callbackShapeType")
-      private String choiceRadioButt_ShapeType;
+  		    initializer = "initialColorModelType",
+              callback = "callbackColorModelType")
+     private String choiceRadioButt_ColorModelType;
      
-     @Parameter(label = "Morphological operator",
-    		 	description = "Type of image and according morphological operation",
-    		 	style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		 	choices = {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"},
-    		 	persist = true,  //restore previous value default = true
-    		 	initializer = "initialMorphologicalOperator",
-    		 	callback = "callbackMorphologicalOperator")
-     private String choiceRadioButt_MorphologicalOperator;
+     @Parameter(label = "(Sliding disc) Pixel %",
+  		   description = "% of object pixels to be taken - to lower computation times",
+	       	   style = NumberWidget.SPINNER_STYLE,
+	           min = "1",
+	           max = "100",
+	           stepSize = "1",
+	           //persist = false,  //restore previous value default = true
+	           initializer = "initialPixelPercentage",
+	           callback    = "callbackPixelPercentage")
+     private int spinnerInteger_PixelPercentage;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -265,39 +264,34 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
     		    persist = true,  //restore previous value default = true
   		        initializer = "initialShowDoubleLogPlots")
 	 private boolean booleanShowDoubleLogPlot;
-     
-     @Parameter(label = "Show last dilated/eroded image",
- 		    	persist = true,  //restore previous value default = true
-		        initializer = "initialShowLastMorphImg")
-	 private boolean booleanShowLastMorphImg;
-         
+       
      @Parameter(label = "Overwrite result display(s)",
-    		    description = "Overwrite already existing result images, plots or tables",
-    		    persist = true,  //restore previous value default = true
-		        initializer = "initialOverwriteDisplays")
-	 private boolean booleanOverwriteDisplays;
+    	    	description = "Overwrite already existing result images, plots or tables",
+    	    	persist = true,  //restore previous value default = true
+    			initializer = "initialOverwriteDisplays")
+     private boolean booleanOverwriteDisplays;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
      @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
-    		  description = "Immediate processing of active image when a parameter is changed",
-		      callback = "callbackProcessImmediately")
-	 private boolean booleanProcessImmediately;
+    	    	description = "Immediate processing of active image when a parameter is changed",
+    			callback = "callbackProcessImmediately")
+     private boolean booleanProcessImmediately;
      
  	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
- 	
+	
 	@Parameter(label = "Process all images",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")
 	private boolean processAll;
-	
+ 	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
 	
@@ -309,73 +303,75 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 	private Button buttonProcessAllImages;
 
     //---------------------------------------------------------------------
- 
-    //The following initializer functions set initial values	
+    //The following initializer functions set initial values
 	protected void initialPluginLaunch() {
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			width  =       			(long)datasetInInfo.get("width");
-			height =       			(long)datasetInInfo.get("height");
-			numDimensions =         (int)datasetInInfo.get("numDimensions");
-			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-			numSlices =             (long)datasetInInfo.get("numSlices");
-			imageType =   			(String)datasetInInfo.get("imageType");
-			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			}
-		}
+		checkItemIOIn();
 	}
-    protected void initialNumDilations() {
-      	spinnerInteger_NumDilations = 20;
+    protected void initialNumDiscs() {
+    	if (datasetIn == null) {
+    		logService.error(this.getClass().getName() + " ERROR: Input image = null");
+    		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
+    		return;
+    	} else {
+    		numDiscs = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    	}   	
+      	spinnerInteger_NumDiscs = numDiscs;
     }
     protected void initialNumRegStart() {
     	spinnerInteger_NumRegStart = 1;
     }
     protected void initialNumRegEnd() {
-    	spinnerInteger_NumRegEnd =  20;
+    	if (datasetIn == null) {
+    		logService.error(this.getClass().getName() + " ERROR: Input image = null");
+    		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
+    		return;
+    	} else {
+    		numDiscs = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    	}
+    	spinnerInteger_NumRegEnd =  numDiscs;
     }
-    protected void initialShapeType() {
-    	choiceRadioButt_ShapeType = "Square";
+    protected void initialScanningType() {
+    	choiceRadioButt_ScanningType = "Sliding disc";
     }
-    protected void initialMorphologicalOperator() {
-    	choiceRadioButt_MorphologicalOperator = "Binary dilation";
+    protected void initialColorModelType() {
+    	choiceRadioButt_ColorModelType = "Binary";
+    } 
+    protected void initialPixelPercentage() {
+      	spinnerInteger_PixelPercentage = 10;
     }
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
-    protected void initialShowLastMorphImg() {
-    	booleanShowLastMorphImg = true;
-    }
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
+    
 	protected void initialNumImageSlice() {
     	spinnerInteger_NumImageSlice = 1;
 	}
-    
-	// ------------------------------------------------------------------------------	
-	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
-	protected void callbackNumDilations() {
+	
+  
+	// ------------------------------------------------------------------------------
+	
+	/** Executed whenever the {@link #spinnerInteger_NumDiscs} parameter changes. */
+	protected void callbackNumDiscs() {
 		
-		if  (spinnerInteger_NumDilations < 3) {
-			spinnerInteger_NumDilations = 3;
+		if  (spinnerInteger_NumDiscs < 3) {
+			spinnerInteger_NumDiscs = 3;
 		}
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumDilations) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumDilations;
+		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
+		if (spinnerInteger_NumDiscs > numMaxBoxes) {
+			spinnerInteger_NumDiscs = numMaxBoxes;
+		};
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumDiscs) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumDiscs;
 		}
 		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
 			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
 		}
-		logService.info(this.getClass().getName() + " Number of dilations set to " + spinnerInteger_NumDilations);
+
+		numDiscs = spinnerInteger_NumDiscs;
+		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumDiscs);
 	}
     /** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
 	protected void callbackNumRegStart() {
@@ -392,23 +388,27 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
 			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
 		}		
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumDilations) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumDilations;
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumDiscs) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumDiscs;
 		}
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
 	}
-
-	/** Executed whenever the {@link #choiceRadioButt_ShapeType} parameter changes. */
-	protected void callbackShapeType() {
-		logService.info(this.getClass().getName() + " Shape type set to " + choiceRadioButt_ShapeType);
+	
+	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
+	protected void callbackScanningType() {
+		logService.info(this.getClass().getName() + " Scanning method set to " + choiceRadioButt_ScanningType);
 		
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_MorphologicalOperator} parameter changes. */
-	protected void callbackMorphologicalOperator() {
-		logService.info(this.getClass().getName() + " Morphological operator set to " + choiceRadioButt_MorphologicalOperator);
-		
+	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
+	protected void callbackColorModelType() {
+		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
+	}
+	
+	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
+	protected void callbackPixelPercentage() {
+		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
 	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -424,7 +424,7 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		}
 		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
 	}
-	
+
 	/**
 	 * Executed whenever the {@link #buttonProcessSingleImage} button is pressed.
 	 * It is not executed in the same exact manner such as run()
@@ -518,6 +518,14 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
+	public void checkItemIOIn() {
 		//Get input meta data
 		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
 		if (datasetInInfo == null) {
@@ -531,63 +539,58 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 			numSlices =             (long)datasetInInfo.get("numSlices");
 			imageType =   			(String)datasetInInfo.get("imageType");
 			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
 			//RGB not allowed
 			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
 				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			} 
+			}
 		}
-
-		if (processAll) startWorkflowForAllImages();
-		else            startWorkflowForSingleImage();
-	
-		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	/**
 	* This method starts the workflow for a single image of the active display
 	*/
 	protected void startWorkflowForSingleImage() {
-				
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Minkowski dimensions, please wait... Open console window for further info.",
+			
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Mass radius dimensions, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
 		dlgProgress.setVisible(true);
- 
-    	deleteExistingDisplays();
-    	generateTableHeader();
-    	int sliceIndex = spinnerInteger_NumImageSlice - 1;
-    	 logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-		processSingleInputImage(sliceIndex);
-	
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();          
-	}
-	
-	
-	/**
-	* This method starts the workflow for all images of the active display
-	*/
-	protected void startWorkflowForAllImages() {
-	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Minkowski dimensions, please wait... Open console window for further info.",
-					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-		
-    	logService.info(this.getClass().getName() + " Processing all available images");
+	 
 		deleteExistingDisplays();
 		generateTableHeader();
-		processAllInputImages();
+		int sliceIndex = spinnerInteger_NumImageSlice - 1;
+		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		processSingleInputImage(sliceIndex);
 		
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
-}
+	}
+	
+	/**
+	* This method starts the workflow for all images of the active display
+	*/
+	protected void startWorkflowForAllImages() {
+		
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Mass radius dimensions, please wait... Open console window for further info.",
+					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+		dlgProgress.setVisible(true);
+	
+    	logService.info(this.getClass().getName() + " Processing all available images");
+		deleteExistingDisplays();
+		generateTableHeader();
+		processAllInputImages();
+	
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
 	
 	/**
 	 * This methods gets the index of the active image in a stack
@@ -621,43 +624,36 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 	/** This method deletes already open displays*/
 	private void deleteExistingDisplays() {
 		
+		boolean optDeleteExistingImgs   = false;
 		boolean optDeleteExistingPlots  = false;
 		boolean optDeleteExistingTables = false;
-		boolean optDeleteExistingImgs   = false;
 		if (booleanOverwriteDisplays) {
+			optDeleteExistingImgs   = true;
 			optDeleteExistingPlots  = true;
 			optDeleteExistingTables = true;
-			optDeleteExistingImgs   = true;
 		}
 		
-		if (optDeleteExistingImgs){
-//			List<Display<?>> list = defaultDisplayService.getDisplays();
-//			for (int i = 0; i < list.size(); i++) {
-//				display = list.get(i);
-//				System.out.println("display name: " + display.getName());
-//				if (display.getName().contains("Last dilated image")) display.close(); //does not close correctly in Fiji, it is only not available any more
-//				if (display.getName().contains("Last eroded image"))  display.close();
-//			}			
-//			List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
-		
-			Frame frame;
-			Frame[] listFrames = JFrame.getFrames();
-			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
-				frame = listFrames[i];
-				System.out.println("display name: " + frame.getTitle());
-				if (frame.getTitle().contains("Last dilated image")) {
-					frame.setVisible(false); //Successfully closes also in Fiji
-					frame.dispose();
-				}
-				if (frame.getTitle().contains("Last eroded image")) {
-					frame.setVisible(false); //Successfully closes also in Fiji
-					frame.dispose();
-				}
-			}
+		if (optDeleteExistingImgs) {
+//			//List<Display<?>> list = defaultDisplayService.getDisplays();
+//			//for (int i = 0; i < list.size(); i++) {
+//			//	display = list.get(i);
+//			//	System.out.println("display name: " + display.getName());
+//			//	if (display.getName().contains("Name")) display.close(); //does not close correctly in Fiji, it is only not available any more
+//			//}			
+//			//List<ImageDisplay> listImgs = defaultImageDisplayService.getImageDisplays(); //Is also not closed in Fiji 
+//		
+//			Frame frame;
+//			Frame[] listFrames = JFrame.getFrames();
+//			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+//				frame = listFrames[i];
+//				//System.out.println("frame name: " + frame.getTitle());
+//				if (frame.getTitle().contains("Name")) {
+//					frame.setVisible(false); //Successfully closes also in Fiji
+//					frame.dispose();
+//				}
+//			}
 		}
-		
-		Display<?> display;
-		if (optDeleteExistingPlots){
+		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
 			if (doubleLogPlotList != null) {
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
@@ -668,11 +664,12 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 				doubleLogPlotList.clear();		
 			}
 		}
-		if (optDeleteExistingTables){
+		if (optDeleteExistingTables) {
+			Display<?> display;
 			List<Display<?>> list = defaultDisplayService.getDisplays();
 			for (int i = 0; i < list.size(); i++) {
 				display = list.get(i);
-				System.out.println("display name: " + display.getName());
+				//System.out.println("display name: " + display.getName());
 				if (display.getName().contains(TABLE_OUT_NAME)) display.close();
 			}			
 		}
@@ -711,8 +708,8 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		//Compute regression parameters
 		CsajContainer_ProcessMethod containerPM = process(rai, s);	
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		
-		writeToTable(0, s, containerPM); //write always to the first row
+
+		writeToTable(0, s, containerPM);
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
@@ -741,14 +738,14 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
-		
+	
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
 
 		CsajContainer_ProcessMethod containerPM;
 		//loop over all slices of stack
-		for (int s = 0; s < numSlices; s++) { //p...planes of an image stack
+		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
 			//if (!exec.isShutdown()) {
 				int percent = (int)Math.round((  ((float)s)/((float)numSlices)   *100.f   ));
 				dlgProgress.updatePercent(String.valueOf(percent+"%"));
@@ -817,65 +814,67 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
-		IntColumn columnMaxNumBoxes        = new IntColumn("# Dilations");
+		IntColumn columnMaxNumDiscs        = new IntColumn("# Discs");
 		GenericColumn columnNumRegStart    = new GenericColumn("Reg Start");
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
-		GenericColumn columnShapeType      = new GenericColumn("Shape type");
-		GenericColumn columnMorphOp        = new GenericColumn("Morphological operator");
-		DoubleColumn columnDm              = new DoubleColumn("Dm");
+		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
+		GenericColumn columnColorModelType = new GenericColumn("Color model");
+		IntColumn columnPixelPercentage    = new IntColumn("(Sliding disc) Pixel %");
+		DoubleColumn columnDc              = new DoubleColumn("Dmass");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 		
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnSliceName);
-		tableOut.add(columnMaxNumBoxes);
+		tableOut.add(columnMaxNumDiscs);
 		tableOut.add(columnNumRegStart);
 		tableOut.add(columnNumRegEnd);
-		tableOut.add(columnShapeType);
-		tableOut.add(columnMorphOp);
-		tableOut.add(columnDm);
+		tableOut.add(columnScanningType);
+		tableOut.add(columnColorModelType);
+		tableOut.add(columnPixelPercentage);
+		tableOut.add(columnDc);
 		tableOut.add(columnR2);
 		tableOut.add(columnStdErr);
 	}
 	
-	/**
-	 * collects current result and writes to table
-	 * 
-	 * @param int numRow to write in the result table
-	 * @param int numSlice sclice number of images from datasetIn.
-	 * @param CsajContainer_ProcessMethod containerPM
-	 */
-	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) { 
-	
-		int numRegStart      = spinnerInteger_NumRegStart;
-		int numRegEnd        = spinnerInteger_NumRegEnd;
-		int numDilations     = spinnerInteger_NumDilations;
-		String shapeType     = choiceRadioButt_ShapeType; 
-		String morphOp       = choiceRadioButt_MorphologicalOperator;	
+		/**
+		 * collects current result and writes to table
+		 * 
+		 * @param int numRow to write in the result table
+		 * @param int numSlice sclice number of images from datasetIn.
+		 * @param CsajContainer_ProcessMethod containerPM
+		 */
+		private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) { 
+		
+		int numDiscs           = spinnerInteger_NumDiscs;
+		int numRegStart        = spinnerInteger_NumRegStart;
+		int numRegEnd          = spinnerInteger_NumRegEnd;
+		int pixelPercentage    = spinnerInteger_PixelPercentage;
+		String scanningType    = choiceRadioButt_ScanningType;
+		String colorModelType  = choiceRadioButt_ColorModelType;	
 		
 		int row = numRow;
 	    int s = numSlice;	
 		//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 		//fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",   	 row, datasetName);	
-		if (sliceLabels != null) 	     tableOut.set("Slice name", row, sliceLabels[s]);
-		tableOut.set("# Dilations",      row, numDilations);	
-		tableOut.set("Reg Start",        row, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-		tableOut.set("Reg End",      	 row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
-		tableOut.set("Shape type",       row, shapeType);	
-		tableOut.set("Morphological operator",   row, morphOp);	
-		tableOut.set("Dm",          	 row, containerPM.item1_Values[1]);
-		tableOut.set("R2",          	 row, containerPM.item1_Values[4]);
-		tableOut.set("StdErr",      	 row, containerPM.item1_Values[3]);		
+		tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
+		if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		tableOut.set("# Discs",    	     tableOut.getRowCount()-1, numDiscs);	
+		tableOut.set("Reg Start",        tableOut.getRowCount()-1, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
+		tableOut.set("Reg End",      	 tableOut.getRowCount()-1, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
+		tableOut.set("Scanning type",    tableOut.getRowCount()-1, scanningType);
+		tableOut.set("Color model",      tableOut.getRowCount()-1, colorModelType);
+		if (scanningType.equals("Sliding disc")) tableOut.set("(Sliding disc) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
+		tableOut.set("Dmass",          	 tableOut.getRowCount()-1, containerPM.item1_Values[1]);
+		tableOut.set("R2",          	 tableOut.getRowCount()-1, containerPM.item1_Values[4]);
+		tableOut.set("StdErr",      	 tableOut.getRowCount()-1, containerPM.item1_Values[3]);		
 	}
-								
+	
+							
 	/** 
 	 * Processing ****************************************************************************************
-	 * <li> Peleg S., Naor J., Hartley R., Avnir D. Multiple Resolution Texture Analysis and Classification, IEEE Trans Patt Anal Mach Intel Vol PAMI-6 No 4 1984, 518-523 !!!
-	 * <li> Y.Y. Tang, E.C.M. Lam, New method for feature extraction based on fractal behavior, Patt. Rec. 35 (2002) 1071-1081   Ref. zu Peleg etal.
-	 * <li> Dubuc B., Zucker S.W., Tricot C., Quiniou J.F., Wehbi D. Evaluating the fractal dimension of surfaces, Proc.R.Soc.Lond. A 425, 113-127, 1989 
 	 * */
 	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
 
@@ -883,13 +882,13 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		int numRegStart     = spinnerInteger_NumRegStart;
-		int numRegEnd       = spinnerInteger_NumRegEnd;
-		int numDilations    = spinnerInteger_NumDilations;
-		String shapeType    = choiceRadioButt_ShapeType; 
-		String MorphologicalType = choiceRadioButt_MorphologicalOperator;	 //binary  Blanket
-		boolean optShowPlot    = booleanShowDoubleLogPlot;
-		
+		int numRegStart            = spinnerInteger_NumRegStart;
+		int numRegEnd            = spinnerInteger_NumRegEnd;
+		int numDiscs          = spinnerInteger_NumDiscs;
+		String scanningType   = choiceRadioButt_ScanningType;	
+		String colorModelType = choiceRadioButt_ColorModelType;	
+		int pixelPercentage   = spinnerInteger_PixelPercentage;
+		boolean optShowPlot   = booleanShowDoubleLogPlot;
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		
@@ -904,286 +903,184 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		//RandomAccessibleInterval<T> rai = (RandomAccessibleInterval<T>)dataset.getImgPlus();
 		//IterableInterval ii = dataset.getImgPlus();
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
-		
-
-		double[] totals = new double[numDilations];
-		// double[] totalsMax = new double[numBands]; //for binary images
-		int[]      eps    = new int[numDilations];
+	
+		double[]totals     = new double[numDiscs];
+		//double[][] totalsMax  = new double[numDiscs][numBands]; //for binary images
+		int[] eps = new int[numDiscs];
 		
 		// definition of eps
-		for (int n = 0; n < numDilations; n++) {
-				eps[n] = n + 1;
-				//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);	
+		for (int n = 0; n < numDiscs; n++) {
+			eps[n] = (int)Math.round(Math.pow(2, n));
+			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);		
 		}		
-		
-		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
-		if (MorphologicalType.equals("Binary dilation")) {//{"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
-			//Minkowski
-			//n=0  2^0 = 1 ... single pixel
-			// Loop through all pixels.
-			//get count(area) and copy image 
-//			for (int b = 0; b < numBands; b++) {
-//				cursor = (Cursor<UnsignedByteType>) Views.iterable(rai).localizingCursor();	
-//				while (cursor.hasNext()) {
-//					cursor.fwd();
-//					//cursor.localize(pos);			
-//					if (((UnsignedByteType) cursor.get()).get() > 0) totals[0][b] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-//					//totals[n][b] = totals[n][b]; // / totalsMax[b];
-//				}
-//			}//b
-			imgUnsignedByte = createImgUnsignedByte(rai); //This copies the image, otherwise the original image would be dilated
-				
-			List<Shape> strel = new ArrayList<Shape>();  
-			if      (shapeType.equals("Square"))  strel = StructuringElements.square(1, 2); //3x3kernel, 2 dimensions
-			else if (shapeType.equals("Disk"))    strel = StructuringElements.disk(1, 2);
-			else if (shapeType.equals("Diamond")) strel = StructuringElements.diamond(1, 2);
-			else if (shapeType.equals("Horizontal")) strel.add(new HorizontalLineShape(1, 0, false)); //1,0 ..one step horizontal 1,1.. one step vertical
-			else if (shapeType.equals("Vertical"))   strel.add(new HorizontalLineShape(1, 1, false)); //1,0 ..one step horizontal 1,1.. one step vertical			
-
-			Runtime runtime  = Runtime.getRuntime();
-			long maxMemory   = runtime.maxMemory();
-			long totalMemory = runtime.totalMemory();
-			long freeMemory  = runtime.freeMemory();
-			int availableProcessors = runtime.availableProcessors();
-			//System.out.println("available processors: " + availableProcessors);
-			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
-			if (numThreads > availableProcessors) numThreads = availableProcessors;
-			long[] pos = new long[2];
-			long[] min = new long[] {0,0};
-			long[] max = new long[] {rai.dimension(0), rai.dimension(1)};
-			Interval interval = new FinalInterval(min, max);
-		
-			for (int n = 0; n < numDilations; n++) { //	
-				//Compute dilated image
-				Dilation.dilateInPlace(imgUnsignedByte, interval, strel, numThreads); //dilateds image
-				//uiService.show("Dilated image", imgUnsignedByte);
-				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUnsignedByte);
-				cursorUBT = imgUnsignedByte.localizingCursor();	
-				while (cursorUBT.hasNext()) {
-					cursorUBT.fwd();
-					//cursor.localize(pos);			
-					if (((UnsignedByteType) cursorUBT.get()).get() > 0) totals[n] += 1; // Binary Image: 0 and [1, 255]! and not: 0 and 255
-					//totals[n][b] = totals[n][b]; // / totalsMax[b];
-				}		                      
-			} //n	
-		}
-		//*******************************Grey Value Image
-		else if (MorphologicalType.equals("Blanket dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
-			imgFloat = createImgFloat(rai); //This copies the image, otherwise the original image would be dilated
-			imgU = imgFloat.copy();
-			imgB = imgFloat.copy();
-			imgUplusOne  = imgFloat.copy();
-			imgBminusOne = imgFloat.copy();
-			imgV = imgFloat.copy();
 	
+		if (scanningType.equals("Disc over center of mass")) {
+			//Fast - only over center of mass
+			ra = rai.randomAccess();
+			long number_of_points = 0; // total number of object points 
+			int radius;		
+			long count = 0;
+			int sample = 0;
 			
-			List<Shape> strel = new ArrayList<Shape>();  
-			if      (shapeType.equals("Square"))  strel = StructuringElements.square(1, 2); //3x3kernel, 2 dimensions
-			else if (shapeType.equals("Disk"))    strel = StructuringElements.disk(1, 2);
-			else if (shapeType.equals("Diamond")) strel = StructuringElements.diamond(1, 2);
-			else if (shapeType.equals("Horizontal")) strel.add(new HorizontalLineShape(1, 0, false)); //1,0 ..one step horizontal 1,1.. one step vertical
-			else if (shapeType.equals("Vertical"))   strel.add(new HorizontalLineShape(1, 1, false)); //1,0 ..one step horizontal 1,1.. one step vertical	
+			double[] com = this.computeCenterOfMass(rai);
+			int comX = (int) Math.round(com[0]);
+			int comY = (int) Math.round(com[1]);
 			
-			Runtime runtime  = Runtime.getRuntime();
-			long maxMemory   = runtime.maxMemory();
-			long totalMemory = runtime.totalMemory();
-			long freeMemory  = runtime.freeMemory();
-			int availableProcessors = runtime.availableProcessors();
-			//System.out.println("available processors: " + availableProcessors);
-			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
-			if (numThreads > availableProcessors) numThreads = availableProcessors;
-			long[] pos = new long[2];
-			float sample1;
-			float sample2;
-
-		
-			for (int n = 0; n < numDilations; n++) { //
-				
-				//Add plus one to imgU
-				cursorF = imgU.localizingCursor();
-				raF1 = imgUplusOne.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();	
-					cursorF.localize(pos);
-					raF1.setPosition(pos);
-					raF1.get().set(cursorF.get().get() + 1f); 
-				}			
-				//Dilated imgU
-				imgUDil = Dilation.dilate(imgU, strel, numThreads);
-				//uiService.show("Dilated image", imgUDil);
-				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUDil);
-				
-				//Get Max and overwrite imgU
-				cursorF = imgU.localizingCursor();
-				raF1 = imgUplusOne.randomAccess();
-				raF2 = imgUDil.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					raF1.setPosition(pos);
-					raF2.setPosition(pos);
-					sample1 = raF1.get().get();
-					sample2 = raF2.get().get();
-					if ((sample2 > sample1)) cursorF.get().set(sample2);
-					else cursorF.get().set(sample1);
-				}	
-				
-				//Subtract one to imgB
-				cursorF = imgB.localizingCursor();
-				raF1 = imgBminusOne.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();	
-					cursorF.localize(pos);
-					raF1.setPosition(pos);
-					raF1.get().set(cursorF.get().get() - 1f); 
-				}			
-				//Erode imgB
-				imgBErode = Erosion.erode(imgB, strel, numThreads);
-				//uiService.show("Eroded image", imgBErode);
-				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last eroded image", imgBErode);
-				
-				//Get Min and overwrite imgB
-				cursorF = imgB.localizingCursor();
-				raF1 = imgBminusOne.randomAccess();
-				raF2 = imgBErode.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					raF1.setPosition(pos);
-					raF2.setPosition(pos);
-					sample1 = raF1.get().get();
-					sample2 = raF2.get().get();
-					if ((sample2 < sample1)) cursorF.get().set(sample2);
-					else cursorF.get().set(sample1);
-				}	
-				
-				//Compute volume imgV
-				cursorF = imgV.localizingCursor();
-				raF1 = imgU.randomAccess();
-				raF2 = imgB.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					raF1.setPosition(pos);
-					raF2.setPosition(pos);
-					sample1 = raF1.get().get();
-					sample2 = raF2.get().get();
-					cursorF.get().set(sample1 - sample2);
-				}	
-				
-				//Get counts with imgV
-				cursorF = imgV.localizingCursor();
-				raF1 = imgU.randomAccess();
-				raF2 = imgB.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					totals[n] = totals[n] + cursorF.get().get(); //totalAreas
+			//get total number of object points
+			for (int x = 0; x < width; x++){
+				for (int y = 0; y < height; y++){	
+					ra.setPosition(x, 0);
+					ra.setPosition(y, 1);	
+					if(((UnsignedByteType) ra.get()).get() > 0) number_of_points++; // total number of points 	
 				}
+			}
 				
-				// for (int b = 0; b < numBands; b++) totalAreas[ee][b] =
-				// totalAreas[n][b] / (2* (n+1)); //Peleg et al.
-				// better is following according to Dubuc et al. equation 9
-				totals[n] = totals[n] / ((n+ 1) * (n + 1) * (n + 1)); // eq.9 Dubuc et.al.			                      
-			} //n
-		}
+			for (int n = 0; n < numDiscs; n++) { //2^0  to 2^numDiscs		
+				
+				radius = eps[n];								
+				// scroll through discs over center of mass
+				for (int xx = comX - radius + 1; xx < comX + radius ; xx++) {
+					if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
+						for (int yy = comY - radius + 1; yy < comY + radius; yy++) {
+							if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
+								//if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
+									ra.setPosition(xx, 0);
+									ra.setPosition(yy, 1);	
+									sample = ((UnsignedByteType) ra.get()).get();
+									if((sample > 0) ){
+										if (colorModelType.equals("Binary")) count = count + 1;
+										if (colorModelType.equals("Grey"))   count = count + sample;
+									}
+								//}//<= radius	
+							 }
+						}//yy
+					}
+				}//XX
+						
+				// calculate the average number of neighboring points within distance "radius":  
+				//number of neighbors = counts-total_number_of_points for correlation dimension
+				//mass = counts for mass radius dimension
+				//average number of neighbors = number of neighbors / total_number_of_points
+				// totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
+				totals[n]=(double)(count);///number_of_points; m(r) = M(r) = number of pixels inside r //for MR dimension 	
+				//totals[n]=(double)(count)/number_of_points; //Same result, just numbers are smaller	 m(r) = M(r)/M  M.. number of object pixels
+				//System.out.println("Counts:"+count+", total number of points:"+number_of_points);
+				// set counts equal to zero
+				count=0;	
+			} //n Box sizes		
+		} //Fast - only over center of mass
 		
-		else if (MorphologicalType.equals("Variation dilation/erosion")) {// {"Binary dilation", "Blanket dilation/erosion", "Variation dilation/erosion"}
-			imgFloat = createImgFloat(rai); //This copies the image, otherwise the original image would be dilated
-			imgU = imgFloat.copy();
-			imgB = imgFloat.copy();
-			imgUplusOne  = imgFloat.copy();
-			imgBminusOne = imgFloat.copy();
-			imgV = imgFloat.copy();
+		//********************************Binary Image: 0 and >0! and not: 0 and 255
+		//Mass radius method	
+		else if (scanningType.equals("Sliding disc")) {
+			//Classical mass radius dimension with radius over a pixel
+			//radius is estimated by box
+			ra = rai.randomAccess();
+			long number_of_points = 0; // total number of object points 
+			int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
+			int random_number = 0;
+			int radius;		
+			long count = 0;
+			int sample = 0;
 			
-			List<Shape> strel = new ArrayList<Shape>();  
-			if      (shapeType.equals("Square"))  strel = StructuringElements.square(1, 2); //3x3kernel, 2 dimensions
-			else if (shapeType.equals("Disk"))    strel = StructuringElements.disk(1, 2);
-			else if (shapeType.equals("Diamond")) strel = StructuringElements.diamond(1, 2);
-			else if (shapeType.equals("Horizontal")) strel.add(new HorizontalLineShape(1, 0, false)); //1,0 ..one step horizontal 1,1.. one step vertical
-			else if (shapeType.equals("Vertical"))   strel.add(new HorizontalLineShape(1, 1, false)); //1,0 ..one step horizontal 1,1.. one step vertical	
-			
-			Runtime runtime  = Runtime.getRuntime();
-			long maxMemory   = runtime.maxMemory();
-			long totalMemory = runtime.totalMemory();
-			long freeMemory  = runtime.freeMemory();
-			int availableProcessors = runtime.availableProcessors();
-			//System.out.println("available processors: " + availableProcessors);
-			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
-			if (numThreads > availableProcessors) numThreads = availableProcessors;
-			long[] pos = new long[2];
-			float sample1;
-			float sample2;
-
-		
-			for (int n = 0; n < numDilations; n++) { //
-				
-				//Dilated imgU
-				imgUDil = Dilation.dilate(imgU, strel, numThreads);
-				//uiService.show("Dilated image", imgUDil);
-				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last dilated image", imgUDil);
-				
-				//Overwrite imgU
-				cursorF = imgU.localizingCursor();
-				raF2 = imgUDil.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					raF2.setPosition(pos);
-					sample2 = raF2.get().get();
-					cursorF.get().set(sample2);
-				}	
-							
-				//Erode imgB
-				imgBErode = Erosion.erode(imgB, strel, numThreads);
-				//uiService.show("Eroded image", imgBErode);
-				if ((booleanShowLastMorphImg)&&(n == numDilations -1)) uiService.show("Last eroded image", imgBErode);
-				
-				//Overwrite imgB
-				cursorF = imgB.localizingCursor();
-				raF2 = imgBErode.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					raF2.setPosition(pos);
-					sample2 = raF2.get().get();
-					cursorF.get().set(sample2);
-				}	
-				
-				//Compute volume imgV
-				cursorF = imgV.localizingCursor();
-				raF1 = imgU.randomAccess();
-				raF2 = imgB.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					cursorF.localize(pos);
-					raF1.setPosition(pos);
-					raF2.setPosition(pos);
-					sample1 = raF1.get().get();
-					sample2 = raF2.get().get();
-					cursorF.get().set(sample1 - sample2);
-				}	
-				
-				//Get counts with imgV
-				cursorF = imgV.localizingCursor();
-				raF1 = imgU.randomAccess();
-				raF2 = imgB.randomAccess();
-				while (cursorF.hasNext()) {
-					cursorF.fwd();
-					totals[n] = totals[n] + cursorF.get().get(); //totalAreas	
-				}
-			
-				totals[n] = totals[n] / ((n+ 1) * (n + 1) * (n + 1)); // eq.17 Dubuc et.al.		
-				//Without this normalization Dim would be: Dim = 3-slope;
-			} //n
-		}
-		
-			
+			if  (max_random_number == 1) { // no statistical approach, take all image pixels
+				for (int n = 0; n < numDiscs; n++) { //2^0  to 2^numDiscs		
+					radius = eps[n];			
+					for (int x = 0; x < width; x++){
+						for (int y = 0; y < height; y++){	
+							ra.setPosition(x, 0);
+							ra.setPosition(y, 1);	
+							if((((UnsignedByteType) ra.get()).get() > 0) ){
+								number_of_points++; // total number of object points 	
+								// scroll through sub-array 
+								for (int xx = x - radius + 1; xx < x + radius ; xx++) {
+									if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
+										for (int yy = y - radius + 1; yy < y + radius; yy++) {
+											if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
+												if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
+													ra.setPosition(xx, 0);
+													ra.setPosition(yy, 1);	
+													sample = ((UnsignedByteType) ra.get()).get();
+													if((sample > 0) ){
+														if (colorModelType.equals("Binary")) count = count + 1;
+														if (colorModelType.equals("Grey"))   count = count + sample;
+													}
+												}//<= radius	
+											}
+										}//yy
+									}
+								}//XX
+							}
+						} //y	
+					} //x  
+					// calculate the average number of neighboring points within distance "radius":  
+					//number of neighbors = counts-total_number_of_points for correlation dimension
+					//mass = counts for mass radius dimension
+					//average number of neighbors = number of neighbors / total_number_of_points
+					// totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
+					totals[n]=(double)(count);///number_of_points; m(r) = M(r) = number of pixels inside r //for MR dimension 	
+					//totals[n]=(double)(count)/number_of_points; //Same result, just numbers are smaller	 m(r) = M(r)/M  M.. number of object pixels
+					//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
+					// set counts equal to zero
+					count=0;	
+					number_of_points=0;
+				} //n Box sizes		
+			} // no statistical approach
+			else { //statistical approach
+				for (int n = 0; n < numDiscs; n++) { //2^0  to 2^numDiscs		
+					radius = eps[n];				
+					for (int x = 0; x < width; x++){
+						for (int y = 0;  y < height; y++){		
+							// if max_random_number > 1 only a fraction is taken e.g. for 50% max_random_number = 2
+							random_number = (int) (Math.random()*max_random_number+1); //+1 because (int) truncates digits after the decimal point
+							if( random_number == 1 ){ //random_number will always be 1 when percentage is 100 and therefore max_random_number is 1
+								ra.setPosition(x, 0);
+								ra.setPosition(y, 1);	
+								if((((UnsignedByteType) ra.get()).get() > 0) ){
+									number_of_points++; // total number of points 	
+									// scroll through sub-array 
+									for (int xx = x - radius + 1; xx < x + radius ; xx++) {
+										if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
+											for (int yy = y - radius + 1; yy < y + radius; yy++) {
+												if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
+													if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
+														ra.setPosition(xx, 0);
+														ra.setPosition(yy, 1);	
+														sample = ((UnsignedByteType) ra.get()).get();
+														if((sample > 0) ){
+															if (colorModelType.equals("Binary")) count = count + 1;
+															if (colorModelType.equals("Grey"))   count = count + sample;
+														}
+													}//<= radius	
+												 }
+											}//yy
+										}
+									}//XX
+								}
+							}
+						} //y	
+					} //x  
+					// calculate the average number of neighboring points within distance "radius":  
+					//number of neighbors = counts-total_number_of_points for correlation dimension
+					//mass = counts for mass radius dimension
+					//average number of neighbors = number of neighbors / total_number_of_points
+					// totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
+					totals[n]=(double)(count);///number_of_points; m(r) = M(r) = number of pixels inside r //for MR dimension 	
+					//totals[n]=(double)(count)/number_of_points; //Same result, just numbers are smaller	 m(r) = M(r)/M  M.. number of object pixels
+					//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
+					// set counts equal to zero
+					count=0;	
+					number_of_points=0;
+				} //n Box sizes		
+			} //statistical approach
+		} //
+	
 		//Computing log values for plot 
 		//Change sequence of entries to start with a pixel
-		double[] lnTotals = new double[numDilations];
-		double[]   lnEps  = new double[numDilations];
-	
-		for (int n = 0; n < numDilations; n++) {
+		double[] lnTotals = new double[numDiscs];
+		double[] lnEps    = new double[numDiscs];
+		
+		for (int n = 0; n < numDiscs; n++) {	
 			if (totals[n] == 0) {
 				lnTotals[n] = Math.log(Double.MIN_VALUE);
 			} else if (Double.isNaN(totals[n])) {
@@ -1193,29 +1090,41 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 			}
 			lnEps[n] = Math.log(eps[n]);
 			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n][b] );
-			//logService.info(this.getClass().getName() + " n:" + n + " totals[n][b]: " + totals[n][b]);
+			//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n]);
+			//logService.info(this.getClass().getName() + " n:" + n + " totals[n]: " + totals[n]);		
 		}
-			
+		
 		//Create double log plot
-		boolean isLineVisible = false; //?
-	
+		boolean isLineVisible = false; //?		
 		// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		double[] lnDataX = new double[numDilations];
-		double[] lnDataY = new double[numDilations];
+		double[] lnDataX = new double[numDiscs];
+		double[] lnDataY = new double[numDiscs];
 			
-		for (int n = 0; n < numDilations; n++) {	
+		for (int n = 0; n < numDiscs; n++) {	
 			lnDataY[n] = lnTotals[n];		
 			lnDataX[n] = lnEps[n];
 		}
+		// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
+		// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
 	
 		if (optShowPlot) {			
 			String preName = "";
+			String axisNameX = "";
+			String axisNameY = "";
 			if (numSlices > 1) {
 				preName = "Slice-"+String.format("%03d", plane) +"-";
 			}
-			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double log plot - Minkowski dimension", 
-					preName + datasetName, "ln(Dilation span)", "ln(Area)", "",
+			if (scanningType.equals("Sliding disc")) {
+				axisNameX = "ln(Radius)";
+				axisNameY = "ln(Count)";
+			}
+			else if (scanningType.equals("Raster box")) {
+				axisNameX = "ln(Box width)";
+				axisNameY = "ln(Count^2)";
+			}
+			
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double log plot - Mass radius dimension", 
+					preName + datasetName, axisNameX, axisNameY, "",
 					numRegStart, numRegEnd);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
@@ -1224,15 +1133,13 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		CsajRegression_Linear lr = new CsajRegression_Linear();
 		regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-		
+	
 		//Compute result values
 		resultValues = regressionParams;
 		double dim = Double.NaN;
-		if      (choiceRadioButt_MorphologicalOperator.equals("Binary dilation"))            dim  = 2-regressionParams[1]; //Standard Dm according to Peleg et al.
-		else if (choiceRadioButt_MorphologicalOperator.equals("Blanket dilation/erosion"))   dim  =  -regressionParams[1];  //better for grey images "Dm" Dubuc etal..
-		else if (choiceRadioButt_MorphologicalOperator.equals("Variation dilation/erosion")) dim  =  -regressionParams[1];  //	
-		resultValues[1] = dim;
-		logService.info(this.getClass().getName() + " Minkowski dimension: " + dim);
+		dim = regressionParams[1]; //dim = slope
+		//resultValues[1] = dim;
+		logService.info(this.getClass().getName() + " Mass radius dimension: " + dim);
 		
 		epsRegStartEnd[0] = eps[numRegStart-1];
 		epsRegStartEnd[1] = eps[numRegEnd-1];
@@ -1240,11 +1147,36 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
 		//Output
 		//uiService.show(TABLE_OUT_NAME, table);
-		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+	    ////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
 		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
 	}
 
+	
+	// Find the center of the image
+	// This methods computes the center of mass;
+	private  double[] computeCenterOfMass(RandomAccessibleInterval<?> rai) {
+	
+		double[] com = new double[2];
+		float sumGrey = 0f;
+
+		//if( (datasetIn.firstElement() instanceof UnsignedByteType) ){
+		//}
+		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+		final long[] pos = new long[rai.numDimensions()];
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			cursor.localize(pos);
+			com[0]= com[0] + pos[0] * ((UnsignedByteType) cursor.get()).get();
+			com[1]= com[1] + pos[1] * ((UnsignedByteType) cursor.get()).get();
+			sumGrey = sumGrey + ((UnsignedByteType) cursor.get()).get();
+		}
+		com[0]= com[0]/sumGrey;
+		com[1]= com[1]/sumGrey;
+			
+		
+		return com;
+	}
 	
 	//This methods reduces dimensionality to 2D just for the display 	
 	//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
@@ -1311,38 +1243,9 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 		// verticalPercent);
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
-		return pl;
+		return pl;		
 	}
 	
-
-	/**
-	 * 
-	 * This methods creates an Img<UnsignedByteType>
-	 */
-	private Img<UnsignedByteType > createImgUnsignedByte(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
-		
-		imgUnsignedByte = new ArrayImgFactory<>(new UnsignedByteType()).create(rai.dimension(0), rai.dimension(1)); //always single 2D
-		Cursor<UnsignedByteType> cursor = imgUnsignedByte.localizingCursor();
-		final long[] pos = new long[imgUnsignedByte.numDimensions()];
-		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursor.hasNext()){
-			cursor.fwd();
-			cursor.localize(pos);
-			ra.setPosition(pos);
-			//if (numSlices == 1) { //for only one 2D image;
-			//	ra.setPosition(pos[0], 0);
-			//	ra.setPosition(pos[1], 1);
-			//} else { //for more than one image e.g. image stack
-			//	ra.setPosition(pos[0], 0);
-			//	ra.setPosition(pos[1], 1);
-			//	ra.setPosition(s, 2);
-			//}
-			//ra.get().setReal(cursor.get().get());
-			cursor.get().setReal(ra.get().getRealFloat());
-		}
-		
-		return imgUnsignedByte;
-	}
 	
 	/**
 	 * 
@@ -1368,10 +1271,10 @@ public class Csaj2DFracDimMinkowskiCommand<T extends RealType<T>> extends Contex
 			//}
 			//ra.get().setReal(cursor.get().get());
 			cursor.get().setReal(ra.get().getRealFloat());
-		}
-		
+		}	
 		return imgFloat;
 	}
+	
 	
 
 	/** The main method enables standalone testing of the command. */

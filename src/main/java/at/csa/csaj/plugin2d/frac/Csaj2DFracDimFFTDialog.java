@@ -162,7 +162,7 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 				if (radioButtonCircularAverage.isSelected())  choiceRadioButt_PowerSpecType = radioButtonCircularAverage.getText();
 				logService.info(this.getClass().getName() + " Power spectrum type set to " + choiceRadioButt_PowerSpecType);
 				
-				int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
+				int numEpsMax = Csaj2DFracDimFFTCmd.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
 				spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 				spinnerNumEps.setModel(spinnerModelNumEps);
 				spinnerNumEps.setValue(numEpsMax);
@@ -179,7 +179,7 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 				if (radioButtonMeanOfLineScans.isSelected())  choiceRadioButt_PowerSpecType = radioButtonMeanOfLineScans.getText();
 				logService.info(this.getClass().getName() + " Power spectrum type set to " + choiceRadioButt_PowerSpecType);
 				
-				int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
+				int numEpsMax = Csaj2DFracDimFFTCmd.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
 				spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 				spinnerNumEps.setModel(spinnerModelNumEps);
 				spinnerNumEps.setValue(numEpsMax);
@@ -196,7 +196,7 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 				if (radioButtonIntegralOfLineScans.isSelected())  choiceRadioButt_PowerSpecType = radioButtonIntegralOfLineScans.getText();
 				logService.info(this.getClass().getName() + " Power spectrum type set to " + choiceRadioButt_PowerSpecType);
 				
-				int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
+				int numEpsMax = Csaj2DFracDimFFTCmd.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
 				spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 				spinnerNumEps.setModel(spinnerModelNumEps);
 				spinnerNumEps.setValue(numEpsMax);
@@ -237,7 +237,7 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Maximal k");
-		int numEpsMax = Csaj2DFracDimFFTCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
+		int numEpsMax = Csaj2DFracDimFFTCmd.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1), choiceRadioButt_PowerSpecType);
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -255,7 +255,7 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimFFTCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimFFTCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
 														"choiceRadioButt_WindowingType",  choiceRadioButt_WindowingType,
@@ -281,7 +281,7 @@ public class Csaj2DFracDimFFTDialog extends CsajDialog_2DPluginWithRegression {
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimFFTCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimFFTCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

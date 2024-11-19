@@ -189,7 +189,7 @@ public class Csaj2DFracDimHiguchi2DDialog extends CsajDialog_2DPluginWithRegress
 	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("k");
-		int numEpsMax = Csaj2DFracDimHiguchi2DCommand.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
+		int numEpsMax = Csaj2DFracDimHiguchi2DCmd.getMaxK((int)datasetIn.dimension(0), (int)datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -207,7 +207,7 @@ public class Csaj2DFracDimHiguchi2DDialog extends CsajDialog_2DPluginWithRegress
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimHiguchi2DCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimHiguchi2DCmd.class, false,
 														"datasetIn",                         datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					     processAll, //true for all
 														
@@ -235,7 +235,7 @@ public class Csaj2DFracDimHiguchi2DDialog extends CsajDialog_2DPluginWithRegress
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimHiguchi2DCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimHiguchi2DCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

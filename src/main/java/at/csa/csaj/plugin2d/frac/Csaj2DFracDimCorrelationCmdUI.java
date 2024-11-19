@@ -30,7 +30,6 @@ package at.csa.csaj.plugin2d.frac;
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import org.scijava.ItemIO;
@@ -42,7 +41,6 @@ import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.widget.FileWidget;
-import at.csa.csaj.commons.CsajCheck_ItemIn;
 import net.imagej.Dataset;
 import net.imagej.ImageJ;
 

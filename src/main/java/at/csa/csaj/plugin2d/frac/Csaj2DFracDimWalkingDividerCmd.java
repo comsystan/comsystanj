@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracDimMassRadiusCommand.java
+ * File: Csaj2DFracDimWalkingDividerCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -35,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,13 +50,18 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
+import net.imagej.roi.ROIService;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealLocalizable;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.roi.geom.real.Polygon2D;
+import net.imglib2.roi.geom.real.Polyshape;
 import net.imglib2.type.Type;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -70,8 +74,6 @@ import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
@@ -79,38 +81,32 @@ import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
 import org.scijava.table.IntColumn;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
-import at.csa.csaj.commons.CsajRegression_Linear;
+import at.csa.csaj.plugin1d.frac.util.WalkingDivider;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
 
 /**
  * A {@link ContextCommand} plugin computing
- * <a>the fractal mass radius dimension </a>
- * of an image.
+ * <the fractal walking divider dimension </a>
+ * of the contour of an object in an image.
  */
 @Plugin(type = ContextCommand.class, 
         headless = true,
-        label = "Mass radius dimension",
-        initializer = "initialPluginLaunch",
-        iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
-        menu = {})
+	    label = "Walking divider dimension",
+	    initializer = "initialPluginLaunch",
+	    iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
+	    menu = {})
 
-public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj2DFracDimWalkingDividerCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes mass radius dimension</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes fractal dimension with walking divider algorithm</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
@@ -119,9 +115,9 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat; 
-	private static RandomAccessibleInterval<?> raiBox;
-	private static RandomAccess<?> ra;
-	private static Cursor<?> cursor = null;
+	private static Img<BitType> imgBit;
+	RandomAccessibleInterval<?> raiBox;
+	Cursor<?> cursor = null;
 	private static String datasetName;
 	private static String[] sliceLabels;
 	private static long width  = 0;
@@ -130,10 +126,12 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 	private static long numSlices = 0;
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
-	private static int  numDiscs = 0;
+	private static int  numRulers = 0;
+	private static double[] sequenceX;
+	private static double[] sequenceY;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Mass radius dimension";
+	public static final String TABLE_OUT_NAME = "Table - Walking divider dimension";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -155,6 +153,9 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 	
 	@Parameter
 	private UIService uiService;
+	
+	@Parameter
+	private ROIService roiService;
 	
 	@Parameter
 	private ImageDisplayService imageDisplayService;
@@ -190,16 +191,16 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
   	private final String labelRegression = REGRESSION_LABEL;
 
-    @Parameter(label = "Number of discs",
-    		   description = "Number of distinct discs with radii following the power of 2",
+    @Parameter(label = "Number of rulers",
+    		   description = "Number of distinct ruler sizes with the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
 	           stepSize = "1",
 	           persist = false,  //restore previous value default = true
-	           initializer = "initialNumDiscs",
-	           callback    = "callbackNumDiscs")
-    private int spinnerInteger_NumDiscs;
+	           initializer = "initialNumRulers",
+	           callback    = "callbackNumRulers")
+    private int spinnerInteger_NumRulers;
     
     @Parameter(label = "Regression Start",
     		   description = "Minimum x value of linear regression",
@@ -227,36 +228,16 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
-     @Parameter(label = "Scanning type",
- 		    description = "Discs over center of mass or discs over several object pixels",
- 		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		    choices = {"Disc over center of mass", "Sliding disc"}, 
-   		    persist = true,  //restore previous value default = true
- 		    initializer = "initialScanningType",
-             callback = "callbackScanningType")
-     private String choiceRadioButt_ScanningType;
+     @Parameter(label = "Scaling option",
+			   description = "Radial distance scaling or coordinates (x,y) scaling",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Radial distance", "Coordinates"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialScalingType",
+			   callback = "callbackScalingType")
+	private String choiceRadioButt_ScalingType;
      
-     @Parameter(label = "Color model",
-  		    description = "Type of image and computation",
-  		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-    		    choices = {"Binary", "Grey"},
-    		    persist = true,  //restore previous value default = true
-  		    initializer = "initialColorModelType",
-              callback = "callbackColorModelType")
-     private String choiceRadioButt_ColorModelType;
-     
-     @Parameter(label = "(Sliding disc) Pixel %",
-  		   description = "% of object pixels to be taken - to lower computation times",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "1",
-	           max = "100",
-	           stepSize = "1",
-	           //persist = false,  //restore previous value default = true
-	           initializer = "initialPixelPercentage",
-	           callback    = "callbackPixelPercentage")
-     private int spinnerInteger_PixelPercentage;
-     
- 	//-----------------------------------------------------------------------------------------------------
+ 	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
      private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
       
@@ -271,7 +252,7 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
     			initializer = "initialOverwriteDisplays")
      private boolean booleanOverwriteDisplays;
      
- 	//-----------------------------------------------------------------------------------------------------
+ 	 //-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
      private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
      
@@ -294,48 +275,29 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
  	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
-	
+    
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-//	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
+//  @Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
-     
+	
 	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
 	private Button buttonProcessAllImages;
 
     //---------------------------------------------------------------------
-    //The following initializer functions set initial values	
+    //The following initializer functions set initial values
 	protected void initialPluginLaunch() {
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			width  =       			(long)datasetInInfo.get("width");
-			height =       			(long)datasetInInfo.get("height");
-			numDimensions =         (int)datasetInInfo.get("numDimensions");
-			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-			numSlices =             (long)datasetInInfo.get("numSlices");
-			imageType =   			(String)datasetInInfo.get("imageType");
-			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			}
-		}
+		checkItemIOIn();
 	}
-    protected void initialNumDiscs() {
+    protected void initialNumRulers() {
+    	
     	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image = null");
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numDiscs = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
-    	}   	
-      	spinnerInteger_NumDiscs = numDiscs;
+    		numRulers = getMaxRulerNumber(datasetIn, opService);
+    	}
+      	spinnerInteger_NumRulers = numRulers;
     }
     protected void initialNumRegStart() {
     	spinnerInteger_NumRegStart = 1;
@@ -346,52 +308,44 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
     		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
     		return;
     	} else {
-    		numDiscs = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numRulers = getMaxRulerNumber(datasetIn, opService);
     	}
-    	spinnerInteger_NumRegEnd =  numDiscs;
+    	spinnerInteger_NumRegEnd =  numRulers;
     }
-    protected void initialScanningType() {
-    	choiceRadioButt_ScanningType = "Sliding disc";
-    }
-    protected void initialColorModelType() {
-    	choiceRadioButt_ColorModelType = "Binary";
-    } 
-    protected void initialPixelPercentage() {
-      	spinnerInteger_PixelPercentage = 10;
-    }
+    protected void initialScalingType() {
+		choiceRadioButt_ScalingType = "Radial distance";
+	}
     protected void initialShowDoubleLogPlots() {
     	booleanShowDoubleLogPlot = true;
     }
     protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
     }
-    
 	protected void initialNumImageSlice() {
     	spinnerInteger_NumImageSlice = 1;
 	}
-	
-  
+    
 	// ------------------------------------------------------------------------------
 	
-	/** Executed whenever the {@link #spinnerInteger_NumDiscs} parameter changes. */
-	protected void callbackNumDiscs() {
+	/** Executed whenever the {@link #spinnerInteger_NumRulers} parameter changes. */
+	protected void callbackNumRulers() {
 		
-		if  (spinnerInteger_NumDiscs < 3) {
-			spinnerInteger_NumDiscs = 3;
+		if  (spinnerInteger_NumRulers < 3) {
+			spinnerInteger_NumRulers = 3;
 		}
-		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
-		if (spinnerInteger_NumDiscs > numMaxBoxes) {
-			spinnerInteger_NumDiscs = numMaxBoxes;
+		int numMaxRulers = getMaxRulerNumber(datasetIn, opService);	
+		if (spinnerInteger_NumRulers > numMaxRulers) {
+			spinnerInteger_NumRulers = numMaxRulers;
 		};
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumDiscs) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumDiscs;
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumRulers) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumRulers;
 		}
 		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
 			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
 		}
 
-		numDiscs = spinnerInteger_NumDiscs;
-		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumDiscs);
+		numRulers = spinnerInteger_NumRulers;
+		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumRulers);
 	}
     /** Executed whenever the {@link #spinnerInteger_NumRegStart} parameter changes. */
 	protected void callbackNumRegStart() {
@@ -408,27 +362,16 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		if (spinnerInteger_NumRegEnd <= spinnerInteger_NumRegStart + 2) {
 			spinnerInteger_NumRegEnd = spinnerInteger_NumRegStart + 2;
 		}		
-		if (spinnerInteger_NumRegEnd > spinnerInteger_NumDiscs) {
-			spinnerInteger_NumRegEnd = spinnerInteger_NumDiscs;
+		if (spinnerInteger_NumRegEnd > spinnerInteger_NumRulers) {
+			spinnerInteger_NumRegEnd = spinnerInteger_NumRulers;
 		}
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
 	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
-	protected void callbackScanningType() {
-		logService.info(this.getClass().getName() + " Scanning method set to " + choiceRadioButt_ScanningType);
-		
-	}
-	
-	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
-	protected void callbackColorModelType() {
-		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
-	}
-	
-	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
-	protected void callbackPixelPercentage() {
-		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
+	/** Executed whenever the {@link #spinnerInteger_ScalingType} parameter changes. */
+	protected void callbackScalingType() {
+		logService.info(this.getClass().getName() + " Scaling type set to " + choiceRadioButt_ScalingType);
 	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -444,7 +387,7 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		}
 		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
 	}
-
+	
 	/**
 	 * Executed whenever the {@link #buttonProcessSingleImage} button is pressed.
 	 * It is not executed in the same exact manner such as run()
@@ -538,6 +481,14 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
+	public void checkItemIOIn() {
 		//Get input meta data
 		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
 		if (datasetInInfo == null) {
@@ -551,37 +502,33 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 			numSlices =             (long)datasetInInfo.get("numSlices");
 			imageType =   			(String)datasetInInfo.get("imageType");
 			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
 			//RGB not allowed
 			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
 				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			} 
+			}
 		}
-
-		if (processAll) startWorkflowForAllImages();
-		else            startWorkflowForSingleImage();
-	
-		logService.info(this.getClass().getName() + " Finished command run");
 	}
 	
 	/**
 	* This method starts the workflow for a single image of the active display
 	*/
 	protected void startWorkflowForSingleImage() {
-			
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Mass radius dimensions, please wait... Open console window for further info.",
+				
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Walking divider dimension, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
-		dlgProgress.setVisible(true);
-	 
+		dlgProgress.setVisible(true);	
+    	
 		deleteExistingDisplays();
-		generateTableHeader();
+    	generateTableHeader();
 		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));	
 		processSingleInputImage(sliceIndex);
-		
+	
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
@@ -592,22 +539,21 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 	* This method starts the workflow for all images of the active display
 	*/
 	protected void startWorkflowForAllImages() {
-		
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Mass radius dimensions, please wait... Open console window for further info.",
-					logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
+				
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Walking divider dimensions, please wait... Open console window for further info.",
+						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
-	
+			
     	logService.info(this.getClass().getName() + " Processing all available images");
-		deleteExistingDisplays();
-		generateTableHeader();
+    	deleteExistingDisplays();
+    	generateTableHeader();
 		processAllInputImages();
-	
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
 		Toolkit.getDefaultToolkit().beep();
 	}
-	
+		
 	/**
 	 * This methods gets the index of the active image in a stack
 	 * @return int index
@@ -691,12 +637,65 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		}
 	}
 	
-	/** This method computes the maximal number of possible boxes*/
-	public static int getMaxBoxNumber(long width, long height) { 
-		float boxWidth = 1f;
-		int number = 1; 
-		while ((boxWidth <= width) && (boxWidth <= height)) {
-			boxWidth = boxWidth * 2;
+	/** This method computes the maximal number of possible rulers*/
+	public static int getMaxRulerNumber(Dataset datasetIn, OpService opService) { 
+			
+		//We need some info when run via custom dialog scheme
+		//Because this method is called before initialPluginLauch() method
+		//Get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(null, datasetIn);
+		if (datasetInInfo == null) {
+			//logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
+			//cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+		} else {
+			//width  =       			(long)datasetInInfo.get("width");
+			//height =       			(long)datasetInInfo.get("height");
+			numDimensions =         (int)datasetInInfo.get("numDimensions");
+			//compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
+			numSlices =             (long)datasetInInfo.get("numSlices");
+			//imageType =   			(String)datasetInInfo.get("imageType");
+			//datasetName = 			(String)datasetInInfo.get("datasetName");
+			//sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+		}
+	
+		//Get contour ROI around already binarised object
+		//get BitType rai
+		imgBit = new ArrayImgFactory<>(new BitType()).create(datasetIn.dimension(0), datasetIn.dimension(1));
+		Cursor<BitType> cursor = imgBit.localizingCursor();
+		long[] pos = new long[2];
+		
+		int s = 0; //first image
+		RandomAccessibleInterval<?> rai = null;	
+		if( (s==0) && (numSlices == 1) && (numDimensions == 2) ) { // for only one 2D image;
+			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
+
+		} else if ( (numSlices > 1) && (numDimensions == 3) ){ // for a stack of 2D images
+			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
+		
+		}
+		RandomAccess<UnsignedByteType> ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+		while (cursor.hasNext()){
+			cursor.fwd();
+			cursor.localize(pos);
+			ra.setPosition(pos);
+			if (ra.get().get() > 0) cursor.get().setOne(); //0, >0
+		}
+		
+		Polygon2D roi = opService.geom().contour(imgBit, true);
+//		//or equivalently (tested)
+//		DefaultContour dc = new DefaultContour();
+//		Polygon2D roi = dc.calculate(imgBit);
+		
+//		RealPoint origin2D = new RealPoint(0, 0);
+//		logService.info(this.getClass().getName() + " Does it contain (0, 0)? "     + roi.test(origin2D));
+//		logService.info(this.getClass().getName() + " Does it contain (100, 100)? " + roi.test(new RealPoint(100, 100)));
+
+		int numDataPoints = ((Polyshape) roi).numVertices();	
+		
+		float rulerLength = 1f;
+		int number = 0; 
+		while (rulerLength <= numDataPoints) {
+			rulerLength = rulerLength * 2;
 			number = number + 1;
 		}
 		return number - 1;
@@ -724,8 +723,8 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		//Compute regression parameters
 		CsajContainer_ProcessMethod containerPM = process(rai, s);	
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-
-		writeToTable(0, s, containerPM);
+		
+		writeToTable(0, s, containerPM); //write always to the first row
 		
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
@@ -759,6 +758,7 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
 
+		
 		CsajContainer_ProcessMethod containerPM;
 		//loop over all slices of stack
 		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
@@ -768,13 +768,7 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 				dlgProgress.updateBar(percent);
 				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
 				statusService.showStatus((s+1), (int)numSlices, "Processing " + (s+1) + "/" + (int)numSlices);
-	//			try {
-	//				Thread.sleep(3000);
-	//			} catch (InterruptedException e) {
-	//				// TODO Auto-generated catch block
-	//				e.printStackTrace();
-	//			}
-				
+ 	
 				long startTime = System.currentTimeMillis();
 				logService.info(this.getClass().getName() + " Processing image number " + (s+1) + "(" + numSlices + ")");
 				//get slice and convert to float values
@@ -792,7 +786,7 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 				containerPM = process(rai, s);	
 				//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
 				
-				writeToTable(s, s, containerPM);
+				writeToTable(s, s, containerPM); //write to table
 				
 				long duration = System.currentTimeMillis() - startTime;
 				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -803,7 +797,7 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		} //s
 		statusService.showProgress(0, 100);
 		statusService.clearStatus();
-		
+	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;
@@ -830,62 +824,54 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		
 		GenericColumn columnFileName       = new GenericColumn("File name");
 		GenericColumn columnSliceName      = new GenericColumn("Slice name");
-		IntColumn columnMaxNumDiscs        = new IntColumn("# Discs");
+		IntColumn columnMaxNumRulers       = new IntColumn("# Rulers");
 		GenericColumn columnNumRegStart    = new GenericColumn("Reg Start");
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
-		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
-		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		IntColumn columnPixelPercentage    = new IntColumn("(Sliding disc) Pixel %");
-		DoubleColumn columnDc              = new DoubleColumn("Dmass");
+		GenericColumn columnScalingType    = new GenericColumn("Scaling type");
+		DoubleColumn columnDwd             = new DoubleColumn("Dwd");
 		DoubleColumn columnR2              = new DoubleColumn("R2");
 		DoubleColumn columnStdErr          = new DoubleColumn("StdErr");
 		
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnSliceName);
-		tableOut.add(columnMaxNumDiscs);
+		tableOut.add(columnMaxNumRulers);
 		tableOut.add(columnNumRegStart);
 		tableOut.add(columnNumRegEnd);
-		tableOut.add(columnScanningType);
-		tableOut.add(columnColorModelType);
-		tableOut.add(columnPixelPercentage);
-		tableOut.add(columnDc);
+		tableOut.add(columnScalingType);
+		tableOut.add(columnDwd);
 		tableOut.add(columnR2);
 		tableOut.add(columnStdErr);
 	}
 	
-		/**
-		 * collects current result and writes to table
-		 * 
-		 * @param int numRow to write in the result table
-		 * @param int numSlice sclice number of images from datasetIn.
-		 * @param CsajContainer_ProcessMethod containerPM
-		 */
-		private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) { 
-		
-		int numDiscs           = spinnerInteger_NumDiscs;
-		int numRegStart        = spinnerInteger_NumRegStart;
-		int numRegEnd          = spinnerInteger_NumRegEnd;
-		int pixelPercentage    = spinnerInteger_PixelPercentage;
-		String scanningType    = choiceRadioButt_ScanningType;
-		String colorModelType  = choiceRadioButt_ColorModelType;	
+
+	/**
+	 * collects current result and writes to table
+	 * 
+	 * @param int numRow to write in the result table
+	 * @param int numSlice sclice number of images from datasetIn.
+	 * @param CsajContainer_ProcessMethod containerPM
+	 */
+	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) {
+	
+		int numRegStart       = spinnerInteger_NumRegStart;
+		int numRegEnd         = spinnerInteger_NumRegEnd;
+		int numRulers         = spinnerInteger_NumRulers;
+		String scalingType    = choiceRadioButt_ScalingType;	
 		
 		int row = numRow;
 	    int s = numSlice;	
-		//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 		//fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
-		if (sliceLabels != null) 	     tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
-		tableOut.set("# Discs",    	     tableOut.getRowCount()-1, numDiscs);	
-		tableOut.set("Reg Start",        tableOut.getRowCount()-1, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
-		tableOut.set("Reg End",      	 tableOut.getRowCount()-1, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
-		tableOut.set("Scanning type",    tableOut.getRowCount()-1, scanningType);
-		tableOut.set("Color model",      tableOut.getRowCount()-1, colorModelType);
-		if (scanningType.equals("Sliding disc")) tableOut.set("(Sliding disc) Pixel %", tableOut.getRowCount()-1, pixelPercentage);	
-		tableOut.set("Dmass",          	 tableOut.getRowCount()-1, containerPM.item1_Values[1]);
-		tableOut.set("R2",          	 tableOut.getRowCount()-1, containerPM.item1_Values[4]);
-		tableOut.set("StdErr",      	 tableOut.getRowCount()-1, containerPM.item1_Values[3]);		
+		tableOut.set("File name",   	row, datasetName);	
+		if (sliceLabels != null) 	    tableOut.set("Slice name", tableOut.getRowCount() - 1, sliceLabels[s]);
+		tableOut.set("# Rulers",    	row, numRulers);	
+		tableOut.set("Reg Start",       row, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
+		tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegStart)epsRegStart
+		tableOut.set("Scaling type",    row, scalingType);		
+		tableOut.set("Dwd",          	row, containerPM.item1_Values[0]);
+		tableOut.set("R2",          	row, containerPM.item1_Values[1]);
+		tableOut.set("StdErr",      	row, containerPM.item1_Values[2]);		
 	}
 	
 							
@@ -898,301 +884,133 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		int numRegStart            = spinnerInteger_NumRegStart;
-		int numRegEnd            = spinnerInteger_NumRegEnd;
-		int numDiscs          = spinnerInteger_NumDiscs;
-		String scanningType   = choiceRadioButt_ScanningType;	
-		String colorModelType = choiceRadioButt_ColorModelType;	
-		int pixelPercentage   = spinnerInteger_PixelPercentage;
-		boolean optShowPlot   = booleanShowDoubleLogPlot;
+		int numRegStart       = spinnerInteger_NumRegStart;
+		int numRegEnd         = spinnerInteger_NumRegEnd;
+		int numRulers         = spinnerInteger_NumRulers;
+		String scalingType    = choiceRadioButt_ScalingType;	
+		String colorModelType = "Binary"; //choiceRadioButt_ColorModelType;	 //binary
+		
+	
+		boolean optShowPlot    = booleanShowDoubleLogPlot;
+		
 		long width  = rai.dimension(0);
 		long height = rai.dimension(1);
 		
 		String imageType = "8-bit";  //  "RGB"....
 	
-		double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
-		double[] regressionParams = null;
-		double[] resultValues = null;
+		double[] epsRegStartEnd    = new double[2];  // epsRegStart, epsRegEnd
+		double[] regressionParams  = null;  // Intercept, slope, .......
+		double[] resultValues      = new double[3];  // Dim, R2, StdErr
+		for (int i = 0; i < resultValues.length; i++) resultValues[i] = Double.NaN;
 		
 		//Convert image to float
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//RandomAccessibleInterval<T> rai = (RandomAccessibleInterval<T>)dataset.getImgPlus();
 		//IterableInterval ii = dataset.getImgPlus();
 		//Img<FloatType> imgFloat = opService.convert().float32(ii);
-	
-		double[]totals     = new double[numDiscs];
-		//double[][] totalsMax  = new double[numDiscs][numBands]; //for binary images
-		int[] eps = new int[numDiscs];
+		
+		double[] totals = new double[numRulers];
+		// double[] totalsMax = new double[numBands]; //for binary images
+		double[] eps = new double[numRulers];
 		
 		// definition of eps
-		for (int n = 0; n < numDiscs; n++) {
-			eps[n] = (int)Math.round(Math.pow(2, n));
-			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);		
+		for (int n = 0; n < numRulers; n++) {	
+			eps[n] = Math.pow(2, n);
+			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);	
 		}		
-	
-		if (scanningType.equals("Disc over center of mass")) {
-			//Fast - only over center of mass
-			ra = rai.randomAccess();
-			long number_of_points = 0; // total number of object points 
-			int radius;		
-			long count = 0;
-			int sample = 0;
+		
+		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255
+		if (colorModelType.equals("Binary")) {//{"Binary"}
+			//ImgLib2 and ROIs
+			//https://forum.image.sc/t/from-inside-plugin-obtaining-random-access-to-selection-from-context/12265/4
+			//https://gist.github.com/ctrueden/d4ab1996c63ba4d4fcd2a97e121fff3b
 			
-			double[] com = this.computeCenterOfMass(rai);
-			int comX = (int) Math.round(com[0]);
-			int comY = (int) Math.round(com[1]);
+			//Get contour ROI around already binarised object
+			//get BitType rai
+			imgBit = new ArrayImgFactory<>(new BitType()).create(rai.dimension(0), rai.dimension(1));
+			Cursor<BitType> cursor = imgBit.localizingCursor();
+			long[] pos = new long[2];
+			RandomAccess<UnsignedByteType> ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+			while (cursor.hasNext()){
+				cursor.fwd();
+				cursor.localize(pos);
+				ra.setPosition(pos);
+				if (ra.get().get() > 0) cursor.get().setOne(); //0, >0
+			}
 			
-			//get total number of object points
-			for (int x = 0; x < width; x++){
-				for (int y = 0; y < height; y++){	
-					ra.setPosition(x, 0);
-					ra.setPosition(y, 1);	
-					if(((UnsignedByteType) ra.get()).get() > 0) number_of_points++; // total number of points 	
+			Polygon2D roi = opService.geom().contour(imgBit, true);
+//			//or equivalently (tested)
+//			DefaultContour dc = new DefaultContour();
+//			Polygon2D roi = dc.calculate(imgBit);
+			
+//			RealPoint origin2D = new RealPoint(0, 0);
+//			logService.info(this.getClass().getName() + " Does it contain (0, 0)? "     + roi.test(origin2D));
+//			logService.info(this.getClass().getName() + " Does it contain (100, 100)? " + roi.test(new RealPoint(100, 100)));
+
+			int numDataPoints = ((Polyshape) roi).numVertices();	
+			sequenceX = new double[numDataPoints];
+			sequenceY = new double[numDataPoints];
+			for (int n = 0; n < numDataPoints; n++) {
+				sequenceX[n] = Double.NaN;
+				sequenceY[n] = Double.NaN;
+			}
+			
+			if (roi instanceof Polygon2D) { //should always be the case
+				logService.info(this.getClass().getName() + " Polygon: vertex count = " + ((Polyshape) roi).numVertices());
+				RealLocalizable vertex;
+				for (int v = 0; v < ((Polyshape) roi).numVertices(); v++) {
+					vertex = ((Polyshape) roi).vertex(v);
+					sequenceX[v] = vertex.getFloatPosition(0);
+					sequenceY[v] = vertex.getFloatPosition(1);
+					//logService.info(this.getClass().getName() + "\t[" + v + "]: " + Util.printCoordinates(vertex));
 				}
 			}
+			
+			WalkingDivider walkDivider;
+			double[] pathLengths;
+			
+			if (sequenceX.length > (numRulers * 2)) { // only data series which are large enough
+				walkDivider = new WalkingDivider(scalingType);
+				pathLengths = walkDivider.calcLengths(sequenceX, sequenceY, numRulers);
+				regressionParams = walkDivider.calcRegression(pathLengths, numRegStart, numRegEnd);
+				// 0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
+			
+				epsRegStartEnd[0] = walkDivider.getEps()[numRegStart-1]; //epsRegStart
+				epsRegStartEnd[1] = walkDivider.getEps()[numRegEnd-1];   //epsRegEnd
 				
-			for (int n = 0; n < numDiscs; n++) { //2^0  to 2^numDiscs		
-				
-				radius = eps[n];								
-				// scroll through discs over center of mass
-				for (int xx = comX - radius + 1; xx < comX + radius ; xx++) {
-					if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
-						for (int yy = comY - radius + 1; yy < comY + radius; yy++) {
-							if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-								//if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
-									ra.setPosition(xx, 0);
-									ra.setPosition(yy, 1);	
-									sample = ((UnsignedByteType) ra.get()).get();
-									if((sample > 0) ){
-										if (colorModelType.equals("Binary")) count = count + 1;
-										if (colorModelType.equals("Grey"))   count = count + sample;
-									}
-								//}//<= radius	
-							 }
-						}//yy
+				boolean isLineVisible = false; //?
+				if (optShowPlot) {
+					String preName = "";
+					if (numSlices > 1) {
+						preName = "Slice-"+String.format("%03d", plane) +"-";
 					}
-				}//XX
-						
-				// calculate the average number of neighboring points within distance "radius":  
-				//number of neighbors = counts-total_number_of_points for correlation dimension
-				//mass = counts for mass radius dimension
-				//average number of neighbors = number of neighbors / total_number_of_points
-				// totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
-				totals[n]=(double)(count);///number_of_points; m(r) = M(r) = number of pixels inside r //for MR dimension 	
-				//totals[n]=(double)(count)/number_of_points; //Same result, just numbers are smaller	 m(r) = M(r)/M  M.. number of object pixels
-				//System.out.println("Counts:"+count+", total number of points:"+number_of_points);
-				// set counts equal to zero
-				count=0;	
-			} //n Box sizes		
-		} //Fast - only over center of mass
+					CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(walkDivider.getLnDataX(), walkDivider.getLnDataY(), isLineVisible,"Double log plot - Walking divider dimension", 
+							preName + datasetName, "ln(Ruler)", "ln(Length)", "",
+							numRegStart, numRegEnd);
+					doubleLogPlotList.add(doubleLogPlot);	
+				}
+				double dim = Double.NaN;
+				dim = 1.0-regressionParams[1]; // Dwd = 1-slope
+				resultValues[0] = dim; // Dwd
+				resultValues[1] = regressionParams[4]; //R2
+				resultValues[2] = regressionParams[3]; //StdErr
+				
+				logService.info(this.getClass().getName() + " Walking divider dimension: " + dim);
+			} 
+		}
+		//*******************************Grey Value Image
+		if (colorModelType.equals("????")) {//grey value image
 		
-		//********************************Binary Image: 0 and >0! and not: 0 and 255
-		//Mass radius method	
-		else if (scanningType.equals("Sliding disc")) {
-			//Classical mass radius dimension with radius over a pixel
-			//radius is estimated by box
-			ra = rai.randomAccess();
-			long number_of_points = 0; // total number of object points 
-			int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
-			int random_number = 0;
-			int radius;		
-			long count = 0;
-			int sample = 0;
-			
-			if  (max_random_number == 1) { // no statistical approach, take all image pixels
-				for (int n = 0; n < numDiscs; n++) { //2^0  to 2^numDiscs		
-					radius = eps[n];			
-					for (int x = 0; x < width; x++){
-						for (int y = 0; y < height; y++){	
-							ra.setPosition(x, 0);
-							ra.setPosition(y, 1);	
-							if((((UnsignedByteType) ra.get()).get() > 0) ){
-								number_of_points++; // total number of object points 	
-								// scroll through sub-array 
-								for (int xx = x - radius + 1; xx < x + radius ; xx++) {
-									if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
-										for (int yy = y - radius + 1; yy < y + radius; yy++) {
-											if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-												if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
-													ra.setPosition(xx, 0);
-													ra.setPosition(yy, 1);	
-													sample = ((UnsignedByteType) ra.get()).get();
-													if((sample > 0) ){
-														if (colorModelType.equals("Binary")) count = count + 1;
-														if (colorModelType.equals("Grey"))   count = count + sample;
-													}
-												}//<= radius	
-											}
-										}//yy
-									}
-								}//XX
-							}
-						} //y	
-					} //x  
-					// calculate the average number of neighboring points within distance "radius":  
-					//number of neighbors = counts-total_number_of_points for correlation dimension
-					//mass = counts for mass radius dimension
-					//average number of neighbors = number of neighbors / total_number_of_points
-					// totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
-					totals[n]=(double)(count);///number_of_points; m(r) = M(r) = number of pixels inside r //for MR dimension 	
-					//totals[n]=(double)(count)/number_of_points; //Same result, just numbers are smaller	 m(r) = M(r)/M  M.. number of object pixels
-					//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
-					// set counts equal to zero
-					count=0;	
-					number_of_points=0;
-				} //n Box sizes		
-			} // no statistical approach
-			else { //statistical approach
-				for (int n = 0; n < numDiscs; n++) { //2^0  to 2^numDiscs		
-					radius = eps[n];				
-					for (int x = 0; x < width; x++){
-						for (int y = 0;  y < height; y++){		
-							// if max_random_number > 1 only a fraction is taken e.g. for 50% max_random_number = 2
-							random_number = (int) (Math.random()*max_random_number+1); //+1 because (int) truncates digits after the decimal point
-							if( random_number == 1 ){ //random_number will always be 1 when percentage is 100 and therefore max_random_number is 1
-								ra.setPosition(x, 0);
-								ra.setPosition(y, 1);	
-								if((((UnsignedByteType) ra.get()).get() > 0) ){
-									number_of_points++; // total number of points 	
-									// scroll through sub-array 
-									for (int xx = x - radius + 1; xx < x + radius ; xx++) {
-										if(xx >= 0 && xx < width) { // catch index-out-of-bounds exception
-											for (int yy = y - radius + 1; yy < y + radius; yy++) {
-												if(yy >= 0 && yy < height) { // catch index-out-of-bounds exception
-													if (Math.sqrt((xx-x)*(xx-x)+(yy-y)*(yy-y)) <= radius) { //HA
-														ra.setPosition(xx, 0);
-														ra.setPosition(yy, 1);	
-														sample = ((UnsignedByteType) ra.get()).get();
-														if((sample > 0) ){
-															if (colorModelType.equals("Binary")) count = count + 1;
-															if (colorModelType.equals("Grey"))   count = count + sample;
-														}
-													}//<= radius	
-												 }
-											}//yy
-										}
-									}//XX
-								}
-							}
-						} //y	
-					} //x  
-					// calculate the average number of neighboring points within distance "radius":  
-					//number of neighbors = counts-total_number_of_points for correlation dimension
-					//mass = counts for mass radius dimension
-					//average number of neighbors = number of neighbors / total_number_of_points
-					// totals[n]=(double)(count-number_of_points)/number_of_points; //for Correlation dimension 	
-					totals[n]=(double)(count);///number_of_points; m(r) = M(r) = number of pixels inside r //for MR dimension 	
-					//totals[n]=(double)(count)/number_of_points; //Same result, just numbers are smaller	 m(r) = M(r)/M  M.. number of object pixels
-					//System.out.println("Counts:"+counts+" total number of points:"+total_number_of_points);
-					// set counts equal to zero
-					count=0;	
-					number_of_points=0;
-				} //n Box sizes		
-			} //statistical approach
-		} //
-	
-		//Computing log values for plot 
-		//Change sequence of entries to start with a pixel
-		double[] lnTotals = new double[numDiscs];
-		double[] lnEps    = new double[numDiscs];
-		
-		for (int n = 0; n < numDiscs; n++) {	
-			if (totals[n] == 0) {
-				lnTotals[n] = Math.log(Double.MIN_VALUE);
-			} else if (Double.isNaN(totals[n])) {
-				lnTotals[n] = Double.NaN;
-			} else {
-				lnTotals[n] = Math.log(totals[n]);
-			}
-			lnEps[n] = Math.log(eps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " eps:  " + eps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " lnEps:  "+  lnEps[n]);
-			//logService.info(this.getClass().getName() + " n:" + n + " totals[n]: " + totals[n]);		
 		}
 		
-		//Create double log plot
-		boolean isLineVisible = false; //?		
-		// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		double[] lnDataX = new double[numDiscs];
-		double[] lnDataY = new double[numDiscs];
-			
-		for (int n = 0; n < numDiscs; n++) {	
-			lnDataY[n] = lnTotals[n];		
-			lnDataX[n] = lnEps[n];
-		}
-		// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
-		// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
-	
-		if (optShowPlot) {			
-			String preName = "";
-			String axisNameX = "";
-			String axisNameY = "";
-			if (numSlices > 1) {
-				preName = "Slice-"+String.format("%03d", plane) +"-";
-			}
-			if (scanningType.equals("Sliding disc")) {
-				axisNameX = "ln(Radius)";
-				axisNameY = "ln(Count)";
-			}
-			else if (scanningType.equals("Raster box")) {
-				axisNameX = "ln(Box width)";
-				axisNameY = "ln(Count^2)";
-			}
-			
-			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible, "Double log plot - Mass radius dimension", 
-					preName + datasetName, axisNameX, axisNameY, "",
-					numRegStart, numRegEnd);
-			doubleLogPlotList.add(doubleLogPlot);
-		}
-		
-		// Compute regression
-		CsajRegression_Linear lr = new CsajRegression_Linear();
-		regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
-		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-	
-		//Compute result values
-		resultValues = regressionParams;
-		double dim = Double.NaN;
-		dim = regressionParams[1]; //dim = slope
-		//resultValues[1] = dim;
-		logService.info(this.getClass().getName() + " Mass radius dimension: " + dim);
-		
-		epsRegStartEnd[0] = eps[numRegStart-1];
-		epsRegStartEnd[1] = eps[numRegEnd-1];
-	
 		return new CsajContainer_ProcessMethod(resultValues, epsRegStartEnd);
 		//Output
 		//uiService.show(TABLE_OUT_NAME, table);
-	    ////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
+		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
 		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
 	}
 
-	
-	// Find the center of the image
-	// This methods computes the center of mass;
-	private  double[] computeCenterOfMass(RandomAccessibleInterval<?> rai) {
-	
-		double[] com = new double[2];
-		float sumGrey = 0f;
-
-		//if( (datasetIn.firstElement() instanceof UnsignedByteType) ){
-		//}
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
-		final long[] pos = new long[rai.numDimensions()];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-			com[0]= com[0] + pos[0] * ((UnsignedByteType) cursor.get()).get();
-			com[1]= com[1] + pos[1] * ((UnsignedByteType) cursor.get()).get();
-			sumGrey = sumGrey + ((UnsignedByteType) cursor.get()).get();
-		}
-		com[0]= com[0]/sumGrey;
-		com[1]= com[1]/sumGrey;
-			
-		
-		return com;
-	}
 	
 	//This methods reduces dimensionality to 2D just for the display 	
 	//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
@@ -1262,7 +1080,6 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 		return pl;		
 	}
 	
-	
 	/**
 	 * 
 	 * This methods creates a Img<FloatType>
@@ -1292,7 +1109,6 @@ public class Csaj2DFracDimMassRadiusCommand<T extends RealType<T>> extends Conte
 	}
 	
 	
-
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
 		try {

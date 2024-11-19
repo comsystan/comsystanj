@@ -170,7 +170,7 @@ public class Csaj2DFracDimWalkingDividerDialog extends CsajDialog_2DPluginWithRe
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of rulers");
-		int numEpsMax = Csaj2DFracDimWalkingDividerCommand.getMaxRulerNumber(datasetIn, opService);
+		int numEpsMax = Csaj2DFracDimWalkingDividerCmd.getMaxRulerNumber(datasetIn, opService);
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numEpsMax);
@@ -188,7 +188,7 @@ public class Csaj2DFracDimWalkingDividerDialog extends CsajDialog_2DPluginWithRe
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimWalkingDividerCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimWalkingDividerCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
 											
@@ -214,7 +214,7 @@ public class Csaj2DFracDimWalkingDividerDialog extends CsajDialog_2DPluginWithRe
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimWalkingDividerCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimWalkingDividerCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

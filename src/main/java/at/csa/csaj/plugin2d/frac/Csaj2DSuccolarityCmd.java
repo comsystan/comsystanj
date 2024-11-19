@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DLacunarityCommand.java
+ * File: Csaj2DSuccolarityCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -53,13 +53,13 @@ import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.morphology.Dilation;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 import org.scijava.ItemIO;
@@ -89,38 +89,39 @@ import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 
 /**
  * A {@link ContextCommand} plugin computing
- * <the lacunarity </a>
+ * <the succolarity </a>
  * of an image.
- *  
- * <li> Allain C, Cloitre M, Characterizing the lacunarity of random and deterministic fractal sets. Phys. Rev. A, 44, 1991, 3552-3558
- * <li> Plotnik RE, Gardner RH, Hargrove WW, Prestegaard K, Perlmutter M, Lacunarity analysis: A general technique for the analysis of spatial patterns, Phys Rev E, 53, 1996, 5461-5468.
- * <li> Sengupta K, Vinoy KJ, A new measure of lacunarity for generalised fractals and its impact in the electromagnetic behavior of the Koch dipole antennas, Fractals, 14, 2006, 271-282.   
- 
- *  
+ * 
+ * According to
+ * de Melo, R. H. C., und A. Conci. „Succolarity: Defining a method to calculate this fractal measure“. In 2008 15th International Conference on Systems, Sequences and Image Processing, 291–94, 2008. https://doi.org/10.1109/IWSSIP.2008.4604424.
+ * de Melo, R. H. C., und A. Conci. „How Succolarity Could Be Used as Another Fractal Measure in Image Analysis“. Telecommunication Systems 52, Nr. 3 (1. März 2013): 1643–55. https://doi.org/10.1007/s11235-011-9657-3.
+ * Andronache, Ion. „Analysis of Forest Fragmentation and Connectivity Using Fractal Dimension and Succolarity“.
+ * Land 13, Nr. 2 (Februar 2024): 138.
+ * * https://doi.org/10.3390/land13020138.
+ * 
  */
 @Plugin(type = ContextCommand.class,
 		headless = true,
-		label = "Lacunariy",
+		label = "Succolarity",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
 
-public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes Lacunarity</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes Succolarity</b></html>";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
+	private static final String FLOODINGOPTIONS_LABEL   = "<html><b>Flooding type</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
 	
 	private static Img<FloatType> imgFloat;
-	private static Img<UnsignedByteType> imgBin;
-	private static RandomAccess<UnsignedByteType> raBin;
-	private static Img<FloatType> imgDil;
-	private static RandomAccess<FloatType> raDil;
-	private static RandomAccessibleInterval<?> raiDil;
+	private static Img<UnsignedByteType> imgFlood;
+	private static RandomAccess<UnsignedByteType> raFlood;
+	private static Img<UnsignedByteType> imgDil;
 	private static RandomAccessibleInterval<?> raiBox;
 	private static RandomAccess<UnsignedByteType> ra;
 	
@@ -136,7 +137,7 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Lacunarities";
+	public static final String TABLE_OUT_NAME = "Table - Succolarities";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -194,7 +195,7 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
   	private final String labelRegression = REGRESSION_LABEL;
 
     @Parameter(label = "Number of boxes",
-    		   description = "Number of distinct box sizes",
+    		   description = "Number of distinct box sizes with the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
@@ -224,62 +225,33 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 //		       persist = false,   //restore previous value default = true
 //		       initializer = "initialNumRegEnd",
 //		       callback = "callbackNumRegEnd")
-//     private int spinnerInteger_NumRegEnd = 3;
+//    private int spinnerInteger_NumRegEnd = 3;
     
-  //-----------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
     private final String labelMethodOptions = METHODOPTIONS_LABEL;
     
-    @Parameter(label = "Scanning method",
-    		   description = "Type of 2D box scanning",
+    @Parameter(label = "Scanning type",
+   		       description = "Type of box scanning",
    		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-     		   choices = {"Raster box", "Sliding box", "Tug of war"}, //"Fast Sliding box" is not reliable
+     		   choices = {"Raster box", "Sliding box"},
      		   persist = true,  //restore previous value default = true
-   		       initializer = "initialScannningType",
+   		       initializer = "initialScanningType",
                callback = "callbackScanningType")
     private String choiceRadioButt_ScanningType;
     
-    @Parameter(label = "Color model",
- 		       description = "Type of image and computation",
- 		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-   		       choices = {"Binary", "Grey"},
-   		       persist = true,  //restore previous value default = true
- 		       initializer = "initialColorModelType",
-               callback = "callbackColorModelType")
-    private String choiceRadioButt_ColorModelType;
+    //-----------------------------------------------------------------------------------------------------
+    //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+    //private final String labelFloodingOptions = FLOODINGOPTIONS_LABEL;
     
-    @Parameter(label = "(Sliding box) Pixel %",
-   		       description = "% of image pixels to be taken - to lower computation times (default=10%)",
- 	       	   style = NumberWidget.SPINNER_STYLE,
- 	           min = "1",
- 	           max = "100",
- 	           stepSize = "1",
- 	           persist = true,  //restore previous value default = true
- 	           initializer = "initialPixelPercentage",
- 	           callback    = "callbackPixelPercentage")
-     private int spinnerInteger_PixelPercentage;
-    
-    @Parameter(label = "(Tug of war) Accuracy",
-		       description = "Accuracy (default=90)",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "1",
-	           max = "99999999999999",
-	           stepSize = "1",
-	           persist = true,  //restore previous value default = true
-	           initializer = "initialNumAccuracy",
-	           callback    = "callbackNumAccuracy")
-    private int spinnerInteger_NumAcurracy;
-  
-    @Parameter(label = "(Tug of war) Confidence",
-		       description = "Confidence (deafault=15)",
-	       	   style = NumberWidget.SPINNER_STYLE,
-	           min = "1",
-	           max = "99999999999999",
-	           stepSize = "1",
-	           persist = true,  //restore previous value default = true
-	           initializer = "initialNumConfidence",
-	           callback    = "callbackNumConfidence")
-    private int spinnerInteger_NumConfidence;
+    @Parameter(label = "Flooding type",
+   		       description = "Type of flooding, e.g. Top to down or Left to right.... or mean of all 4 directions",
+   		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+     		   choices = {"T2D", "D2T", "L2R", "R2L", "Mean & Anisotropy"},
+     		   persist = true,  //restore previous value default = true
+   		       initializer = "initialFloodingType",
+               callback = "callbackFloodingType")
+    private String choiceRadioButt_FloodingType;
      
  	//-----------------------------------------------------------------------------------------------------
      @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -310,48 +282,29 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
- 	
+	
 	@Parameter(label = "Process all images",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")
 	private boolean processAll;
-	
+ 	
 	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
 //	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
-	    
+     
 	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
 	private Button buttonProcessAllImages;
 
     //---------------------------------------------------------------------
-    //The following initializer functions set initial values	
+    //The following initializer functions set initial values
 	protected void initialPluginLaunch() {
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
-		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
-		} else {
-			width  =       			(long)datasetInInfo.get("width");
-			height =       			(long)datasetInInfo.get("height");
-			numDimensions =         (int)datasetInInfo.get("numDimensions");
-			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
-			numSlices =             (long)datasetInInfo.get("numSlices");
-			imageType =   			(String)datasetInInfo.get("imageType");
-			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			}
-		}
+		checkItemIOIn();
 	}
+
     protected void initialNumBoxes() {
     	if (datasetIn == null) {
     		logService.error(this.getClass().getName() + " ERROR: Input image = null");
@@ -366,34 +319,22 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 //    	spinnerInteger_NumRegStart = 1;
 //    }
 //    protected void initialNumRegEnd() {
-//  	  if (datasetIn == null) {
+//    	if (datasetIn == null) {
 //			logService.error(this.getClass().getName() + " ERROR: Input image = null");
 //			cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
 //			return;
 //		} else {
 //			numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
 //		}
-//   	spinnerInteger_NumRegEnd =  numBoxes;
+//    	spinnerInteger_NumRegEnd =  numBoxes;
 //    }
     
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
     }
     
-    protected void initialColorModelType() {
-    	choiceRadioButt_ColorModelType = "Binary";
-    }
-    
-    protected void initialPixelPercentage() {
-      	spinnerInteger_PixelPercentage = 10;
-    }
-    
-    protected void initialNumAccuracy() {
-    	spinnerInteger_NumAcurracy = 90; //s1=30 Wang paper
-    }
-    
-    protected void initialNumConfidence() {
-    	spinnerInteger_NumConfidence = 15; //s2=5 Wang paper
+    protected void initialFloodingType() {
+    	choiceRadioButt_FloodingType = "T2D";
     }
 
     protected void initialShowDoubleLogPlots() {
@@ -405,11 +346,11 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 	protected void initialNumImageSlice() {
     	spinnerInteger_NumImageSlice = 1;
 	}
-  
+	
 	// ------------------------------------------------------------------------------
 	
 	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
-	protected void callbackNumBoxes() {	
+	protected void callbackNumBoxes() {
 		if  (spinnerInteger_NumBoxes < 3) {
 			spinnerInteger_NumBoxes = 3;
 		}
@@ -422,7 +363,7 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 //		}
 //		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
 //			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
-//		}	
+//		}
 		numBoxes = spinnerInteger_NumBoxes;
 		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
@@ -449,41 +390,16 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 
 	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
 	protected void callbackScanningType() {
-		if (choiceRadioButt_ScanningType.equals("Tug of war")) {
-			if (choiceRadioButt_ColorModelType.equals("Grey")) {
-				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
-				choiceRadioButt_ColorModelType = "Binary";
-			}
-		}
-		logService.info(this.getClass().getName() + " Box method set to " + choiceRadioButt_ScanningType);
-	}
-	
-	/** Executed whenever the {@link #choiceRadioButt_ColorModelType} parameter changes. */
-	protected void callbackColorModelType() {
-		if (choiceRadioButt_ScanningType.equals("Tug of war")) {
-			if (choiceRadioButt_ColorModelType.equals("Grey")) {
-				logService.info(this.getClass().getName() + " NOTE! Only binary Tug of war algorithm possible!");
-				choiceRadioButt_ColorModelType = "Binary";
-			}
-		}
-		logService.info(this.getClass().getName() + " Color model type set to " + choiceRadioButt_ColorModelType);
-	}
-	
-	/** Executed whenever the {@link #spinnerInteger_PixelPercentage} parameter changes. */
-	protected void callbackPixelPercentage() {
-		logService.info(this.getClass().getName() + " Pixel % set to " + spinnerInteger_PixelPercentage);
-	}
-	
-	/** Executed whenever the {@link #spinnerInteger_NumAccuracy} parameter changes. */
-	protected void callbackNumAccuracy() {
-		logService.info(this.getClass().getName() + " Accuracy set to " + spinnerInteger_NumAcurracy);
-	}
-	
-	/** Executed whenever the {@link #spinnerInteger_NumConfidence} parameter changes. */
-	protected void callbackNumConfidence() {
-		logService.info(this.getClass().getName() + " Confidence set to " + spinnerInteger_NumConfidence);
-	}
+		logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
 		
+	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_FloodingType} parameter changes. */
+	protected void callbackFloodingType() {
+		logService.info(this.getClass().getName() + " Flooding type set to " + choiceRadioButt_FloodingType);
+		
+	}
+	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
@@ -591,6 +507,14 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
 
+		checkItemIOIn();
+		if (processAll) startWorkflowForAllImages();
+		else            startWorkflowForSingleImage();
+	
+		logService.info(this.getClass().getName() + " Finished command run");
+	}
+	
+	public void checkItemIOIn() {
 		//Get input meta data
 		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
 		if (datasetInInfo == null) {
@@ -604,26 +528,22 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 			numSlices =             (long)datasetInInfo.get("numSlices");
 			imageType =   			(String)datasetInInfo.get("imageType");
 			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");		
+			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
+			
 			//RGB not allowed
 			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " WARNING: Grey value image(s) expected!");
+				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
 				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			} 
+			}
 		}
-
-		if (processAll) startWorkflowForAllImages();
-		else            startWorkflowForSingleImage();
-	
-		logService.info(this.getClass().getName() + " Finished command run");
 	}
-	
+
 	/**
 	* This method starts the workflow for a single image of the active display
 	*/
 	protected void startWorkflowForSingleImage() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Lacunarity, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -632,9 +552,9 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		deleteExistingDisplays();
 		generateTableHeader();
 		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-		logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
+		 logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
 		processSingleInputImage(sliceIndex);
-	
+		
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
@@ -645,16 +565,16 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 	* This method starts the workflow for all images of the active display
 	*/
 	protected void startWorkflowForAllImages() {
-		
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Lacunarity, please wait... Open console window for further info.",
+	
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
-		
+	
     	logService.info(this.getClass().getName() + " Processing all available images");
 		deleteExistingDisplays();
 		generateTableHeader();
 		processAllInputImages();
-	
+		
 		dlgProgress.addMessage("Processing finished! Collecting data for table...");
 		dlgProgress.setVisible(false);
 		dlgProgress.dispose();
@@ -744,20 +664,6 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		}
 	}
 	
-//	/** This method computes the maximal number of possible boxes*/
-//	private int getMaxBoxNumber(long width, long height) { 
-//		float boxWidth = 0;
-//		int number = 0; 
-//		int epsWidth = 1;
-//		while ((boxWidth <= width) && (boxWidth <= height)) {	
-//			boxWidth = 2 * epsWidth + 1;
-//			epsWidth = epsWidth * 2;
-//			number = number + 1;
-//		}
-//		return number - 1;
-//	}
-	
-	
 	/** This method computes the maximal number of possible boxes*/
 	public static int getMaxBoxNumber(long width, long height) { 
 		float boxWidth = 1f;
@@ -788,8 +694,8 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		
 		}
 
-		//Compute lacunarity
-		CsajContainer_ProcessMethod containerPM = process(rai, s); //lacunarities
+		//Compute Succolarity reservoir, succolarities and delta succolarities
+		CsajContainer_ProcessMethod containerPM = process(rai, s);
 		
 		writeToTable(0, s, containerPM); //write always to the first row
 		
@@ -820,7 +726,7 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 	private void processAllInputImages() {
 		
 		long startTimeAll = System.currentTimeMillis();
- 	
+
 		//convert to float values
 		//Img<T> image = (Img<T>) dataset.getImgPlus();
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
@@ -854,9 +760,9 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
 				
 				}
-				//lacunarities
+				//Compute Succolarity reservoir, succolarities and delta succolarities
 				containerPM = process(rai, s);	
-				
+
 				writeToTable(s, s, containerPM);
 				
 				long duration = System.currentTimeMillis() - startTime;
@@ -895,15 +801,14 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		
 		numBoxes = spinnerInteger_NumBoxes;
 		
-		GenericColumn columnFileName       = new GenericColumn("File name");
-		GenericColumn columnSliceName      = new GenericColumn("Slice name");
-		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");
-//		GenericColumn columnNumRegStart    = new GenericColumn("Reg Start");
-//		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
-		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
-		GenericColumn columnColorModelType = new GenericColumn("Color model");
-		DoubleColumn columnL_RP            = new DoubleColumn("<L>-R&P"); //weighted mean L
-		DoubleColumn columnL_SV            = new DoubleColumn("<L>-S&V");   //mean L
+		GenericColumn columnFileName   = new GenericColumn("File name");
+		GenericColumn columnSliceName  = new GenericColumn("Slice name");
+		IntColumn columnMaxNumBoxes    = new IntColumn("# Boxes");
+		//GenericColumn columnNumRegStart = new GenericColumn("Reg Start");
+		//GenericColumn columnNumRegEnd   = new GenericColumn("Reg End");
+		GenericColumn columnScanType   = new GenericColumn("Scanning type");
+		GenericColumn columnFloodType  = new GenericColumn("Flooding type");
+		DoubleColumn columnPotSucc     = new DoubleColumn("Succ reservoir");
 	
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
@@ -911,18 +816,22 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		tableOut.add(columnMaxNumBoxes);
 		//tableOut.add(columnNumRegStart);
 		//tableOut.add(columnNumRegEnd);
-		tableOut.add(columnScanningType);
-		tableOut.add(columnColorModelType);
-		tableOut.add(columnL_RP);
-		tableOut.add(columnL_SV);
-		String preString = "L";
-//		int epsWidth = 1;
-//		for (int i = 0; i < numBoxes; i++) {
-//			table.add(new DoubleColumn(preString + "-" + (2*epsWidth+1) + "x" + (2*epsWidth+1)));
-//			epsWidth = epsWidth * 2;
-//		}
-		for (int n = 0; n < numBoxes; n++) {
-			tableOut.add(new DoubleColumn(preString + " " + (int)Math.round(Math.pow(2, n)) + "x" + (int)Math.round(Math.pow(2, n))));
+		tableOut.add(columnScanType);
+		tableOut.add(columnFloodType);
+		tableOut.add(columnPotSucc);
+		String preString = "Succ";
+		for (int i = 0; i < numBoxes; i++) {
+			tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
+		}
+		preString = "Delta succ";
+		for (int i = 0; i < numBoxes; i++) {
+			tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
+		}
+		if (choiceRadioButt_FloodingType.equals("Mean & Anisotropy")) {
+			preString = "Anisotropy";
+			for (int i = 0; i < numBoxes; i++) {
+				tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
+			}	
 		}
 	}
 	
@@ -935,12 +844,11 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 	 */
 	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) { 
 	
-		int numBoxes          = spinnerInteger_NumBoxes;
-		String scanningType   = choiceRadioButt_ScanningType;
-		int pixelPercentage   = spinnerInteger_PixelPercentage;
-		int accuracy 	      = spinnerInteger_NumAcurracy;
-		int confidence        = spinnerInteger_NumConfidence;
-		String colorModelType = choiceRadioButt_ColorModelType;	
+		//int numBoxes   	= spinnerInteger_NumBoxes;
+		//int numRegStart   = spinnerInteger_NumRegStart;
+		//int numRegEnd     = spinnerInteger_NumRegEnd;
+		String scanningType = choiceRadioButt_ScanningType;
+		String floodingType = choiceRadioButt_FloodingType;
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
@@ -948,31 +856,25 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		
 		int row = numRow;
 	    int s = numSlice;	
+		//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
 		//fill table with values
 		tableOut.appendRow();
 		tableOut.set("File name",     row, datasetName);	
 		if (sliceLabels != null)      tableOut.set("Slice name", row, sliceLabels[s]);
 		tableOut.set("# Boxes",       row, numBoxes);	
-		if (scanningType.equals("Tug of war")) {
-			tableOut.set("Scanning type",   row, "Tug of war Acc" + accuracy + " Conf" + confidence);
-		}
-		else if (scanningType.equals("Sliding box")) {
-			tableOut.set("Scanning type",   row, "Sliding box "  +pixelPercentage + "%");
-		}
-		else {
-			tableOut.set("Scanning type",   row, scanningType);
-		}
-		tableOut.set("Color model",         row, colorModelType);
-		tableOut.set("<L>-R&P",   		    row, containerPM.item1_Values[containerPM.item1_Values.length - 2]); //
-		tableOut.set("<L>-S&V",   		    row, containerPM.item1_Values[containerPM.item1_Values.length - 1]); //last entry	
-		tableColLast = 6;
+		//tableOut.set("Reg Start",       row, "("+numRegStart+")" + epsRegStartEnd[0]); //(NumRegStart)epsRegStart
+		//tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + epsRegStartEnd[1]); //(NumRegEnd)epsRegEnd
+		tableOut.set("Scanning type", row, scanningType);
+		tableOut.set("Flooding type", row, floodingType);
+		tableOut.set("Succ reservoir",row, containerPM.item1_Values[0]); //Succolarity reservoir (= potential succolarity)
+		tableColLast = 5;
 		
-		int numParameters = containerPM.item1_Values.length - 2; 
+		int numParameters = containerPM.item1_Values.length - 1; //-1 because succolarity reservoir (= potential succolarity) is already set to table
 		tableColStart = tableColLast + 1;
 		tableColEnd = tableColStart + numParameters;
 		for (int c = tableColStart; c < tableColEnd; c++ ) {
-			tableOut.set(c, row, containerPM.item1_Values[c-tableColStart]);
-		}	
+			tableOut.set(c, row, containerPM.item1_Values[c-tableColStart + 1]); //+1 because first entry is succolarity reservoir (= potential succolarity)
+		}		
 	}
 							
 	/** 
@@ -984,438 +886,111 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		numBoxes              = spinnerInteger_NumBoxes;
-		//int numRegStart     = spinnerInteger_NumRegStart;
-		//int numRegEnd       = spinnerInteger_NumRegEnd;
-		int numRegStart       = 1;
-		int numRegEnd         = numBoxes - 1;
-		String scanningType   = choiceRadioButt_ScanningType;
-		int pixelPercentage   = spinnerInteger_PixelPercentage;
-		String colorModelType = choiceRadioButt_ColorModelType;	 //"Binary"  "Grey"
-		int accuracy 	      = spinnerInteger_NumAcurracy;
-		int confidence        = spinnerInteger_NumConfidence;
+		numBoxes            = spinnerInteger_NumBoxes;
+		//int numRegStart   = spinnerInteger_NumRegStart;
+		//int numRegEnd     = spinnerInteger_NumRegEnd;
+		String scanningType = choiceRadioButt_ScanningType;
+		String floodingType = choiceRadioButt_FloodingType;
 		
 		boolean optShowPlot = booleanShowDoubleLogPlot;
 		
-		int width  = (int) rai.dimension(0);
-		int height = (int) rai.dimension(1);
+		//double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
+		
+		//long width  = rai.dimension(0);
+		//long height = rai.dimension(1);
+		//RandomAccess<?> ra = rai.randomAccess();
 		//ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
 		
-		double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
-		// data array
-		double[]lacunarities = new double[numBoxes + 2]; //+2 because of weighted mean L and mean L
-		int[]eps             = new int[numBoxes];
-		// definition of eps
-		for (int n = 0; n < numBoxes; n++) eps[n] = (int)Math.round(Math.pow(2, n));		
-		for (int l = 0; l < lacunarities.length; l++) lacunarities[l] = Double.NaN;
+		//String imageType = "8-bit";  //  "RGB"....
 		
-		long number_of_points = 0;
-		int max_random_number = (int) (100/pixelPercentage); // Evaluate max. random number
-		if (scanningType.equals("Raster box")) max_random_number = 1; //take always all boxes 
-		int random_number = 0;
-		//------------------------------------------------------------------------------------------
-		if (scanningType.equals("Raster box") || scanningType.equals("Sliding box")) {	
-			double mean = 0.0;
-			double var = 0.0;
-			//int epsWidth = 1;
-			int boxSize = 0;
-			double count = 0;
-			int sample = 0;
-			int delta = 0;
-			ArrayList<Double> countList;
-			if  (max_random_number == 1) { // no statistical approach, take all image pixels		
-				//loop through box sizes, each box size gives a lacunarity
-				for (int l = 0; l < numBoxes; l++) {		
-					int proz = (int) (l + 1) * 95 / numBoxes;
-					boxSize = eps[l];
-					countList = new ArrayList<Double>();
-					mean = 0.0;
-					var = 0.0;
-					sample = 0;
-					if      (scanningType.equals("Raster box")) delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1;
-					//Raster through image
-					for (int x = 0; x <= (width-boxSize); x = x+delta){
-						for (int y = 0;  y <= (height-boxSize); y = y+delta){		
-							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-							count = 0;
-							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
-							while (cursor.hasNext()) { //Box
-								cursor.fwd();
-								//cursorF.localize(pos); 
-								sample = ((UnsignedByteType) cursor.get()).get();
-								if (sample > 0) {
-									// Binary Image: 0 and [1, 255]! and not: 0 and 255
-									if (colorModelType.equals("Binary")) count = count + 1.0;
-									if (colorModelType.equals("Grey"))   count = count + sample;
-								}								
-							}//while Box
-							countList.add(count);
-							//if (colorModelType.equals("Binary")) countList.add(count);
-							//if (colorModelType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
-						} //y	
-					} //x
-					//mean for this box size
-					for (double c: countList) mean = mean + c;
-					mean = mean/countList.size();
-					
-					//variance for this box size 
-					for (double c: countList) var = (var + (c - mean) * (c - mean));
-					var = var/countList.size();
-					
-					// calculate and set lacunarity value
-					lacunarities[l] = var/ (mean * mean) + 1; // lacunarityboxSizes[l] = boxSize;// = epsWidth; = kernelSize;
-				} 
-			}
-			else { //statistical approach
-				//loop through box sizes, each box size gives a lacunarity
-				for (int l = 0; l < numBoxes; l++) {		
-					int proz = (int) (l + 1) * 95 / numBoxes;
-					boxSize = eps[l];
-					countList = new ArrayList<Double>();
-					mean = 0.0;
-					var = 0.0;
-					sample = 0;
-					if      (scanningType.equals("Raster box")) delta = boxSize;
-					else if (scanningType.equals("Sliding box")) delta = 1;
-					//Raster through image
-					for (int x = 0; x <= (width-boxSize); x = x+delta){
-						for (int y = 0;  y <= (height-boxSize); y = y+delta){	
-							random_number = (int) (Math.random()*max_random_number+1);
-							if( random_number == 1 ){ // UPDATE 07.08.2013 
-								raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-								count = 0;
-								// Loop through all pixels of this box.
-								cursor = Views.iterable(raiBox).localizingCursor();
-								while (cursor.hasNext()) { //Box
-									cursor.fwd();
-									//cursorF.localize(pos); 
-									sample = ((UnsignedByteType) cursor.get()).get();
-									if (sample > 0) {
-										// Binary Image: 0 and [1, 255]! and not: 0 and 255
-										if (colorModelType.equals("Binary")) count = count + 1.0;
-										if (colorModelType.equals("Grey"))   count = count + sample;
-									}								
-								}//while Box
-								countList.add(count);
-								//if (colorModelType.equals("Binary")) countList.add(count);
-								//if (colorModelType.equals("Grey"))   countList.add(count/(255*boxSize*boxSize));
-							}
-						} //y	
-					} //x
-					//mean for this box size
-					for (double c: countList) mean = mean + c;
-					mean = mean/countList.size();
-					
-					//variance for this box size 
-					for (double c: countList) var = (var + (c - mean) * (c - mean));
-					var = var/countList.size();
-					
-					// calculate and set lacunarity value
-					lacunarities[l] = var/ (mean * mean) + 1; // lacunarity , sometimes + 1, sometimes not
-				} 
-			}
+		//Get succolarity reservoir (= potential succolarity)
+		//Succolarity reservoir (= potential succolarity) is identical for each flooding direction
+		double succReservoir = computeSuccReservoir(rai);
+		
+		double[] succolaritiesT2D      = null;
+		double[] succolaritiesD2T      = null;
+		double[] succolaritiesL2R      = null;
+		double[] succolaritiesR2L      = null;
+		double[] succolarities         = null;
+		double[] succolaritiesExtended = null; //With added succolarities such as Succolarity reservoir  , Delta succolarities, Anisotropy
+		double[] anisotropyIndices     = null;
+			
+		//********************************Binary Image: 0 and [1, 255]! and not: 0 and 255	
+		if (floodingType.equals("T2D")) {
+			//get and initialize T2D flooded image
+			initializeImgFlood_T2D(rai);
+			floodingImgFlood();
+			succolarities = computeSuccolarities_T2D();	
 		}
-		
-		
-		//------------------------------------------------------------------------------------------
-		//this seems to be not accurate as it should be
-		//maybe convolution of kernel at boundaries make problems
-		else if (scanningType.equals("Fast Sliding box")) {
-			RectangleShape kernel;
-			Runtime runtime = Runtime.getRuntime();
-			long maxMemory = runtime.maxMemory();
-			long totalMemory = runtime.totalMemory();
-			long freeMemory = runtime.freeMemory();
-			int availableProcessors = runtime.availableProcessors();
-			//System.out.println("availabel processors: " + availableProcessors);
-			
-			int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
-			if (numThreads > availableProcessors) numThreads = availableProcessors;
-			
-			//create binary image with 0 and 1
-			//later neighbors can be simply counted by dilation
-			imgBin = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
-			//uiService.show("imgBin1", imgBin);
-			raBin = imgBin.randomAccess();
-			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-			cursor = imgBin.localizingCursor();
-			double sample = 0;
-			int[] pos = new int[2];
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				ra.setPosition(pos);
-				sample = (double)ra.get().getInteger();
-				if (sample == 0.0) {
-					((UnsignedByteType) cursor.get()).set(0);
-				} else {
-					if (colorModelType.equals("Binary")) ((UnsignedByteType) cursor.get()).set(1);
-					if (colorModelType.equals("Grey"))   ((UnsignedByteType) cursor.get()).set((int)sample); //simply a copy
-				}		
-			}
-			//uiService.show("imgBin2", imgBin);
-			double mean = 0.0;
-			double var = 0.0;
-			int N = 0;
-			int epsWidth = 1;
-			Img<DoubleType> avgKernel;
-			//loop through box sizes, each box size gives a lacunarity
-			for (int l = 0; l < numBoxes; l++) {
-				
-				int proz = (int) (l + 1) * 95 / numBoxes;
-				//Compute dilated image
-				int kernelSize = 2 * epsWidth + 1;
-	//			kernel = new RectangleShape(kernelSize, false); //kernelSize x kernelSize skipCenter = true
-	//			imgDil = (Img<UnsignedByteType>) Dilation.dilate(imgBin, kernel, numThreads);
-				
-				// create the averageing kernel
-				//avgKernel = opService.create().img(new int[] {kernelSize, kernelSize}); may not work in older Fiji versions
-				avgKernel = new ArrayImgFactory<>(new DoubleType()).create(kernelSize, kernelSize); 
-				
-				for (DoubleType k : avgKernel) {
-					k.setReal(1.0);
-				}
-				//This must be solved******************************************************
-				//TODO
-				//This causes an error during runtime:
-				//incompatible types: net.imglib2.RandomAccessibleInterval<O> cannot be converted to net.imglib2.img.Img<net.imglib2.type.numeric.real.FloatType>
-				//imgDil = (Img<FloatType>) opService.filter().convolve(imgBin, avgKernel);
-				//************************************************************************
-	
-				//uiService.show("imgDil", imgDil);
-				// each pixel value is now the sum of the box (neighborhood values)
-				// get statistics
-				mean = 0.0;
-				var = 0.0;
-				N = 0;
-				sample = 0;
-				
-				// mean
-				cursor = imgDil.localizingCursor();
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					sample = ((FloatType) cursor.get()).getRealFloat();//-1 subtract midpoint itself from number
-					//if (sample > 0f) {
-						N = N + 1;
-						mean = mean + sample;
-					//} 	
-				}
-				mean = mean/N;
-			
-				// variance
-				sample = 0.0;
-				cursor = imgDil.localizingCursor();
-				while (cursor.hasNext()) {
-					cursor.fwd();
-					sample = ((FloatType) cursor.get()).getRealFloat();//-1 subtract midpoint itself from number
-					//if (sample > 0f) {
-						//N=N+1; //calculated already
-						var = (var + (sample - mean) * (sample - mean));
-					//} 	
-				}
-				var = var/N;
-				// calculate and set lacunarity value
-				lacunarities[l] = var/ (mean * mean) + 1; // lacunarity , sometimes + 1, sometimes not
-				eps[l] = kernelSize;// = epsWidth; = kernelSize;
-				// System.out.println("Lacunarity:  mean: " +  mean + "      stddev: "+stddev );
-		
-				epsWidth = epsWidth * 2;
-				// epsWidth = epsWidth+1;
-			} // 0>=l<=numEps loop through eps
-		}	
-		//------------------------------------------------------------------------------------------
-		else if (scanningType.equals("Tug of war")) {	
-			/**
-			 * 
-			 * Martin Reiss
-			 * DESCRIPTION:
-			 *  Die äquivalente Definition der Lacunarity aus [1] erlaubt es nun, eine neue Approximationsmethode 
-			 *  für die Fixed-Grid Lacunarity vorzuschlagen. Das erste Moment bleibt für einen Fixed-Grid Scan bei den verschiedenen Boxgrö"sen konstant. 
-			 *  Dies entspricht einfach der Gesamtzahl aller Objektpixel. Somit ist die Lacunarity nur mehr vom zweiten Moment der Besetzungszahlen abhängig. 
-			 *  Dieses zweite Moment kann aber mittels der Tug of War Methode berechnet werden. Der neu vorgeschlagene Algorithmus ermöglicht es also 
-			 *  die Fixed-Grid Lacunarity mittels Tug of War zu approximieren. 
-			 *  Das beschriebene Verfahren soll in der Folge als Tug of War Lacunarity [2] bezeichnet werden.
-			 *  
-			 *  [1] Tolle C.R., McJunkin T.R., Gorsich D.J., An efficient implementation of the gliding box lacunarity algorithm.
-			 *  [2] Masterthesis: Fraktale Dimension von Volumsdaten, Martin Reiß
-			 * 
-			 *  KNOWN PROBLEMS/OPEN QUESTIONS:
-			 * 	1) Method not that fast as it's supposed to be.
-			 * 	2) In 1D TugOfWar Lacunarity the result is very sensitive to the value of q. (Example: Regular Line) 
-			 * 
-			 *  UPDATES: MR 19.10.2016 elimination of negative values in getTotals() method according to Chaos 2016 paper
-			 */	
-			int s1 = accuracy;   // s1 = 30; Wang paper	//accuracy 	
-			int s2 = confidence; // s2 = 5;	 Wang paper //confidence
-			int q  = 10501;	//prime number
-			
-			double[] sum2   = new double[numBoxes];
-			//double[] totals = new double[numBoxes];		
-			double[] count  = new double[s1];
-			double[] meanS1 = new double[s2];
-			
-			long L = 0;		
-			double sum = 0.0;		
-			boolean even;	
-			int xx = 0;
-			int yy = 0;
-			int part1 = 0;
-			int part2 = 0;
-			int hashFunction = 0;
-			int k = 0;
-
-			double lac;
-			int epsWidth = 1;
-			int boxSize = 0;
-			//for (int n = 0; n < numBoxes; n++) boxSizes[n] = (int)Math.pow(2, n);
-			for (int n = 0; n < numBoxes; n++) lacunarities[n] = 0.0;
-			
-			// Count total number of points		
-			int sample;
-			cursor = Views.iterable(rai).localizingCursor();
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				sample = ((UnsignedByteType) cursor.get()).getInteger();
-				if (sample > 0) L = L + 1;		
-			}
-
-			// Get coordinates
-			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-			int[] xCoordinate = new int[(int) L];
-			int[] yCoordinate = new int[(int) L];	
-			
-			do {
-				for(int i = 0; i < width; i++){	
-					for(int j = 0; j < height; j++){
-						ra.setPosition(i, 0);
-						ra.setPosition(j, 1);
-						if (ra.get().getInteger() > 0 ){	
-							xCoordinate[k] = i;
-							yCoordinate[k] = j;
-							k++;
-						}
-					}
-				}
-			} while ( k < L );
-			
-			//TugOfWar - algorithm	
-			for (int c = 0; c < count.length; c++) count[c] = 0.0;
-			for (int s = 0; s < sum2.length; s++) sum2[s] = 0.0;
-			sum = 0.0;
-			//epsWidth = 1;
-			
-			int a_prim = 0;
-			int b_prim = 0;
-			int c_prim = 0;
-			int d_prim = 0;
-			
-			if (L > 0) {
-				for (int b = 0; b < numBoxes; b++) {	
-						boxSize = eps[b];
-						//boxSize = 2 * epsWidth + 1;
-						for(int s2_i = 0; s2_i < s2; s2_i++){
-							for(int s1_i = 0; s1_i < s1; s1_i++){	
-								
-								a_prim = getPrimeNumber();
-								b_prim = getPrimeNumber();
-								c_prim = getPrimeNumber();
-								d_prim = getPrimeNumber();
-		
-								for(int i = 0; i < L; i++){	
-									xx = (int)Math.round(xCoordinate[i]/boxSize); 
-									yy = (int)Math.round(yCoordinate[i]/boxSize); 
-									// hash function 
-									part1 = a_prim*xx*xx*xx + b_prim*xx*xx + c_prim*xx + d_prim;
-									part2 = a_prim*a_prim*yy*yy*yy + b_prim*b_prim*yy*yy + c_prim*c_prim*yy + d_prim*d_prim;							
-									hashFunction = (part1 + part2) % q; 
-									even = (hashFunction & 1) == 0;							
-									if (even) {
-										count[s1_i]++;
-									} else {
-										count[s1_i]+=-1;
-									}
-								}
-							} 
-							for(int s1_i = 0; s1_i < s1; s1_i++){
-								sum += count[s1_i]*count[s1_i]; 
-							}				
-							meanS1[s2_i] = sum / s1; 					
-							sum = 0.0;
-							for(int s1_i = 0; s1_i < s1; s1_i++){	
-								count[s1_i] = 0;
-							}	
-						} 				
-						for(int s2_i = 0; s2_i < s2; s2_i++){
-							sum2[b] += meanS1[s2_i] / s2;	
-						}							
-						lac = (double)(sum2[b]/(L*L))*(width*height/(boxSize*boxSize));
-						
-						//Note that lacunarity (= log[totals]) is always positive.
-//							if (lac < 1) {
-//								lacunarities[b] =  + 1; //Martin did it so
-//							} else {
-//								lacunarities[b] = lac;								
-//							}
-						
-						//Changed by Helmut
-						lacunarities[b] = lac;	
-						
-						for(int s2_i = 0; s2_i < s2; s2_i++){	
-							meanS1[s2_i] = 0;
-						}
-						//boxSizes[b] = boxSize;// = epsWidth; = kernelSize;
-						//epsWidth = epsWidth * 2;
-						// epsWidth = epsWidth+1;
-				} //Box sizes
-				
-			} else {
-				// Set totals to zero if image is empty.
-				for (int b = 0; b < numBoxes; b++) lacunarities[b] =  0;	
-			}		
-		}//Tug of war
-		//---------------------------------------------------------------------------------------------
-		//Compute weighted mean Lacunarity according to Equ.3 of Roy&Perfect, 2014, Fractals, Vol22, No3
-		//DOI: 10.1142/S0218348X14400039
-		double L_RP = 0.0;
-		double sumBoxSize = 0.0;
-		for (int n = 0; n < numBoxes; n++) {	
-			L_RP = L_RP + Math.log10(lacunarities[n]) * Math.log10(eps[n]);
-			sumBoxSize = sumBoxSize + Math.log10(eps[n]);
+		else if (floodingType.equals("D2T")) {
+			initializeImgFlood_D2T(rai);
+			floodingImgFlood();
+			succolarities = computeSuccolarities_D2T();	
 		}
-		lacunarities[numBoxes] = L_RP/sumBoxSize; //append it to the list of lacunarities	
-		
-		//Compute mean Lacunarity according to Equ.29 of Sengupta and Vinoy, 2006, Fractals, Vol14 No4 p271-282
-		//DOI: 10.1142/S0218348X06003313 
-		double L_SV = 0.0;
-		for (int n = 0; n < numBoxes; n++) {	
-			L_SV = L_SV + lacunarities[n] * eps[n];
+		else if (floodingType.equals("L2R")) {
+			initializeImgFlood_L2R(rai);
+			floodingImgFlood();
+			succolarities = computeSuccolarities_L2R();	
 		}
-		lacunarities[numBoxes + 1] = Math.log(L_SV/(eps[numBoxes-1] - eps[0])); //append it to the list of lacunarities	
+		else if (floodingType.equals("R2L")) {
+			initializeImgFlood_R2L(rai);
+			floodingImgFlood();
+			succolarities = computeSuccolarities_R2L();	
+		}
+		else if (floodingType.equals("Mean & Anisotropy")) {
+			initializeImgFlood_T2D(rai);
+			floodingImgFlood();
+			succolaritiesT2D = computeSuccolarities_T2D();	
 			
-		//prepare plot
-		double[] lnDataX = new double[numBoxes];
-		double[] lnDataY = new double[numBoxes];
-		for (int n = 0; n < numBoxes; n++) {	
-				if (lacunarities[n] == 0) {
-					lnDataY[n]= Math.log(Float.MIN_VALUE);
-				} else {
-					lnDataY[n] = Math.log(lacunarities[n]);
-				}
-				lnDataX[n] = Math.log(eps[n]);
-				// System.out.println("Lacunarity: " );	
+			initializeImgFlood_D2T(rai);
+			floodingImgFlood();
+			succolaritiesD2T = computeSuccolarities_D2T();	
+		
+			initializeImgFlood_L2R(rai);
+			floodingImgFlood();
+			succolaritiesL2R = computeSuccolarities_L2R();	
+			
+			initializeImgFlood_R2L(rai);
+			floodingImgFlood();
+			succolaritiesR2L = computeSuccolarities_R2L();	
+			
+			succolarities = new double[numBoxes];
+			for (int s = 0; s < numBoxes; s++) {
+				succolarities[s] = (succolaritiesT2D[s] + succolaritiesD2T[s] + succolaritiesL2R[s] + succolaritiesR2L[s])/4.0;
+			}
+			anisotropyIndices = new double[numBoxes];
+			for (int s = 0; s < numBoxes; s++) {
+				anisotropyIndices[s] = Math.abs((succolaritiesL2R[s]+succolaritiesR2L[s])/2.0 - (succolaritiesT2D[s]+succolaritiesD2T[s])/2.0);			
+			}
 		}
 			
 		//Create double log plot
 		boolean isLineVisible = false; //?
+			
+		// Plot //nur ein Band!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		double[] lnDataX = new double[numBoxes];
+		double[] lnDataY = new double[numBoxes];
+			
+		double succ;
+		for (int k = 0; k < numBoxes; k++) {
+			if (succolarities[k] == 0) {
+				succ = Double.MIN_VALUE;
+			} else  {
+				succ = succolarities[k];
+			};
+			lnDataY[k] = Math.log(100.0*succ);		
+			lnDataX[k] = Math.log(Math.pow(2, k)); //box size	
+		}
+		// System.out.println("FractalDimensionBoxCounting: dataY: "+ dataY);
+		// System.out.println("FractalDimensionBoxCounting: dataX: "+ dataX);
+	
 		if (optShowPlot) {			
 			String preName = "";
 			if (numSlices > 1) {
 				preName = "Slice-"+String.format("%03d", plane) +"-";
 			}
-			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Lacunarity", 
-					preName + datasetName, "ln(Box size)", "ln(L)", "",
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Succolarity", 
+					preName + datasetName, "ln(Box width)", "ln(100.Succolarity)", "",
 					1, numBoxes);
 			doubleLogPlotList.add(doubleLogPlot);
 		}
@@ -1424,228 +999,432 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		//LinearRegression lr = new LinearRegression();
 		//regressionParams = lr.calculateParameters(lnDataX, lnDataY, numRegStart, numRegEnd);
 		//0 Intercept, 1 Slope, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared
-	
-		logService.info(this.getClass().getName() + " Lacunarities[0]: " + lacunarities[0]);
 		
-		epsRegStartEnd[0] = eps[numRegStart-1];
-		epsRegStartEnd[1] = eps[numRegEnd-1];
-		return new CsajContainer_ProcessMethod(lacunarities, epsRegStartEnd);
+		
+		if (floodingType.equals("Mean & Anisotropy")) {
+			succolaritiesExtended = new double[1+2*succolarities.length+anisotropyIndices.length]; //Succolarity reservoir (= potential succolarity), Succolarities and Delta succolarities
+		} else {
+			succolaritiesExtended = new double[1+2*succolarities.length]; //Succolarity reservoir (= potential succolarity), Succolarities and Delta succolarities
+		}
+		
+		succolaritiesExtended[0] = succReservoir;
+		
+		for (int s = 0; s < succolarities.length; s++) {
+			succolaritiesExtended[1+s] = succolarities[s]; //Succolarities
+		}
+		for (int s = 0; s < succolarities.length; s++) {
+			succolaritiesExtended[1+succolarities.length + s] = succReservoir - succolarities[s]; //Delta succolarities
+		}
+		if (floodingType.equals("Mean & Anisotropy")) {
+			for (int s = 0; s < anisotropyIndices.length; s++) {
+				succolaritiesExtended[1+2*succolarities.length + s] = anisotropyIndices[s]; //Anisotropy indices
+			}
+		}
+		
+		logService.info(this.getClass().getName() + " Succolarities[0]: " + succolaritiesExtended[0]);
+		
+//		epsRegStartEnd[0] = eps[numRegStart-1];
+//		epsRegStartEnd[1] = eps[numRegEnd-1];
+		
+		return new CsajContainer_ProcessMethod(succolaritiesExtended);
 		//Output
 		//uiService.show(TABLE_OUT_NAME, table);
 		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
 		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
 		//table
-	}//
-	//-------------------------------------------------------------------------------------------
-	public int getPrimeNumber(){
-		
-		int[] primeNumbers = {
-			  46349,48533,44123,
-			  46351,48539,44129,
-			  46381,48541,44131,
-			  46399,48563,44159,
-			  46411,48571,44171,
-			  46439,48589,44179,
-			  46441,48593,44189,
-			  46447,48611,44201,
-			  46451,48619,44203,
-			  46457,48623,44207,
-			  46471,48647,44221,
-			  46477,48649,44249,
-			  46489,48661,44257,
-			  46499,48673,44263,
-			  46507,48677,44267,
-			  46511,48679,44269,
-			  46523,48731,44273,
-			  46549,48733,44279,
-			  46559,48751,44281,
-			  46567,48757,44293,
-			  46573,48761,44351,
-			  46589,48767,44357,
-			  46591,48779,44371,
-			  46601,48781,44381,
-			  46619,48787,44383,
-			  46633,48799,44389,
-			  46639,48809,44417,
-			  46643,48817,44449,
-			  46649,48821,44453,
-			  46663,48823,44483,
-			  46679,48847,44491,
-			  46681,48857,44497,
-			  46687,48859,44501,
-			  46691,48869,44507,
-			  46703,48871,44519,
-			  46723,48883,44531,
-			  46727,48889,44533,
-			  46747,48907,44537,
-			  46751,48947,44543,
-			  46757,48953,44549,
-			  46769,48973,44563,
-			  46771,48989,44579,
-			  46807,48991,44587,
-			  46811,49003,44617,
-			  46817,49009,44621,
-			  46819,49019,44623,
-			  46829,49031,44633,
-			  46831,49033,44641,
-			  46853,49037,44647,
-			  46861,49043,44651,
-			  46867,49057,44657,
-			  46877,49069,44683,
-			  46889,49081,44687,
-			  46901,49103,44699,
-			  46919,49109,44701,
-			  46933,49117,44711,
-			  46957,49121,44729,
-			  46993,49123,44741,
-			  46997,49139,44753,
-			  47017,49157,44771,
-			  47041,49169,44773,
-			  47051,49171,44777,
-			  47057,49177,44789,
-			  47059,49193,44797,
-			  47087,49199,44809,
-			  47093,49201,44819,
-			  47111,49207,44839,
-			  47119,49211,44843,
-			  47123,49223,44851,
-			  47129,49253,44867,
-			  47137,49261,44879,
-			  47143,49277,44887,
-			  47147,49279,44893,
-			  47149,49297,44909,
-			  47161,49307,44917,
-			  47189,49331,44927,
-			  47207,49333,44939,
-			  47221,49339,44953,
-			  47237,49363,44959,
-			  47251,49367,44963,
-			  47269,49369,44971,
-			  47279,49391,44983,
-			  47287,49393,44987,
-			  47293,49409,45007,
-			  47297,49411,45013,
-			  47303,49417,45053,
-			  47309,49429,45061,
-			  47317,49433,45077,
-			  47339,49451,45083,
-			  47351,49459,45119,
-			  47353,49463,45121,
-			  47363,49477,45127,
-			  47381,49481,45131,
-			  47387,49499,45137,
-			  47389,49523,45139,
-			  47407,49529,45161,
-			  47417,49531,45179,
-			  47419,49537,45181,
-			  47431,49547,45191,
-			  47441,49549,45197,
-			  47459,49559,45233,
-			  47491,49597,45247,
-			  47497,49603,45259,
-			  47501,49613,45263,
-			  47507,49627,45281,
-			  47513,49633,45289,
-			  47521,49639,45293,
-			  47527,49663,45307,
-			  47533,49667,45317,
-			  47543,49669,45319,
-			  47563,49681,45329,
-			  47569,49697,45337,
-			  47581,49711,45341,
-			  47591,49727,45343,
-			  47599,49739,45361,
-			  47609,49741,45377,
-			  47623,49747,45389,
-			  47629,49757,45403,
-			  47639,49783,45413,
-			  47653,49787,45427,
-			  47657,49789,45433,
-			  47659,49801,45439,
-			  47681,49807,45481,
-			  47699,49811,45491,
-			  47701,49823,45497,
-			  47711,49831,45503,
-			  47713,49843,45523,
-			  47717,49853,45533,
-			  47737,49871,45541,
-			  47741,49877,45553,
-			  47743,49891,45557,
-			  47777,49919,45569,
-			  47779,49921,45587,
-			  47791,49927,45589,
-			  47797,49937,45599,
-			  47807,49939,45613,
-			  47809,49943,45631,
-			  47819,49957,45641,
-			  47837,49991,45659,
-			  47843,49993,45667,
-			  47857,49999,45673,
-			  47869,50021,45677,
-			  47881,50023,45691,
-			  47903,50033,45697,
-			  47911,50047,45707,
-			  47917,50051,45737,
-			  47933,50053,45751,
-			  47939,50069,45757,
-			  47947,50077,45763,
-			  47951,50087,45767,
-			  47963,50093,45779,
-			  47969,50101,45817,
-			  47977,50111,45821,
-			  47981,50119,45823,
-			  48017,50123,45827,
-			  48023,50129,45833,
-			  48029,50131,45841,
-			  48049,50147,45853,
-			  48073,50153,45863,
-			  48079,50159,45869,
-			  48091,50177,45887,
-			  48109,50207,45893,
-			  48119,50221,45943,
-			  48121,50227,45949,
-			  48131,50231,45953,
-			  48157,50261,45959,
-			  48163,50263,45971,
-			  48179,50273,45979,
-			  48187,50287,45989,
-			  48193,50291,46021,
-			  48197,50311,46027,
-			  48221,50321,46049,
-			  48239,50329,46051,
-			  48247,50333,46061,
-			  48259,50341,46073,
-			  48271,50359,46091,
-			  48281,50363,46093,
-			  48299,50377,46099,
-			  48311,50383,46103,
-			  48313,50387,46133,
-			  48337,50411,46141,
-			  48341,50417,46147,
-			  48353,50423,46153,
-			  48371,50441,46171,
-			  48383,50459,46181,
-			  48397,50461,46183,
-			  48407,50497,46187,
-			  48409,50503,46199,
-			  48413,50513,46219,
-			  48437,50527,46229,
-			  48449,50539,46237,
-			  48463,50543,46261,
-			  48473,50549,46271,
-			  48479,50551,46273,
-			  48481,50581,46279,
-			  48487,50587,46301,
-			  48491,50591,46307,
-			  48497,50593,46309,
-			  48523,50599,46327,
-			  48527,50627,44119
-			};
-		
-		int randn = (int) (Math.random()*500);
-		return primeNumbers[randn]; 
-		
 	}
+	
+	/**
+	 * This method computes the Succolarity reservoir (= potential succolarity)
+	 * Andronache, Ion. „Analysis of Forest Fragmentation and Connectivity Using Fractal Dimension and Succolarity“.
+	 * Land 13, Nr. 2 (Februar 2024): 138.
+	 * https://doi.org/10.3390/land13020138.
+
+	 * @param rai
+	 */
+	private double computeSuccReservoir(RandomAccessibleInterval<?> rai) { 
+	
+		double numBlackPixels = 0;
+		double numTotalPixels = 0;
+		
+		cursor = Views.iterable(rai).localizingCursor();
+		while (cursor.hasNext()) {
+			cursor.fwd();				
+			if (((UnsignedByteType) cursor.get()).get() == 0) {
+				numBlackPixels += 1.0; // Binary Image: 0 and [1, 255]! and not: 0 and 255
+			}			
+			numTotalPixels += 1.0;
+		}
+		return numBlackPixels/numTotalPixels; //Succolarity reservoir (= potential succolarity)
+	}
+
+	/**
+	 * This method generates an image for flooding with set Top pixels
+	 * @param rai
+	 */
+	//get and initialize T2D flooded image
+	private void initializeImgFlood_T2D(RandomAccessibleInterval<?> rai) { 
+		int value = 0;
+		imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
+		raFlood = imgFlood.randomAccess();
+		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+		ra.setPosition(0,1);     //y=Top;
+		raFlood.setPosition(0,1);//y=Top;
+		for (int x=0; x < width; x++) {
+			ra.setPosition(x, 0);
+			value = ra.get().getInteger();
+			if (value == 0) {
+				raFlood.setPosition(x, 0);
+				raFlood.get().set(255);
+			}		
+		}
+	}
+	
+	/**
+	 * This method generates an image for flooding with set Bottom pixels
+	 * @param rai
+	 */
+	//get and initialize D2T flooded image
+	private void initializeImgFlood_D2T(RandomAccessibleInterval<?> rai) { 
+		int value = 0;
+		imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
+		raFlood = imgFlood.randomAccess();
+		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+		ra.setPosition(height-1,1);     //y=Bottom;
+		raFlood.setPosition(height-1,1);//y=Bottom;
+		for (int x=0; x < width; x++) {
+			ra.setPosition(x, 0);
+			value = ra.get().getInteger();
+			if (value == 0) {
+				raFlood.setPosition(x, 0);
+				raFlood.get().set(255);
+			}		
+		}
+	}
+	
+	/**
+	 * This method generates an image for flooding with set Left pixels
+	 * @param rai
+	 */
+	//get and initialize L2R flooded image
+	private void initializeImgFlood_L2R(RandomAccessibleInterval<?> rai) { 
+		int value = 0;
+		imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
+		raFlood = imgFlood.randomAccess();
+		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+		ra.setPosition(0,0);     //x=Left;
+		raFlood.setPosition(0,0);//x=Left;
+		for (int y=0; y < height; y++) {
+			ra.setPosition(y, 1);
+			value = ra.get().getInteger();
+			if (value == 0) {
+				raFlood.setPosition(y, 1);
+				raFlood.get().set(255);
+			}		
+		}
+	}
+	
+	/**
+	 * This method generates an image for flooding with set Right pixels
+	 * @param rai
+	 */
+	//get and initialize R2L flooded image
+	private void initializeImgFlood_R2L(RandomAccessibleInterval<?> rai) { 
+			int value = 0;
+			imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
+			raFlood = imgFlood.randomAccess();
+			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+			ra.setPosition(width-1,0);     //x=Right;
+			raFlood.setPosition(width-1,0);//x=Right;
+			for (int y=0; y < height; y++) {
+				ra.setPosition(y, 1);
+				value = ra.get().getInteger();
+				if (value == 0) {
+					raFlood.setPosition(y, 1);
+					raFlood.get().set(255);
+				}		
+			}
+		}
+	
+	
+	/**
+	 * This methods floods the image by subsequent dilations and subtractions of the original image
+	 */
+	//flooding imgFlood
+	private void floodingImgFlood() {
+		RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
+		Runtime runtime = Runtime.getRuntime();
+		long maxMemory = runtime.maxMemory();
+		long totalMemory = runtime.totalMemory();
+		long freeMemory = runtime.freeMemory();
+		int availableProcessors = runtime.availableProcessors();
+		//System.out.println("availabel processors: " + availableProcessors);
+		
+		int numThreads = 6; //For dilation //with 6 it was 3 times faster than only with one thread
+		if (numThreads > availableProcessors) numThreads = availableProcessors;
+		
+		int diff = 99999999;
+		int pixelValueImgOrig;
+		int pixelValueImgFlood;
+		int pixelValueImgDil;
+	
+		long[] pos = new long[2];
+		while (diff != 0) {
+			//Compute dilated image
+			imgDil = Dilation.dilate(imgFlood, kernel, numThreads);
+			//subtract original image
+			cursor = imgDil.localizingCursor();
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				ra.setPosition(pos);
+				pixelValueImgDil = ((UnsignedByteType) cursor.get()).get();
+				pixelValueImgOrig = ra.get().getInteger();
+				// Binary Image: 0 and [1, 255]! and not: 0 and 255
+				if ((pixelValueImgDil > 0) && (pixelValueImgOrig > 0)) {
+					((UnsignedByteType) cursor.get()).setReal(0);					
+				}
+			}
+			//get diff
+			diff = 0;
+			cursor = imgDil.localizingCursor();
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raFlood.setPosition(pos);
+				pixelValueImgDil = ((UnsignedByteType) cursor.get()).get();
+				pixelValueImgFlood = raFlood.get().getInteger();
+				// Binary Image: 0 and [1, 255]! and not: 0 and 255
+				if ((pixelValueImgDil > 0) && (pixelValueImgFlood == 0)) {
+					diff = diff + 1;
+					break; //it is not necessary to search any more
+				} else if ((pixelValueImgDil == 0) && (pixelValueImgFlood > 0)) {
+					diff = diff + 1; //it is not necessary to search any more
+					break;
+				}	
+			}		
+			imgFlood = imgDil;
+			//uiService.show("imgFlood", imgFlood);
+			raFlood = imgFlood.randomAccess();
+		}
+	}
+	
+	//Following four methods to compute succolarities are quite identical
+	//Pressure is the only variable which is differently computed
+	
+	/**
+	 * This method computes succolarities for distinct box sizes from Top two down
+	 * @return
+	 */
+	private double[] computeSuccolarities_T2D() {
+		double pressure = Double.NaN; //Pressure of a box 
+		double occ= Double.NaN; //occupation percentage in a single box
+		double[] succ = new double[numBoxes];
+		double[] norm = new double[numBoxes];
+		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
+		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
+		int boxSize;	
+		int delta = 0;
+		
+//		//extra for k = 0 did not be really be faster
+//		//k = 0 box size == 1
+//		boxSize = (int) Math.pow(2, 0); //= 1;
+//		//boxSize = k+1;	
+//		numOfScannedBoxes = (int) (width*height);
+//		pressure = 0.0;
+//		maxPR = (double)(height - 1 + height)/2.0;
+//		long[] pos = new long[2];
+//		cursor = imgFlood.localizingCursor();
+//		while (cursor.hasNext()) { //imgFlood
+//			cursor.fwd();	
+//			if (((UnsignedByteType) cursor.get()).get() > 0) {
+//				cursor.localize(pos); 
+//				// Binary Image: 0 and [1, 255]! and not: 0 and 255
+//				pressure = (double)(pos[1] + pos[1] + 1.0)/2.0;
+//				succ[0] = succ[0] + pressure;     //(occ/(boxSize*boxSize)*pressure); /boxSize == 1   occ == 1 
+//			}								
+//		}//while imgFlood
+//		//Normalization
+//		succ[0] = succ[0]/((double)numOfScannedBoxes*1*maxPR);
+		
+		//all box sizes
+		for (int k = 0; k < numBoxes; k++) { //	
+			succ[k] = 0.0;
+			norm[k] = 0.0;
+			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;	
+			pressure = 0.0;
+			for (int y = 0;  y<= (height-boxSize); y=y+delta){
+				//Pressure is the only variable which is distinct between these 4 methods
+				pressure = ((double)y + (double)y + (double)boxSize)/2.0;
+				for (int x = 0; x <= (width-boxSize); x=x+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+					occ = 0;
+					// Loop through all pixels of this box.
+					cursor = Views.iterable(raiBox).localizingCursor();
+					while (cursor.hasNext()) { //Box
+						cursor.fwd();
+						//cursorF.localize(pos); 		
+						if (((UnsignedByteType) cursor.get()).get() > 0) {
+							// Binary Image: 0 and [1, 255]! and not: 0 and 255
+							occ = occ + 1.0;
+						}								
+					}//while Box
+					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
+					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+				} //y	
+			} //x
+			//Normalization
+			succ[k] = succ[k]/norm[k];
+		} //K
+		return succ;
+	}
+	
+	/**
+	 * This method computes succolarities for distinct box sizes from Down two top
+	 * @return
+	 */
+	private double[] computeSuccolarities_D2T() {
+		double pressure = Double.NaN; //Pressure of a box 
+		double occ= Double.NaN; //occupation percentage in a single box
+		double[] succ = new double[numBoxes];
+		double[] norm = new double[numBoxes];
+		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
+		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
+		int boxSize;	
+		int delta = 0;
+		
+		//all box sizes
+		for (int k = 0; k < numBoxes; k++) { //	
+			succ[k] = 0.0;
+			norm[k] = 0.0;
+			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
+			pressure = 0.0;
+			for (int y = (int)height-1;  y>= boxSize-1; y=y-delta){
+				//Pressure is the only variable which is distinct between these 4 methods
+				pressure = ((double)(height-1-y) + (double)(height-1-y + boxSize))/2.0;
+				for (int x = 0; x <= (width-boxSize); x=x+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x, y-boxSize+1}, new long[]{x+boxSize-1, y});
+					occ = 0.0;
+					// Loop through all pixels of this box.
+					cursor = Views.iterable(raiBox).localizingCursor();
+					while (cursor.hasNext()) { //Box
+						cursor.fwd();
+						//cursorF.localize(pos); 		
+						if (((UnsignedByteType) cursor.get()).get() > 0) {
+							// Binary Image: 0 and [1, 255]! and not: 0 and 255
+							occ = occ + 1.0;
+						}								
+					}//while Box
+					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
+					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+				} //y	
+			} //x
+			//Normalization
+			succ[k] = succ[k]/norm[k];
+		} //k
+		return succ;
+	}
+	
+	/**
+	 * This method computes succolarities for distinct box sizes from Left to right
+	 * @return
+	 */
+	private double[] computeSuccolarities_L2R() {
+		double pressure = Double.NaN; //Pressure of a box 
+		double occ= Double.NaN; //occupation percentage in a single box
+		double[] succ = new double[numBoxes];
+		double[] norm = new double[numBoxes];
+		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
+		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
+		int boxSize;	
+		int delta = 0;
+		//all box sizes
+		for (int k = 0; k < numBoxes; k++) { //	
+			succ[k] = 0.0;
+			norm[k] = 0.0;
+			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
+			pressure = 0.0;
+			for (int x = 0; x <= (width-boxSize); x=x+delta){
+				//Pressure is the only variable which is distinct between these 4 methods
+				pressure = ((double)x + (double)x + (double)boxSize)/2.0;
+				for (int y = 0;  y<= (height-boxSize); y=y+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
+					occ = 0.0;
+					// Loop through all pixels of this box.
+					cursor = Views.iterable(raiBox).localizingCursor();
+					while (cursor.hasNext()) { //Box
+						cursor.fwd();
+						//cursorF.localize(pos); 		
+						if (((UnsignedByteType) cursor.get()).get() > 0) {
+							// Binary Image: 0 and [1, 255]! and not: 0 and 255
+							occ = occ + 1.0;
+						}								
+					}//while Box
+					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
+					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+				} //y	
+			} //x
+			//Normalization
+			succ[k] = succ[k]/norm[k];
+		} //k
+		return succ;
+	}
+	
+	/**
+	 * This method computes succolarities for distinct box sizes from Right to left
+	 * @return
+	 */
+	private double[] computeSuccolarities_R2L() {
+		double pressure = Double.NaN; //Pressure of a box 
+		double occ= Double.NaN; //occupation percentage in a single box
+		double[] succ = new double[numBoxes];
+		double[] norm = new double[numBoxes];
+		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
+		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
+		int boxSize;
+		int delta = 0;
+
+		//all box sizes
+		for (int k = 0; k < numBoxes; k++) { //	
+			succ[k] = 0.0;
+			norm[k] = 0.0;
+			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
+			pressure = 0.0;
+			for (int x = (int)width-1; x >= boxSize-1; x=x-delta){
+				//Pressure is the only variable which is distinct between these 4 methods
+				pressure = ((double)(width-1-x) + (double)(width-1-x + boxSize))/2.0; 
+				for (int y = 0;  y<= (height-boxSize); y=y+delta){
+					raiBox = Views.interval(imgFlood, new long[]{x-boxSize+1, y}, new long[]{x, y+boxSize-1});
+					occ = 0.0;
+					// Loop through all pixels of this box.
+					cursor = Views.iterable(raiBox).localizingCursor();
+					while (cursor.hasNext()) { //Box
+						cursor.fwd();
+						//cursorF.localize(pos); 		
+						if (((UnsignedByteType) cursor.get()).get() > 0) {
+							// Binary Image: 0 and [1, 255]! and not: 0 and 255
+							occ = occ + 1.0;
+						}								
+					}//while Box
+					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
+					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+				} //y	
+			} //x
+			//Normalization
+			succ[k] = succ[k]/norm[k];
+		} //k
+		return succ;
+	}
+	
+	
 	
 	//This methods reduces dimensionality to 2D just for the display 	
 	//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
@@ -1670,11 +1449,11 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			cursor.localize(pos);
-			ra.setPosition(pos);
-			//ra.setPosition(pos[0], 0);
-			//ra.setPosition(pos[1], 1);
+			ra.setPosition(pos[0], 0);
+			ra.setPosition(pos[1], 1);
 			ra.get().setReal(cursor.get().get());
-		}  			
+		}  	
+		
 		uiService.show(name, datasetDisplay);
 	}
 	
@@ -1711,10 +1490,9 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		// verticalPercent);
 		//CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
-		return pl;	
+		return pl;
+		
 	}
-	
-	
 	
 	/**
 	 * 
@@ -1729,10 +1507,9 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 		while (cursor.hasNext()){
 			cursor.fwd();
 			cursor.localize(pos);
-			ra.setPosition(pos);
 			//if (numSlices == 1) { //for only one 2D image;
-			//	ra.setPosition(pos[0], 0);
-			//	ra.setPosition(pos[1], 1);
+				ra.setPosition(pos[0], 0);
+				ra.setPosition(pos[1], 1);
 			//} else { //for more than one image e.g. image stack
 			//	ra.setPosition(pos[0], 0);
 			//	ra.setPosition(pos[1], 1);
@@ -1740,7 +1517,8 @@ public class Csaj2DLacunarityCommand<T extends RealType<T>> extends ContextComma
 			//}
 			//ra.get().setReal(cursor.get().get());
 			cursor.get().setReal(ra.get().getRealFloat());
-		}	
+		}
+		
 		return imgFloat;
 	}
 	

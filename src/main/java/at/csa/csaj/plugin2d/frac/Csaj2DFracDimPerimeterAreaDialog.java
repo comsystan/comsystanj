@@ -215,7 +215,7 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
 		labelNumEps.setText("Number of boxes");
-		int numBoxes = Csaj2DFracDimPerimeterAreaCommand.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+		int numBoxes = Csaj2DFracDimPerimeterAreaCmd.getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
 		spinnerModelNumEps= new SpinnerNumberModel(1, 1, numBoxes, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 		spinnerNumEps.setValue(numBoxes);
@@ -233,7 +233,7 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		Future<CommandModule> future = commandService.run(Csaj2DFracDimPerimeterAreaCommand.class, false,
+		Future<CommandModule> future = commandService.run(Csaj2DFracDimPerimeterAreaCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
 														"choiceRadioButt_ScanningType",   choiceRadioButt_ScanningType,
@@ -259,7 +259,7 @@ public class Csaj2DFracDimPerimeterAreaDialog extends CsajDialog_2DPluginWithReg
 			e.printStackTrace();
 		}
 		//tableOutName =(String)commandModule.getInfo().getLabel(); //Unfortunately, it is not possible to get this label inside the Command plugin class
-		tableOutName = Csaj2DFracDimPerimeterAreaCommand.TABLE_OUT_NAME;
+		tableOutName = Csaj2DFracDimPerimeterAreaCmd.TABLE_OUT_NAME;
 		tableOut     = (DefaultGenericTable)commandModule.getOutput("tableOut");	
 		uiService.show(tableOutName, tableOut);
 	}

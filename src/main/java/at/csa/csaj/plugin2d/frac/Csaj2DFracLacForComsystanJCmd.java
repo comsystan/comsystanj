@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DFracLacForComsystanJCommand.java
+ * File: Csaj2DFracLacForComsystanJCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -63,7 +63,7 @@ import ij.util.Java2;
 		@Menu(label = "Fractal analyses", weight = 6),
 		@Menu(label = "FracLac")})
 
-public class Csaj2DFracLacForComsystanJCommand<T extends RealType<T>> extends ContextCommand {
+public class Csaj2DFracLacForComsystanJCmd<T extends RealType<T>> extends ContextCommand {
 
 	
 	private static final String PLUGIN_LABEL = "<html><b>Open FracLac</b></html>";
