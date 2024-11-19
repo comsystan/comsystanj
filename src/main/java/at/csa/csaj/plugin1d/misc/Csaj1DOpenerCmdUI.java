@@ -55,7 +55,7 @@ import net.imagej.ImageJ;
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
-		@Menu(label = "1D sequence opener(New dialog) ", weight = 10)}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin
+		@Menu(label = "1D sequence opener ", weight = 10)}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin
 
 public class Csaj1DOpenerCmdUI extends ContextCommand implements Previewable{
 	

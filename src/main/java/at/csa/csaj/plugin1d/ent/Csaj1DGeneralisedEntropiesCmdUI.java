@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Entropy analyses", weight = 5),
-		@Menu(label = "Generalised entropies(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Generalised entropies ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
 public class Csaj1DGeneralisedEntropiesCmdUI extends ContextCommand implements Previewable{
 	

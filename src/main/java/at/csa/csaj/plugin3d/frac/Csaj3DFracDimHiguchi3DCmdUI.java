@@ -56,7 +56,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D Higuchi dimension(New dialog)")})
+		@Menu(label = "3D Higuchi dimension")})
 
 public class Csaj3DFracDimHiguchi3DCmdUI extends ContextCommand implements Previewable{
 	

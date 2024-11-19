@@ -55,7 +55,7 @@ import net.imagej.ImageJ;
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
-		@Menu(label = "2D image opener(NewDialog)", weight = 10)})
+		@Menu(label = "2D image opener", weight = 10)})
 
 public class Csaj2DOpenerCmdUI extends ContextCommand implements Previewable{
 	

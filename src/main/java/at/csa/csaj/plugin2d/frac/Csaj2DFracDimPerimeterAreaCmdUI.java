@@ -56,7 +56,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Perimeter area dimension(New Dialog)")})
+		@Menu(label = "Perimeter area dimension")})
 
 public class Csaj2DFracDimPerimeterAreaCmdUI extends ContextCommand implements Previewable{
 	

@@ -53,7 +53,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Lacunarity(New Dialog)")})
+		@Menu(label = "Lacunarity")})
 
 public class Csaj2DLacunarityCmdUI extends ContextCommand implements Previewable{
 	

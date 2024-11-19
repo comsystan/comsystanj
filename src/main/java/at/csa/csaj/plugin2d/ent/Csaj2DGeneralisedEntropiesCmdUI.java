@@ -53,7 +53,7 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
 @Menu(label = "Entropy analyses", weight = 5),
-@Menu(label = "Generalised entropies(New dialog)")})
+@Menu(label = "Generalised entropies")})
 
 public class Csaj2DGeneralisedEntropiesCmdUI extends ContextCommand implements Previewable{
 	

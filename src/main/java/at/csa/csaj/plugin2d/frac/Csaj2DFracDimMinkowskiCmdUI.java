@@ -56,7 +56,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Minkowski dimension(New Dialog)")})
+		@Menu(label = "Minkowski dimension")})
 
 public class Csaj2DFracDimMinkowskiCmdUI extends ContextCommand implements Previewable{
 	

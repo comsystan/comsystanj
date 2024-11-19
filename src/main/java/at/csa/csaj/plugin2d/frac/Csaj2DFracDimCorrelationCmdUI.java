@@ -53,7 +53,7 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
 @Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Correlation dimension(New Dialog)")})
+@Menu(label = "Correlation dimension")})
 
 public class Csaj2DFracDimCorrelationCmdUI extends ContextCommand implements Previewable{
 	

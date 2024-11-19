@@ -54,7 +54,7 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
 @Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "Box counting dimension(New Dialog)")})
+@Menu(label = "Box counting dimension")})
 
 public class Csaj2DFracDimBoxCountingCmdUI extends ContextCommand implements Previewable{
 	

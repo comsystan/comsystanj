@@ -59,7 +59,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Preprocessing", weight = 1),
-		@Menu(label = "3D Noise(New Dialog)")})
+		@Menu(label = "3D Noise")})
 
 public class Csaj3DNoiseCmdUI extends ContextCommand implements Previewable{
 	

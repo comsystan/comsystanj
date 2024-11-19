@@ -55,7 +55,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Directional correlation dimension(New Dialog)")})
+		@Menu(label = "Directional correlation dimension")})
 
 public class Csaj2DFracDimDirectionalCorrelationCmdUI extends ContextCommand implements Previewable{
 	

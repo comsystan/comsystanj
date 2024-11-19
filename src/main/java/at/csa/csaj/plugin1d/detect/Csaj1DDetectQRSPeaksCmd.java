@@ -73,7 +73,7 @@ import javax.swing.UIManager;
 	@Menu(label = "ComsystanJ"),
 	@Menu(label = "1D Sequence(s)"),
 	@Menu(label = "Detection", weight = 2),
-	@Menu(label = "QRS peaks detection(New dialog) (from file) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+	@Menu(label = "QRS peaks detection (from file) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
 //NOTE: This Command class is an exception
 //It deviates from the ComsystanJ structure of having three files (Cmd, CmdUI, Dialog)

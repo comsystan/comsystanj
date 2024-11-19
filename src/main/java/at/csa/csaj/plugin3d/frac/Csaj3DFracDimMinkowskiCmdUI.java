@@ -56,7 +56,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D Minkowski(New dialog)")})
+		@Menu(label = "3D Minkowski")})
 
 public class Csaj3DFracDimMinkowskiCmdUI extends ContextCommand implements Previewable{
 	

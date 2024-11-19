@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Preprocessing", weight = 1),
-		@Menu(label = "Resampling(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Resampling ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
 public class Csaj1DResamplingCmdUI extends ContextCommand implements Previewable{
 	

@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Preprocessing", weight = 1),
-		@Menu(label = "Particles to stack(New Dialog)")})
+		@Menu(label = "Particles to stack")})
 
 public class Csaj2DParticlesToStackCmdUI extends ContextCommand implements Previewable{
 	

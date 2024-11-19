@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Detection", weight = 2),
-		@Menu(label = "Event detection(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Event detection ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
 public class Csaj1DDetectEventsCmdUI extends ContextCommand implements Previewable{
 	

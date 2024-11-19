@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Fragmentation dimension(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Fragmentation dimension ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
 public class Csaj1DFracDimFragmentationCmdUI extends ContextCommand implements Previewable{
 	

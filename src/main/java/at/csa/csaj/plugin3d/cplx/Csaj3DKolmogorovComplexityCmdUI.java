@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Complex analyses", weight = 4),
-		@Menu(label = "3D Kolmogorov complexity(New Dialog)")})
+		@Menu(label = "3D Kolmogorov complexity")})
 
 public class Csaj3DKolmogorovComplexityCmdUI extends ContextCommand implements Previewable{
 	

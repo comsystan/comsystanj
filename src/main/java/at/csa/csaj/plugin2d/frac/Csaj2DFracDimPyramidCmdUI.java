@@ -56,7 +56,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Pyramid dimension(New Dialog)")})
+		@Menu(label = "Pyramid dimension")})
 
 public class Csaj2DFracDimPyramidCmdUI extends ContextCommand implements Previewable{
 	

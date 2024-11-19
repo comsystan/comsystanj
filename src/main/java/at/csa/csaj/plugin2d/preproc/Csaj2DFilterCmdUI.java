@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Preprocessing", weight = 1),
-		@Menu(label = "Filter(New Dialog)")})
+		@Menu(label = "Filter")})
 
 public class Csaj2DFilterCmdUI extends ContextCommand implements Previewable{
 	

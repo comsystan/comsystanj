@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D Lacunarity(New dialog)")})
+		@Menu(label = "3D Lacunarity")})
 
 public class Csaj3DLacunarityCmdUI extends ContextCommand implements Previewable{
 	

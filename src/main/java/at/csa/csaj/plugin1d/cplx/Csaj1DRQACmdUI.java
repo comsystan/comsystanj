@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Complexity analyses", weight = 4),
-		@Menu(label = "Recurrence quantification analysis(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Recurrence quantification analysis ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
 public class Csaj1DRQACmdUI extends ContextCommand implements Previewable{
 	

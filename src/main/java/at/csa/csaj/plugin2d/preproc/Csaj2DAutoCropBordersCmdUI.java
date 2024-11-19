@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Preprocessing", weight = 1),
-		@Menu(label = "Auto crop borders(New Dialog)")})
+		@Menu(label = "Auto crop borders")})
 
 public class Csaj2DAutoCropBordersCmdUI extends ContextCommand implements Previewable{
 	

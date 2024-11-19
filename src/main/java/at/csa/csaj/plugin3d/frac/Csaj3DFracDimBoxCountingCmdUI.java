@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D Box counting dimension(New dialog)")})
+		@Menu(label = "3D Box counting dimension")})
 
 public class Csaj3DFracDimBoxCountingCmdUI extends ContextCommand implements Previewable{
 	

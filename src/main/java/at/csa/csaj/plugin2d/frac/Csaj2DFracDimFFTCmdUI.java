@@ -56,7 +56,7 @@ menu = {
 @Menu(label = "ComsystanJ"),
 @Menu(label = "2D Image(s)"),
 @Menu(label = "Fractal analyses", weight = 6),
-@Menu(label = "FFT dimension(New Dialog)")})
+@Menu(label = "FFT dimension")})
 
 public class Csaj2DFracDimFFTCmdUI extends ContextCommand implements Previewable{
 	

@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Preprocessing", weight = 1),
-		@Menu(label = "Noise(New Dialog)")})
+		@Menu(label = "Noise")})
 
 public class Csaj2DNoiseCmdUI extends ContextCommand implements Previewable{
 	

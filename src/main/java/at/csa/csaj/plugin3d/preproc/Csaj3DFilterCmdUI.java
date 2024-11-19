@@ -59,7 +59,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Preprocessing", weight = 1),
-		@Menu(label = "3D Filter(New Dialog)")})
+		@Menu(label = "3D Filter")})
 
 public class Csaj3DFilterCmdUI extends ContextCommand implements Previewable{
 	

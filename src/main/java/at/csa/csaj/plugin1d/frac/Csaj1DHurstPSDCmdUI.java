@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Hurst coefficient (PSD)(New dialog) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
+		@Menu(label = "Hurst coefficient (PSD) ")}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
 public class Csaj1DHurstPSDCmdUI extends ContextCommand implements Previewable{
 	

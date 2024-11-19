@@ -56,7 +56,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D FFT dimension(New dialog)")})
+		@Menu(label = "3D FFT dimension")})
 
 public class Csaj3DFracDimFFTCmdUI extends ContextCommand implements Previewable{
 	

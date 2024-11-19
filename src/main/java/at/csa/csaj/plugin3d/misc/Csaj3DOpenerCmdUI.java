@@ -55,7 +55,7 @@ import net.imagej.ImageJ;
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
-		@Menu(label = "3D image volume opener(NewDialog)", weight = 10)})
+		@Menu(label = "3D image volume opener", weight = 10)})
 
 public class Csaj3DOpenerCmdUI extends ContextCommand implements Previewable{
 	

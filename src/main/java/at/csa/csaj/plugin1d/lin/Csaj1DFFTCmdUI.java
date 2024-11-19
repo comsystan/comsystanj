@@ -52,7 +52,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "1D Sequence(s)"),
 		@Menu(label = "Linear analyses", weight = 3),
-		@Menu(label = "FFT(New dialog) ")}) //Space at the end of the label is necessary to avoid conflict with Fiji FFT plugin 
+		@Menu(label = "FFT ")}) //Space at the end of the label is necessary to avoid conflict with Fiji FFT plugin 
 
 public class Csaj1DFFTCmdUI extends ContextCommand implements Previewable{
 	

@@ -56,7 +56,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Tug of war dimension(New Dialog)")})
+		@Menu(label = "Tug of war dimension")})
 
 public class Csaj2DFracDimTugOfWarCmdUI extends ContextCommand implements Previewable{
 	

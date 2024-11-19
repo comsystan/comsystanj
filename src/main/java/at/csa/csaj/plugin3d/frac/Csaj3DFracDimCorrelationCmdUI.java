@@ -58,7 +58,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D Correlation dimension(New dialog)")})
+		@Menu(label = "3D Correlation dimension")})
 
 public class Csaj3DFracDimCorrelationCmdUI extends ContextCommand implements Previewable{
 	

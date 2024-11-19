@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Preprocessing", weight = 1),
-		@Menu(label = "Surrogate(New Dialog)")})
+		@Menu(label = "Surrogate")})
 
 public class Csaj2DSurrogateCmdUI extends ContextCommand implements Previewable{
 	

@@ -49,7 +49,7 @@ import net.imagej.ImageJ;
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
-		@Menu(label = "2D image generator(New Dialog)", weight = 20)})
+		@Menu(label = "2D image generator", weight = 20)})
 
 public class Csaj2DImageGeneratorCmdUI extends ContextCommand implements Previewable{
 	

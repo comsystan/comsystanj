@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D Fractal fragmentation indices(New dialog)")})
+		@Menu(label = "3D Fractal fragmentation indices")})
 
 public class Csaj3DFractalFragmentationCmdUI extends ContextCommand implements Previewable{
 	

@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Entropy analyses", weight = 5),
-		@Menu(label = "3D Generalised Entropies(New dialog)")})
+		@Menu(label = "3D Generalised Entropies")})
 
 public class Csaj3DGeneralisedEntropiesCmdUI extends ContextCommand implements Previewable{
 	

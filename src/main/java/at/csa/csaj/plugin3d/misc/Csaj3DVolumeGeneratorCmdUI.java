@@ -49,7 +49,7 @@ import net.imagej.ImageJ;
 		@Menu(label = MenuConstants.PLUGINS_LABEL, weight = MenuConstants.PLUGINS_WEIGHT, mnemonic = MenuConstants.PLUGINS_MNEMONIC),
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
-		@Menu(label = "3D image volume generator(New Dialog)", weight = 20)})
+		@Menu(label = "3D image volume generator", weight = 20)})
 
 public class Csaj3DVolumeGeneratorCmdUI extends ContextCommand implements Previewable{
 	
