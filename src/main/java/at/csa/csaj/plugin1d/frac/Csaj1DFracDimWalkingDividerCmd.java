@@ -301,21 +301,21 @@ public class Csaj1DFracDimWalkingDividerCmd<T extends RealType<T>> extends Conte
 			callback = "callbackProcessImmediately")
 	private boolean booleanProcessImmediately;
 	
-	@Parameter(label = "Column X #", description = "column number for the x values, next column holds the y values", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "2", //stepSize = 2 because data comes in pairs
+	@Parameter(label = "OK - column X #", description = "column number for the x values, next column holds the y values", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "2", //stepSize = 2 because data comes in pairs
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 
-	@Parameter(label = "Process all columns",
+	@Parameter(label = "OK - process all columns",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")
 	private boolean processAll;
 	
-	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
+	@Parameter(label = "Preview of single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+	@Parameter(label = "Preview of all columns", callback = "callbackProcessAllColumns")
 	private Button buttonProcessAllColumns;
 
 

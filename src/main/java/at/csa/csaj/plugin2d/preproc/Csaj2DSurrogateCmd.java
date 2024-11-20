@@ -209,26 +209,26 @@ public class Csaj2DSurrogateCmd<T extends RealType<T>> extends ContextCommand im
    			callback = "callbackProcessImmediately")
     private boolean booleanProcessImmediately;
     
-	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
+	@Parameter(label = "OK - process image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumImageSlice",
 			   callback = "callbackNumImageSlice")
 	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label = "Process all images",
+	@Parameter(label = "OK - process all images",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")
 	private boolean processAll;
 	
-	@Parameter(label = "   Process single image #    ", callback = "callbackProcessSingleImage")
+	@Parameter(label = "   Preview of single image #    ", callback = "callbackProcessSingleImage")
 	private Button buttonProcessSingelImage;
    
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-//  @Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
+//  @Parameter(label = "Preview of single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
 	
-	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
+	@Parameter(label = "Preview of all available images", callback = "callbackProcessAllImages")
 	private Button buttonProcessAllImages;
 
 	// ---------------------------------------------------------------------

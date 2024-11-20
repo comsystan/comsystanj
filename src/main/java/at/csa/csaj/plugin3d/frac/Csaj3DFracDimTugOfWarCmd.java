@@ -264,20 +264,20 @@ public class Csaj3DFracDimTugOfWarCmd<T extends RealType<T>> extends ContextComm
 			   callback = "callbackProcessImmediately")
 	private boolean booleanProcessImmediately;
 	
-//	@Parameter(label = "Image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
+//	@Parameter(label = "OK - process image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
 //			   persist = false, // restore  previous value  default  =  true
 //			   initializer = "initialNumImageSlice",
 //			   callback = "callbackNumImageSlice")
 //	private int spinnerInteger_NumImageSlice;
 	
-	@Parameter(label = "    Process single volume     ", callback = "callbackProcessSingleVolume")
+	@Parameter(label = "    OK - process single volume     ", callback = "callbackProcessSingleVolume")
 	private Button buttonProcessSingleVolume;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
-//	@Parameter(label = "Process single active image ", callback = "callbackProcessActiveImage")
+//	@Parameter(label = "Preview of single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
 
-//	@Parameter(label = "Process all available images", callback = "callbackProcessAllImages")
+//	@Parameter(label = "Preview of all available images", callback = "callbackProcessAllImages")
 //	private Button buttonProcessAllImages;
 	
 	// ---------------------------------------------------------------------

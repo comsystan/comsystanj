@@ -281,21 +281,21 @@ public class Csaj1DFracDimHiguchi1DCmd<T extends RealType<T>> extends ContextCom
 			callback = "callbackProcessImmediately")
 	private boolean booleanProcessImmediately;
 	
-	@Parameter(label = "Column #", description = "column number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
+	@Parameter(label = "OK - process column #", description = "column number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "1000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialNumColumn", callback = "callbackNumColumn")
 	private int spinnerInteger_NumColumn;
 	
-	@Parameter(label = "Process all columns",
+	@Parameter(label = "OK - process all columns",
 			   description = "Set for final Command.run execution",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialProcessAll")
 	private boolean processAll;
 
-	@Parameter(label = "Process single column #", callback = "callbackProcessSingleColumn")
+	@Parameter(label = "Preview of single column #", callback = "callbackProcessSingleColumn")
 	private Button buttonProcessSingleColumn;
 
-	@Parameter(label = "Process all columns", callback = "callbackProcessAllColumns")
+	@Parameter(label = "Preview of all columns", callback = "callbackProcessAllColumns")
 	private Button buttonProcessAllColumns;
 
 
