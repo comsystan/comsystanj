@@ -162,7 +162,7 @@
 - Binary [0, >0] algorithm
 - The number of boxes with distinct sizes can be set
 - Shows a double logarithmic plot of succolarities 
-- Raster box (Sliding box scanninng not implemented
+- Raster box (Sliding box scanning not implemented)
 - Flooding can be set to Top2Down, Down2Top, Left2Right, Right2Left, Back2Front and Front2Back
 - Mean computes the average of all six flooding directions
 - Anisotropy in the range [0, 1] is computed in the same way as the fractional anisotropy of diffusion
