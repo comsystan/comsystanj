@@ -53,7 +53,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "2D Image(s)"),
 		@Menu(label = "Fractal analyses", weight = 6),
-		@Menu(label = "Higuchi1D dimension 1D")})
+		@Menu(label = "Higuchi dimension 1D")})
 
 public class Csaj2DFracDimHiguchi1DCmdUI extends ContextCommand implements Previewable{
 	

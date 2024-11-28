@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DSuccolarityCmd.java
+ * File: Csaj3DSuccolarityCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -25,7 +25,8 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-package at.csa.csaj.plugin2d.frac;
+
+package at.csa.csaj.plugin3d.frac;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -46,23 +47,20 @@ import net.imagej.Dataset;
 import net.imagej.DatasetService;
 import net.imagej.ImageJ;
 import net.imagej.Position;
-import net.imagej.axis.Axes;
-import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imglib2.Cursor;
-import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.morphology.Dilation;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
+
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -83,69 +81,62 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
+
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 
 /**
- * A {@link ContextCommand} plugin computing
- * <the succolarity </a>
- * of an image.
- * 
- * According to
- * de Melo, R. H. C., und A. Conci. „Succolarity: Defining a method to calculate this fractal measure“. In 2008 15th International Conference on Systems, Sequences and Image Processing, 291–94, 2008. https://doi.org/10.1109/IWSSIP.2008.4604424.
- * de Melo, R. H. C., und A. Conci. „How Succolarity Could Be Used as Another Fractal Measure in Image Analysis“. Telecommunication Systems 52, Nr. 3 (1. März 2013): 1643–55. https://doi.org/10.1007/s11235-011-9657-3.
- * Andronache, Ion. „Analysis of Forest Fragmentation and Connectivity Using Fractal Dimension and Succolarity“.
- * Land 13, Nr. 2 (Februar 2024): 138.
- * * https://doi.org/10.3390/land13020138.
- * 
+ * A {@link ContextCommand} plugin computing <the 3D Succolarity</a>
+ * of an image volume.
  */
 @Plugin(type = ContextCommand.class,
 		headless = true,
-		label = "Succolarity",
+		label = "3D Succolarity",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
 
-public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
-	
-	private static final String PLUGIN_LABEL            = "<html><b>Computes Succolarity</b></html>";
+public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+
+	private static final String PLUGIN_LABEL            = "Computes 3D Succolarity";
 	private static final String SPACE_LABEL             = "";
 	private static final String REGRESSION_LABEL        = "<html><b>Regression parameters</b></html>";
 	private static final String METHODOPTIONS_LABEL     = "<html><b>Method options</b></html>";
-	private static final String FLOODINGOPTIONS_LABEL   = "<html><b>Flooding type</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
-	
-	private static Img<FloatType> imgFloat;
-	private static Img<UnsignedByteType> imgFlood;
+
+	private static Img<FloatType> volFloat;
+	private static Img<UnsignedByteType> volFlood;
 	private static RandomAccess<UnsignedByteType> raFlood;
-	private static Img<UnsignedByteType> imgDil;
+	private static Img<UnsignedByteType> volDil;
 	private static RandomAccessibleInterval<?> raiBox;
 	private static RandomAccess<UnsignedByteType> ra;
 	
 	private static Cursor<?> cursor = null;
 	private static String datasetName;
-	private static String[] sliceLabels;
-	private static long width  = 0;
+	private static long width = 0;
 	private static long height = 0;
+	private static long depth = 0;
 	private static long numDimensions = 0;
 	private static long numSlices = 0;
-	private static long compositeChannelCount =0;
+	private static int numVolumes = 0;
+	private static long compositeChannelCount = 0;
 	private static String imageType = "";
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_RegressionFrame> doubleLogPlotList = new ArrayList<CsajPlot_RegressionFrame>();
-	
-	public static final String TABLE_OUT_NAME = "Table - Succolarities";
+
+	public static final String TABLE_OUT_NAME = "Table - 3D Succolarities";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
 	
+	
 	@Parameter
 	private ImageJ ij;
-	
+
 	@Parameter
 	private PrefService prefService;
 
@@ -157,46 +148,50 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 
 	@Parameter
 	private OpService opService;
-	
+
 	@Parameter
 	private UIService uiService;
-	
+
 	@Parameter
 	private ImageDisplayService imageDisplayService;
 	
-	//This parameter does not work in an InteractiveCommand plugin (duplicate displayService error during startup) pom-scijava 24.0.0
-	//in Command Plugin no problem
-	//@Parameter  
+	//@Parameter
+	//private DefaultThreadService defaultThreadService;
+
+	// This parameter does not work in an InteractiveCommand plugin
+	// -->> (duplicate displayService error during startup) pom-scijava 24.0.0
+	// no problem in a Command Plugin
+	//@Parameter
 	//private DisplayService displayService;
-	
-	@Parameter  //This works in an InteractiveCommand plugin
-    private DefaultDisplayService defaultDisplayService;
-	
+
+	@Parameter // This works in an InteractiveCommand plugin
+	private DefaultDisplayService defaultDisplayService;
+
 	@Parameter
 	private DatasetService datasetService;
-	
-	//Input dataset which is updated in callback functions
-	@Parameter (type = ItemIO.INPUT)
-	private Dataset datasetIn;
 
 	@Parameter(label = TABLE_OUT_NAME, type = ItemIO.OUTPUT)
 	private DefaultGenericTable tableOut;
 
-	
-   //Widget elements------------------------------------------------------
+
+	// Widget elements------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------------
-    //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	//private final String labelPlugin = PLUGIN_LABEL;
 
-    //@Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
-  	//private final String labelSpace = SPACE_LABEL;
-    
-	//-----------------------------------------------------------------------------------------------------
-    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-  	private final String labelRegression = REGRESSION_LABEL;
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelSpace = SPACE_LABEL;
 
-    @Parameter(label = "Number of boxes",
-    		   description = "Number of distinct box sizes with the power of 2",
+	// Input dataset which is updated in callback functions
+	@Parameter(type = ItemIO.INPUT)
+	private Dataset datasetIn;
+
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelRegression = REGRESSION_LABEL;
+
+	@Parameter(label = "Number of boxes",
+    		   description = "Number of distinct box sizes following the power of 2",
 	       	   style = NumberWidget.SPINNER_STYLE,
 	           min = "1",
 	           max = "32768",
@@ -226,19 +221,19 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 //		       persist = false,   //restore previous value default = true
 //		       initializer = "initialNumRegEnd",
 //		       callback = "callbackNumRegEnd")
-//    private int spinnerInteger_NumRegEnd = 3;
-    
-    //-----------------------------------------------------------------------------------------------------
-    @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-    private final String labelMethodOptions = METHODOPTIONS_LABEL;
-    
-    @Parameter(label = "Scanning type",
-   		       description = "Type of box scanning",
-   		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-     		   choices = {"Raster box", "Sliding box"},
-     		   persist = true,  //restore previous value default = true
-   		       initializer = "initialScanningType",
-               callback = "callbackScanningType")
+//     private int spinnerInteger_NumRegEnd = 3;
+
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelMethod = METHODOPTIONS_LABEL;
+
+    @Parameter(label = "Scanning method",
+    		    description = "Type of 3D box scanning",
+    		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+      		    choices = {"Raster box"},//, "Sliding box", "Tug of war"}, //3D Sliding box is implemented but very long lasting 
+      		    persist = true,  //restore previous value default = true
+    		    initializer = "initialScanningType",
+                callback = "callbackScanningType")
     private String choiceRadioButt_ScanningType;
     
     //-----------------------------------------------------------------------------------------------------
@@ -246,73 +241,67 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
     //private final String labelFloodingOptions = FLOODINGOPTIONS_LABEL;
     
     @Parameter(label = "Flooding type",
-   		       description = "Type of flooding, e.g. Top to down or Left to right.... or mean of all 4 directions",
+   		       description = "Type of flooding, e.g. Top to down or Left to right.... or mean of all 6 directions",
    		       style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-     		   choices = {"T2D", "D2T", "L2R", "R2L", "Mean & Anisotropy"},
+     		   choices = {"T2D", "D2T", "L2R", "R2L", "B2F", "F2B", "Mean & Anisotropy"},
      		   persist = true,  //restore previous value default = true
    		       initializer = "initialFloodingType",
                callback = "callbackFloodingType")
     private String choiceRadioButt_FloodingType;
-     
- 	//-----------------------------------------------------------------------------------------------------
-     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-     private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
-      
-     @Parameter(label = "Show double log plot",
-    		    persist = true,  //restore previous value default = true
-  		        initializer = "initialShowDoubleLogPlots")
-	 private boolean booleanShowDoubleLogPlot;
-       
-     @Parameter(label = "Overwrite result display(s)",
-    	    	description = "Overwrite already existing result images, plots or tables",
-    	    	persist = true,  //restore previous value default = true
-    			initializer = "initialOverwriteDisplays")
-     private boolean booleanOverwriteDisplays;
-     
- 	//-----------------------------------------------------------------------------------------------------
-     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE,  persist = false)
-     private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
-     
-     @Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
-    	    	description = "Immediate processing of active image when a parameter is changed",
-    			callback = "callbackProcessImmediately")
-     private boolean booleanProcessImmediately;
-     
- 	@Parameter(label = "OK - process image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialNumImageSlice",
-			   callback = "callbackNumImageSlice")
-	private int spinnerInteger_NumImageSlice;
+
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
+
+	@Parameter(label = "Show double log plot",
+		   	   persist = true, //restore previous value default = true
+			   initializer = "initialShowDoubleLogPlots")
+	private boolean booleanShowDoubleLogPlot;
+
+	@Parameter(label = "Overwrite result display(s)",
+	    	description = "Overwrite already existing result images, plots or tables",
+	    	persist = true,  //restore previous value default = true
+			initializer = "initialOverwriteDisplays")
+	private boolean booleanOverwriteDisplays;
+
+	//-----------------------------------------------------------------------------------------------------
+	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	private final String labelProcessOptions = PROCESSOPTIONS_LABEL;
+
+	@Parameter(label = "Immediate processing", visibility = ItemVisibility.INVISIBLE, persist = false,
+	    	description = "Immediate processing of active image when a parameter is changed",
+			callback = "callbackProcessImmediately")
+	private boolean booleanProcessImmediately;
 	
-	@Parameter(label = "OK - process all images",
-			   description = "Set for final Command.run execution",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialProcessAll")
-	private boolean processAll;
- 	
-	@Parameter(label = "   Preview of single image #    ", callback = "callbackProcessSingleImage")
-	private Button buttonProcessSingelImage;
+//	@Parameter(label = "OK - process image #", description = "Image slice number", style = NumberWidget.SPINNER_STYLE, min = "1", max = "99999999", stepSize = "1",
+//			   persist = false, // restore  previous value  default  =  true
+//			   initializer = "initialNumImageSlice",
+//			   callback = "callbackNumImageSlice")
+//	private int spinnerInteger_NumImageSlice;
+	
+	@Parameter(label = "    OK - process single volume     ", callback = "callbackProcessSingleVolume")
+	private Button buttonProcessSingleVolume;
 	
 //	Deactivated, because it does not work in Fiji (although it works in ImageJ2 -Eclipse)	
 //	@Parameter(label = "Preview of single active image ", callback = "callbackProcessActiveImage")
 //	private Button buttonProcessActiveImage;
-     
-	@Parameter(label = "Preview of all available images", callback = "callbackProcessAllImages")
-	private Button buttonProcessAllImages;
 
-    //---------------------------------------------------------------------
-    //The following initializer functions set initial values
+//	@Parameter(label = "Preview of all available images", callback = "callbackProcessAllImages")
+//	private Button buttonProcessAllImages;
+	
+	// ---------------------------------------------------------------------
+		
 	protected void initialPluginLaunch() {
 		checkItemIOIn();
 	}
-
+	
     protected void initialNumBoxes() {
     	if (datasetIn == null) {
-    		logService.error(this.getClass().getName() + " ERROR: Input image = null");
-    		cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
+    		logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
+    		cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
     		return;
     	} else {
-    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
+    		numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1), datasetIn.dimension(2));
     	}
       	spinnerInteger_NumBoxes = numBoxes;
     }
@@ -321,41 +310,40 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 //    }
 //    protected void initialNumRegEnd() {
 //    	if (datasetIn == null) {
-//			logService.error(this.getClass().getName() + " ERROR: Input image = null");
-//			cancel("ComsystanJ 2D plugin cannot be started - missing input image.");
+//			logService.error(this.getClass().getName() + " ERROR: Input image volume = null");
+//			cancel("ComsystanJ 3D plugin cannot be started - missing input image volume.");
 //			return;
-//		} else {
-//			numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));
-//		}
+//	  	} else {
+//			numBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1), datasetIn.dimension(2));
+//	  	}
 //    	spinnerInteger_NumRegEnd =  numBoxes;
 //    }
-    
+	
     protected void initialScanningType() {
     	choiceRadioButt_ScanningType = "Raster box";
     }
-    
-    protected void initialFloodingType() {
-    	choiceRadioButt_FloodingType = "T2D";
-    }
 
-    protected void initialShowDoubleLogPlots() {
-    	booleanShowDoubleLogPlot = true;
-    }
-    protected void initialOverwriteDisplays() {
-    	booleanOverwriteDisplays = true;
-    }
-	protected void initialNumImageSlice() {
-    	spinnerInteger_NumImageSlice = 1;
+	protected void initialShowDoubleLogPlots() {
+		booleanShowDoubleLogPlot = true;
 	}
+	protected void initialOverwriteDisplays() {
+    	booleanOverwriteDisplays = true;
+	}
+	
+//	protected void initialNumImageSlice() {
+//    	spinnerInteger_NumImageSlice = 1;
+//	}
 	
 	// ------------------------------------------------------------------------------
 	
+
 	/** Executed whenever the {@link #spinnerInteger_NumBoxes} parameter changes. */
 	protected void callbackNumBoxes() {
+		
 		if  (spinnerInteger_NumBoxes < 3) {
 			spinnerInteger_NumBoxes = 3;
 		}
-		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1));	
+		int numMaxBoxes = getMaxBoxNumber(datasetIn.dimension(0), datasetIn.dimension(1), datasetIn.dimension(2));	
 		if (spinnerInteger_NumBoxes > numMaxBoxes) {
 			spinnerInteger_NumBoxes = numMaxBoxes;
 		};
@@ -365,6 +353,7 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 //		if (spinnerInteger_NumRegStart >= spinnerInteger_NumRegEnd - 2) {
 //			spinnerInteger_NumRegStart = spinnerInteger_NumRegEnd - 2;
 //		}
+
 		numBoxes = spinnerInteger_NumBoxes;
 		logService.info(this.getClass().getName() + " Number of boxes set to " + spinnerInteger_NumBoxes);
 	}
@@ -385,35 +374,34 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 //		}		
 //		if (spinnerInteger_NumRegEnd > spinnerInteger_NumBoxes) {
 //			spinnerInteger_NumRegEnd = spinnerInteger_NumBoxes;
-//		}	
+//		}
+//		
 //		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
 //	}
-
-	/** Executed whenever the {@link #choiceRadioButt_ScanningType} parameter changes. */
-	protected void callbackScanningType() {
-		logService.info(this.getClass().getName() + " Scanning type set to " + choiceRadioButt_ScanningType);
-		
-	}
 	
-	/** Executed whenever the {@link #choiceRadioButt_FloodingType} parameter changes. */
-	protected void callbackFloodingType() {
-		logService.info(this.getClass().getName() + " Flooding type set to " + choiceRadioButt_FloodingType);
-		
-	}
+//	/** Executed whenever the {@link #spinnerInteger_NumAccuracy} parameter changes. */
+//	protected void callbackNumAccuracy() {
+//		logService.info(this.getClass().getName() + " Accuracy set to " + spinnerInteger_NumAcurracy);
+//	}
+//	
+//	/** Executed whenever the {@link #spinnerInteger_NumConfidence} parameter changes. */
+//	protected void callbackNumConfidence() {
+//		logService.info(this.getClass().getName() + " Confidence set to " + spinnerInteger_NumConfidence);
+//	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
 	}
 	
-	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
-	protected void callbackNumImageSlice() {
-		if (spinnerInteger_NumImageSlice > numSlices){
-			logService.info(this.getClass().getName() + " No more images available");
-			spinnerInteger_NumImageSlice = (int)numSlices;
-		}
-		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
-	}
+//	/** Executed whenever the {@link #spinnerInteger_NumImageSlice} parameter changes. */
+//	protected void callbackNumImageSlice() {
+//		if (spinnerInteger_NumImageSlice > numSlices){
+//			logService.info(this.getClass().getName() + " No more images available");
+//			spinnerInteger_NumImageSlice = (int)numSlices;
+//		}
+//		logService.info(this.getClass().getName() + " Image slice number set to " + spinnerInteger_NumImageSlice);
+//	}
 	
 	/**
 	 * Executed whenever the {@link #buttonProcessSingleImage} button is pressed.
@@ -422,12 +410,12 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 	 * Execution of the code is then not on the Event Dispatch Thread EDT, where all GUI windows are executed
 	 * The @Parameter ItemIO.OUTPUT is not automatically shown 
 	 */
-	protected void callbackProcessSingleImage() {
+	protected void callbackProcessSingleVolume() {
 		//prepare  executer service
 		exec = Executors.newSingleThreadExecutor();
 	   	exec.execute(new Runnable() {
 	        public void run() {
-	    	    startWorkflowForSingleImage();
+	    	    startWorkflowForSingleVolume();
 	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
@@ -451,7 +439,7 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		exec = Executors.newSingleThreadExecutor();
 	   	exec.execute(new Runnable() {
 	        public void run() {
-	        	startWorkflowForAllImages();
+	        	startWorkflowForSingleVolume();
 	    	   	uiService.show(TABLE_OUT_NAME, tableOut);
 	        }
 	    });
@@ -472,7 +460,7 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 			exec = Executors.newSingleThreadExecutor();
 		   	exec.execute(new Runnable() {
 		        public void run() {
-		    	    startWorkflowForSingleImage();
+		    	    startWorkflowForSingleVolume();
 		    	   	uiService.show(TABLE_OUT_NAME, tableOut);   //Show table because it did not go over the run() method
 		        }
 		    });
@@ -507,81 +495,60 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 	@Override //Interface CommandService
 	public void run() {
 		logService.info(this.getClass().getName() + " Starting command run");
-
+		
 		checkItemIOIn();
-		if (processAll) startWorkflowForAllImages();
-		else            startWorkflowForSingleImage();
+		startWorkflowForSingleVolume();
 	
 		logService.info(this.getClass().getName() + " Finished command run");
 	}
-	
+
 	public void checkItemIOIn() {
-		//Get input meta data
-		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkDatasetIn(logService, datasetIn);
+
+		//Define supported image types for this plugin
+		String[] supportedImageTypes = {"Grey"};
+		//String[] supportedImageTypes = {"RGB"};
+		//String[] supportedImageTypes = {"Grey", "RGB"};
+		
+		//Check input and get input meta data
+		HashMap<String, Object> datasetInInfo = CsajCheck_ItemIn.checkVolumeDatasetIn(logService, datasetIn, supportedImageTypes);
 		if (datasetInInfo == null) {
-			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Missing input image or image type is not byte or float");
-			cancel("ComsystanJ 2D plugin cannot be started - missing input image or wrong image type.");
+			logService.error(MethodHandles.lookup().lookupClass().getName() + " ERROR: Inital check failed");
+			cancel("ComsystanJ 3D plugin cannot be started - Initial check failed.");
 		} else {
 			width  =       			(long)datasetInInfo.get("width");
 			height =       			(long)datasetInInfo.get("height");
+			depth  =       			(long)datasetInInfo.get("depth");
 			numDimensions =         (int)datasetInInfo.get("numDimensions");
 			compositeChannelCount = (int)datasetInInfo.get("compositeChannelCount");
 			numSlices =             (long)datasetInInfo.get("numSlices");
 			imageType =   			(String)datasetInInfo.get("imageType");
 			datasetName = 			(String)datasetInInfo.get("datasetName");
-			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
-			
-			//RGB not allowed
-			if (!imageType.equals("Grey")) { 
-				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - grey value image(s) expected!");
-			}
+			//sliceLabels = 		(String[])datasetInInfo.get("sliceLabels");
 		}
 	}
 
 	/**
 	* This method starts the workflow for a single image of the active display
 	*/
-	protected void startWorkflowForSingleImage() {
+	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
-				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Succolarity, please wait... Open console window for further info.",
+							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
 		dlgProgress.setVisible(true);
+    
+		deleteExistingDisplays();
+    	generateTableHeader();
+        logService.info(this.getClass().getName() + " Processing volume...");
+		processSingleInputVolume();
+		
+		dlgProgress.addMessage("Processing finished! Collecting data for table...");
+		dlgProgress.setVisible(false);
+		dlgProgress.dispose();
+		Toolkit.getDefaultToolkit().beep();
+	}
 
-		deleteExistingDisplays();
-		generateTableHeader();
-		int sliceIndex = spinnerInteger_NumImageSlice - 1;
-		 logService.info(this.getClass().getName() + " Processing single image " + (sliceIndex + 1));
-		processSingleInputImage(sliceIndex);
-		
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
-	}
-	
-	/**
-	* This method starts the workflow for all images of the active display
-	*/
-	protected void startWorkflowForAllImages() {
-	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Succolarity, please wait... Open console window for further info.",
-							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
-		dlgProgress.setVisible(true);
-	
-    	logService.info(this.getClass().getName() + " Processing all available images");
-		deleteExistingDisplays();
-		generateTableHeader();
-		processAllInputImages();
-		
-		dlgProgress.addMessage("Processing finished! Collecting data for table...");
-		dlgProgress.setVisible(false);
-		dlgProgress.dispose();
-		Toolkit.getDefaultToolkit().beep();
-	}
-	
 	/**
 	 * This methods gets the index of the active image in a stack
 	 * @return int index
@@ -600,6 +567,18 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 			//???
 			//int activeSliceNumber = (int) defaultImageDisplayService.getActivePosition().getIndex(); 
 			//int activeSliceNumber2 = (int) defaultImageDisplayService.getActiveImageDisplay().getActiveView().getPlanePosition().getIndex();
+			
+			//Check if Grey or RGB
+			if (imageType.equals("Grey")) {
+				//do nothing, it is OK
+			};
+			if (imageType.equals("RGB")) {
+				//At first Index runs through RGB channels and then through stack index
+				//0... R of first RGB image, 1.. G of first RGB image, 2..B of first RGB image, 3... R of second RGB image, 4...G, 5...B,.......
+				activeSliceIndex = (int) Math.floor((float)activeSliceIndex/3.f);
+			}
+			
+			
 		} catch (NullPointerException npe) {
 			// TODO Auto-generated catch block
 			//npe.printStackTrace();
@@ -611,7 +590,10 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		return activeSliceIndex;
 	}
 	
-	/** This method deletes already open displays*/
+	/**
+	 * This method deletes already open displays
+	 * 
+	 */
 	private void deleteExistingDisplays() {
 		
 		boolean optDeleteExistingImgs   = false;
@@ -622,7 +604,7 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 			optDeleteExistingPlots  = true;
 			optDeleteExistingTables = true;
 		}
-		
+
 		if (optDeleteExistingImgs) {
 //			//List<Display<?>> list = defaultDisplayService.getDisplays();
 //			//for (int i = 0; i < list.size(); i++) {
@@ -649,10 +631,19 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 				for (int l = 0; l < doubleLogPlotList.size(); l++) {
 					doubleLogPlotList.get(l).setVisible(false);
 					doubleLogPlotList.get(l).dispose();
-					//doubleLogPlotList.remove(l);  /
+					// doubleLogPlotList.remove(l); /
 				}
-				doubleLogPlotList.clear();		
+				doubleLogPlotList.clear();
 			}
+//			//ImageJ PlotWindows aren't recognized by DeafultDisplayService!!?
+//			List<Display<?>> list = defaultDisplayService.getDisplays();
+//			for (int i = 0; i < list.size(); i++) {
+//				Display<?> display = list.get(i);
+//				System.out.println("display name: " + display.getName());
+//				if (display.getName().contains("Grey value profile"))
+//					display.close();
+//			}
+	
 		}
 		if (optDeleteExistingTables) {
 			Display<?> display;
@@ -664,42 +655,36 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 			}			
 		}
 	}
-	
+
+
 	/** This method computes the maximal number of possible boxes*/
-	public static int getMaxBoxNumber(long width, long height) { 
+	public static int getMaxBoxNumber(long width, long height, long depth) { 
 		float boxWidth = 1f;
 		int number = 1; 
-		while ((boxWidth <= width) && (boxWidth <= height)) {
+		while ((boxWidth <= width) && (boxWidth <= height) && (boxWidth <= depth)) {
 			boxWidth = boxWidth * 2;
 			number = number + 1;
 		}
 		return number - 1;
 	}
-	
-	/** This method takes the active image and computes results. 
+
+	/** This method takes the active image volume and computes results. 
 	 *
-	 */
-	private void processSingleInputImage(int s) {
+	 **/
+	private void processSingleInputVolume() {
+		
 		long startTime = System.currentTimeMillis();
-		
-		//convert to float values
-		//Img<T> image = (Img<T>) dataset.getImgPlus();
-		//mg<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
+	
+		//get rai
+		RandomAccessibleInterval<T> rai = null;	
+	
+		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
 
-		RandomAccessibleInterval<?> rai = null;	
-		if( (s==0) && (numSlices == 1) && (numDimensions == 2) ) { // for only one 2D image;
-			rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
+		// Compute regression parameters
+		CsajContainer_ProcessMethod containerPM = process(rai); //rai is 3D
 
-		} else if ( (numSlices > 1) && (numDimensions == 3) ){ // for a stack of 2D images
-			rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
-		
-		}
-
-		//Compute Succolarity reservoir, succolarities and delta succolarities
-		CsajContainer_ProcessMethod containerPM = process(rai, s);
-		
-		writeToTable(0, s, containerPM); //write always to the first row
-		
+		writeToTable(containerPM);
+	
 		//Set/Reset focus to DatasetIn display
 		//may not work for all Fiji/ImageJ2 versions or operating systems
 		Frame frame;
@@ -720,106 +705,30 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		sdf.applyPattern("HHH:mm:ss:SSS");
 		logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
 	}
-	
-	/** This method loops over all input images and computes results. 
-	 *
-	 **/
-	private void processAllInputImages() {
-		
-		long startTimeAll = System.currentTimeMillis();
 
-		//convert to float values
-		//Img<T> image = (Img<T>) dataset.getImgPlus();
-		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
-
-		CsajContainer_ProcessMethod containerPM;
-		//loop over all slices of stack
-		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
-			//if (!exec.isShutdown()) {
-				int percent = (int)Math.round((  ((float)s)/((float)numSlices)   *100.f   ));
-				dlgProgress.updatePercent(String.valueOf(percent+"%"));
-				dlgProgress.updateBar(percent);
-				//logService.info(this.getClass().getName() + " Progress bar value = " + percent);
-				statusService.showStatus((s+1), (int)numSlices, "Processing " + (s+1) + "/" + (int)numSlices);
-	//			try {
-	//				Thread.sleep(3000);
-	//			} catch (InterruptedException e) {
-	//				// TODO Auto-generated catch block
-	//				e.printStackTrace();
-	//			}
-				
-				long startTime = System.currentTimeMillis();
-				logService.info(this.getClass().getName() + " Processing image number " + (s+1) + "(" + numSlices + ")");
-				//get slice and convert to float values
-				//imgFloat = opService.convert().float32((Img<T>)dataset.gett);	
-				
-				RandomAccessibleInterval<?> rai = null;	
-				if( (s==0) && (numSlices == 1) && (numDimensions == 2) ) { // for only one 2D image;
-					rai =  (RandomAccessibleInterval<?>) datasetIn.getImgPlus();
 	
-				} else if ( (numSlices > 1) && (numDimensions == 3) ){ // for a stack of 2D images
-					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
-				
-				}
-				//Compute Succolarity reservoir, succolarities and delta succolarities
-				containerPM = process(rai, s);	
 
-				writeToTable(s, s, containerPM);
-				
-				long duration = System.currentTimeMillis() - startTime;
-				TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-				SimpleDateFormat sdf = new SimpleDateFormat();
-				sdf.applyPattern("HHH:mm:ss:SSS");
-				logService.info(this.getClass().getName() + " Elapsed time: "+ sdf.format(duration));
-			//}
-		} //s
-		statusService.showProgress(0, 100);
-		statusService.clearStatus();
-		
-		//Set/Reset focus to DatasetIn display
-		//may not work for all Fiji/ImageJ2 versions or operating systems
-		Frame frame;
-		Frame[] listFrames = JFrame.getFrames();
-		for (int i = 0; i < listFrames.length; i++) {
-			frame = listFrames[i];
-			//System.out.println("frame name: " + frame.getTitle());
-			if (frame.getTitle().contains(datasetIn.getName())) { //sometimes Fiji adds some characters to the frame title such as "(V)"
-				frame.setVisible(true);
-				frame.toFront();
-				frame.requestFocus();
-			}
-		}
-		
-		long duration = System.currentTimeMillis() - startTimeAll;
-		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-		SimpleDateFormat sdf = new SimpleDateFormat();
-		sdf.applyPattern("HHH:mm:ss:SSS");
-		logService.info(this.getClass().getName() + " Elapsed processing time for all image(s): "+ sdf.format(duration));
-	}
-	
 	/** Generates the table header {@code DefaultGenericTable} */
-	private void generateTableHeader(){
+	private void generateTableHeader() {
 		
-		numBoxes = spinnerInteger_NumBoxes;
+		numBoxes = this.spinnerInteger_NumBoxes; 
 		
-		GenericColumn columnFileName   = new GenericColumn("File name");
-		GenericColumn columnSliceName  = new GenericColumn("Slice name");
-		IntColumn columnMaxNumBoxes    = new IntColumn("# Boxes");
-		//GenericColumn columnNumRegStart = new GenericColumn("Reg Start");
-		//GenericColumn columnNumRegEnd   = new GenericColumn("Reg End");
-		GenericColumn columnScanType   = new GenericColumn("Scanning type");
-		GenericColumn columnFloodType  = new GenericColumn("Flooding type");
-		DoubleColumn columnPotSucc     = new DoubleColumn("Succ reservoir");
-	
-	    tableOut = new DefaultGenericTable();
+		GenericColumn columnFileName       = new GenericColumn("File name");
+		IntColumn columnMaxNumBoxes        = new IntColumn("# Boxes");;
+		//GenericColumn columnNumRegStart   = new GenericColumn("Reg Start");
+		//GenericColumn columnNumRegEnd     = new GenericColumn("Reg End");
+		GenericColumn columnScanningType   = new GenericColumn("Scanning type");
+		GenericColumn columnFloodType      = new GenericColumn("Flooding type");
+		DoubleColumn columnPotSucc         = new DoubleColumn("Succ reservoir");
+
+		tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
-		tableOut.add(columnSliceName);
 		tableOut.add(columnMaxNumBoxes);
 		//tableOut.add(columnNumRegStart);
 		//tableOut.add(columnNumRegEnd);
-		tableOut.add(columnScanType);
+		tableOut.add(columnScanningType);
 		tableOut.add(columnFloodType);
-		tableOut.add(columnPotSucc);
+		tableOut.add(columnPotSucc);	
 		String preString = "Succ";
 		for (int i = 0; i < numBoxes; i++) {
 			tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
@@ -834,76 +743,66 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 				tableOut.add(new DoubleColumn(preString + "-" + (int)Math.pow(2,i) + "x" + (int)Math.pow(2, i)));
 			}	
 		}
+
 	}
-	
+
 	/**
 	 * collects current result and writes to table
 	 * 
-	 * @param int numRow to write in the result table
-	 * @param int numSlice sclice number of images from datasetIn.
 	 * @param CsajContainer_ProcessMethod containerPM
 	 */
-	private void writeToTable(int numRow, int numSlice, CsajContainer_ProcessMethod containerPM) { 
-	
-		//int numBoxes   	= spinnerInteger_NumBoxes;
-		//int numRegStart   = spinnerInteger_NumRegStart;
-		//int numRegEnd     = spinnerInteger_NumRegEnd;
-		String scanningType = choiceRadioButt_ScanningType;
+	private void writeToTable(CsajContainer_ProcessMethod containerPM) { 
+
+		int numBoxes = spinnerInteger_NumBoxes;
+		//int numRegStart  = spinnerInteger_NumRegStart;
+		//int numRegEnd  = spinnerInteger_NumRegEnd;
+		String scanningType   = choiceRadioButt_ScanningType;  //Raster box     Sliding box
 		String floodingType = choiceRadioButt_FloodingType;
 		
 		int tableColStart = 0;
 		int tableColEnd   = 0;
 		int tableColLast  = 0;
 		
-		int row = numRow;
-	    int s = numSlice;	
-		//0 Intercept, 1 Dim, 2 InterceptStdErr, 3 SlopeStdErr, 4 RSquared		
-		//fill table with values
+		int row = 0;
+		// fill table with values
 		tableOut.appendRow();
-		tableOut.set("File name",     row, datasetName);	
-		if (sliceLabels != null)      tableOut.set("Slice name", row, sliceLabels[s]);
-		tableOut.set("# Boxes",       row, numBoxes);	
+		tableOut.set("File name",		row, datasetName);	
+		tableOut.set("# Boxes",			row, numBoxes);
 		//tableOut.set("Reg Start",       row, "("+numRegStart+")" + epsRegStartEnd[0]); //(NumRegStart)epsRegStart
 		//tableOut.set("Reg End",      	row, "("+numRegEnd+")"   + epsRegStartEnd[1]); //(NumRegEnd)epsRegEnd
-		tableOut.set("Scanning type", row, scanningType);
+
+		tableOut.set("Scanning type",   row, scanningType);
 		tableOut.set("Flooding type", row, floodingType);
 		tableOut.set("Succ reservoir",row, containerPM.item1_Values[0]); //Succolarity reservoir (= potential succolarity)
-		tableColLast = 5;
+		tableColLast = 4;
 		
 		int numParameters = containerPM.item1_Values.length - 1; //-1 because succolarity reservoir (= potential succolarity) is already set to table
 		tableColStart = tableColLast + 1;
 		tableColEnd = tableColStart + numParameters;
 		for (int c = tableColStart; c < tableColEnd; c++ ) {
 			tableOut.set(c, row, containerPM.item1_Values[c-tableColStart + 1]); //+1 because first entry is succolarity reservoir (= potential succolarity)
-		}		
+		}	
 	}
-							
-	/** 
-	 * Processing ****************************************************************************************
-	 * */
-	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai, int plane) { //plane plane (Image) number
+
+	/**
+	*
+	* Processing
+	*/
+	private CsajContainer_ProcessMethod process(RandomAccessibleInterval<?> rai) { //3Dvolume
 	
 		if (rai == null) {
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		numBoxes            = spinnerInteger_NumBoxes;
-		//int numRegStart   = spinnerInteger_NumRegStart;
-		//int numRegEnd     = spinnerInteger_NumRegEnd;
-		String scanningType = choiceRadioButt_ScanningType;
-		String floodingType = choiceRadioButt_FloodingType;
-		
-		boolean optShowPlot = booleanShowDoubleLogPlot;
-		
+		//int numRegStart      = spinnerInteger_NumRegStart;
+		//int numRegEnd        = spinnerInteger_NumRegEnd;
+		numBoxes              = spinnerInteger_NumBoxes;
+		String scanningType   = choiceRadioButt_ScanningType;    //Raster box     Sliding box not implemented yet
+		String floodingType   = choiceRadioButt_FloodingType;	
+		boolean optShowPlot   = booleanShowDoubleLogPlot;
+
 		//double[] epsRegStartEnd   = new double[2];  // epsRegStart, epsRegEnd
-		
-		//long width  = rai.dimension(0);
-		//long height = rai.dimension(1);
-		//RandomAccess<?> ra = rai.randomAccess();
-		//ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-		
-		//String imageType = "8-bit";  //  "RGB"....
-		
+	
 		//Get succolarity reservoir (= potential succolarity)
 		//Succolarity reservoir (= potential succolarity) is identical for each flooding direction
 		double succReservoir = computeSuccReservoir(rai);
@@ -912,6 +811,8 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		double[] succolaritiesD2T      = null;
 		double[] succolaritiesL2R      = null;
 		double[] succolaritiesR2L      = null;
+		double[] succolaritiesB2F      = null;
+		double[] succolaritiesF2B      = null;
 		double[] succolarities         = null;
 		double[] succolaritiesExtended = null; //With added succolarities such as Succolarity reservoir  , Delta succolarities, Anisotropy
 		double[] anisotropyIndices     = null;
@@ -920,54 +821,75 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		if (floodingType.equals("T2D")) {
 			//get and initialize T2D flooded image
 			initializeImgFlood_T2D(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolarities = computeSuccolarities_T2D();	
 		}
 		else if (floodingType.equals("D2T")) {
 			initializeImgFlood_D2T(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolarities = computeSuccolarities_D2T();	
 		}
 		else if (floodingType.equals("L2R")) {
 			initializeImgFlood_L2R(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolarities = computeSuccolarities_L2R();	
 		}
 		else if (floodingType.equals("R2L")) {
 			initializeImgFlood_R2L(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolarities = computeSuccolarities_R2L();	
 		}
+		else if (floodingType.equals("B2F")) {
+			initializeImgFlood_B2F(rai);
+			floodingVolFlood();
+			succolarities = computeSuccolarities_B2F();	
+		}
+		else if (floodingType.equals("F2B")) {
+			initializeImgFlood_F2B(rai);
+			floodingVolFlood();
+			succolarities = computeSuccolarities_F2B();	
+		}
+		
 		else if (floodingType.equals("Mean & Anisotropy")) {
 			initializeImgFlood_T2D(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolaritiesT2D = computeSuccolarities_T2D();	
 			
 			initializeImgFlood_D2T(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolaritiesD2T = computeSuccolarities_D2T();	
 		
 			initializeImgFlood_L2R(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolaritiesL2R = computeSuccolarities_L2R();	
 			
 			initializeImgFlood_R2L(rai);
-			floodingImgFlood();
+			floodingVolFlood();
 			succolaritiesR2L = computeSuccolarities_R2L();	
+			
+			initializeImgFlood_B2F(rai);
+			floodingVolFlood();
+			succolaritiesB2F = computeSuccolarities_B2F();	
+			
+			initializeImgFlood_F2B(rai);
+			floodingVolFlood();
+			succolaritiesF2B = computeSuccolarities_F2B();	
 			
 			succolarities = new double[numBoxes];
 			for (int s = 0; s < numBoxes; s++) {
-				succolarities[s] = (succolaritiesT2D[s] + succolaritiesD2T[s] + succolaritiesL2R[s] + succolaritiesR2L[s])/4.0;
+				succolarities[s] = (succolaritiesT2D[s] + succolaritiesD2T[s] + succolaritiesL2R[s] + succolaritiesR2L[s] + succolaritiesB2F[s] + succolaritiesF2B[s])/6.0;
 			}
 			anisotropyIndices = new double[numBoxes];
-			//Fractional anisotropy restricted to 2D
+			//Fractional anisotropy
 			//https://en.wikipedia.org/wiki/Fractional_anisotropy
 			//A value of zero means that diffusion is isotropic, i.e. it is unrestricted (or equally restricted) in all directions.
 			//A value of one means that diffusion occurs only along one axis and is fully restricted along all other directions.
 			double eVx; //eigenvalue X
 			double eVy; //eigenvalue Y
+			double eVz; //eigenvalue Z
 			double eV1; //Largest eigenvalue
 			double eV2; //Second largest eigenvalue
+			double eV3; //.....
 			double eVMean;
 			double FA1; //Fractional anisotropy
 			double FA2; //Fractional anisotropy
@@ -975,17 +897,19 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 			for (int s = 0; s < numBoxes; s++) {
 				eVx = (succolaritiesL2R[s]+succolaritiesR2L[s])/2.0;
 				eVy = (succolaritiesT2D[s]+succolaritiesD2T[s])/2.0;
+				eVz = (succolaritiesB2F[s]+succolaritiesF2B[s])/2.0;
 			
-				double[] eVArray = {eVx, eVy};
-				Arrays.sort(eVArray); //Is not necessary
+				double[] eVArray = {eVx, eVy, eVz};
+				Arrays.sort(eVArray); //Should not be necessary, at least for FA2
 			
-				eV1 = eVArray[1]; //largest eigenvalue
-				eV2 = eVArray[0]; //smallest eigenvalue 
-				eVMean = (eV1+eV2)/2.0;
+				eV1 = eVArray[2]; //largest eigenvalue
+				eV2 = eVArray[1];
+				eV3 = eVArray[0]; //smallest eigenvalue 
+				eVMean = (eV1+eV2+eV3)/3.0;
 				
-				FA1 = Math.sqrt(2.0/1.0*((Math.pow(eV1-eVMean, 2) + Math.pow(eV2-eVMean, 2))/(eV1*eV1+eV2*eV2)));
+				FA1 = Math.sqrt(3.0/2.0*((Math.pow(eV1-eVMean, 2) + Math.pow(eV2-eVMean, 2) + Math.pow(eV3-eVMean, 2))/(eV1*eV1+eV2*eV2+eV3*eV3)));
 				//or equivalently
-				FA2 = Math.sqrt(2.0/2.0*((Math.pow(eV1-eV2, 2))/(eV1*eV1+eV2*eV2)));
+				FA2 = Math.sqrt(1.0/2.0*((Math.pow(eV1-eV2, 2) + Math.pow(eV2-eV3, 2) + Math.pow(eV3-eV1, 2))/(eV1*eV1+eV2*eV2+eV3*eV3)));
 				
 				anisotropyIndices[s] = FA1;
 			}
@@ -1013,9 +937,6 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 	
 		if (optShowPlot) {			
 			String preName = "";
-			if (numSlices > 1) {
-				preName = "Slice-"+String.format("%03d", plane) +"-";
-			}
 			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,"Double log plot - Succolarity", 
 					preName + datasetName, "ln(Box width)", "ln(100.Succolarity)", "",
 					1, numBoxes);
@@ -1054,11 +975,9 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 //		epsRegStartEnd[1] = eps[numRegEnd-1];
 		
 		return new CsajContainer_ProcessMethod(succolaritiesExtended);
-		//Output
-		//uiService.show(TABLE_OUT_NAME, table);
-		////result = ops.create().img(image, new FloatType()); may not work in older Fiji versions
-		//result = new ArrayImgFactory<>(new FloatType()).create(image.dimension(0), image.dimension(1)); 
-		//table
+		
+		// Output
+		// uiService.show(TABLE_OUT_NAME, table);
 	}
 	
 	/**
@@ -1086,99 +1005,167 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 	}
 
 	/**
-	 * This method generates an image for flooding with set Top pixels
+	 * This method generates an image volume for flooding with set Top pixels
 	 * @param rai
 	 */
-	//get and initialize T2D flooded image
+	//get and initialize T2D flooded volume
 	private void initializeImgFlood_T2D(RandomAccessibleInterval<?> rai) { 
 		int value = 0;
-		imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
-		raFlood = imgFlood.randomAccess();
+		volFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth); //always 3D
+		raFlood = volFlood.randomAccess();
 		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-		ra.setPosition(0,1);     //y=Top;
-		raFlood.setPosition(0,1);//y=Top;
+		ra.setPosition(0, 1);     //y=Top;
+		raFlood.setPosition(0, 1);//y=Top;
 		for (int x=0; x < width; x++) {
 			ra.setPosition(x, 0);
-			value = ra.get().getInteger();
-			if (value == 0) {
-				raFlood.setPosition(x, 0);
-				raFlood.get().set(255);
-			}		
+			for (int z=0; z < depth; z++) {	
+				ra.setPosition(z, 2);
+				value = ra.get().getInteger();
+				if (value == 0) {
+					raFlood.setPosition(x, 0);
+					raFlood.setPosition(z, 2);
+					raFlood.get().set(255);
+				}
+			}
 		}
 	}
 	
 	/**
-	 * This method generates an image for flooding with set Bottom pixels
+	 * This method generates an image volume for flooding with set Bottom pixels
 	 * @param rai
 	 */
 	//get and initialize D2T flooded image
 	private void initializeImgFlood_D2T(RandomAccessibleInterval<?> rai) { 
 		int value = 0;
-		imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
-		raFlood = imgFlood.randomAccess();
+		volFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth); //always 3D
+		raFlood = volFlood.randomAccess();
 		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-		ra.setPosition(height-1,1);     //y=Bottom;
-		raFlood.setPosition(height-1,1);//y=Bottom;
+		ra.setPosition(height-1, 1);     //y=Bottom;
+		raFlood.setPosition(height-1, 1);//y=Bottom;
 		for (int x=0; x < width; x++) {
 			ra.setPosition(x, 0);
-			value = ra.get().getInteger();
-			if (value == 0) {
-				raFlood.setPosition(x, 0);
-				raFlood.get().set(255);
-			}		
+			for (int z=0; z < depth; z++) {	
+				ra.setPosition(z, 2);
+				value = ra.get().getInteger();
+				if (value == 0) {
+					raFlood.setPosition(x, 0);
+					raFlood.setPosition(z, 2);
+					raFlood.get().set(255);
+				}
+			}
 		}
 	}
 	
 	/**
-	 * This method generates an image for flooding with set Left pixels
+	 * This method generates an image volume for flooding with set Left pixels
 	 * @param rai
 	 */
-	//get and initialize L2R flooded image
+	//get and initialize L2R flooded volume
 	private void initializeImgFlood_L2R(RandomAccessibleInterval<?> rai) { 
 		int value = 0;
-		imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
-		raFlood = imgFlood.randomAccess();
+		volFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth); //always 3D
+		raFlood = volFlood.randomAccess();
 		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-		ra.setPosition(0,0);     //x=Left;
-		raFlood.setPosition(0,0);//x=Left;
+		ra.setPosition(0, 0);     //x=Left;
+		raFlood.setPosition(0, 0);//x=Left;
 		for (int y=0; y < height; y++) {
 			ra.setPosition(y, 1);
-			value = ra.get().getInteger();
-			if (value == 0) {
-				raFlood.setPosition(y, 1);
-				raFlood.get().set(255);
-			}		
-		}
-	}
-	
-	/**
-	 * This method generates an image for flooding with set Right pixels
-	 * @param rai
-	 */
-	//get and initialize R2L flooded image
-	private void initializeImgFlood_R2L(RandomAccessibleInterval<?> rai) { 
-			int value = 0;
-			imgFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height); //always single 2D
-			raFlood = imgFlood.randomAccess();
-			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
-			ra.setPosition(width-1,0);     //x=Right;
-			raFlood.setPosition(width-1,0);//x=Right;
-			for (int y=0; y < height; y++) {
-				ra.setPosition(y, 1);
+			for (int z=0; z < depth; z++) {	
+				ra.setPosition(z, 2);
 				value = ra.get().getInteger();
 				if (value == 0) {
 					raFlood.setPosition(y, 1);
+					raFlood.setPosition(z, 2);
 					raFlood.get().set(255);
-				}		
+				}
+			}
+		}
+	}
+	
+	/**
+	 * This method generates an image volume for flooding with set Right pixels
+	 * @param rai
+	 */
+	//get and initialize R2L flooded volume
+	private void initializeImgFlood_R2L(RandomAccessibleInterval<?> rai) { 
+			int value = 0;
+			volFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth); //always 3D
+			raFlood = volFlood.randomAccess();
+			ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+			ra.setPosition(width-1, 0);     //x=Right;
+			raFlood.setPosition(width-1, 0);//x=Right;
+			for (int y=0; y < height; y++) {
+				ra.setPosition(y, 1);
+				for (int z=0; z < depth; z++) {	
+					ra.setPosition(z, 2);
+					value = ra.get().getInteger();
+					if (value == 0) {
+						raFlood.setPosition(y, 1);
+						raFlood.setPosition(z, 2);
+						raFlood.get().set(255);
+					}
+				}
 			}
 		}
 	
+	/**
+	 * This method generates an image volume for flooding with set Back pixels
+	 * @param rai
+	 */
+	//get and initialize B2F flooded volume
+	private void initializeImgFlood_B2F(RandomAccessibleInterval<?> rai) { 
+		int value = 0;
+		volFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth); //always 3D
+		raFlood = volFlood.randomAccess();
+		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+		ra.setPosition(0, 2);     //z=Back;
+		raFlood.setPosition(0, 2);//z=Back;
+		for (int x=0; x < width; x++) {
+			ra.setPosition(x, 0);
+			for (int y=0; y < height; y++) {	
+				ra.setPosition(y, 1);
+				value = ra.get().getInteger();
+				if (value == 0) {
+					raFlood.setPosition(x, 0);
+					raFlood.setPosition(y, 1);
+					raFlood.get().set(255);
+				}
+			}
+		}
+	}
 	
 	/**
-	 * This methods floods the image by subsequent dilations and subtractions of the original image
+	 * This method generates an image volume for flooding with set Front pixels
+	 * @param rai
 	 */
-	//flooding imgFlood
-	private void floodingImgFlood() {
+	//get and initialize F2B flooded image
+	private void initializeImgFlood_F2B(RandomAccessibleInterval<?> rai) { 
+		int value = 0;
+		volFlood = new ArrayImgFactory<>(new UnsignedByteType()).create(width, height, depth); //always 3D
+		raFlood = volFlood.randomAccess();
+		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();
+		ra.setPosition(depth-1, 2);     //z=Bottom;
+		raFlood.setPosition(depth-1, 2);//z=Bottom;
+		for (int x=0; x < width; x++) {
+			ra.setPosition(x, 0);
+			for (int y=0; y < height; y++) {	
+				ra.setPosition(y, 1);
+				value = ra.get().getInteger();
+				if (value == 0) {
+					raFlood.setPosition(x, 0);
+					raFlood.setPosition(y, 1);
+					raFlood.get().set(255);
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * This methods floods the image by subsequent dilations and subtractions of the original image volume
+	 */
+	//flooding volFlood
+	private void floodingVolFlood() {
 		RectangleShape kernel = new RectangleShape(1, false); //3x3kernel skipCenter = false
 		Runtime runtime = Runtime.getRuntime();
 		long maxMemory = runtime.maxMemory();
@@ -1195,12 +1182,12 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		int pixelValueImgFlood;
 		int pixelValueImgDil;
 	
-		long[] pos = new long[2];
+		long[] pos = new long[3];
 		while (diff != 0) {
 			//Compute dilated image
-			imgDil = Dilation.dilate(imgFlood, kernel, numThreads);
+			volDil = Dilation.dilate(volFlood, kernel, numThreads);
 			//subtract original image
-			cursor = imgDil.localizingCursor();
+			cursor = volDil.localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1214,7 +1201,7 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 			}
 			//get diff
 			diff = 0;
-			cursor = imgDil.localizingCursor();
+			cursor = volDil.localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1230,9 +1217,9 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 					break;
 				}	
 			}		
-			imgFlood = imgDil;
-			//uiService.show("imgFlood", imgFlood);
-			raFlood = imgFlood.randomAccess();
+			volFlood = volDil;
+			//uiService.show("imgFlood", volFlood);
+			raFlood = volFlood.randomAccess();
 		}
 	}
 	
@@ -1286,20 +1273,22 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 				//Pressure is the only variable which is distinct between these 4 methods
 				pressure = ((double)y + (double)y + (double)boxSize)/2.0;
 				for (int x = 0; x <= (width-boxSize); x=x+delta){
-					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-					occ = 0;
-					// Loop through all pixels of this box.
-					cursor = Views.iterable(raiBox).localizingCursor();
-					while (cursor.hasNext()) { //Box
-						cursor.fwd();
-						//cursorF.localize(pos); 		
-						if (((UnsignedByteType) cursor.get()).get() > 0) {
-							// Binary Image: 0 and [1, 255]! and not: 0 and 255
-							occ = occ + 1.0;
-						}								
-					}//while Box
-					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
-					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					for (int z = 0; z <= (depth-boxSize); z=z+delta){
+						raiBox = Views.interval(volFlood, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
+						occ = 0;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos); 		
+							if (((UnsignedByteType) cursor.get()).get() > 0) {
+								// Binary Image: 0 and [1, 255]! and not: 0 and 255
+								occ = occ + 1.0;
+							}								
+						}//while Box
+						succ[k] = succ[k] + (occ/(boxSize*boxSize*boxSize)*pressure);
+						norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					}//z
 				} //y	
 			} //x
 			//Normalization
@@ -1334,20 +1323,22 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 				//Pressure is the only variable which is distinct between these 4 methods
 				pressure = ((double)(height-1-y) + (double)(height-1-y + boxSize))/2.0;
 				for (int x = 0; x <= (width-boxSize); x=x+delta){
-					raiBox = Views.interval(imgFlood, new long[]{x, y-boxSize+1}, new long[]{x+boxSize-1, y});
-					occ = 0.0;
-					// Loop through all pixels of this box.
-					cursor = Views.iterable(raiBox).localizingCursor();
-					while (cursor.hasNext()) { //Box
-						cursor.fwd();
-						//cursorF.localize(pos); 		
-						if (((UnsignedByteType) cursor.get()).get() > 0) {
-							// Binary Image: 0 and [1, 255]! and not: 0 and 255
-							occ = occ + 1.0;
-						}								
-					}//while Box
-					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
-					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					for (int z = 0; z <= (depth-boxSize); z=z+delta){
+						raiBox = Views.interval(volFlood, new long[]{x, y-boxSize+1, z}, new long[]{x+boxSize-1, y, z+boxSize-1});
+						occ = 0.0;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos); 		
+							if (((UnsignedByteType) cursor.get()).get() > 0) {
+								// Binary Image: 0 and [1, 255]! and not: 0 and 255
+								occ = occ + 1.0;
+							}								
+						}//while Box
+						succ[k] = succ[k] + (occ/(boxSize*boxSize*boxSize)*pressure);
+						norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					}//z
 				} //y	
 			} //x
 			//Normalization
@@ -1381,20 +1372,22 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 				//Pressure is the only variable which is distinct between these 4 methods
 				pressure = ((double)x + (double)x + (double)boxSize)/2.0;
 				for (int y = 0;  y<= (height-boxSize); y=y+delta){
-					raiBox = Views.interval(imgFlood, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
-					occ = 0.0;
-					// Loop through all pixels of this box.
-					cursor = Views.iterable(raiBox).localizingCursor();
-					while (cursor.hasNext()) { //Box
-						cursor.fwd();
-						//cursorF.localize(pos); 		
-						if (((UnsignedByteType) cursor.get()).get() > 0) {
-							// Binary Image: 0 and [1, 255]! and not: 0 and 255
-							occ = occ + 1.0;
-						}								
-					}//while Box
-					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
-					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					for (int z = 0; z <= (depth-boxSize); z=z+delta){
+						raiBox = Views.interval(volFlood, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
+						occ = 0.0;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos); 		
+							if (((UnsignedByteType) cursor.get()).get() > 0) {
+								// Binary Image: 0 and [1, 255]! and not: 0 and 255
+								occ = occ + 1.0;
+							}								
+						}//while Box
+						succ[k] = succ[k] + (occ/(boxSize*boxSize*boxSize)*pressure);
+						norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					}//z
 				} //y	
 			} //x
 			//Normalization
@@ -1429,20 +1422,122 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 				//Pressure is the only variable which is distinct between these 4 methods
 				pressure = ((double)(width-1-x) + (double)(width-1-x + boxSize))/2.0; 
 				for (int y = 0;  y<= (height-boxSize); y=y+delta){
-					raiBox = Views.interval(imgFlood, new long[]{x-boxSize+1, y}, new long[]{x, y+boxSize-1});
-					occ = 0.0;
-					// Loop through all pixels of this box.
-					cursor = Views.iterable(raiBox).localizingCursor();
-					while (cursor.hasNext()) { //Box
-						cursor.fwd();
-						//cursorF.localize(pos); 		
-						if (((UnsignedByteType) cursor.get()).get() > 0) {
-							// Binary Image: 0 and [1, 255]! and not: 0 and 255
-							occ = occ + 1.0;
-						}								
-					}//while Box
-					succ[k] = succ[k] + (occ/(boxSize*boxSize)*pressure);
-					norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					for (int z = 0; z <= (depth-boxSize); z=z+delta){
+						raiBox = Views.interval(volFlood, new long[]{x-boxSize+1, y, z}, new long[]{x, y+boxSize-1, z+boxSize-1});
+						occ = 0.0;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos); 		
+							if (((UnsignedByteType) cursor.get()).get() > 0) {
+								// Binary Image: 0 and [1, 255]! and not: 0 and 255
+								occ = occ + 1.0;
+							}								
+						}//while Box
+						succ[k] = succ[k] + (occ/(boxSize*boxSize*boxSize)*pressure);
+						norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					}//z
+				} //y	
+			} //x
+			//Normalization
+			succ[k] = succ[k]/norm[k];
+		} //k
+		return succ;
+	}
+
+	/**
+	 * This method computes succolarities for distinct box sizes from Back two Front
+	 * @return
+	 */
+	private double[] computeSuccolarities_B2F() {
+		double pressure = Double.NaN; //Pressure of a box 
+		double occ= Double.NaN; //occupation percentage in a single box
+		double[] succ = new double[numBoxes];
+		double[] norm = new double[numBoxes];
+		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
+		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
+		int boxSize;	
+		int delta = 0;
+	
+		//all box sizes
+		for (int k = 0; k < numBoxes; k++) { //	
+			succ[k] = 0.0;
+			norm[k] = 0.0;
+			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;	
+			pressure = 0.0;
+			for (int z = 0;  z<= (depth-boxSize); z=z+delta){
+				//Pressure is the only variable which is distinct between these 4 methods
+				pressure = ((double)z + (double)z + (double)boxSize)/2.0;
+				for (int x = 0; x <= (width-boxSize); x=x+delta){
+					for (int y = 0; y <= (height-boxSize); y=y+delta){
+						raiBox = Views.interval(volFlood, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
+						occ = 0;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos); 		
+							if (((UnsignedByteType) cursor.get()).get() > 0) {
+								// Binary Image: 0 and [1, 255]! and not: 0 and 255
+								occ = occ + 1.0;
+							}								
+						}//while Box
+						succ[k] = succ[k] + (occ/(boxSize*boxSize*boxSize)*pressure);
+						norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					}//z
+				} //y	
+			} //x
+			//Normalization
+			succ[k] = succ[k]/norm[k];
+		} //K
+		return succ;
+	}
+	
+	/**
+	 * This method computes succolarities for distinct box sizes from Front two Back
+	 * @return
+	 */
+	private double[] computeSuccolarities_F2B() {
+		double pressure = Double.NaN; //Pressure of a box 
+		double occ= Double.NaN; //occupation percentage in a single box
+		double[] succ = new double[numBoxes];
+		double[] norm = new double[numBoxes];
+		for (int c = 0; c < succ.length; c++) succ[c] = Double.NaN;
+		for (int n = 0; n < norm.length; n++) norm[n] = Double.NaN;
+		int boxSize;	
+		int delta = 0;
+		
+		//all box sizes
+		for (int k = 0; k < numBoxes; k++) { //	
+			succ[k] = 0.0;
+			norm[k] = 0.0;
+			boxSize = (int) Math.pow(2, k);		
+			if      (choiceRadioButt_ScanningType.equals("Sliding box")) delta = 1;
+			else if (choiceRadioButt_ScanningType.equals("Raster box"))  delta = boxSize;
+			pressure = 0.0;
+			for (int z = (int)depth-1;  z>= boxSize-1; z=z-delta){
+				//Pressure is the only variable which is distinct between these 4 methods
+				pressure = ((double)(depth-1-z) + (double)(depth-1-z + boxSize))/2.0;
+				for (int x = 0; x <= (width-boxSize); x=x+delta){
+					for (int y = 0; y <= (height-boxSize); y=y+delta){
+						raiBox = Views.interval(volFlood, new long[]{x, y, z-boxSize+1}, new long[]{x+boxSize-1, y+boxSize-1, z});
+						occ = 0.0;
+						// Loop through all pixels of this box.
+						cursor = Views.iterable(raiBox).localizingCursor();
+						while (cursor.hasNext()) { //Box
+							cursor.fwd();
+							//cursorF.localize(pos); 		
+							if (((UnsignedByteType) cursor.get()).get() > 0) {
+								// Binary Image: 0 and [1, 255]! and not: 0 and 255
+								occ = occ + 1.0;
+							}								
+						}//while Box
+						succ[k] = succ[k] + (occ/(boxSize*boxSize*boxSize)*pressure);
+						norm[k] = norm[k] + pressure; //1*pressure //so for a totally filled box (image)
+					}//z
 				} //y	
 			} //x
 			//Normalization
@@ -1452,60 +1547,66 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 	}
 	
 	
-	
-	//This methods reduces dimensionality to 2D just for the display 	
-	//****IMPORTANT****Displaying a rai slice (pseudo 2D) directly with e.g. uiService.show(name, rai);
-	//pushes a 3D array to the display and
-	//yields mouse moving errors because the third dimension is not available
-	private <T extends Type<T>, F> void displayImage(String name, IterableInterval<FloatType> iv) {
+	// This method shows the double log plot
+	private void showPlot(double[] lnDataX, double[] lnDataY, String preName, int numRegStart, int numRegEnd) {
+		if (imageType.equals("Grey")) {
+			if (lnDataX == null) {
+				logService.info(this.getClass().getName() + " lnDataX == null, cannot display the plot!");
+				return;
+			}
+			if (lnDataY == null) {
+				logService.info(this.getClass().getName() + " lnDataY == null, cannot display the plot!");
+				return;
+			}
+			if (numRegStart >= numRegEnd) {
+				logService.info(this.getClass().getName() + " numRegStart >= numRegEnd, cannot display the plot!");
+				return;
+			}
+			if (numRegEnd <= numRegStart) {
+				logService.info(this.getClass().getName() + " numRegEnd <= numRegStart, cannot display the plot!");
+				return;
+			}
+			// String preName = "";
+			if (preName == null) {
+				preName = "Volume-";
+			} else {
+				preName = "Volume-";
+			}
+			boolean isLineVisible = false; // ?
+			CsajPlot_RegressionFrame doubleLogPlot = DisplayRegressionPlotXY(lnDataX, lnDataY, isLineVisible,
+					"Double log plot - 3D Succolarity", preName + datasetName, "ln(k)", "ln(L)", "", numRegStart, numRegEnd);
+			doubleLogPlotList.add(doubleLogPlot);
+		}
+		if (!imageType.equals("Grey")) {
 
-		// Create an image.
-		long[] dims = {iv.max(0)+1, iv.max(0)+1};
-		AxisType[] axes = {Axes.X, Axes.Y};
-		int bitsPerPixel = 32;
-		boolean signed = true;
-		boolean floating = true;
-		boolean virtual = false;
-		//dataset = ij.dataset().create(dims, name, axes, bitsPerPixel, signed, floating);
-		Dataset datasetDisplay = datasetService.create(dims, name, axes, bitsPerPixel, signed, floating, virtual);
-		
-		RandomAccess<RealType<?>> ra = datasetDisplay.randomAccess();
-		
-		Cursor<FloatType> cursor = iv.localizingCursor();
-    	final long[] pos = new long[iv.numDimensions()];
-		while (cursor.hasNext()) {
-			cursor.fwd();
-			cursor.localize(pos);
-			ra.setPosition(pos[0], 0);
-			ra.setPosition(pos[1], 1);
-			ra.get().setReal(cursor.get().get());
-		}  	
-		
-		uiService.show(name, datasetDisplay);
+		}
 	}
 	
+
 	/**
 	 * Displays a regression plot in a separate window.
 	 * <p>
-	 *		
+	 * 
 	 *
 	 * </p>
 	 * 
-	 * @param dataX data values for x-axis.
-	 * @param dataY data values for y-axis.
-	 * @param isLineVisible option if regression line is visible
-	 * @param frameTitle title of frame
-	 * @param plotLabel  label of plot
-	 * @param xAxisLabel label of x-axis
-	 * @param yAxisLabel label of y-axis
-	 * @param numRegStart minimum value for regression range
-	 * @param numRegEnd maximal value for regression range 
-	 * @param optDeleteExistingPlot option if existing plot should be deleted before showing a new plot
-	 * @param interpolType The type of interpolation
+	 * @param dataX                 data values for x-axis.
+	 * @param dataY                 data values for y-axis.
+	 * @param isLineVisible         option if regression line is visible
+	 * @param frameTitle            title of frame
+	 * @param plotLabel             label of plot
+	 * @param xAxisLabel            label of x-axis
+	 * @param yAxisLabel            label of y-axis
+	 * @param numRegStart                minimum value for regression range
+	 * @param numRegEnd                maximal value for regression range
+	 * @param optDeleteExistingPlot option if existing plot should be deleted before
+	 *                              showing a new plot
+	 * @param interpolType          The type of interpolation
 	 * @return RegressionPlotFrame
-	 */			
-	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY, boolean isLineVisible,
-			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel, int numRegStart, int numRegEnd) {
+	 */
+	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[] dataY,
+			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel,String legendLabel,
+			int numRegStart, int numRegEnd) {
 		// jFreeChart
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
 				yAxisLabel, legendLabel, numRegStart, numRegEnd);
@@ -1515,40 +1616,11 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		// int verticalPercent = 5;
 		// RefineryUtilities.positionFrameOnScreen(pl, horizontalPercent,
 		// verticalPercent);
-		//CommonTools.centerFrameOnScreen(pl);
+		// CommonTools.centerFrameOnScreen(pl);
 		pl.setVisible(true);
 		return pl;
-		
 	}
-	
-	/**
-	 * 
-	 * This methods creates a Img<FloatType>
-	 */
-	private Img<FloatType > createImgFloat(RandomAccessibleInterval<?> rai){ //rai must always be a single 2D plane
-		
-		imgFloat = new ArrayImgFactory<>(new FloatType()).create(rai.dimension(0), rai.dimension(1)); //always single 2D
-		Cursor<FloatType> cursor = imgFloat.localizingCursor();
-		final long[] pos = new long[imgFloat.numDimensions()];
-		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
-		while (cursor.hasNext()){
-			cursor.fwd();
-			cursor.localize(pos);
-			//if (numSlices == 1) { //for only one 2D image;
-				ra.setPosition(pos[0], 0);
-				ra.setPosition(pos[1], 1);
-			//} else { //for more than one image e.g. image stack
-			//	ra.setPosition(pos[0], 0);
-			//	ra.setPosition(pos[1], 1);
-			//	ra.setPosition(s, 2);
-			//}
-			//ra.get().setReal(cursor.get().get());
-			cursor.get().setReal(ra.get().getRealFloat());
-		}
-		
-		return imgFloat;
-	}
-	
+
 
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {
@@ -1568,8 +1640,7 @@ public class Csaj2DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		final Dataset image = ij.scifio().datasetIO().open(imageFile.getAbsolutePath());
 		ij.ui().show(image);
 		// execute the filter, waiting for the operation to finish.
-		//ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
+		// ij.command().run(MethodHandles.lookup().lookupClass().getName(), true).get().getOutput("image");
 		ij.command().run(MethodHandles.lookup().lookupClass().getName(), true);
 	}
 }
-

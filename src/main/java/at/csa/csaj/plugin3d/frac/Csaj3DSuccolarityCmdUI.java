@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DFracDimMinkowskiCmdUI.java
+ * File: Csaj3DSuccolarityCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -27,6 +27,7 @@
  */
 package at.csa.csaj.plugin3d.frac;
 
+
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 
@@ -48,7 +49,7 @@ import net.imagej.ImageJ;
 
 @Plugin(type = ContextCommand.class,
 		headless = true,
-		label = "3D Minkowski dimension",
+		label = "3D Succolarity",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {
@@ -56,9 +57,9 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Fractal analyses", weight = 6),
-		@Menu(label = "3D Minkowski dimension")})
+		@Menu(label = "3D Succolarity")})
 
-public class Csaj3DFracDimMinkowskiCmdUI extends ContextCommand implements Previewable{
+public class Csaj3DSuccolarityCmdUI extends ContextCommand implements Previewable{
 	
 	@Parameter
 	LogService logService;
@@ -66,7 +67,7 @@ public class Csaj3DFracDimMinkowskiCmdUI extends ContextCommand implements Previ
   	@Parameter(type = ItemIO.INPUT)
   	private Dataset datasetIn;
 
-	private Csaj3DFracDimMinkowskiDialog dialog = null;
+	private Csaj3DSuccolarityDialog dialog = null;
 	
 
 	@Override //Interface Previewable
@@ -101,7 +102,7 @@ public class Csaj3DFracDimMinkowskiCmdUI extends ContextCommand implements Previ
 	public void run() {	
 		SwingUtilities.invokeLater(() -> {
 			if (dialog == null) {
-				dialog = new Csaj3DFracDimMinkowskiDialog(context(), datasetIn);
+				dialog = new Csaj3DSuccolarityDialog(context(), datasetIn);
 			}
 			dialog.setVisible(true);
 			dialog.btnProcessSingleVolume.requestFocusInWindow();

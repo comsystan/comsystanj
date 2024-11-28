@@ -10,11 +10,17 @@ Version 1.1.4 Current working version, not yet finalized
 pom-scijava 36.0.0 Current working version, not yet finalized
 2024-??-??
 --------------------------------------------------------------
+New Plugin:
+3D Succolarity
+
 Plugin changes:
 2D Image generator: added Mandelbrot set
+2D Succolarity: Anistropy is now computed like the fractional anisotropy of diffusion
 3D Volume generator: added 3D Mandelbulb
+
 Miscellaneous:
-Changed ???????????????some/all???? plugins to non-modal custom UI dialogs
+Added non-modal custom UI dialogs for all plugins
+The majority of plugins now consist of three classes (Commmand, CommandUI, Dialog) 
 
 **************************************************************
 Version 1.1.3
