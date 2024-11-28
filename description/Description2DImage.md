@@ -256,7 +256,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Raster box or Sliding box scanning
 - Flooding can be set to Top2Down, Down2Top, Left2Right or Right2L
 - Mean computes the average of all four flooding directions
-- Anisotropy is ABS( (L2R+R2L)/2 - (T2D+D2T)/2 )
+- Anisotropy is computed in the same way as the fractional anisotropy of diffusion
 - Succolarity reservoir is the largest possible flooding area (#black pixels)/(#total pixels)
 - Delta succolarity is Succolarity reservoir - Succolarity
 - de Melo & Conci, 15th International Conference on Systems, Signals and Image Processing, 2008, [DOI 10.1109/IWSSIP.2008.4604424](https://doi.org/10.1109/IWSSIP.2008.4604424)
