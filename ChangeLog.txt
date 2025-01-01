@@ -6,9 +6,9 @@ Version numbering
 3rd digit: subsequent changes
 
 **************************************************************
-Version 1.1.4 Current working version, not yet finalized
-pom-scijava 36.0.0 Current working version, not yet finalized
-2024-??-??
+Version 1.1.4
+pom-scijava 36.0.0
+2025-01-01
 --------------------------------------------------------------
 New Plugin:
 3D Succolarity
