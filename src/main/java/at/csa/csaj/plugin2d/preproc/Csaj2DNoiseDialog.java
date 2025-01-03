@@ -121,7 +121,7 @@ public class Csaj2DNoiseDialog extends CsajDialog_2DPlugin {
 		
 		String options[] = {"Shot", "Salt&Pepper", "Uniform", "Gaussian", "Rayleigh", "Exponential"};
 		comboBoxNoiseType = new JComboBox<String>(options);
-		comboBoxNoiseType.setToolTipText("Type of filter");
+		comboBoxNoiseType.setToolTipText("Type of noise");
 	    comboBoxNoiseType.setEditable(false);
 	    comboBoxNoiseType.setSelectedItem("Gaussian");
 	    comboBoxNoiseType.addActionListener(new ActionListener() {
