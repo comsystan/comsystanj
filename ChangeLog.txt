@@ -5,6 +5,15 @@ Version numbering
 2nd digit: pom-scijava change
 3rd digit: subsequent changes
 
+
+**************************************************************
+Version 1.1.5-beta
+pom-scijava 36.0.0
+2025-??-??
+--------------------------------------------------------------
+New Plugin:
+2D RGB relative segmentation
+
 **************************************************************
 Version 1.1.4
 pom-scijava 36.0.0
