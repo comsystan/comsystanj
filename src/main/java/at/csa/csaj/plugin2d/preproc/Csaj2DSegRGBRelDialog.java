@@ -108,11 +108,11 @@ public class Csaj2DSegRGBRelDialog extends CsajDialog_2DPlugin {
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 		//*****************************************************************************************
-	    JLabel labelRatioType = new JLabel("Type");
+	    JLabel labelRatioType = new JLabel("RGB channel ratio type");
 	    labelRatioType.setToolTipText("Type of relative RGB ratio");
 	    labelRatioType.setHorizontalAlignment(JLabel.RIGHT);
 		
-		String options[] = {"R/(R+G+B)", "G/(R+G+B)", "B/(R+G+B)"};
+		String options[] = {"R/(R+G+B)", "R/(G+B)", "R/G", "R/B", "G/(R+G+B)", "G/(R+B)", "G/R", "G/B", "B/(R+G+B)", "B/(R+G)", "B/R", "B/G"};
 		comboBoxRatioType = new JComboBox<String>(options);
 		comboBoxRatioType.setToolTipText("Type of relative RGB ratio");
 	    comboBoxRatioType.setEditable(false);
@@ -123,17 +123,17 @@ public class Csaj2DSegRGBRelDialog extends CsajDialog_2DPlugin {
 				choiceRadioButt_RatioType = (String)comboBoxRatioType.getSelectedItem();
 				logService.info(this.getClass().getName() + " RGB ratio type set to " + choiceRadioButt_RatioType);
 				
-				//Reset all spinners and options
-				labelRatio.setEnabled(false);
-				spinnerRatio.setEnabled(false);
-								
-				if (   choiceRadioButt_RatioType.equals("R/(R+G+B)")
-					|| choiceRadioButt_RatioType.equals("G/(R+G+B)")
-					|| choiceRadioButt_RatioType.equals("B/(R+G+B)")			
-				    ) {		
-					labelRatio.setEnabled(true);
-					spinnerRatio.setEnabled(true);
-				}	
+//				//Reset all spinners and options
+//				labelRatio.setEnabled(false);
+//				spinnerRatio.setEnabled(false);
+//								
+//				if (   choiceRadioButt_RatioType.equals("R/(R+G+B)")
+//					|| choiceRadioButt_RatioType.equals("G/(R+G+B)")
+//					|| choiceRadioButt_RatioType.equals("B/(R+G+B)")			
+//				    ) {		
+//					labelRatio.setEnabled(true);
+//					spinnerRatio.setEnabled(true);
+//				}	
 				
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
@@ -152,14 +152,14 @@ public class Csaj2DSegRGBRelDialog extends CsajDialog_2DPlugin {
 	    choiceRadioButt_RatioType = (String)comboBoxRatioType.getSelectedItem();
 	    
 	    //*****************************************************************************************
-	    labelRatio = new JLabel("Ratio");
-	    labelRatio.setToolTipText("Relative ratio value (threshold)");
+	    labelRatio = new JLabel("Ratio threshold");
+	    labelRatio.setToolTipText("Relative ratio threshold");
 	    labelRatio.setHorizontalAlignment(JLabel.RIGHT);
 	    labelRatio.setEnabled(true);
 	    
 	    SpinnerNumberModel spinnerModelRatio = new SpinnerNumberModel(0.5, 0.0, 1.0, 0.01); // initial, min, max, step
         spinnerRatio = new JSpinner(spinnerModelRatio);
-        spinnerRatio.setToolTipText("Relative ratio value");
+        spinnerRatio.setToolTipText("Relative ratio threshold");
         spinnerRatio.setEnabled(true);
         spinnerRatio.addChangeListener(new ChangeListener() {
         	@Override
@@ -194,15 +194,6 @@ public class Csaj2DSegRGBRelDialog extends CsajDialog_2DPlugin {
 	 */
 	public void processCommand() {
 		//Following run initiates a "ProcessAllImages" 
-		
-		//NOTE: Ratio, Sigma and Scaling go with parameter Ratio 
-		if (   choiceRadioButt_RatioType.equals("R/(R+G+B)")
-			|| choiceRadioButt_RatioType.equals("G/(R+G+B)")
-			|| choiceRadioButt_RatioType.equals("B/(R+G+B)")			
-		    ) {		
-			//DO NOTHING
-		}	
-
 		Future<CommandModule> future = commandService.run(Csaj2DSegRGBRelCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all

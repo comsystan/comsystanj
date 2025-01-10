@@ -168,17 +168,17 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelRatioTypeOptions = RATIOTYPE_LABEL;
 	
-	@Parameter(label = "Ratio type",
+	@Parameter(label = "RGB channel ratio type",
 			   description = "Type of relative RGB ratio",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"R/(R+G+B)", "G/(R+G+B)", "B/(R+G+B)"},
+			   choices = {"R/(R+G+B)", "R/(G+B)", "R/G", "R/B", "G/(R+G+B)", "G/(R+B)", "G/R", "G/B", "B/(R+G+B)", "B/(R+G)", "B/R", "B/G"},
 			   persist = true, //restore previous value default = true
 			   initializer = "initialRatioType",
 			   callback = "callbackRatioType")
 	private String choiceRadioButt_RatioType;
 	
-	@Parameter(label = "Ratio",
-			   description = "Relative ratio value",
+	@Parameter(label = "Ratio threshold",
+			   description = "Relative ratio threshold",
 			   style = NumberWidget.SPINNER_STYLE,
 			   min = "0f",
 			   max = "1f",
@@ -840,8 +840,83 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 //					raG.get().setReal(0);
 //					raB.get().setReal(0);
 				}	
-			} //cursor		
+			} //cursor
 			
+		} else if (ratioType.equals("R/(G+B)")) {	
+			raiR = Views.hyperSlice(rai, 2, 0); //R
+			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
+			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
+					
+			cursor = Views.iterable(raiR).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raG.setPosition(pos);
+				raB.setPosition(pos);
+				red   = (double)((UnsignedByteType) cursor.get()).get();
+				green = raG.get().getRealDouble();
+				blue  = raB.get().getRealDouble();
+				if ((red/(green+blue)) > ratio) {
+					((UnsignedByteType) cursor.get()).set(255);
+					raG.get().setReal(0);
+					raB.get().setReal(0);
+				} else {	
+//					((UnsignedByteType) cursor.get()).set(0);
+//					raG.get().setReal(0);
+//					raB.get().setReal(0);
+				}	
+			} //cursor
+		
+		} else if (ratioType.equals("R/G")) {	
+			raiR = Views.hyperSlice(rai, 2, 0); //R
+			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
+			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
+					
+			cursor = Views.iterable(raiR).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raG.setPosition(pos);
+				raB.setPosition(pos);
+				red   = (double)((UnsignedByteType) cursor.get()).get();
+				green = raG.get().getRealDouble();
+				blue  = raB.get().getRealDouble();
+				if ((red/green) > ratio) {
+					((UnsignedByteType) cursor.get()).set(255);
+					raG.get().setReal(0);
+					raB.get().setReal(0);
+				} else {	
+//					((UnsignedByteType) cursor.get()).set(0);
+//					raG.get().setReal(0);
+//					raB.get().setReal(0);
+				}	
+			} //cursor
+		
+		} else if (ratioType.equals("R/B")) {	
+			raiR = Views.hyperSlice(rai, 2, 0); //R
+			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
+			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
+					
+			cursor = Views.iterable(raiR).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raG.setPosition(pos);
+				raB.setPosition(pos);
+				red   = (double)((UnsignedByteType) cursor.get()).get();
+				green = raG.get().getRealDouble();
+				blue  = raB.get().getRealDouble();
+				if ((red/blue) > ratio) {
+					((UnsignedByteType) cursor.get()).set(255);
+					raG.get().setReal(0);
+					raB.get().setReal(0);
+				} else {	
+//					((UnsignedByteType) cursor.get()).set(0);
+//					raG.get().setReal(0);
+//					raB.get().setReal(0);
+				}	
+			} //cursor
+		
 		} else if (ratioType.equals("G/(R+G+B)")) {	
 			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
 			raiG = Views.hyperSlice(rai, 2, 1); //G
@@ -864,6 +939,75 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 
 				}	
 			} //cursor		
+		
+		} else if (ratioType.equals("G/(R+B)")) {	
+			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
+			raiG = Views.hyperSlice(rai, 2, 1); //G
+			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
+					
+			cursor = Views.iterable(raiG).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raR.setPosition(pos);
+				raB.setPosition(pos);
+				red   = raR.get().getRealDouble();
+				green = (double)((UnsignedByteType) cursor.get()).get();
+				blue  = raB.get().getRealDouble();
+				if ((green/(red+blue)) > ratio) {
+					raR.get().setReal(0);
+					((UnsignedByteType) cursor.get()).set(255);
+					raB.get().setReal(0);
+				} else {	
+
+				}	
+			} //cursor
+		
+		} else if (ratioType.equals("G/R")) {	
+			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
+			raiG = Views.hyperSlice(rai, 2, 1); //G
+			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
+					
+			cursor = Views.iterable(raiG).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raR.setPosition(pos);
+				raB.setPosition(pos);
+				red   = raR.get().getRealDouble();
+				green = (double)((UnsignedByteType) cursor.get()).get();
+				blue  = raB.get().getRealDouble();
+				if ((green/red) > ratio) {
+					raR.get().setReal(0);
+					((UnsignedByteType) cursor.get()).set(255);
+					raB.get().setReal(0);
+				} else {	
+
+				}	
+			} //cursor
+		
+		} else if (ratioType.equals("G/B")) {	
+			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
+			raiG = Views.hyperSlice(rai, 2, 1); //G
+			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
+					
+			cursor = Views.iterable(raiG).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raR.setPosition(pos);
+				raB.setPosition(pos);
+				red   = raR.get().getRealDouble();
+				green = (double)((UnsignedByteType) cursor.get()).get();
+				blue  = raB.get().getRealDouble();
+				if ((green/blue) > ratio) {
+					raR.get().setReal(0);
+					((UnsignedByteType) cursor.get()).set(255);
+					raB.get().setReal(0);
+				} else {	
+
+				}	
+			} //cursor	
 			
 		} else if (ratioType.equals("B/(R+G+B)")) {	
 			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
@@ -886,7 +1030,77 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 				} else {	
 					
 				}	
-			} //cursor		
+			} //cursor	
+			
+		} else if (ratioType.equals("B/(R+G)")) {	
+			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
+			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
+			raiB = Views.hyperSlice(rai, 2, 2); //B
+					
+			cursor = Views.iterable(raiB).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raR.setPosition(pos);
+				raG.setPosition(pos);
+				red   = raR.get().getRealDouble();
+				green = raG.get().getRealDouble();
+				blue  = (double)((UnsignedByteType) cursor.get()).get();
+				if ((blue/(red+green)) > ratio) {
+					raR.get().setReal(0);
+					raG.get().setReal(0);
+					((UnsignedByteType) cursor.get()).set(255);
+				} else {	
+					
+				}	
+			} //cursor
+			
+		} else if (ratioType.equals("B/R")) {	
+			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
+			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
+			raiB = Views.hyperSlice(rai, 2, 2); //B
+					
+			cursor = Views.iterable(raiB).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raR.setPosition(pos);
+				raG.setPosition(pos);
+				red   = raR.get().getRealDouble();
+				green = raG.get().getRealDouble();
+				blue  = (double)((UnsignedByteType) cursor.get()).get();
+				if ((blue/red) > ratio) {
+					raR.get().setReal(0);
+					raG.get().setReal(0);
+					((UnsignedByteType) cursor.get()).set(255);
+				} else {	
+					
+				}	
+			} //cursor
+			
+		} else if (ratioType.equals("B/G")) {	
+			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
+			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
+			raiB = Views.hyperSlice(rai, 2, 2); //B
+					
+			cursor = Views.iterable(raiB).localizingCursor();	
+			while (cursor.hasNext()) {
+				cursor.fwd();
+				cursor.localize(pos);
+				raR.setPosition(pos);
+				raG.setPosition(pos);
+				red   = raR.get().getRealDouble();
+				green = raG.get().getRealDouble();
+				blue  = (double)((UnsignedByteType) cursor.get()).get();
+				if ((blue/green) > ratio) {
+					raR.get().setReal(0);
+					raG.get().setReal(0);
+					((UnsignedByteType) cursor.get()).set(255);
+				} else {	
+					
+				}	
+			} //cursor
+			
 		}	
 		return rai;	
 	}
