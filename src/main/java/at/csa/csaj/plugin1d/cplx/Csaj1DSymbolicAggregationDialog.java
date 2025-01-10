@@ -364,7 +364,7 @@ public class Csaj1DSymbolicAggregationDialog extends CsajDialog_1DPlugin {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj1DSymbolicAggregationCmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,

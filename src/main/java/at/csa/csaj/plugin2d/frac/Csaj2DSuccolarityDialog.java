@@ -224,7 +224,7 @@ public class Csaj2DSuccolarityDialog extends CsajDialog_2DPluginWithRegression {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj2DSuccolarityCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all

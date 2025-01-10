@@ -252,7 +252,7 @@ public class Csaj1DMathematicsDialog extends CsajDialog_1DPlugin {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj1DMathematicsCmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,

@@ -261,7 +261,7 @@ public class Csaj1DGeneralisedDFADialog extends CsajDialog_1DPluginWithRegressio
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj1DGeneralisedDFACmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,

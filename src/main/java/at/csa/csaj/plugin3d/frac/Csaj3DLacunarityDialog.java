@@ -385,7 +385,7 @@ public class Csaj3DLacunarityDialog extends CsajDialog_3DPluginWithRegression {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj3DLacunarityCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 													

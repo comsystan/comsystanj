@@ -191,7 +191,7 @@ public class Csaj1DFracDimWalkingDividerDialog extends CsajDialog_1DPluginWithRe
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj1DFracDimWalkingDividerCmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,

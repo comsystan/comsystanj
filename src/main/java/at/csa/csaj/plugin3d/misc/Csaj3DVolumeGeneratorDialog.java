@@ -666,7 +666,7 @@ public class Csaj3DVolumeGeneratorDialog extends CsajDialog_PluginFrame {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj3DVolumeGeneratorCmd.class, false,
 														"spinnerInteger_Width",                spinnerInteger_Width,    
 														"spinnerInteger_Height",               spinnerInteger_Height, 

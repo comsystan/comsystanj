@@ -105,7 +105,7 @@ public class Csaj1DAllomScaleDialog extends CsajDialog_1DPluginWithRegression {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj1DAllomScaleCmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,

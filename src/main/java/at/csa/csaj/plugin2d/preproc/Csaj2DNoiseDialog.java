@@ -275,7 +275,7 @@ public class Csaj2DNoiseDialog extends CsajDialog_2DPlugin {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		
 		//NOTE: Percentage, Sigma and Scaling go with parameter Percentage 
 		if (   choiceRadioButt_NoiseType.equals("Shot")

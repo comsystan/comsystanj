@@ -234,7 +234,7 @@ public class Csaj3DFracDimBoxCountingDialog extends CsajDialog_3DPluginWithRegre
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj3DFracDimBoxCountingCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 

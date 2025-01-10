@@ -674,7 +674,7 @@ public class Csaj1DGeneratorDialog extends CsajDialog_PluginFrame {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj1DGeneratorCmd.class, false,
 														"choiceRadioButt_Method",       choiceRadioButt_Method,
 														"spinnerInteger_NumSequences",  spinnerInteger_NumSequences,

@@ -187,7 +187,7 @@ public class Csaj3DFracDimTugOfWarDialog extends CsajDialog_3DPluginWithRegressi
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj3DFracDimTugOfWarCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 													

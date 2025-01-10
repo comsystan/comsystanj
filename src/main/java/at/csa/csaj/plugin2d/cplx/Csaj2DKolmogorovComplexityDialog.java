@@ -229,7 +229,7 @@ public class Csaj2DKolmogorovComplexityDialog extends CsajDialog_2DPlugin {
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj2DKolmogorovComplexityCmd.class, false,
 														"datasetIn",                    datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					processAll, //true for all

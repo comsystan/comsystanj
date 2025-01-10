@@ -278,7 +278,7 @@ public class Csaj2DFracDimMassRadiusDialog extends CsajDialog_2DPluginWithRegres
 	 * process by calling a command
 	 */
 	public void processCommand() {
-		//Following run initiates a "ProcessAllImages" 
+		 
 		Future<CommandModule> future = commandService.run(Csaj2DFracDimMassRadiusCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
 														"processAll",					  processAll, //true for all
