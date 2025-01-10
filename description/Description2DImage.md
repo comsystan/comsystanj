@@ -66,6 +66,12 @@ For binary images black pixels are the background. White pixels are the foregrou
   - Useful to e.g. analyze each particle itself instead of all particles together
   - Only for a single input image
 
+### Preprocessing - Segmentation - RGB Relative
+- Segmentation using relative RGB channel ratios
+- Type of ratio equation can be set
+- Ratio threshold can be set
+- Pixels with ratio value > ratio threshold are colored to the RGB channel specified by the numerator of the type equation
+
 ### Preprocessing - Surrogates
 - Computes surrogate images
 - 8-bit grey or RGB color images
