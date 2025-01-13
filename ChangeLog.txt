@@ -13,6 +13,7 @@ pom-scijava 36.0.0
 --------------------------------------------------------------
 New Plugin:
 2D RGB relative segmentation
+2D Histogram modification
 
 **************************************************************
 Version 1.1.4

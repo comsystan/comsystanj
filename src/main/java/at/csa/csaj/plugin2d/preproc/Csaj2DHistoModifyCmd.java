@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DSegRGBRelCmd.java
+ * File: Csaj2DHistoModifyCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -33,6 +33,7 @@ import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -49,12 +50,27 @@ import net.imagej.axis.AxisType;
 import net.imagej.display.ImageDisplayService;
 import net.imagej.ops.OpService;
 import net.imagej.roi.ROIService;
+import net.imagej.roi.ROITree;
 import net.imglib2.Cursor;
+import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealPoint;
+import net.imglib2.roi.Masks;
 import net.imglib2.roi.RealMask;
+import net.imglib2.roi.Regions;
+import net.imglib2.roi.geom.real.Box;
+import net.imglib2.roi.geom.real.Ellipsoid;
+import net.imglib2.roi.geom.real.Line;
+import net.imglib2.roi.geom.real.Polygon2D;
+import net.imglib2.roi.geom.real.Polyshape;
+import net.imglib2.roi.geom.real.SuperEllipsoid;
+import net.imglib2.type.logic.BoolType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.util.Util;
+import net.imglib2.view.RandomAccessibleOnRealRandomAccessible;
 import net.imglib2.view.Views;
 
 import org.scijava.ItemIO;
@@ -68,6 +84,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
 import org.scijava.ui.UIService;
+import org.scijava.util.TreeNode;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
@@ -87,11 +104,11 @@ import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
 
-public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj2DHistoModifyCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
-	private static final String PLUGIN_LABEL          = "<html><b>RGB relative segmentation</b></html>";
+	private static final String PLUGIN_LABEL          = "<html><b>Histogram modification</b></html>";
 	private static final String SPACE_LABEL           = "";
-	private static final String RATIOTYPE_LABEL       = "<html><b>Relative ratio type</b></html>";
+	private static final String MODTYPE_LABEL         = "<html><b>Modification type</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL  = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL  = "<html><b>Process options</b></html>";
 
@@ -106,7 +123,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 	private static String imageType = "";
 	private static RealMask realMask;  //ROI
 	
-	public static final String IMAGE_OUT_NAME = "RGB Relative segmented image(s)";
+	public static final String IMAGE_OUT_NAME = "Histogram modified image(s)";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -166,27 +183,16 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelRatioTypeOptions = RATIOTYPE_LABEL;
+	private final String labelModTypeOptions = MODTYPE_LABEL;
 	
-	@Parameter(label = "RGB channel ratio type",
-			   description = "Type of relative RGB ratio",
+	@Parameter(label = "Modification type",
+			   description = "Type of histogram modification",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"R/(R+G+B)", "R/(G+B)", "R/G", "R/B", "G/(R+G+B)", "G/(R+B)", "G/R", "G/B", "B/(R+G+B)", "B/(R+G)", "B/R", "B/G"},
+			   choices = {"White balance with ROI"},
 			   persist = true, //restore previous value default = true
-			   initializer = "initialRatioType",
-			   callback = "callbackRatioType")
-	private String choiceRadioButt_RatioType;
-	
-	@Parameter(label = "Ratio threshold",
-			   description = "Relative ratio threshold",
-			   style = NumberWidget.SPINNER_STYLE,
-			   min = "0f",
-			   max = "1f",
-			   stepSize = "0.01",
-			   persist = true, // restore  previous value  default  =  true
-			   initializer = "initialRatio",
-			   callback = "callbackRatio")
-	private float spinnerFloat_Ratio;
+			   initializer = "initialModType",
+			   callback = "callbackModType")
+	private String choiceRadioButt_ModType;
 	
 	//-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -235,12 +241,9 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 		checkItemIOIn();
 	}
 	
-	protected void initialRatioType() {
-		choiceRadioButt_RatioType = "R/(R+G+B)";
+	protected void initialModType() {
+		choiceRadioButt_ModType = "White balance with ROI";
 	}	
-	protected void initialRatio() {
- 		spinnerFloat_Ratio = 0.5f;
- 	}
 	protected void initialOverwriteDisplays() {
 		booleanOverwriteDisplays = true;
 	}
@@ -249,14 +252,11 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 	}
 	
 	// ------------------------------------------------------------------------------
-	/** Executed whenever the {@link #choiceRadioButt_RatioType} parameter changes. */
-	protected void callbackRatioType() {
-		logService.info(this.getClass().getName() + " Ratio type set to " + choiceRadioButt_RatioType);
+	/** Executed whenever the {@link #choiceRadioButt_ModType} parameter changes. */
+	protected void callbackModType() {
+		logService.info(this.getClass().getName() + " Modification type set to " + choiceRadioButt_ModType);
 	}
-	/** Executed whenever the {@link #spinnerFloat_Ratio} parameter changes. */
-	protected void callbackRatio() {
-		logService.info(this.getClass().getName() + " Realtive ratio set to " + spinnerFloat_Ratio);
-	}
+
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
@@ -388,12 +388,33 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			datasetName = 			(String)datasetInInfo.get("datasetName");
 			sliceLabels = 			(String[])datasetInInfo.get("sliceLabels");
 			
-			//Grey not allowed
-			if (!imageType.equals("RGB")) { 
-				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
-				cancel("ComsystanJ 2D plugin cannot be started - RGB image(s) expected!");
-			}
+			
+			//Grey and RGB is allowed
+//			//Grey not allowed
+//			if (!imageType.equals("RGB")) { 
+//				logService.error(this.getClass().getName() + " ERROR: Grey value image(s) expected!");
+//				cancel("ComsystanJ 2D plugin cannot be started - RGB image(s) expected!");
+//			}
 		}
+		
+		//Look for a ROI, Specific for this plugin
+		//ImgLib2 and ROIs
+		//https://forum.image.sc/t/from-inside-plugin-obtaining-random-access-to-selection-from-context/12265/4
+		//https://gist.github.com/ctrueden/d4ab1996c63ba4d4fcd2a97e121fff3b
+		//get ROI from dataset
+		ROITree roiTree = roiService.getROIs(datasetIn);
+		if (roiTree == null) { 
+			logService.info(this.getClass().getName() + " WARNING: ROI tree is not available");
+			cancel("WARNING: ROI tree is not available!");
+		}	
+				
+		// Process all the nodes in the tree of ROIs and get back the last one.
+		realMask = getROIFromTree(roiTree);
+		if (realMask == null) { 
+			logService.info(this.getClass().getName() + " WARNING: ROI is not available");
+			cancel("WARNING: ROI is not available!");
+		}	
+		
 	}
 
 	/**
@@ -463,7 +484,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 	*/
 	protected void startWorkflowForSingleImage() {
 		
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("RGB relative segmenting, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Histogram modification, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		
 		dlgProgress.updatePercent("");
@@ -486,7 +507,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 	*/
 	protected void startWorkflowForAllImages() {
 
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("RGB relative segmenting, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Histogram modification, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 	
@@ -798,310 +819,137 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			logService.info(this.getClass().getName() + " WARNING: rai==null, no image for processing!");
 		}
 		
-		String ratioType = choiceRadioButt_RatioType;
-		float ratio = spinnerFloat_Ratio;
-		//float ratio = Precision.round(spinnerFloat_Ratio, 2); //round to 1 decimal, because sometimes float is not exact
+		String modType = choiceRadioButt_ModType;
 		
-		
-		
-		RandomAccessibleInterval<T> raiR = null;	
-		RandomAccessibleInterval<T> raiG = null;	
-		RandomAccessibleInterval<T> raiB = null;	
-		RandomAccess<T> raR = null;
-		RandomAccess<T> raG = null;
-		RandomAccess<T> raB = null;
-		double red;
-		double green;
-		double blue;
-		double sum;
-		long[] pos = new long[2];
-					
-		if (ratioType.equals("R/(R+G+B)")) {	
-			raiR = Views.hyperSlice(rai, 2, 0); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
-					
-			cursor = Views.iterable(raiR).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raG.setPosition(pos);
-				raB.setPosition(pos);
-				red   = (double)((UnsignedByteType) cursor.get()).get();
-				green = raG.get().getRealDouble();
-				blue  = raB.get().getRealDouble();
-				if ((red/(red+green+blue)) > ratio) {
-					((UnsignedByteType) cursor.get()).set(255);
-					raG.get().setReal(0);
-					raB.get().setReal(0);
-				} else {	
-//					((UnsignedByteType) cursor.get()).set(0);
-//					raG.get().setReal(0);
-//					raB.get().setReal(0);
-				}	
-			} //cursor
+		//"Grey" "RGB"....
+		if (modType.equals("White balance with ROI")) {
 			
-		} else if (ratioType.equals("R/(G+B)")) {	
-			raiR = Views.hyperSlice(rai, 2, 0); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
+			//ImgLib2 and ROIs
+			//https://forum.image.sc/t/from-inside-plugin-obtaining-random-access-to-selection-from-context/12265/4
+			//https://gist.github.com/ctrueden/d4ab1996c63ba4d4fcd2a97e121fff3b
+			
+			//realMask is collected in method CheckItemIOIn()
+			// Convert ROI from R^n to Z^n.
+			RandomAccessibleOnRealRandomAccessible<BoolType> discreteROI = Views.raster(Masks.toRealRandomAccessible(realMask));
+			if (imageType.equals("Grey")) { //rai should have 2 dimensions
+				// Apply finite bounds to the discrete ROI.
+				RandomAccessibleInterval<BoolType> boundedDiscreteROI = Views.interval(discreteROI, rai);
+				// Create an iterable version of the finite discrete ROI.
+				IterableInterval<Void> iterableROI = Regions.iterable(boundedDiscreteROI);
+				Iterable<T> region = Regions.sample(iterableROI, rai);
+				
+				double roiMean = opService.stats().mean(region).getRealDouble();
+				logService.info(this.getClass().getName() + " Mean inside ROI: " + roiMean);
+				double factor = 250.0/roiMean;
+				
+				double oldValue;
+				int newValue;
+				//apply histogram stretch
+				cursor = Views.iterable(rai).localizingCursor();	
+				while (cursor.hasNext()) {
+					cursor.fwd();
+					//cursor.localize(pos);			
+					oldValue =(double)((UnsignedByteType) cursor.get()).get() * factor;
+					newValue = (int)Math.round(oldValue);
+					if (newValue > 255) newValue = 255;
+					((UnsignedByteType) cursor.get()).set(newValue);
+				} //cursor
+				
+			} else if (imageType.equals("RGB")) {
+				int numDim = rai.numDimensions();
+				double[] roiMeans = new double[3];
+				double[] factors  = new double[3];
+				double oldValue;
+				int    newValue;
+				RandomAccessibleInterval<T> raiSlice = null;
+				
+				for (int b = 0; b < numDim; b++) {
+					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);
 					
-			cursor = Views.iterable(raiR).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raG.setPosition(pos);
-				raB.setPosition(pos);
-				red   = (double)((UnsignedByteType) cursor.get()).get();
-				green = raG.get().getRealDouble();
-				blue  = raB.get().getRealDouble();
-				if ((red/(green+blue)) > ratio) {
-					((UnsignedByteType) cursor.get()).set(255);
-					raG.get().setReal(0);
-					raB.get().setReal(0);
-				} else {	
-//					((UnsignedByteType) cursor.get()).set(0);
-//					raG.get().setReal(0);
-//					raB.get().setReal(0);
-				}	
-			} //cursor
-		
-		} else if (ratioType.equals("R/G")) {	
-			raiR = Views.hyperSlice(rai, 2, 0); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
-					
-			cursor = Views.iterable(raiR).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raG.setPosition(pos);
-				raB.setPosition(pos);
-				red   = (double)((UnsignedByteType) cursor.get()).get();
-				green = raG.get().getRealDouble();
-				blue  = raB.get().getRealDouble();
-				if ((red/green) > ratio) {
-					((UnsignedByteType) cursor.get()).set(255);
-					raG.get().setReal(0);
-					raB.get().setReal(0);
-				} else {	
-//					((UnsignedByteType) cursor.get()).set(0);
-//					raG.get().setReal(0);
-//					raB.get().setReal(0);
-				}	
-			} //cursor
-		
-		} else if (ratioType.equals("R/B")) {	
-			raiR = Views.hyperSlice(rai, 2, 0); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
-					
-			cursor = Views.iterable(raiR).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raG.setPosition(pos);
-				raB.setPosition(pos);
-				red   = (double)((UnsignedByteType) cursor.get()).get();
-				green = raG.get().getRealDouble();
-				blue  = raB.get().getRealDouble();
-				if ((red/blue) > ratio) {
-					((UnsignedByteType) cursor.get()).set(255);
-					raG.get().setReal(0);
-					raB.get().setReal(0);
-				} else {	
-//					((UnsignedByteType) cursor.get()).set(0);
-//					raG.get().setReal(0);
-//					raB.get().setReal(0);
-				}	
-			} //cursor
-		
-		} else if (ratioType.equals("G/(R+G+B)")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raiG = Views.hyperSlice(rai, 2, 1); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
-					
-			cursor = Views.iterable(raiG).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raB.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = (double)((UnsignedByteType) cursor.get()).get();
-				blue  = raB.get().getRealDouble();
-				if ((green/(red+green+blue)) > ratio) {
-					raR.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-					raB.get().setReal(0);
-				} else {	
+					// Apply finite bounds to the discrete ROI.
+					RandomAccessibleInterval<BoolType> boundedDiscreteROI = Views.interval(discreteROI, raiSlice);
+					// Create an iterable version of the finite discrete ROI.
+					IterableInterval<Void> iterableROI = Regions.iterable(boundedDiscreteROI);
+					Iterable<T> region = Regions.sample(iterableROI, raiSlice);
+				
+					roiMeans[b] = opService.stats().mean(region).getRealDouble();
+					factors[b] = 250.0/roiMeans[b];
+					logService.info(this.getClass().getName() + " Mean inside ROI of channel "+b+ ": " + roiMeans[b]);
+							
+					//apply histogram stretch
+					cursor = Views.iterable(raiSlice).localizingCursor();	
+					while (cursor.hasNext()) {
+						cursor.fwd();
+						//cursor.localize(pos);			
+						oldValue =(double)((UnsignedByteType) cursor.get()).get() * factors[b];
+						newValue = (int)Math.round(oldValue);
+						if (newValue > 255) newValue = 255;
+						((UnsignedByteType) cursor.get()).set(newValue);
+					} //cursor					
+				} //b
+			} //RGB	
+		}		
 
-				}	
-			} //cursor		
-		
-		} else if (ratioType.equals("G/(R+B)")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raiG = Views.hyperSlice(rai, 2, 1); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
-					
-			cursor = Views.iterable(raiG).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raB.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = (double)((UnsignedByteType) cursor.get()).get();
-				blue  = raB.get().getRealDouble();
-				if ((green/(red+blue)) > ratio) {
-					raR.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-					raB.get().setReal(0);
-				} else {	
-
-				}	
-			} //cursor
-		
-		} else if (ratioType.equals("G/R")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raiG = Views.hyperSlice(rai, 2, 1); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
-					
-			cursor = Views.iterable(raiG).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raB.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = (double)((UnsignedByteType) cursor.get()).get();
-				blue  = raB.get().getRealDouble();
-				if ((green/red) > ratio) {
-					raR.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-					raB.get().setReal(0);
-				} else {	
-
-				}	
-			} //cursor
-		
-		} else if (ratioType.equals("G/B")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raiG = Views.hyperSlice(rai, 2, 1); //G
-			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
-					
-			cursor = Views.iterable(raiG).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raB.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = (double)((UnsignedByteType) cursor.get()).get();
-				blue  = raB.get().getRealDouble();
-				if ((green/blue) > ratio) {
-					raR.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-					raB.get().setReal(0);
-				} else {	
-
-				}	
-			} //cursor	
-			
-		} else if (ratioType.equals("B/(R+G+B)")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raiB = Views.hyperSlice(rai, 2, 2); //B
-					
-			cursor = Views.iterable(raiB).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raG.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = raG.get().getRealDouble();
-				blue  = (double)((UnsignedByteType) cursor.get()).get();
-				if ((blue/(red+green+blue)) > ratio) {
-					raR.get().setReal(0);
-					raG.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-				} else {	
-					
-				}	
-			} //cursor	
-			
-		} else if (ratioType.equals("B/(R+G)")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raiB = Views.hyperSlice(rai, 2, 2); //B
-					
-			cursor = Views.iterable(raiB).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raG.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = raG.get().getRealDouble();
-				blue  = (double)((UnsignedByteType) cursor.get()).get();
-				if ((blue/(red+green)) > ratio) {
-					raR.get().setReal(0);
-					raG.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-				} else {	
-					
-				}	
-			} //cursor
-			
-		} else if (ratioType.equals("B/R")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raiB = Views.hyperSlice(rai, 2, 2); //B
-					
-			cursor = Views.iterable(raiB).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raG.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = raG.get().getRealDouble();
-				blue  = (double)((UnsignedByteType) cursor.get()).get();
-				if ((blue/red) > ratio) {
-					raR.get().setReal(0);
-					raG.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-				} else {	
-					
-				}	
-			} //cursor
-			
-		} else if (ratioType.equals("B/G")) {	
-			raR  = Views.hyperSlice(rai, 2, 0).randomAccess(); //R
-			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
-			raiB = Views.hyperSlice(rai, 2, 2); //B
-					
-			cursor = Views.iterable(raiB).localizingCursor();	
-			while (cursor.hasNext()) {
-				cursor.fwd();
-				cursor.localize(pos);
-				raR.setPosition(pos);
-				raG.setPosition(pos);
-				red   = raR.get().getRealDouble();
-				green = raG.get().getRealDouble();
-				blue  = (double)((UnsignedByteType) cursor.get()).get();
-				if ((blue/green) > ratio) {
-					raR.get().setReal(0);
-					raG.get().setReal(0);
-					((UnsignedByteType) cursor.get()).set(255);
-				} else {	
-					
-				}	
-			} //cursor
-			
-		}	
 		return rai;	
+	}
+	
+	// ROIs may be nested in a tree structure (ROI can have sub-ROIs)
+	// When ROIs are adapted from ImageJ1 there will be a single child ROI in the tree.
+	// Recursively scan all nodes of the tree and check each ROI
+	// gets back the last ROI
+	private RealMask getROIFromTree(TreeNode<?> node) {
+		
+		if (node == null) {
+			logService.info(this.getClass().getName() + " ROI tree is null");
+			return null;
+		}
+		realMask = (RealMask) node.data();
+		
+		if (realMask != null) handleROI(realMask);
+		List<TreeNode<?>> list = node.children();
+		for (TreeNode<?>child : list) {
+			realMask = getROIFromTree(child);
+		}
+		return realMask; //The last one
+	}
+	
+	private void handleROI(RealMask roi) {
+		if (roi == null) {
+			logService.info(this.getClass().getName() + " Oops! Got a null ROI!");
+			return;
+		}
+
+		logService.info(this.getClass().getName() + " Got ROI of type: " + roi.getClass().getName());
+
+		RealPoint origin2D = new RealPoint(0, 0);
+		logService.info(this.getClass().getName() + " Does it contain (0, 0)? "     + roi.test(origin2D));
+		logService.info(this.getClass().getName() + " Does it contain (100, 100)? " + roi.test(new RealPoint(100, 100)));
+	
+		if (roi instanceof Polygon2D) {
+			logService.info(this.getClass().getName() + " Polygon: vertex count = " + ((Polyshape) roi).numVertices());
+			RealLocalizable vertex;
+			for (int v = 0; v < ((Polyshape) roi).numVertices(); v++) {
+				vertex = ((Polyshape) roi).vertex(v);
+				logService.info(this.getClass().getName() + "\t[" + v + "]: " + Util.printCoordinates(vertex));
+			}
+		}
+		else if (roi instanceof Box) {
+			double w = ((Box) roi).sideLength(0);
+			double h = ((Box) roi).sideLength(1);
+			logService.info(this.getClass().getName() + " Box: " + w + " x " + h);
+		}
+		else if (roi instanceof Ellipsoid) {
+			double exponent = ((SuperEllipsoid) roi).exponent();
+			double xAxis = ((SuperEllipsoid) roi).semiAxisLength(0);
+			double yAxis = ((SuperEllipsoid) roi).semiAxisLength(1);
+			logService.info(this.getClass().getName() + " Ellipsoid: xAxis=" + xAxis + ", yAxis=" + yAxis + ", exponent=" + exponent);
+		}
+		else if (roi instanceof Line) {
+			RealLocalizable p1 = ((Line) roi).endpointOne();
+			RealLocalizable p2 = ((Line) roi).endpointTwo();
+			logService.info(this.getClass().getName() + " Line: " + Util.printCoordinates(p1) + " - " + Util.printCoordinates(p2));
+		}
+		// ... can add more cases here as needed ...
 	}
 	
 	/** The main method enables standalone testing of the command. */
