@@ -49,6 +49,11 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Low-pass, High-pass with FFT
   - Radius (Cutoff frequency) can be set
 
+### Preprocessing - Histogram modification
+- Modification of histogram
+- White balance depending on ROI selection
+- More options to come.....
+
 ### Preprocessing - Noise
 - Adding noise
 - 8-bit grey or RGB color images
