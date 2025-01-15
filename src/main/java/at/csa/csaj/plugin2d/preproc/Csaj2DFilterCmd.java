@@ -211,7 +211,6 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			   callback = "callbackKernelSize")
 	private int spinnerInteger_KernelSize;
 	
-	
 	@Parameter(label = "(FFT)Radius",
 			   description = "Cutoff frequency - distance from frequency = 0",
 			   style = NumberWidget.SPINNER_STYLE, 
@@ -219,9 +218,9 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			   max = "9999999999999999999",
 			   stepSize = "1",
 			   persist = true, // restore  previous value  default  =  true
-			   initializer = "initialRadius",
-			   callback = "callbackRadius")
-	private int spinnerInteger_Radius;
+			   initializer = "initialFFTRadius",
+			   callback = "callbackFFTRadius")
+	private int spinnerInteger_FFTRadius;
 	
 	//-----------------------------------------------------------------------------------------------------
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -279,8 +278,8 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 	protected void initialKernelSize() {
 		spinnerInteger_KernelSize = 3;
 	}
-	protected void initialRadius() {
-		spinnerInteger_Radius = 3;
+	protected void initialFFTRadius() {
+		spinnerInteger_FFTRadius = 3;
 	}
 	protected void initialOverwriteDisplays() {
 		booleanOverwriteDisplays = true;
@@ -312,9 +311,9 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 //		 }
 		logService.info(this.getClass().getName() + " Kernel size set to " + spinnerInteger_KernelSize);
 	}
-	/** Executed whenever the {@link #spinnerInteger_Radius} parameter changes. */
-	protected void callbackRadius() {
-		logService.info(this.getClass().getName() + " Radius set to " + spinnerInteger_Radius);
+	/** Executed whenever the {@link #spinnerInteger_FFTRadius} parameter changes. */
+	protected void callbackFFTRadius() {
+		logService.info(this.getClass().getName() + " FFT radius set to " + spinnerInteger_FFTRadius);
 	}
 	
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
@@ -862,7 +861,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 		String filterType = choiceRadioButt_FilterType;//"Gaussian blur" "Mean" "Median" "Low pass - FFT"
 		double sigma      = spinnerFloat_Sigma;
 		int kernelSize    = spinnerInteger_KernelSize;
-		int radius        = spinnerInteger_Radius;
+		int radius        = spinnerInteger_FFTRadius;
 		
 		//imageType = "Grey"; // "Grey" "RGB"....
 		//numSlices;

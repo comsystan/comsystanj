@@ -43,6 +43,7 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
+import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.RealType;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
@@ -75,7 +76,7 @@ import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
-
+import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 /**
  * A {@link ContextCommand} plugin computing <Filtering</a>
@@ -97,6 +98,9 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 	private static final String BACKGROUNDOPTIONS_LABEL     = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL        = "<html><b>Display option</b></html>";
 	private static final String PROCESSOPTIONS_LABEL        = "<html><b>Process options</b></html>";
+	
+	DoubleFFT_1D FFT;
+	private static double[] vectorA;
 	
 	private static double[] sequence1D;
 	private static double[] domain1D;
@@ -179,7 +183,7 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 	@Parameter(label = "Filter",
 			   description = "Filter type",
 			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
-			   choices = {"Moving average", "Moving median"}, //Mean or Median in the range of (i-range/2) to (i+range/2)")
+			   choices = {"Moving average", "Moving median", "Low pass - FFT", "High pass - FFT"}, //Mean or Median in the range of (i-range/2) to (i+range/2)")
 			   persist = true,  //restore previous value default = true
 			   initializer = "initialFilterType",
 			   callback = "callbackFilterType")
@@ -196,6 +200,26 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			   callback = "callbackRange")
 	private int spinnerInteger_Range;
 
+	@Parameter(label = "(FFT)Radius",
+			   description = "Cutoff frequency - distance from frequency = 0",
+			   style = NumberWidget.SPINNER_STYLE, 
+			   min = "0",
+			   max = "9999999999999999999",
+			   stepSize = "1",
+			   persist = true, // restore  previous value  default  =  true
+			   initializer = "initialFFTRadius",
+			   callback = "callbackFFTRadius")
+	private int spinnerInteger_FFTRadius;
+	
+	@Parameter(label = "(FFT)Windowing",
+			   description = "Windowing type",
+			   style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
+			   choices = {"Rectangular", "Cosine", "Lanczos", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"}, 
+			   persist = true,  //restore previous value default = true
+			   initializer = "initialWindowingType",
+			   callback = "callbackWindowingType")
+	private String choiceRadioButt_WindowingType;
+	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelAnalysisOptions = ANALYSISOPTIONS_LABEL;
@@ -288,6 +312,14 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 		spinnerInteger_Range = 3;
 	}
 	
+	protected void initialFFTRadius() {
+		spinnerInteger_FFTRadius = 10;
+	}
+	
+	protected void initialWindowingType() {
+		choiceRadioButt_WindowingType = "Hanning";
+	} 
+	
 	protected void initialSequenceRange() {
 		choiceRadioButt_SequenceRange = "Entire sequence";
 	} 
@@ -321,8 +353,6 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 	}
 
 	// ------------------------------------------------------------------------------
-	
-	
 	/** Executed whenever the {@link #choiceRadioButt_FilterType} parameter changes. */
 	protected void callbackFilterType() {
 		logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_FilterType);
@@ -335,6 +365,16 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			 logService.info(this.getClass().getName() + " Even numbers are not allowed!");
 		 }
 		logService.info(this.getClass().getName() + " Range set to " + spinnerInteger_Range);
+	}
+	
+	/** Executed whenever the {@link #spinnerInteger_FFTRadius} parameter changes. */
+	protected void callbackFFTRadius() {
+		logService.info(this.getClass().getName() + " FFT radius set to " + spinnerInteger_FFTRadius);
+	}
+	
+	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
+	protected void callbackWindowingType() {
+		logService.info(this.getClass().getName() + " Windowing type set to " + choiceRadioButt_WindowingType);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_SequenceRange} parameter changes. */
@@ -594,7 +634,9 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 		String preString = "";
 		if      (this.choiceRadioButt_FilterType.equals("Moving average")) preString = "MovaAv-" + this.spinnerInteger_Range;
 		else if (this.choiceRadioButt_FilterType.equals("Moving median"))  preString = "MovMe-"  + this.spinnerInteger_Range;
-			
+		else if (this.choiceRadioButt_FilterType.equals("Low pass - FFT")) preString = "FFTLowPass-"    + this.spinnerInteger_FFTRadius+"-"+this.choiceRadioButt_FilterType;
+		else if (this.choiceRadioButt_FilterType.equals("High pass - FFT")) preString = "FFTHighPass-"  + this.spinnerInteger_FFTRadius+"-"+this.choiceRadioButt_FilterType;
+	
 		for (int c = 0; c < numColumns; c++) {
 			tableOut.add(new DoubleColumn(preString+"-" + tableIn.getColumnHeader(c)));
 		}	
@@ -805,7 +847,7 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 	*
 	* Processing
 	*/
-	private CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
+	private  CsajContainer_ProcessMethod process(DefaultGenericTable dgt, int col) { //  c column number
 	
 		if (dgt == null) {
 			logService.info(this.getClass().getName() + " WARNING: dgt==null, no sequence for processing!");
@@ -819,6 +861,8 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 		//boolean skipZeroes   = booleanSkipZeroes;
 		String  filterType     = choiceRadioButt_FilterType;//"Moving average", "Moving median"
 		int     range          = spinnerInteger_Range;
+		int     radius         = spinnerInteger_FFTRadius;
+		String  windowingType  = choiceRadioButt_WindowingType;
 		//******************************************************************************************************
 		
 	
@@ -868,7 +912,7 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			if (!surrType.equals("No surrogates")) {
 				CsajAlgorithm_Surrogate1D surrogate1D = new CsajAlgorithm_Surrogate1D();	
 				//choices = {"No surrogates", "Shuffle", "Gaussian", "Random phase", "AAFT"}, 
-				String windowingType = "Rectangular";
+				//String windowingType = "Rectangular";
 				if (surrType.equals("Shuffle"))      sequence1D = surrogate1D.calcSurrogateShuffle(sequence1D);
 				if (surrType.equals("Gaussian"))     sequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
 				if (surrType.equals("Random phase")) sequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
@@ -908,8 +952,128 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 				for (int i = numDataPoints-(range-1)/2; i < numDataPoints; i++) {
 					sequenceOut [i] = movingMedian.evaluate(sequence1D, i - (range-1)/2, (numDataPoints-i) + (range-1)/2 );				
 				}
-			}
 				
+			} else 	if (filterType.equals("Low pass - FFT")) {
+			
+				//The Radius defines which VALUES are changed
+				if (windowingType.equals("Rectangular")) {
+					sequence1D = windowingRectangular(sequence1D);
+				}
+				else if (windowingType.equals("Cosine")) {
+					sequence1D = windowingCosine(sequence1D);
+				}
+				else if (windowingType.equals("Lanczos")) {
+					sequence1D = windowingLanczos(sequence1D);
+				}
+				else if (windowingType.equals("Bartlett")) {
+					sequence1D = windowingBartlett(sequence1D);
+				}
+				else if (windowingType.equals("Hamming")) {
+					sequence1D = windowingHamming(sequence1D);
+				}
+				else if (windowingType.equals("Hanning")) {
+					sequence1D = windowingHanning(sequence1D);
+				}
+				else if (windowingType.equals("Blackman")) {
+					sequence1D = windowingBlackman(sequence1D);
+				}	
+				else if (windowingType.equals("Gaussian")) {
+					sequence1D = windowingGaussian(sequence1D);
+				}
+				else if (windowingType.equals("Parzen")) {
+					sequence1D = windowingParzen(sequence1D);
+				}
+					
+//				Short algorithm:
+//				ops filter fft seems to be a Hadamard transform rather than a true FFT
+//				output size is automatically padded, so has rather strange dimensions.
+//				output is vertically symmetric 
+				//RandomAccessibleInterval<C> fft = opService.filter().fft(rai);
+				
+				//Using JTransform package
+				//https://github.com/wendykierp/JTransforms
+				//https://wendykierp.github.io/JTransforms/apidocs/
+				//The sizes of both dimensions must be power of two.
+				//Round to next largest power of two. The resulting image will be cropped according to GUI input			
+				compute1DFFTVector(sequence1D); //This computes JTransform Fourier transformed matrix matrixA
+										
+				// Filter it.*********************************************************************************
+				lowPass((double)radius);
+									
+				// Reverse the FFT.******************************************************************************
+				//opService.filter().ifft(rai, fft);
+				FFT.complexInverse(vectorA, true); //true: values are back in the right range 
+		
+				double real = 0.0;
+				for (int i = 0; i < numDataPoints; i++) {
+					real = vectorA[2*i];
+					sequenceOut [i] = real;				
+				}
+				
+				FFT = null;
+				vectorA = null;
+				
+			} else 	if (filterType.equals("High pass - FFT")) {
+			
+				//The Radius defines which VALUES are changed
+				if (windowingType.equals("Rectangular")) {
+					sequence1D = windowingRectangular(sequence1D);
+				}
+				else if (windowingType.equals("Cosine")) {
+					sequence1D = windowingCosine(sequence1D);
+				}
+				else if (windowingType.equals("Lanczos")) {
+					sequence1D = windowingLanczos(sequence1D);
+				}
+				else if (windowingType.equals("Bartlett")) {
+					sequence1D = windowingBartlett(sequence1D);
+				}
+				else if (windowingType.equals("Hamming")) {
+					sequence1D = windowingHamming(sequence1D);
+				}
+				else if (windowingType.equals("Hanning")) {
+					sequence1D = windowingHanning(sequence1D);
+				}
+				else if (windowingType.equals("Blackman")) {
+					sequence1D = windowingBlackman(sequence1D);
+				}	
+				else if (windowingType.equals("Gaussian")) {
+					sequence1D = windowingGaussian(sequence1D);
+				}
+				else if (windowingType.equals("Parzen")) {
+					sequence1D = windowingParzen(sequence1D);
+				}
+					
+//				Short algorithm:
+//				ops filter fft seems to be a Hadamard transform rather than a true FFT
+//				output size is automatically padded, so has rather strange dimensions.
+//				output is vertically symmetric 
+				//RandomAccessibleInterval<C> fft = opService.filter().fft(rai);
+				
+				//Using JTransform package
+				//https://github.com/wendykierp/JTransforms
+				//https://wendykierp.github.io/JTransforms/apidocs/
+				//The sizes of both dimensions must be power of two.
+				//Round to next largest power of two. The resulting image will be cropped according to GUI input			
+				compute1DFFTVector(sequence1D); //This computes JTransform Fourier transformed matrix matrixA
+										
+				// Filter it.*********************************************************************************
+				highPass((double)radius);
+									
+				// Reverse the FFT.******************************************************************************
+				//opService.filter().ifft(rai, fft);
+				FFT.complexInverse(vectorA, true); //true: values are back in the right range 
+		
+				double real = 0.0;
+				for (int i = 0; i < numDataPoints; i++) {
+					real = vectorA[2*i];
+					sequenceOut [i] = real;				
+				}
+				
+				FFT = null;
+				vectorA = null;
+			}
+	
 		//********************************************************************************************************	
 		} else if (sequenceRange.equals("Subsequent boxes")){ //not for Filter
 		
@@ -980,7 +1144,234 @@ public class Csaj1DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 		return sequence1D;
 	}
 	
+	/**
+	 * This method does Rectangular windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingRectangular (double[] sequence) {
+		double weight = 1.0;
+	     for(int i = 0; i < sequence.length; ++i) {
+	    	 sequence[i] = sequence[i] * weight;
+	     }
+	     return sequence; 
+	}
+	
+	/**
+	 * This method does Cosine windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingCosine (double[] sequence) {
+		 double M = sequence.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < sequence.length; n++) {
+	    	 weight = Math.sin(Math.PI*n/M);
+	    	 sequence[n] = sequence[n] * weight;
+	    	 //System.out.println("SequenceFFT Cosine weight " + weight);
+	     }
+	     return sequence; 
+	}
 
+	/**
+	 * This method does  Lanczos windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingLanczos (double[] sequence) {
+		 double M = sequence.length - 1;
+		 double weight = 0.0;
+		 double x = 0.0;
+	     for(int n = 0; n < sequence.length; n++) {
+	    	 x = Math.PI*(2.0*n/M-1);
+	    	 if (x == 0) weight = 1.0;
+	    	 else weight =  Math.sin(x)/x;
+	    	 sequence[n] = sequence[n] * weight;
+	    	 //System.out.println("SequenceFFT Lanczos weight  n " + n + "  "  + weight);
+	     }
+	     return sequence; 
+	}
+
+	/**
+	 * This method does Bartlett windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingBartlett (double[] sequence) {
+		 double M = sequence.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < sequence.length; n++) {
+	    	 weight = 1.0-(2.0*Math.abs((double)n-M/2.0)/M);
+	    	 sequence[n] = sequence[n] * weight;
+	    	 //System.out.println("SequenceFFT Bartlett weight " + weight);
+	     }
+	     return sequence; 
+	}
+
+	/**
+	 * This method does Hamming windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingHamming (double[] sequence) {
+		 double M = sequence.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < sequence.length; n++) {
+	    	 weight = 0.54 - 0.46 * Math.cos(2.0 * Math.PI * n / M);
+	    	 sequence[n] = sequence[n] * weight;
+	    	 //System.out.println("SequenceFFT Hamming weight " + weight);
+	     }
+	     return sequence; 
+	}
+
+	/**
+	 * This method does Hanning windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingHanning (double[] sequence) {
+		 double M = sequence.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < sequence.length; n++) {
+	    	 weight = 0.5 - 0.5 * Math.cos(2.0 * Math.PI * n / M);
+	    	 sequence[n] = sequence[n] * weight;
+	    	 //System.out.println("SequenceFFT Hanning weight " + weight);
+	     }
+	     return sequence; 
+	}
+	
+	/**
+	 * This method does Blackman windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingBlackman (double[] sequence) {
+		 double M = sequence.length - 1;
+		 double weight = 0.0;
+	     for(int n = 0; n < sequence.length; n++) {
+	    	 weight = 0.42 - 0.5 * Math.cos(2.0 * Math.PI * n / M) + 0.008 * Math.cos(4.0 * Math.PI * n / M);
+	    	 sequence[n] = sequence[n] * weight;
+	    	 //System.out.println("SequenceFFT Blackman weight " + weight);
+	     }
+	     return sequence; 
+	}
+	
+	/**
+	 * This method does Gaussian windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingGaussian (double[] sequence) {
+		 double M = sequence.length - 1;
+		 double weight = 0.0;
+		 double sigma = 0.3;
+		 double exponent = 0.0;
+	     for(int n = 0; n < sequence.length; n++) {
+	    	 exponent = ((double)n-M/2)/(sigma*M/2.0);
+	    	 exponent *= exponent;
+	    	 weight = Math.exp(-0.5*exponent);
+	    	 sequence[n] = sequence[n] * weight;
+	    	 //System.out.println("SequenceFFT Gaussian weight " + weight);
+	     }
+	     return sequence; 
+	}
+	
+	/**
+	 * This method does Parzen windowing
+	 * According to www.labbookpages.co.uk/audio/firWindowing.html#windows
+	 * https://de.wikipedia.org/wiki/Fensterfunktion
+	 * @param sequence
+	 * @return windowed sequence
+	 */
+	private double[] windowingParzen (double[] sequence) {
+		double M = sequence.length - 1;
+		double nn;
+		double weight = 0.0;
+	    for(int n = 0; n < sequence.length; n++) {
+	    	nn = Math.abs((double)n-M/2);
+	    	if      ((nn >= 0.0) && (nn < M/4))  weight = 1.0 - 6.0*Math.pow(nn/(M/2), 2) * (1- nn/(M/2));
+	    	else if ((nn >= M/4) && (nn <= M/2)) weight = 2.0*Math.pow(1-nn/(M/2), 3);
+	    	sequence[n] = sequence[n] * weight;
+	      	//System.out.println("SequenceFFT Parzen weight n " + n + "  "  + weight);
+	     }
+	     return sequence; 
+	}
+
+	/*
+	 * This methods computes the JTransforms Fourier transformed vector vectorA
+	 * @param  sequence
+	 * @return DoubleFFT_1D FFT
+	 */
+	private DoubleFFT_1D compute1DFFTVector (double[] sequence) {
+		int length = sequence.length;
+		int lengthDFT = length  == 1 ? 1 : Integer.highestOneBit((int)length  - 1) * 2;
+			
+		vectorA = new double[2*lengthDFT]; //Every frequency entry needs a pair of values: for real and imaginary part
+		for (int i = 0;i < length; i++) {
+			vectorA[i] = sequence[i];
+		}		
+
+		FFT = new DoubleFFT_1D(lengthDFT); //Here always the simple DFT width
+		//FFT.realForward(vectorA);   
+		FFT.realForwardFull(vectorA); //Computes 1D forward DFT of real data leaving the result in a . This method computes full real forward transform, i.e. you will get the same result as from complexForward called with all imaginary part equal 0. Because the result is stored in a, the input array must be of size slices by rows by 2*columns, with only the first slices by rows by columns elements filled with real data. To get back the original data, use complexInverse on the output of this method.
+		return FFT;
+	}
+	
+	/**
+	 * Performs an inplace low-pass filter on the vectorA
+	 * This method is quite identical to the high-pass method, only one line is different
+	 * @param radius The radius of the filter.
+	 */
+	public void lowPass(final double radius) {
+		
+		//JTransforms
+		int length  = vectorA.length/2;
+		
+		for (int k = 0; k < length; k++) {
+			//set value of FFT to zero.
+			if (k > radius) { //LOW PASS 
+				//System.out.println("dist > radius, dist:" + dist  + " radius:" + radius);
+				vectorA[2*k]   = 0.0;
+				vectorA[2*k+1] = 0.0;
+			}
+		}
+	}
+	
+	/**
+	 * Performs an inplace high-pass filter on the vectorA
+	 * This method is quite identical to the low-pass method, only one line is different
+	 * @param radius The radius of the filter.
+	 */
+	public void highPass(final double radius) {
+		
+		//JTransforms
+		int length  = vectorA.length/2;
+		
+		for (int k = 0; k < length; k++) {
+			//set value of FFT to zero.
+			if (k < radius) { //HIGH PASS 
+				//System.out.println("dist > radius, dist:" + dist  + " radius:" + radius);
+				vectorA[2*k]   = 0.0;
+				vectorA[2*k+1] = 0.0;
+			}
+		}
+	}
 
 	/** The main method enables standalone testing of the command. */
 	public static void main(final String... args) throws Exception {

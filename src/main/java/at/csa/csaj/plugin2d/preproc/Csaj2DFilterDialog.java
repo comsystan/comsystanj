@@ -79,9 +79,9 @@ public class Csaj2DFilterDialog extends CsajDialog_2DPlugin {
   	private JSpinner spinnerKernelSize;
 	private int      spinnerInteger_KernelSize;
 	
-	private JLabel   labelRadius;
-	private JSpinner spinnerRadius;
-	private int      spinnerInteger_Radius;
+	private JLabel   labelFFTRadius;
+	private JSpinner spinnerFFTRadius;
+	private int      spinnerInteger_FFTRadius;
 	
 	/**Some default @Parameters are already defined in the super class
 	 * public JCheckBox checkBoxOverwriteDisplays;
@@ -136,8 +136,8 @@ public class Csaj2DFilterDialog extends CsajDialog_2DPlugin {
 				spinnerSigma.setEnabled(false);
 				labelKernelSize.setEnabled(false);
 				spinnerKernelSize.setEnabled(false);
-				labelRadius.setEnabled(false);
-				spinnerRadius.setEnabled(false);
+				labelFFTRadius.setEnabled(false);
+				spinnerFFTRadius.setEnabled(false);
 								
 				if (   choiceRadioButt_FilterType.equals("Gaussian blur")
 				    ) {		
@@ -155,8 +155,8 @@ public class Csaj2DFilterDialog extends CsajDialog_2DPlugin {
 					|| choiceRadioButt_FilterType.equals("High pass - FFT") 
 					
 					) {		
-					labelRadius.setEnabled(true);
-					spinnerRadius.setEnabled(true);
+					labelFFTRadius.setEnabled(true);
+					spinnerFFTRadius.setEnabled(true);
 				}	
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
@@ -237,20 +237,20 @@ public class Csaj2DFilterDialog extends CsajDialog_2DPlugin {
 	    spinnerInteger_KernelSize = (int)spinnerKernelSize.getValue();
 	    
 	    //*****************************************************************************************
-	    labelRadius = new JLabel("Radius");
-	    labelRadius.setToolTipText("Cutoff frequency - distance from frequency = 0");
-	    labelRadius.setHorizontalAlignment(JLabel.RIGHT);
-	    labelRadius.setEnabled(false);
+	    labelFFTRadius = new JLabel("FFT Radius");
+	    labelFFTRadius.setToolTipText("Cutoff frequency - distance from frequency = 0");
+	    labelFFTRadius.setHorizontalAlignment(JLabel.RIGHT);
+	    labelFFTRadius.setEnabled(false);
 	    
-	    SpinnerNumberModel spinnerModelRadius = new SpinnerNumberModel(3, 0, 999999999, 1); // initial, min, max, step
-        spinnerRadius = new JSpinner(spinnerModelRadius);
-        spinnerRadius.setToolTipText("Cutoff frequency - distance from frequency = 0");
-        spinnerRadius.setEnabled(false);
-        spinnerRadius.addChangeListener(new ChangeListener() {
+	    SpinnerNumberModel spinnerModelFFTRadius = new SpinnerNumberModel(3, 0, 999999999, 1); // initial, min, max, step
+        spinnerFFTRadius = new JSpinner(spinnerModelFFTRadius);
+        spinnerFFTRadius.setToolTipText("Cutoff frequency - distance from frequency = 0");
+        spinnerFFTRadius.setEnabled(false);
+        spinnerFFTRadius.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
-            	spinnerInteger_Radius = (int)spinnerRadius.getValue();
-                logService.info(this.getClass().getName() + " Radius set to " + spinnerInteger_Radius);
+            	spinnerInteger_FFTRadius = (int)spinnerFFTRadius.getValue();
+                logService.info(this.getClass().getName() + " FFT radius set to " + spinnerInteger_FFTRadius);
                 if (booleanProcessImmediately) btnProcessSingleImage.doClick();
             }
         });
@@ -259,14 +259,14 @@ public class Csaj2DFilterDialog extends CsajDialog_2DPlugin {
         gbc.gridx = 0;
 	    gbc.gridy = 4;
 	    gbc.anchor = GridBagConstraints.EAST; //right
-	    contentPanel.add(labelRadius, gbc);
+	    contentPanel.add(labelFFTRadius, gbc);
 	    gbc.gridx = 1;
 	    gbc.gridy = 4;
 	    gbc.anchor = GridBagConstraints.WEST; //left
-	    contentPanel.add(spinnerRadius, gbc);	    
+	    contentPanel.add(spinnerFFTRadius, gbc);	    
 	    
 	    //initialize command variable
-	    spinnerInteger_Radius = (int)spinnerRadius.getValue();
+	    spinnerInteger_FFTRadius = (int)spinnerFFTRadius.getValue();
 	    	
 		//*****************************************************************************************
 		//Change/Override items defined in the super class(es)
@@ -288,7 +288,7 @@ public class Csaj2DFilterDialog extends CsajDialog_2DPlugin {
 														"choiceRadioButt_FilterType",     choiceRadioButt_FilterType,
 														"spinnerFloat_Sigma",             spinnerFloat_Sigma,    
 														"spinnerInteger_KernelSize",      spinnerInteger_KernelSize,    
-														"spinnerInteger_Radius",          spinnerInteger_Radius, 
+														"spinnerInteger_FFTRadius",       spinnerInteger_FFTRadius, 
 					
 														"booleanOverwriteDisplays",       booleanOverwriteDisplays,
 														"booleanProcessImmediately",	  booleanProcessImmediately,

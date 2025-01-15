@@ -37,6 +37,7 @@ import java.util.concurrent.Future;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -76,14 +77,21 @@ public class Csaj1DFilterDialog extends CsajDialog_1DPlugin {
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
-	private JPanel       panelFilterType;
-	private ButtonGroup  buttonGroupFilterType;
-    private JRadioButton radioButtonMovAver;
-    private JRadioButton radioButtonMovMedi;
-	private String       choiceRadioButt_FilterType;
+	private JLabel			  labelFilterType;
+	private JComboBox<String> comboBoxFilterType;
+	private String            choiceRadioButt_FilterType;
 	
+	private JLabel	 labelRange;
 	private JSpinner spinnerRange;
 	private int      spinnerInteger_Range;
+	
+	private JLabel   labelFFTRadius;
+	private JSpinner spinnerFFTRadius;
+	private int      spinnerInteger_FFTRadius;
+	
+	private JLabel			  labelWindowingType;
+	private JComboBox<String> comboBoxWindowingType;
+	private String            choiceRadioButt_WindowingType;
 
 	//Some default @Parameters are already defined in the super class
 
@@ -104,44 +112,50 @@ public class Csaj1DFilterDialog extends CsajDialog_1DPlugin {
 		setTitle("1D Filter");
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
-	    //*****************************************************************************************		
-	    JLabel labelFilterType = new JLabel("Filter");
-	    labelFilterType.setToolTipText("Filter type");
+		//*****************************************************************************************
+	    labelFilterType = new JLabel("Filter type");
+	    labelFilterType.setToolTipText("Type of filter");
+	    labelFilterType.setEnabled(true);
 	    labelFilterType.setHorizontalAlignment(JLabel.RIGHT);
 		
-		buttonGroupFilterType = new ButtonGroup();
-		radioButtonMovAver    = new JRadioButton("Moving average");
-		radioButtonMovMedi    = new JRadioButton("Moving median");
-		radioButtonMovAver.addActionListener(new ActionListener() {
+		String optionsFilterType[] = {"Moving average", "Moving median", "Low pass - FFT", "High pass - FFT"};
+		comboBoxFilterType = new JComboBox<String>(optionsFilterType);
+		comboBoxFilterType.setToolTipText("Type of filter");
+	    comboBoxFilterType.setEnabled(true);
+	    comboBoxFilterType.setEditable(false);
+	    comboBoxFilterType.setSelectedItem("Moving average");
+	    comboBoxFilterType.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonMovAver.isSelected()) {
-					choiceRadioButt_FilterType = radioButtonMovAver.getText();
+				choiceRadioButt_FilterType = (String)comboBoxFilterType.getSelectedItem();
+						
+				labelRange.setEnabled(false);
+				spinnerRange.setEnabled(false);
+				labelFFTRadius.setEnabled(false);
+				spinnerFFTRadius.setEnabled(false);
+				labelWindowingType.setEnabled(false);
+				comboBoxWindowingType.setEnabled(false);
+				
+				if (   choiceRadioButt_FilterType.equals("Moving average")
+					|| choiceRadioButt_FilterType.equals("Moving median")
+					) {		
+					labelRange.setEnabled(true);
+					spinnerRange.setEnabled(true);
 				} 
-				logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_FilterType);
+				
+				if (   choiceRadioButt_FilterType.equals("Low pass - FFT")
+					|| choiceRadioButt_FilterType.equals("High pass - FFT")
+					) {		
+					labelFFTRadius.setEnabled(true);
+					spinnerFFTRadius.setEnabled(true);
+					labelWindowingType.setEnabled(true);
+					comboBoxWindowingType.setEnabled(true);
+				}  
+				
+				logService.info(this.getClass().getName() + " FilterType set to " + choiceRadioButt_FilterType);
 				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
 			}
-		});
-		radioButtonMovMedi.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				if (radioButtonMovMedi.isSelected()) {
-					choiceRadioButt_FilterType = radioButtonMovMedi.getText();
-				}
-				logService.info(this.getClass().getName() + " Filter type set to " + choiceRadioButt_FilterType);
-				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
-			}
-		});
-		buttonGroupFilterType.add(radioButtonMovAver);
-		buttonGroupFilterType.add(radioButtonMovMedi);
-		radioButtonMovAver.setSelected(true);
-		
-		panelFilterType = new JPanel();
-		panelFilterType.setToolTipText("Filter type");
-		panelFilterType.setLayout(new BoxLayout(panelFilterType, BoxLayout.Y_AXIS)); 
-	    panelFilterType.add(radioButtonMovAver);
-	    panelFilterType.add(radioButtonMovMedi);
-	    
+		});    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
 	    gbc.gridy = 0;
@@ -150,19 +164,20 @@ public class Csaj1DFilterDialog extends CsajDialog_1DPlugin {
 	    gbc.gridx = 1;
 	    gbc.gridy = 0;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
-	    contentPanel.add(panelFilterType, gbc);
+	    contentPanel.add(comboBoxFilterType, gbc);
 	    //initialize command variable
-		if (radioButtonMovAver.isSelected()) choiceRadioButt_FilterType = radioButtonMovAver.getText();
-		if (radioButtonMovMedi.isSelected()) choiceRadioButt_FilterType = radioButtonMovMedi.getText();
+	    choiceRadioButt_FilterType = (String)comboBoxFilterType.getSelectedItem();
 			
 		//*****************************************************************************************
-	    JLabel labelRange = new JLabel("Range");
+	    labelRange = new JLabel("Range");
 	    labelRange.setToolTipText("Computation range from (i-range/2) to (i+range/2)");
+	    labelRange.setEnabled(true);
 	    labelRange.setHorizontalAlignment(JLabel.RIGHT);
 	
 	    SpinnerNumberModel spinnerModelRange = new SpinnerNumberModel(3, 3, 999999999, 2); // initial, min, max, step
         spinnerRange = new JSpinner(spinnerModelRange);
         spinnerRange.setToolTipText("Computation range from (i-range/2) to (i+range/2)");
+        spinnerRange.setEnabled(true);
         spinnerRange.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
@@ -188,6 +203,71 @@ public class Csaj1DFilterDialog extends CsajDialog_1DPlugin {
 	    //initialize command variable
 	    spinnerInteger_Range = (int)spinnerRange.getValue();
 	    
+		//*****************************************************************************************
+	    labelFFTRadius = new JLabel("FFT radius");
+	    labelFFTRadius.setToolTipText("Cutoff frequency - distance from frequency = 0");
+	    labelFFTRadius.setEnabled(false);
+	    labelFFTRadius.setHorizontalAlignment(JLabel.RIGHT);
+	
+	    SpinnerNumberModel spinnerModelFFTRadius = new SpinnerNumberModel(10, 0, 999999999, 1); // initial, min, max, step
+        spinnerFFTRadius = new JSpinner(spinnerModelFFTRadius);
+        spinnerFFTRadius.setToolTipText("Cutoff frequency - distance from frequency = 0");
+        spinnerFFTRadius.setEnabled(false);
+        spinnerFFTRadius.addChangeListener(new ChangeListener() {
+        	@Override
+            public void stateChanged(ChangeEvent e) {
+            	spinnerInteger_FFTRadius = (int)spinnerFFTRadius.getValue();
+            	
+                logService.info(this.getClass().getName() + " FFT radius set to " + spinnerInteger_FFTRadius);
+                if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
+            }
+        });
+        gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
+	    gbc.gridy = 2;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelFFTRadius, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 2;
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(spinnerFFTRadius, gbc);	    
+	    
+	    //initialize command variable
+	    spinnerInteger_FFTRadius = (int)spinnerFFTRadius.getValue();
+	    
+	  //*****************************************************************************************
+	    labelWindowingType = new JLabel("Windowing");
+	    labelWindowingType.setToolTipText("FFT windowing type for FFT filtering");
+	    labelWindowingType.setEnabled(false);
+	    labelWindowingType.setHorizontalAlignment(JLabel.RIGHT);
+		
+		String optionsWindowingType[] = {"Rectangular", "Cosine", "Lanczos", "Bartlett", "Hamming", "Hanning", "Blackman", "Gaussian", "Parzen"};
+		comboBoxWindowingType = new JComboBox<String>(optionsWindowingType);
+		comboBoxWindowingType.setToolTipText("FFT windowing type for FFT filtering");
+	    comboBoxWindowingType.setEnabled(false);
+	    comboBoxWindowingType.setEditable(false);
+	    comboBoxWindowingType.setSelectedItem("Hanning");
+	    comboBoxWindowingType.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent arg0) {	
+				   choiceRadioButt_WindowingType = (String) comboBoxWindowingType.getSelectedItem();
+				
+				logService.info(this.getClass().getName() + " WindowingType set to " + (String)comboBoxWindowingType.getSelectedItem());
+				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
+			}
+		});    
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 3;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelWindowingType, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 3;
+	    gbc.anchor = GridBagConstraints.WEST; //left 
+	    contentPanel.add(comboBoxWindowingType, gbc);
+	    //initialize command variable
+	    choiceRadioButt_WindowingType = (String) comboBoxWindowingType.getSelectedItem();
+   
 	    //*****************************************************************************************
   		//Change/Override items defined in the super class(es)
 	    //Restricted options
@@ -230,6 +310,8 @@ public class Csaj1DFilterDialog extends CsajDialog_1DPlugin {
 			
 														"choiceRadioButt_FilterType",    choiceRadioButt_FilterType,
 														"spinnerInteger_Range",          spinnerInteger_Range,
+														"spinnerInteger_FFTRadius",      spinnerInteger_FFTRadius,
+														"choiceRadioButt_WindowingType", choiceRadioButt_WindowingType,
 														
 														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,
 														"choiceRadioButt_SurrogateType", choiceRadioButt_SurrogateType,
