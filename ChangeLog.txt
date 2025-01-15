@@ -10,16 +10,19 @@ Version numbering
 Version 1.1.5-beta
 pom-scijava 36.0.0
 2025-??-??
---------------------------------------------------------------
+
 New Plugin:
 2D RGB relative segmentation
 2D Histogram modification
+
+Plugin changes:
+1D Filter: Added FFT low and high pass
 
 **************************************************************
 Version 1.1.4
 pom-scijava 36.0.0
 2025-01-01
---------------------------------------------------------------
+
 New Plugin:
 3D Succolarity
 
@@ -36,16 +39,15 @@ The majority of plugins now consist of three classes (Commmand, CommandUI, Dialo
 Version 1.1.3
 pom-scijava 36.0.0
 2024-07-07
---------------------------------------------------------------
+
 New plugins:
 1D Porta Guzik Ehler indices
 1D Fragmentation dimension, ICW Ion Andronache
 1D Walking divider dimension, ICW Ion Andronache
 1D Generalised DFA, ICW Fabián Labra-Spröhnle
-
 2D Perimeter area dimension, ICW Ion Andronache
 2D Mass radius dimension, ICW Ion Andronache
---------------------------------------------------------------
+
 Plugin changes:
 2D Succolarity: code optimisation, ICW Ion Andronache
 2D Succolarity: added Succolarity reservoir, Delta succolarities and Anisotropy indices, ICW Ion Andronache
@@ -65,11 +67,11 @@ Added FracLac link to 2D Fractal plugins
 Version 1.1.2
 pom-scijava 36.0.0
 2023-12-23
---------------------------------------------------------------
+
 New plugins:
 1D Hurst coefficient (HK, RS, SP), thanks to Fabián Labra-Spröhnle
 2D Preprocess (Auto crop borders), thanks to Ion Andronache
---------------------------------------------------------------
+
 Plugin changes:
 1D Hurst coefficient changed to 1D Hurst coefficient (PSD)
 
@@ -77,10 +79,10 @@ Plugin changes:
 Version 1.1.1
 pom-scijava 36.0.0
 2023-08-25
---------------------------------------------------------------
+
 New plugin:
 1D Recurrence quantification analysis
---------------------------------------------------------------
+
 Plugin extension:
 1D Generator: Lorenz attractor
 
