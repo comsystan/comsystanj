@@ -36,10 +36,12 @@
 - Signals should be opened with the CSAJ Signal Opener
 
 ### Preprocessing - Filter
-- Computes Moving average or Moving median
+- Moving average, moving median, low pass and high pass
 - The range of average or median computation can be set
 - The range must be an odd number
-- A range of e.g. 3 means that for a data point, the previous value, the value itself and the next value are taken for the computation  
+- A range of e.g. 3 means that for a data point, the previous value, the value itself and the next value are taken for the computation
+- The radius corresponds to the cutoff frequency of the FFT power spectrum
+- The windowing type before Fourier transformation can be set
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data conversion
 
