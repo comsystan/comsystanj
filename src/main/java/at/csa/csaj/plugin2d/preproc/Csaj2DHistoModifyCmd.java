@@ -829,16 +829,22 @@ public class Csaj2DHistoModifyCmd<T extends RealType<T>> extends ContextCommand 
 			//https://gist.github.com/ctrueden/d4ab1996c63ba4d4fcd2a97e121fff3b
 			
 			//realMask is collected in method CheckItemIOIn()
-			// Convert ROI from R^n to Z^n.
-			RandomAccessibleOnRealRandomAccessible<BoolType> discreteROI = Views.raster(Masks.toRealRandomAccessible(realMask));
+//			//Before pom-scijava 39.0.0
+//			// Convert ROI from R^n to Z^n.
+//			RandomAccessibleOnRealRandomAccessible<BoolType> discreteROI = Views.raster(Masks.toRealRandomAccessible(realMask)); //Before pom-scijava 39.0.0
 			if (imageType.equals("Grey")) { //rai should have 2 dimensions
-				// Apply finite bounds to the discrete ROI.
-				RandomAccessibleInterval<BoolType> boundedDiscreteROI = Views.interval(discreteROI, rai);
-				// Create an iterable version of the finite discrete ROI.
-				IterableInterval<Void> iterableROI = Regions.iterable(boundedDiscreteROI);
-				Iterable<T> region = Regions.sample(iterableROI, rai);
+//				//Before pom-scijava 39.0.0			
+//				// Apply finite bounds to the discrete ROI.
+//				RandomAccessibleInterval<BoolType> boundedDiscreteROI = Views.interval(discreteROI, rai);
+//				// Create an iterable version of the finite discrete ROI.
+//				IterableInterval<Void> iterableROI = Regions.iterable(boundedDiscreteROI); //NOTE: Does not work since pom-scijava 39.0.0, result changed to IterableInterval<BoolType>
+//				see https://forum.image.sc/t/imglib2-updates-with-scijava39/106175/11
+//				Iterable<T> region = Regions.sample(iterableROI, rai);
 				
-				double roiMean = opService.stats().mean(region).getRealDouble();
+				//Since pom-scijava 40.0.0 (39.0.0 - not tested)
+				IterableInterval region = Regions.sampleWithRealMask(realMask, rai); //this works with pom-scijava 40.0.0
+			
+				double roiMean = opService.stats().mean(region).getRealDouble();	
 				logService.info(this.getClass().getName() + " Mean inside ROI: " + roiMean);
 				double factor = 250.0/roiMean;
 				
@@ -866,11 +872,17 @@ public class Csaj2DHistoModifyCmd<T extends RealType<T>> extends ContextCommand 
 				for (int b = 0; b < numDim; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);
 					
-					// Apply finite bounds to the discrete ROI.
-					RandomAccessibleInterval<BoolType> boundedDiscreteROI = Views.interval(discreteROI, raiSlice);
-					// Create an iterable version of the finite discrete ROI.
-					IterableInterval<Void> iterableROI = Regions.iterable(boundedDiscreteROI);
-					Iterable<T> region = Regions.sample(iterableROI, raiSlice);
+//					//Before pom-scijava 39.0.0			
+//					// Apply finite bounds to the discrete ROI.
+//					RandomAccessibleInterval<BoolType> boundedDiscreteROI = Views.interval(discreteROI, raiSlice);
+//					// Create an iterable version of the finite discrete ROI.
+//					IterableInterval<Void> iterableROI = Regions.iterable(boundedDiscreteROI); //NOTE: Does not work since pom-scijava 39.0.0, result changed to IterableInterval<BoolType>
+//					see https://forum.image.sc/t/imglib2-updates-with-scijava39/106175/11
+//					Iterable<T> region = Regions.sample(iterableROI, raiSlice);
+					
+					//Since pom-scijava 40.0.0 (39.0.0 - not tested)
+					IterableInterval region = Regions.sampleWithRealMask(realMask, raiSlice);
+					
 				
 					roiMeans[b] = opService.stats().mean(region).getRealDouble();
 					factors[b] = 250.0/roiMeans[b];

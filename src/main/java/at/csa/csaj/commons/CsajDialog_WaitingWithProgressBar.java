@@ -47,6 +47,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import org.scijava.log.LogService;
 
+import at.csa.csaj.plugin3d.misc.Csaj3DVolumeGeneratorDialog;
+
 
 /**
  * 
@@ -163,11 +165,17 @@ public class CsajDialog_WaitingWithProgressBar extends JDialog {
 	}
 
 	public void setBarIndeterminate(boolean b) {
-		pbar.setIndeterminate(b);
+		
+		SwingUtilities.invokeLater(() -> {
+			pbar.setIndeterminate(b);
+		});
 	}
 	
 	public void updateBar(int newValue) {
-	    pbar.setValue(newValue);
+	  
+		SwingUtilities.invokeLater(() -> {
+			pbar.setValue(newValue);
+		});
 	}
 	
 	public void updatePercent(String percent) {

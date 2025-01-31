@@ -7,8 +7,8 @@ Version numbering
 
 
 **************************************************************
-Version 1.1.5-beta
-pom-scijava 36.0.0
+Version 1.2.0-beta
+pom-scijava 40.0.0
 2025-??-??
 
 New Plugin:

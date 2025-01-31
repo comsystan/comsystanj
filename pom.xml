@@ -8,13 +8,13 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>36.0.0</version><!--pom-scijava version-->
+		<version>40.0.0</version><!--pom-scijava version-->
 		<relativePath/>
 	</parent>
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>ComsystanJ</artifactId>
-	<version>1.1.5-beta</version><!--ComsystanJ version-->
+	<version>1.2.0-beta</version><!--ComsystanJ version-->
 
 	<name>ComsystanJ</name>
 	<description>ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes</description>
