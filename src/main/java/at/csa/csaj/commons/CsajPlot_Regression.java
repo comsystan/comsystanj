@@ -32,6 +32,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Paint;
 import java.text.DecimalFormat;
 import java.util.Vector;
 import javax.swing.BoxLayout;
@@ -70,8 +71,7 @@ import org.jfree.data.xy.XYSeriesCollection;
  * @since 2021 01 12
  * 
  */
-public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
-		ChangeListener {
+public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements ChangeListener {
 
 	/**
 	 * The UID for serialization.
@@ -82,20 +82,29 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 										// south
 
 	private JPanel jPanelRegression   = null;
-	private JLabel jLabelRegression   = null;;
-	private JPanel jPanelNumRegStart     = null;
-	private JLabel jLabelNumRegStart     = null;
-	private JSpinner jSpinnerNumRegStart = null;
-	private JPanel jPanelNumRegEnd       = null;
-	private JLabel jLabelNumRegEnd       = null;
-	private JSpinner jSpinnerNumRegEnd   = null;
+	private JLabel jLabelRegression   = null;
+	
+	private JPanel jPanelRegNum       = null;
+	private JLabel jLabelRegNum       = null;
+	private JSpinner jSpinnerRegNum   = null;
+	
+	private JPanel jPanelRegStart     = null;
+	private JLabel jLabelRegStart     = null;
+	private JSpinner jSpinnerRegStart = null;
+	
+	private JPanel jPanelRegEnd       = null;
+	private JLabel jLabelRegEnd       = null;
+	private JSpinner jSpinnerRegEnd   = null;
 
-	private int numPoints = 0;
-	private int numRegStart  = 0;
-	private int numRegEnd    = 0;
+	private int numPoints    = 0;
+	private int numReg       = 0; //Number of regression lines
+	private int regStart  = 0;
+	private int regEnd    = 0;
+	private String[] legendLabels;
 
 	private JPanel jPanelRegResult   = null;
-	private JLabel jLabelRegResult   = null;
+	private JPanel jPanelRegEquation = null;
+	private JLabel jLabelRegResultStartEndValues = null;
 	private JLabel jLabelRegResultP0 = null; // y=
 	private JLabel jLabelRegResultP1 = null; // x
 	private JLabel jLabelRegResultP2 = null; // r2=
@@ -112,18 +121,21 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 	 * @param imageTitle
 	 * @param xTitle
 	 * @param yTitle
-	 * @param numRegStart
-	 * @param numRegEnd
+	 * @param regStart
+	 * @param regEnd
 	 */
 	@SuppressWarnings("rawtypes")
 	public CsajPlot_Regression(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xTitle, String yTitle, String legendLabel,
-			int numRegStart, int numRegEnd) {
+			int regStart, int regEnd) {
 		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabel);
-		numPoints = dataX.length;
-		this.numRegStart = numRegStart;
-		this.numRegEnd = numRegEnd;
-		//System.out.println("RegressionPlot:  numRegStart:"+numRegStart + "   numRegEnd:"+numRegEnd);
+		this.numPoints = dataX.length;
+		this.numReg = 1; //number of regression lines
+		this.regStart = regStart;
+		this.regEnd = regEnd;
+		this.legendLabels = new String[1];
+		this.legendLabels[0] = legendLabel;
+		//System.out.println("RegressionPlot:  regStart:"+regStart + "   regEnd:"+regEnd);
 		this.add(getJPanelSouth(), BorderLayout.SOUTH);
 		this.plotRegressions();
 
@@ -140,17 +152,19 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 	 * @param xTitle
 	 * @param yTitle
 	 * @param seriesNames
-	 * @param numRegStart
-	 * @param numRegEnd
+	 * @param regStart
+	 * @param regEnd
 	 */
 	@SuppressWarnings("rawtypes")
 	public CsajPlot_Regression(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xTitle, String yTitle, String[] legendLabels,
-			int numRegStart, int numRegEnd) {
+			int regStart, int regEnd) {
 		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabels);
-		numPoints = dataX.length;
-		this.numRegStart = numRegStart;
-		this.numRegEnd = numRegEnd;
+		this.numPoints = dataX.length;
+		this.numReg = dataY.length; //number of regression lines
+		this.regStart = regStart;
+		this.regEnd = regEnd;
+		this.legendLabels = legendLabels;
 		this.add(getJPanelSouth(), BorderLayout.SOUTH);
 		this.plotRegressions();
 
@@ -168,7 +182,7 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 			jPanelSouth = new JPanel();
 			jPanelSouth.setLayout(new BoxLayout(jPanelSouth,
 					BoxLayout.PAGE_AXIS));
-			jPanelSouth.add(getJPanelRegression());
+			jPanelSouth.add(getJPanelStartEndNum());
 			jPanelSouth.add(getJPanelRegResult());
 		}
 		return jPanelSouth;
@@ -180,13 +194,14 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 	 * 
 	 * @return javax.swing.JPanel
 	 */
-	private JPanel getJPanelRegression() {
+	private JPanel getJPanelStartEndNum() {
 		if (jPanelRegression == null) {
 			jPanelRegression = new JPanel();
 			jPanelRegression.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-			jPanelRegression.add(getJLabelRegression());
-			jPanelRegression.add(getJPanelNumRegStart());
-			jPanelRegression.add(getJPanelNumRegEnd());
+			jPanelRegression.add(getJLabelStartEnd());
+			jPanelRegression.add(getJPanelRegStart());
+			jPanelRegression.add(getJPanelRegEnd());
+			if (numReg > 1) jPanelRegression.add(getJPanelRegNum());
 		}
 		return jPanelRegression;
 	}
@@ -197,93 +212,120 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 	 * 
 	 * @return javax.swing.JLabel
 	 */
-	private JLabel getJLabelRegression() {
+	private JLabel getJLabelStartEnd() {
 		if (jLabelRegression == null) {
-			jLabelRegression = new JLabel("Regression: ");
+			jLabelRegression = new JLabel("Regression ");
 		}
 		return jLabelRegression;
 	}
 
 	// ----------------------------------------------------------------------------------------------------------
 	/**
-	 * This method initializes jJPanelNumRegStart
+	 * This method initializes jJPanelRegStart
 	 * 
 	 * @return javax.swing.JPanel
 	 */
-	private JPanel getJPanelNumRegStart() {
-		if (jPanelNumRegStart == null) {
-			jPanelNumRegStart = new JPanel();
-			jPanelNumRegStart.setLayout(new FlowLayout());
-			jLabelNumRegStart = new JLabel("Start: ");
-			jLabelNumRegStart.setPreferredSize(new Dimension(70, 22));
-			jLabelNumRegStart.setHorizontalAlignment(SwingConstants.RIGHT);
-			SpinnerModel sModel = new SpinnerNumberModel(this.numRegStart, 1,
-					numPoints, 1); // init, min, max, step
-			jSpinnerNumRegStart = new JSpinner(sModel);
-			// jSpinnerNumRegStart = new JSpinner();
-			jSpinnerNumRegStart.setPreferredSize(new Dimension(60, 22));
-			JSpinner.DefaultEditor defEditor = (JSpinner.DefaultEditor) jSpinnerNumRegStart
-					.getEditor();
+	private JPanel getJPanelRegStart() {
+		if (jPanelRegStart == null) {
+			jPanelRegStart = new JPanel();
+			jPanelRegStart.setLayout(new FlowLayout());
+			jLabelRegStart = new JLabel("Start: ");
+			//jLabelRegStart.setPreferredSize(new Dimension(70, 22));
+			jLabelRegStart.setHorizontalAlignment(SwingConstants.RIGHT);
+			SpinnerModel sModel = new SpinnerNumberModel(this.regStart, 1, numPoints, 1); // init, min, max, step
+			jSpinnerRegStart = new JSpinner(sModel);
+			// jSpinnerRegStart = new JSpinner();
+			//jSpinnerRegStart.setPreferredSize(new Dimension(60, 22));
+			JSpinner.DefaultEditor defEditor = (JSpinner.DefaultEditor) jSpinnerRegStart.getEditor();
 			JFormattedTextField ftf = defEditor.getTextField();
 			ftf.setEditable(true);
-			InternationalFormatter intFormatter = (InternationalFormatter) ftf
-					.getFormatter();
-			DecimalFormat decimalFormat = (DecimalFormat) intFormatter
-					.getFormat();
+			InternationalFormatter intFormatter = (InternationalFormatter) ftf.getFormatter();
+			DecimalFormat decimalFormat = (DecimalFormat) intFormatter.getFormat();
 			decimalFormat.applyPattern("#"); // decimalFormat.applyPattern("#,##0.0")
 												// ;
-			jSpinnerNumRegStart.setValue(1); // only in order to set format pattern
-			jSpinnerNumRegStart.setValue(this.numRegStart); // only in order to set
+			jSpinnerRegStart.setValue(1); // only in order to set format pattern
+			jSpinnerRegStart.setValue(this.regStart); // only in order to set
 														// format pattern
-			jSpinnerNumRegStart.addChangeListener(this);
+			jSpinnerRegStart.addChangeListener(this);
 
-			jPanelNumRegStart.add(jLabelNumRegStart);
-			jPanelNumRegStart.add(jSpinnerNumRegStart);
+			jPanelRegStart.add(jLabelRegStart);
+			jPanelRegStart.add(jSpinnerRegStart);
 		}
-		return jPanelNumRegStart;
+		return jPanelRegStart;
 	}
 
 	/**
-	 * This method initializes jJPanelNumRegEnd
+	 * This method initializes jJPanelRegEnd
 	 * 
 	 * @return javax.swing.JPanel
 	 */
-	private JPanel getJPanelNumRegEnd() {
-		if (jPanelNumRegEnd == null) {
-			jPanelNumRegEnd = new JPanel();
-			jPanelNumRegEnd.setLayout(new FlowLayout());
-			jLabelNumRegEnd = new JLabel("End: ");
-			jLabelNumRegEnd.setPreferredSize(new Dimension(70, 22));
-			jLabelNumRegEnd.setHorizontalAlignment(SwingConstants.RIGHT);
-			// System.out.println("IqmRegressionPlot this.numRegEnd  numPoints  " +
-			// this.numRegEnd +"  " +numPoints);
-			SpinnerModel sModel = new SpinnerNumberModel(this.numRegEnd, 1,
-					numPoints, 1); // init, min, max, step
-			jSpinnerNumRegEnd = new JSpinner(sModel);
-			// jSpinnerNumRegEnd = new JSpinner();
-			jSpinnerNumRegEnd.setPreferredSize(new Dimension(60, 22));
-			JSpinner.DefaultEditor defEditor = (JSpinner.DefaultEditor) jSpinnerNumRegEnd
-					.getEditor();
+	private JPanel getJPanelRegEnd() {
+		if (jPanelRegEnd == null) {
+			jPanelRegEnd = new JPanel();
+			jPanelRegEnd.setLayout(new FlowLayout());
+			jLabelRegEnd = new JLabel("End: ");
+			//jLabelRegEnd.setPreferredSize(new Dimension(70, 22));
+			jLabelRegEnd.setHorizontalAlignment(SwingConstants.RIGHT);
+			// System.out.println("IqmRegressionPlot this.regEnd  numPoints  " +
+			// this.regEnd +"  " +numPoints);
+			SpinnerModel sModel = new SpinnerNumberModel(this.regEnd, 1, numPoints, 1); // init, min, max, step
+			jSpinnerRegEnd = new JSpinner(sModel);
+			// jSpinnerRegEnd = new JSpinner();
+			//jSpinnerRegEnd.setPreferredSize(new Dimension(60, 22));
+			JSpinner.DefaultEditor defEditor = (JSpinner.DefaultEditor) jSpinnerRegEnd.getEditor();
 			JFormattedTextField ftf = defEditor.getTextField();
 			ftf.setEditable(true);
-			InternationalFormatter intFormatter = (InternationalFormatter) ftf
-					.getFormatter();
-			DecimalFormat decimalFormat = (DecimalFormat) intFormatter
-					.getFormat();
+			InternationalFormatter intFormatter = (InternationalFormatter) ftf.getFormatter();
+			DecimalFormat decimalFormat = (DecimalFormat) intFormatter.getFormat();
 			decimalFormat.applyPattern("#"); // decimalFormat.applyPattern("#,##0.0")
 												// ;
-			jSpinnerNumRegEnd.setValue(1); // only in order to set format pattern
-			jSpinnerNumRegEnd.setValue(this.numRegEnd); // only in order to set format
+			jSpinnerRegEnd.setValue(1); // only in order to set format pattern
+			jSpinnerRegEnd.setValue(this.regEnd); // only in order to set format
 													// pattern
-			jSpinnerNumRegEnd.addChangeListener(this);
+			jSpinnerRegEnd.addChangeListener(this);
 
-			jPanelNumRegEnd.add(jLabelNumRegEnd);
-			jPanelNumRegEnd.add(jSpinnerNumRegEnd);
+			jPanelRegEnd.add(jLabelRegEnd);
+			jPanelRegEnd.add(jSpinnerRegEnd);
 		}
-		return jPanelNumRegEnd;
+		return jPanelRegEnd;
 	}
+	
+	/**
+	 * This method initializes jJPanelRegNum
+	 * 
+	 * @return javax.swing.JPanel
+	 */
+	private JPanel getJPanelRegNum() {
+		if (jPanelRegNum == null) {
+			jPanelRegNum = new JPanel();
+			jPanelRegNum.setLayout(new FlowLayout());
+			jLabelRegNum = new JLabel("#: ");
+			//jLabelRegNum.setPreferredSize(new Dimension(70, 22));
+			jLabelRegNum.setHorizontalAlignment(SwingConstants.RIGHT);
+			SpinnerModel sModel = new SpinnerNumberModel(1, 1, numReg, 1); // init, min, max, step
+			jSpinnerRegNum = new JSpinner(sModel);
+			// jSpinnerRegNum = new JSpinner();
+			//jSpinnerRegNum.setPreferredSize(new Dimension(60, 22));
+//			JSpinner.DefaultEditor defEditor = (JSpinner.DefaultEditor) jSpinnerRegNum.getEditor();
+//			JFormattedTextField ftf = defEditor.getTextField();
+//			ftf.setEditable(true);
+//			InternationalFormatter intFormatter = (InternationalFormatter) ftf.getFormatter();
+//			DecimalFormat decimalFormat = (DecimalFormat) intFormatter.getFormat();
+//			decimalFormat.applyPattern("#"); // decimalFormat.applyPattern("#,##0.0")
+//												// ;
+//			jSpinnerRegNum.setValue(1); // only in order to set format pattern
+//			jSpinnerRegNum.setValue(this.numReg); // only in order to set format pattern
+//			jSpinnerRegNum.setValue(1);	//Finally set it									
+			jSpinnerRegNum.addChangeListener(this);
 
+			jPanelRegNum.add(jLabelRegNum);
+			jPanelRegNum.add(jSpinnerRegNum);
+		}
+		return jPanelRegNum;
+	}
+	
 	// --------------------------------------------------------------------------------------------
+	
 	/**
 	 * This method initializes jPanelRegResult
 	 * 
@@ -293,16 +335,32 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 		if (jPanelRegResult == null) {
 			jPanelRegResult = new JPanel();
 			jPanelRegResult.setLayout(new FlowLayout());
-			jLabelRegResult = new JLabel("Result: ");
+			jPanelRegResult.add(getJPanelRegEquation());
+		}
+		return jPanelRegResult;
+	}
+	
+	/**
+	 * This method initializes jPanelRegEquation
+	 * 
+	 * * @return javax.swing.JPanel
+	 */
+	private JPanel getJPanelRegEquation() {
+		if (jPanelRegEquation == null) {
+			jPanelRegEquation = new JPanel();
+			jPanelRegEquation.setLayout(new FlowLayout());
+
+			jLabelRegResultStartEndValues = new JLabel();
 			jLabelRegResultP0 = new JLabel();
 			jLabelRegResultP1 = new JLabel();
 			jLabelRegResultP2 = new JLabel();
-			jPanelRegResult.add(jLabelRegResult);
-			jPanelRegResult.add(jLabelRegResultP0);
-			jPanelRegResult.add(jLabelRegResultP1);
-			jPanelRegResult.add(jLabelRegResultP2);
+	
+			jPanelRegEquation.add(jLabelRegResultStartEndValues);
+			jPanelRegEquation.add(jLabelRegResultP1);
+			jPanelRegEquation.add(jLabelRegResultP0);
+			jPanelRegEquation.add(jLabelRegResultP2);
 		}
-		return jPanelRegResult;
+		return jPanelRegEquation;
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -324,25 +382,28 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 	/**
 	 * This method displays a regression line
 	 * 
-	 * @param s
-	 *            number of data Series
+	 * @param s number of data Series
 	 */
 	@SuppressWarnings("unused")
 	private void plotRegression(int s) {
 		JFreeChart chart = this.getChartPanel().getChart();
 		XYSeriesCollection dataPointSeriesCollection = (XYSeriesCollection) chart
 				.getXYPlot().getDataset(0); // 0 Data Points, 1 Regression lines
+		Paint colSeries = chart.getXYPlot().getRenderer().getSeriesPaint(s);
 		XYSeries series = dataPointSeriesCollection.getSeries(s); // get the data point series at index s
 		int numPoints = dataPointSeriesCollection.getItemCount(s); // get the number of data points at index s
-		int numRegStart = ((Number) jSpinnerNumRegStart.getValue()).intValue();
-		int numRegEnd = ((Number) jSpinnerNumRegEnd.getValue()).intValue();
-		int numRegPoints = numRegEnd - numRegStart + 1;
+		int regStart = ((Number) jSpinnerRegStart.getValue()).intValue();
+		int regEnd = ((Number) jSpinnerRegEnd.getValue()).intValue();
+		int regNum = 1;
+		if (numReg >1) regNum = ((Number) jSpinnerRegNum.getValue()).intValue();
+		int numRegPoints = regEnd - regStart + 1;
+	
 		// old method of regression using jFreeChart; gives back only a and b
 		// for y = a+bx
 		// double[][] regData = new double[numRegPoints][2];
 		// for (int j = 0; j < numRegPoints; j++){
-		// regData[j][0] = dataXY.getXValue(0, j + numRegStart); //series item
-		// regData[j][1] = dataXY.getYValue(0, j + numRegStart);
+		// regData[j][0] = dataXY.getXValue(0, j + regStart); //series item
+		// regData[j][1] = dataXY.getYValue(0, j + regStart);
 		// }
 		// double[] p = Regression.getOLSRegression(regData); //gives back only
 		// a and b for y = a+bx
@@ -365,17 +426,17 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 			dataYArray[i] = regDataY.get(i).doubleValue();
 		}
 
-		double regressionParams[] = lr.calculateParameters(dataXArray, dataYArray, numRegStart, numRegEnd);
+		double regressionParams[] = lr.calculateParameters(dataXArray, dataYArray, regStart, regEnd);
 		
-		this.displayRegressionParameters(regressionParams);
+		if (regNum == s+1) displayRegressionParameters(dataXArray[regStart-1], dataXArray[regEnd-1], regressionParams, legendLabels[s]);
 	
 		// Calculate Regression
 		// //y = a +bx
 		// double[] regLineX = new double[numRegPoints];
 		// double[] regLineY = new double[numRegPoints];
 		// for (int i = 0; i < numRegPoints; i++){
-		// //regLineX[i] = dataXY.getXValue(0, i + numRegStart); //series item
-		// regLineX[i] = (Double) series.getX(i + numRegStart-1); //series item
+		// //regLineX[i] = dataXY.getXValue(0, i + regStart); //series item
+		// regLineX[i] = (Double) series.getX(i + regStart-1); //series item
 		// regLineY[i] = p[0] + p[1]*regLineX[i];
 		// }
 		// XYSeries regSeries = new XYSeries("Regression "+(s+1));
@@ -384,38 +445,35 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 
 		// oder einfacher
 		// create a line using a and b (coefficients) of the regression
-		LineFunction2D linefunction2d = new LineFunction2D(regressionParams[0],
-				regressionParams[1]);
+		LineFunction2D linefunction2d = new LineFunction2D(regressionParams[0], regressionParams[1]);
 		// //XYDataset dataset =
 		// DatasetUtilities.sampleFunction2D(linefunction2d, dataXY.getXValue(0,
-		// numRegStart-1), dataXY.getXValue(0, numRegEnd-1), 100, "Linear Fit");
+		// regStart-1), dataXY.getXValue(0, regEnd-1), 100, "Linear Fit");
 		// //XYDataset dataset =
 		// DatasetUtilities.sampleFunction2D(linefunction2d, (Double)
-		// series.getX(numRegStart-1), (Double) series.getX(numRegEnd-1), 100,
+		// series.getX(regStart-1), (Double) series.getX(regEnd-1), 100,
 		// "Linear Fit");
-//		System.out.println("RegressionPlot:  numRegStart:"+numRegStart + "   numRegEnd:"+numRegEnd);
-//		for (int i= numRegStart; i <= numRegEnd; i++){
+//		System.out.println("RegressionPlot:  regStart:"+regStart + "   regEnd:"+regEnd);
+//		for (int i= regStart; i <= regEnd; i++){
 //			System.out.println("RegressionPlot:  i:"+ i+"  (Double)series.getX(i - 1):" + (Double) series.getX(i - 1) + "       (Double)series.getY(i - 1):" + (Double) series.getY(i - 1));
 //		}
-		XYSeries regSeries = DatasetUtils.sampleFunction2DToSeries(
-				linefunction2d, (Double) series.getX(numRegStart - 1),
-				(Double) series.getX(numRegEnd - 1), 100, "Linear Fit " + s);
+		XYSeries regSeries = DatasetUtils.sampleFunction2DToSeries( linefunction2d, (Double) series.getX(regStart - 1),
+				                                                  (Double) series.getX(regEnd - 1), 100, "Linear fit " + s);
 		// ###################################################
 		// UNTIL HERE, THE REGRESSION LINE HAS BEEN CALCULATED
 
-		// set renderer
-		XYLineAndShapeRenderer renderer1 = new XYLineAndShapeRenderer(true,
-				false);
-		renderer1.setSeriesPaint(1, Color.GREEN);
-		renderer1.clearSeriesPaints(true);
-		renderer1.setDefaultShapesVisible(false);
-		renderer1.setDefaultSeriesVisibleInLegend(false);
-		// Shape[] shapes = DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE; //0
-		// square, 1 circle, 2 triangle; 3 diamond; .......9
-		// renderer1.setSeriesShape(0, shapes[2]);
-		// Shape shape = new Rectangle2D.Double(-1, -1, 2, 2); //small rectangle
-		// renderer1.setSeriesShape(series, shape);
-		chart.getXYPlot().setRenderer(1, renderer1);
+//		// set renderer
+//		XYLineAndShapeRenderer renderer1 = new XYLineAndShapeRenderer(true, false);
+//		renderer1.setSeriesPaint(s, colSeries);
+//		//renderer1.clearSeriesPaints(true); 
+//		renderer1.setDefaultShapesVisible(false); //only line no points (shapes)
+//		renderer1.setDefaultSeriesVisibleInLegend(false);
+//		// Shape[] shapes = DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE; //0
+//		// square, 1 circle, 2 triangle; 3 diamond; .......9
+//		// renderer1.setSeriesShape(0, shapes[2]);
+//		// Shape shape = new Rectangle2D.Double(-1, -1, 2, 2); //small rectangle
+//		// renderer1.setSeriesShape(series, shape);
+//		chart.getXYPlot().setRenderer(1, renderer1);
 
 		// chart.getXYPlot().setDataset(1, dataset);
 		// chart.getXYPlot().setDataset(1, dataset);
@@ -436,12 +494,23 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 		// the first run does not contain any line data
 		// for linear regression
 		// so we have to create a new regression lines dataset
+		
 		if (regressionSeries == null) {
 			// System.out.println("Constructing new XYSeriesCollection at series "
 			// + s + " containing 1 element.");
 			regressionSeries = new XYSeriesCollection();
 			regressionSeries.addSeries(regSeries);
 			chart.getXYPlot().setDataset(1, regressionSeries);
+			
+			
+			// set renderer
+			XYLineAndShapeRenderer renderer1 = new XYLineAndShapeRenderer(true, false);
+			renderer1.setSeriesPaint(s, colSeries);
+			//renderer1.clearSeriesPaints(true); 
+			renderer1.setDefaultShapesVisible(false); //only the line no points (shapes)
+			renderer1.setDefaultSeriesVisibleInLegend(false); //true would add legend entries "Linear fit s"
+
+			chart.getXYPlot().setRenderer(1, renderer1);
 		}
 		// if a regression line dataset already exists (i.e. is not NULL)
 		// we have to add further lines to be drawn
@@ -449,43 +518,64 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements
 		else {
 			// System.out.println("Adding new element to " + s);
 			regressionSeries.addSeries(regSeries);
+			// set renderer
+			chart.getXYPlot().getRenderer(1).setSeriesPaint(s, colSeries);
 		}
 	}
 
 	/**
 	 * This method displays the regression parameters
+	 * 
+	 * @param p[] regression parameters
 	 */
-	private void displayRegressionParameters(double[] p) {
-		jLabelRegResultP0.setText("y = " + String.valueOf(p[0]));
+	private void displayRegressionParameters(double valueStart, double valueEnd, double[] p, String legendLabel) {
+		
+		DecimalFormat df  = new DecimalFormat("#.###");
+		DecimalFormat df2 = new DecimalFormat("#.#####");
+		
+		jLabelRegResultStartEndValues.setText(legendLabel + "    x=[" + df.format(valueStart) + ", " + df.format(valueEnd) + "]    ");
+		
 		if (p[1] >= 0)
-			jLabelRegResultP1.setText(" + " + String.valueOf(Math.abs(p[1]))
-					+ "  x");
+			//jLabelRegResultP1.setText("y = " + String.valueOf(Math.abs(p[1])) + "x");
+			jLabelRegResultP1.setText("y=" + df.format(Math.abs(p[1])) + "x");
 		if (p[1] < 0)
-			jLabelRegResultP1.setText(" - " + String.valueOf(Math.abs(p[1]))
-					+ "  x");
-		jLabelRegResultP2.setText("   r2 = " + String.valueOf(Math.abs(p[4]))); // r2
+			//jLabelRegResultP1.setText("y =  - " + String.valueOf(Math.abs(p[1])) + " x");
+			jLabelRegResultP1.setText("y=-" + df.format(Math.abs(p[1])) + "x");
+		
+		//jLabelRegResultP0.setText(" + " + String.valueOf(p[0]));
+		jLabelRegResultP0.setText("+" + df.format(p[0]));
+		
+		//jLabelRegResultP2.setText("   r2 = " + String.valueOf(Math.abs(p[4]))); // r2
+		jLabelRegResultP2.setText("    r2=" + df2.format(Math.abs(p[4]))); // r2
+		
 	}
 
 	// --------------------------------------------------------------------------------------------
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		jSpinnerNumRegStart.removeChangeListener(this);
-		jSpinnerNumRegEnd.removeChangeListener(this);
+		jSpinnerRegStart.removeChangeListener(this);
+		jSpinnerRegEnd.removeChangeListener(this);
+		if (numReg >1) jSpinnerRegNum.removeChangeListener(this);
 
-		int start = ((Number) jSpinnerNumRegStart.getValue()).intValue();
-		int end = ((Number) jSpinnerNumRegEnd.getValue()).intValue();
-		if (jSpinnerNumRegStart == e.getSource()) {
+		int start = ((Number) jSpinnerRegStart.getValue()).intValue();
+		int end = ((Number) jSpinnerRegEnd.getValue()).intValue();
+		if (jSpinnerRegStart == e.getSource()) {
 			if (start >= (end - 1)) {
-				jSpinnerNumRegStart.setValue(end - 2);
+				jSpinnerRegStart.setValue(end - 2);
 			}
 		}
-		if (jSpinnerNumRegEnd == e.getSource()) {
+		if (jSpinnerRegEnd == e.getSource()) {
 			if (end <= (start + 1)) {
-				jSpinnerNumRegEnd.setValue(start + 2);
+				jSpinnerRegEnd.setValue(start + 2);
 			}
 		}
-		jSpinnerNumRegStart.addChangeListener(this);
-		jSpinnerNumRegEnd.addChangeListener(this);
+		
+		int regNum;
+		if (numReg >1) regNum = ((Number) jSpinnerRegNum.getValue()).intValue();
+		
+		jSpinnerRegStart.addChangeListener(this);
+		jSpinnerRegEnd.addChangeListener(this);
+		if (numReg >1) jSpinnerRegNum.addChangeListener(this);
 
 		// remove all series from the regression data set collection
 		this.regressionSeries.removeAllSeries();

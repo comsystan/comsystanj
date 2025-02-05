@@ -35,12 +35,16 @@ import java.awt.Font;
 
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import org.jfree.chart.ChartColor;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartHints.Key;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -68,10 +72,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * The UID for serialization.
 	 */
 	private static final long serialVersionUID = 3141924072908771166L;
-
-	private Color colSeries1 = Color.RED;
-	private Color colSeries2 = Color.BLUE;
-	private Color colSeries3 = Color.GREEN;
 
 	private boolean isLineVisible = false;
 	private ChartPanel chartPanel = null;
@@ -416,10 +416,63 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 
 	}
 
+	// XYDataset xyDataset2 - second series e.g. for detected events in Csaj1DDetectEventsCmd
 	private JFreeChart createChart(XYDataset xyDataset, XYDataset xyDataset2) {
 
-		JFreeChart chart = ChartFactory.createXYLineChart(title, // "", //
-				// title
+		//Define Them
+		StandardChartTheme theme = null;
+		Color colBack = null;
+		Color colText = null;
+		Color colGrid = null;
+		//Color of first data series of a Dataset will be changed
+		//Additional series are the default colors
+		Color[] colArrayDataset  = ChartColor.createDefaultColorArray();	
+		Color[] colArrayDataset2 = ChartColor.createDefaultColorArray();	// second series e.g. for detected events in Csaj1DDetectEventsCmd
+		
+		
+		//Create dark theme or default theme
+		LookAndFeel laf = UIManager.getLookAndFeel();	
+		String lafName = laf.getName();
+		if (lafName.equals("FlatLaf Dark") || lafName.equals("FlatLaf Darcula")) {//Dark theme
+			theme = (StandardChartTheme) StandardChartTheme.createDarknessTheme();
+			colBack = new Color(60, 63, 65); //FlatLaf dark grey
+			colText = new Color(187, 187, 187); //FlatLaf bright grey
+			colGrid = Color.YELLOW;
+			colArrayDataset[0] = Color.WHITE;
+			colArrayDataset[1] = Color.RED;
+			colArrayDataset[2] = Color.BLUE;	
+			colArrayDataset[3] = Color.ORANGE;	
+			colArrayDataset2[0] = Color.RED; //RED is good for bright and dark themes e.g. events
+			colArrayDataset2[1] = Color.YELLOW; //defined but not used in event detection
+			colArrayDataset2[2] = Color.GREEN;	//defined but not used in event detection
+			
+		} else { //Default theme
+			theme = (StandardChartTheme) StandardChartTheme.createJFreeTheme();
+			colBack = Color.WHITE;
+			colText = Color.BLACK;
+			colGrid = Color.BLACK;
+			colArrayDataset[0] = Color.BLACK;
+			colArrayDataset[1] = Color.RED;
+			colArrayDataset[2] = Color.BLUE;	
+			colArrayDataset[3] = Color.ORANGE;	
+			colArrayDataset2[0] = Color.RED; //RED is good for bright and dark themes e.g. events
+			colArrayDataset2[1] = Color.YELLOW; //defined but not used in event detection
+			colArrayDataset2[2] = Color.GREEN;	//defined but not used in event detection	
+		}
+				
+		theme.setChartBackgroundPaint(colBack);
+		theme.setPlotBackgroundPaint(colBack); //or null
+		theme.setLegendBackgroundPaint(colBack);
+		theme.setTitlePaint(colText);
+		theme.setLegendItemPaint(colText);
+		theme.setItemLabelPaint(colText);
+		theme.setAxisLabelPaint(colText);
+		theme.setTickLabelPaint(colText);
+		theme.setDomainGridlinePaint(colGrid); //Domain == y-axis
+		theme.setRangeGridlinePaint(colGrid);
+		
+		//Create a chart	
+		JFreeChart chart = ChartFactory.createXYLineChart(title, // "", // title
 				xLabel, // x-axis label
 				yLabel, // y-axis label
 				xyDataset, // data
@@ -428,48 +481,57 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 				true, // generate tooltips?
 				false // generate URLs?
 		);
+		
+		theme.apply(chart);	
+		
+		//Set additional items
+		chart.setTextAntiAlias(true);
+		chart.setAntiAlias(true);	
+		
 		chart.getTitle().setFont(new Font("Arial", Font.PLAIN, 14));
-		chart.setBackgroundPaint(Color.WHITE);
+		//chart.setBackgroundPaint(Color.WHITE); //already set by theme
 
 		// legend to the right of the chart
 		LegendTitle legend = (LegendTitle) chart.getSubtitle(0);
 		legend.setPosition(RectangleEdge.RIGHT);
 
 		XYPlot plot = (XYPlot) chart.getPlot();
-
 		plot.setDataset(1, xyDataset2);
 		plot.setRenderer(1, new XYLineAndShapeRenderer());
 		plot.getRangeAxis().setLabelFont(new Font("Arial", Font.PLAIN, 12)); //Range == x-axis
 		plot.getDomainAxis().setLabelFont(new Font("Arial", Font.PLAIN, 12)); //Domain == y-axis
-		plot.setBackgroundPaint(null);
-		plot.setDomainGridlinePaint(Color.black); //Domain == y-axis
-		plot.setRangeGridlinePaint(Color.black); //Range == x-axis
+		//plot.setBackgroundPaint(null); //already set by theme
+		//plot.setDomainGridlinePaint(Color.black); //Domain == y-axis //already set by theme
+		//plot.setRangeGridlinePaint(Color.black); //Range == x-axis //already set by theme
 		plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 		plot.setDomainCrosshairVisible(true); //Domain == y-axis
 		plot.setRangeCrosshairVisible(true); //Range == x-axis
 		
 		//2017-7 Adam Dolgos ->>>>   JFreeCharts scrollable !!!!
+		//JFreeCharts scrollable with ctrl + click!!!!
 		plot.setDomainPannable(true); //Domain == y-axis
 		plot.setRangePannable(true);  //Range == x-axis
 		
 		// plot.setPadding(0.0, 0.0, 0.0, 15.0);
-
+		
 		XYItemRenderer r = plot.getRenderer(0);
 		if (r instanceof XYLineAndShapeRenderer) {
 			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) r;
-			renderer.setDefaultShapesVisible(true); //
+			renderer.setDefaultShapesVisible(true); 
 			renderer.setDefaultShapesFilled(false);
 			renderer.setDefaultLinesVisible(isLineVisible);
+			for (int c = 0; c < colArrayDataset.length; c++) renderer.setSeriesPaint(c, colArrayDataset[c]); 
 		}
-
-		XYItemRenderer r2 = plot.getRenderer(1);
-		if (r2 instanceof XYLineAndShapeRenderer) {
-			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) r2;
-			renderer.setDefaultShapesVisible(true); //
+		
+		r = plot.getRenderer(1); // second series e.g. for detected events in Csaj1DDetectEventsCmd
+		if (r instanceof XYLineAndShapeRenderer) {
+			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) r;
+			renderer.setDefaultShapesVisible(true); 
 			renderer.setDefaultShapesFilled(true);
 			renderer.setDefaultLinesVisible(isLineVisible);
+			for (int c = 0; c < colArrayDataset2.length; c++) renderer.setSeriesPaint(c, colArrayDataset2[c]); 
 		}
-
+		
 		return chart;
 
 	}
@@ -481,8 +543,52 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @return A chart.
 	 */
 	private JFreeChart createChart(XYDataset xyDataset) {
-
-		JFreeChart chart = ChartFactory.createXYLineChart(title, // "", // // title
+		
+		//Define Them
+		StandardChartTheme theme = null;
+		Color colBack = null;
+		Color colText = null;
+		Color colGrid = null;
+		//Color of first data series of a Dataset will be changed
+		//Additional series are the default colors
+		Color[] colArray = ChartColor.createDefaultColorArray();	
+		
+		//Create dark theme or default theme
+		LookAndFeel laf = UIManager.getLookAndFeel();	
+		String lafName = laf.getName();
+		if (lafName.equals("FlatLaf Dark") || lafName.equals("FlatLaf Darcula")) {//Dark theme
+			theme = (StandardChartTheme) StandardChartTheme.createDarknessTheme();
+			colBack = new Color(60, 63, 65); //FlatLaf dark grey
+			colText = new Color(187, 187, 187); //FlatLaf bright grey
+			colGrid = Color.YELLOW;	
+			colArray[0] = Color.WHITE;
+			colArray[1] = Color.RED;
+			colArray[2] = Color.BLUE;	
+			colArray[3] = Color.ORANGE;	
+		} else { //Default theme
+			theme = (StandardChartTheme) StandardChartTheme.createJFreeTheme();
+			colBack = Color.WHITE;
+			colText = Color.BLACK;
+			colGrid = Color.BLACK;
+			colArray[0] = Color.BLACK;
+			colArray[1] = Color.RED;
+			colArray[2] = Color.BLUE;	
+			colArray[3] = Color.ORANGE;	
+		}
+				
+		theme.setChartBackgroundPaint(colBack);
+		theme.setPlotBackgroundPaint(colBack); //or null
+		theme.setLegendBackgroundPaint(colBack);
+		theme.setTitlePaint(colText);
+		theme.setLegendItemPaint(colText);
+		theme.setItemLabelPaint(colText);
+		theme.setAxisLabelPaint(colText);
+		theme.setTickLabelPaint(colText);
+		theme.setDomainGridlinePaint(colGrid); //Domain == y-axis
+		theme.setRangeGridlinePaint(colGrid);
+		
+		//Create a chart
+		JFreeChart chart = ChartFactory.createXYLineChart(title, // "", // title
 				this.xLabel, // x-axis label
 				this.yLabel, // y-axis label
 				xyDataset, // data
@@ -491,9 +597,16 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 				true, // generate tooltips?
 				false // generate URLs?
 		);
+	
+		theme.apply(chart);		
+		
+		//Set additional items
+		chart.setTextAntiAlias(true);
+		chart.setAntiAlias(true);	
 		
 		chart.getTitle().setFont(new Font("Arial", Font.PLAIN, 14));
-		chart.setBackgroundPaint(Color.WHITE);
+		//chart.setBackgroundPaint(Color.WHITE); //already set by theme
+		
 		// legend to the right of the chart
 		LegendTitle legend = (LegendTitle) chart.getSubtitle(0);
 		legend.setPosition(RectangleEdge.RIGHT);
@@ -501,25 +614,23 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		XYPlot plot = (XYPlot) chart.getPlot();
 		plot.getRangeAxis().setLabelFont(new Font("Arial", Font.PLAIN, 12)); //Range == x-axis
 		plot.getDomainAxis().setLabelFont(new Font("Arial", Font.PLAIN, 12)); //Domain == y-axis
-		plot.setBackgroundPaint(null);
-		plot.setDomainGridlinePaint(Color.black); //Domain == y-axis
-		plot.setRangeGridlinePaint(Color.black);
+		//plot.setBackgroundPaint(null); //already set by theme
+		//plot.setDomainGridlinePaint(Color.black); //Domain == y-axis //already set by theme
+		//plot.setRangeGridlinePaint(Color.black); //already set by theme
 		plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 		plot.setDomainCrosshairVisible(true); //Domain == y-axis
 		plot.setRangeCrosshairVisible(true); //Range == x-axis
+		
+		//2017-7 Adam Dolgos ->>>>   JFreeCharts scrollable !!!!
 		//JFreeCharts scrollable with ctrl + click!!!!
 		plot.setDomainPannable(true); //Domain == y-axis
 		plot.setRangePannable(true); //Range == x-axis
 		
 		// plot.setPadding(0.0, 0.0, 0.0, 15.0);
-		plot.getRenderer().setSeriesPaint(0, colSeries1);
-		plot.getRenderer().setSeriesPaint(1, colSeries2);
-		plot.getRenderer().setSeriesPaint(2, colSeries3);
-		XYItemRenderer r = plot.getRenderer();
+	
+		XYItemRenderer r = plot.getRenderer(0);
 		if (r instanceof XYLineAndShapeRenderer) {
 			XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) r;
-			renderer.setDefaultShapesVisible(true); //
-			renderer.setDefaultShapesFilled(false);
 			// Shape[] shapes = DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE;
 			// //0 square, 1 circle, 2 triangle; 3 diamond; .......9
 			// renderer.setSeriesShape(0, shapes[2]);
@@ -527,8 +638,14 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			// rectangle
 			// renderer.setSeriesShape(0, shape);
 			renderer.setDefaultLinesVisible(isLineVisible);
+			renderer.setDefaultShapesVisible(true); 
+			renderer.setDefaultShapesFilled(false);
+			renderer.setDefaultLinesVisible(isLineVisible);
+			for (int c = 0; c < colArray.length; c++) renderer.setSeriesPaint(c, colArray[c]); 
+
 			// renderer.setSeriesOutlinePaint(0, Color.black);
 			// renderer.setUseOutlinePaint(true);
+			
 		}
 
 		// NumberAxis domainAxis = (NumberAxis) plot.getDomainAxis();
@@ -562,7 +679,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		// vmHigh.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
 		// vmHigh.setLabelTextAnchor(TextAnchor.TOP_LEFT);
 		// plot.addDomainMarker(vmHigh);
-
+				
 		return chart;
 	}
 
@@ -577,7 +694,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		XYSeries s = null;
 		XYSeriesCollection xySeriesColl = null;
 
-		colSeries1 = Color.black;
 		s = new XYSeries(seriesLabel);
 		for (int i = 0; i < dataX.length; i++) s.add(dataX[i], dataY[i]);
 		xySeriesColl = new XYSeriesCollection();
@@ -598,7 +714,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		XYSeries[] s = new XYSeries[dataY.length];
 		XYSeriesCollection xySeriesColl = null;
 
-		colSeries1 = Color.black;
 		for (int v = 0; v < dataY.length; v++)
 			//s[v] = new XYSeries("Series " + (v + 1)); // several data series
 			s[v] = new XYSeries(legendLabels[v]); // several data series
@@ -628,7 +743,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		XYSeries[] s = new XYSeries[dataY.length];
 		XYSeriesCollection xySeriesColl = null;
 
-		colSeries1 = Color.black;
 		for (int v = 0; v < dataY.length; v++)
 			//s[v] = new XYSeries("Series " + (v + 1)); // several data series
 			s[v] = new XYSeries(legendLabels[v]); // several data series
