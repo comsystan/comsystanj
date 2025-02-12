@@ -11,12 +11,16 @@ Version 1.2.0-beta
 pom-scijava 40.0.0
 2025-??-??
 
-New Plugin:
+New Plugins:
 2D RGB relative segmentation
 2D Histogram modification
 
 Plugin changes:
 1D Filter: Added FFT low and high pass
+
+Miscellaneous:
+Improved dark theme for plots
+Improved display of regression parameters in the double log plot
 
 **************************************************************
 Version 1.1.4
