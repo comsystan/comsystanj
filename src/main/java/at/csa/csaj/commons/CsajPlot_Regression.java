@@ -534,18 +534,12 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 		DecimalFormat df2 = new DecimalFormat("#.#####");
 		
 		jLabelRegResultStartEndValues.setText(legendLabel + "    x=[" + df.format(valueStart) + ", " + df.format(valueEnd) + "]    ");
+	
+		jLabelRegResultP1.setText("y=" + df.format(p[1]) + "x");
+
+		if (p[1] >= 0) jLabelRegResultP0.setText("+" + df.format(Math.abs(p[0])));
+		if (p[1] < 0)  jLabelRegResultP0.setText("-" + df.format(Math.abs(p[0])));
 		
-		if (p[1] >= 0)
-			//jLabelRegResultP1.setText("y = " + String.valueOf(Math.abs(p[1])) + "x");
-			jLabelRegResultP1.setText("y=" + df.format(Math.abs(p[1])) + "x");
-		if (p[1] < 0)
-			//jLabelRegResultP1.setText("y =  - " + String.valueOf(Math.abs(p[1])) + " x");
-			jLabelRegResultP1.setText("y=-" + df.format(Math.abs(p[1])) + "x");
-		
-		//jLabelRegResultP0.setText(" + " + String.valueOf(p[0]));
-		jLabelRegResultP0.setText("+" + df.format(p[0]));
-		
-		//jLabelRegResultP2.setText("   r2 = " + String.valueOf(Math.abs(p[4]))); // r2
 		jLabelRegResultP2.setText("    r2=" + df2.format(Math.abs(p[4]))); // r2
 		
 	}
