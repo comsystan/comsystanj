@@ -12,6 +12,7 @@ pom-scijava 40.0.0
 2025-??-??
 
 New Plugins:
+1D Rescaled auto-density RAD
 2D RGB relative segmentation
 2D Histogram modification
 
