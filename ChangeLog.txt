@@ -17,6 +17,7 @@ New Plugins:
 
 Plugin changes:
 1D Filter: Added FFT low and high pass
+1D Statistics: Added the display of a histogram
 
 Miscellaneous:
 Improved dark theme for plots

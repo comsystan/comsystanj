@@ -27,6 +27,8 @@
  */
 package at.csa.csaj.plugin1d.lin;
 
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
@@ -36,11 +38,21 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import net.imagej.ImageJ;
 import net.imagej.ops.OpService;
+import net.imglib2.Cursor;
+import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+
+import org.apache.commons.math3.random.EmpiricalDistribution;
+import org.apache.commons.math3.stat.Frequency;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
@@ -69,6 +81,7 @@ import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
+import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 
 /**
@@ -221,6 +234,11 @@ public class Csaj1DStatisticsCmd<T extends RealType<T>> extends ContextCommand i
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
 
+    @Parameter(label = "Show distribution(s)",
+		       persist = true,  //restore previous value default = true   
+		       initializer = "initialShowDistribution")
+	 private boolean booleanShowDistribution;
+	
 	@Parameter(label = "Overwrite result display(s)",
 	    	  description = "Overwrite already existing result images, plots or tables",
 	    	  persist = true,  //restore previous value default = true
@@ -274,6 +292,9 @@ public class Csaj1DStatisticsCmd<T extends RealType<T>> extends ContextCommand i
 	protected void initialSkipZeroes() {
 		booleanSkipZeroes = false;
 	}	
+	protected void initialShowDistribution() {
+	    booleanShowDistribution = false;
+	}
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
 	}
@@ -619,6 +640,18 @@ public class Csaj1DStatisticsCmd<T extends RealType<T>> extends ContextCommand i
 					display = null;
 			}
 		}
+		if (optDeleteExistingImgs) {
+			Frame frame;
+			Frame[] listFrames = JFrame.getFrames();
+			for (int i = listFrames.length -1 ; i >= 0; i--) { //Reverse order, otherwise focus is not given free from the last image
+				frame = listFrames[i];
+				//System.out.println("frame name: " + frame.getTitle());
+				if (frame.getTitle().contains("Histogram")) {
+					frame.setVisible(false); //Successfully closes also in Fiji
+					frame.dispose();
+				}
+			}
+		}
 	}
 
   	/** 
@@ -762,6 +795,7 @@ public class Csaj1DStatisticsCmd<T extends RealType<T>> extends ContextCommand i
 		numBoxLength          = spinnerInteger_BoxLength;
 		int numDataPoints     = dgt.getRowCount();
 		boolean skipZeroes    = booleanSkipZeroes;
+		boolean optShowDistribution = booleanShowDistribution;
 		double[] resultValues = null;
 		// Get a DescriptiveStatistics instance
 		DescriptiveStatistics stats = null;
@@ -832,6 +866,37 @@ public class Csaj1DStatisticsCmd<T extends RealType<T>> extends ContextCommand i
 			resultValues[9] = stats.getSum();
 			resultValues[10] = stats.getSumsq();
 			int lastMainResultsIndex = 10;
+			
+			if (optShowDistribution) {
+				boolean isLineVisible = false;
+				String frameTitle = "Histogram";
+				String title = sequenceColumn.getHeader();
+				String xLabel = "Values";
+				String yLabel = "#";
+				String seriesLabel = ""; //sequenceColumn.getHeader();
+				
+				final int BIN_COUNT = 20;
+				double[] dataX     = new double[BIN_COUNT];
+				double[] histogram = new double[BIN_COUNT];
+				EmpiricalDistribution distribution = new EmpiricalDistribution(BIN_COUNT);
+				distribution.load(sequence1D);
+				
+				//List<SummaryStatistics> list = distribution.getBinStats();
+				
+				int k = 0;
+				for(SummaryStatistics sStats: distribution.getBinStats()) {
+				    histogram[k] = sStats.getN();
+				    dataX[k] = (sStats.getMax() + sStats.getMin())/2.0;
+				    k++;
+				}
+			
+				CsajPlot_SequenceFrame pdf = new CsajPlot_SequenceFrame(dataX, histogram, isLineVisible, frameTitle, title, xLabel, yLabel, seriesLabel);
+				Point pos = pdf.getLocation();
+				pos.x = (int) (pos.getX() - 100);
+				pos.y = (int) (pos.getY() + 100);
+				pdf.setLocation(pos);
+				pdf.setVisible(true);
+			}
 					
 			if (!surrType.equals("No surrogates")) { //Add surrogate analysis
 				surrSequence1D = new double[sequence1D.length];

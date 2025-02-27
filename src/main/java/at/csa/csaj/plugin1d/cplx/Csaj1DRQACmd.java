@@ -349,7 +349,7 @@ public class Csaj1DRQACmd<T extends RealType<T>> extends ContextCommand implemen
     @Parameter(label = "Show recurrence plot",
 		       persist = true,  //restore previous value default = true   
 		       initializer = "initialShowRecurrenceMatrix")
-	 private boolean booleanShowReccurenceMatrix;
+	 private boolean booleanShowRecurrenceMatrix;
 	
 	@Parameter(label = "Overwrite result display(s)",
 	    	   description = "Overwrite already existing result images, plots or tables",
@@ -454,8 +454,8 @@ public class Csaj1DRQACmd<T extends RealType<T>> extends ContextCommand implemen
 //	protected void initialShowDoubleLogPlots() {
 //		booleanShowDoubleLogPlot = true;
 //	}
-	protected void initialShowReccurenceMatrix() {
-	    booleanShowReccurenceMatrix = false;
+	protected void initialShowRecurrenceMatrix() {
+	    booleanShowRecurrenceMatrix = false;
 	}
 	protected void initialOverwriteDisplays() {
     	booleanOverwriteDisplays = true;
@@ -1086,7 +1086,7 @@ public class Csaj1DRQACmd<T extends RealType<T>> extends ContextCommand implemen
 		//int     numPointPairs  = spinnerInteger_NumPointPairs; //????
 		boolean skipZeroes     = booleanSkipZeroes;
 		//boolean optShowPlot    = booleanShowDoubleLogPlot;
-		boolean optShowReccurenceMatrix = booleanShowReccurenceMatrix;
+		boolean optShowRecurrenceMatrix = booleanShowRecurrenceMatrix;
 			
 		//************************************************************************************************
 		//Point pairs with position distances (not value distances!) <= periodMean are not considered 
@@ -1168,7 +1168,7 @@ public class Csaj1DRQACmd<T extends RealType<T>> extends ContextCommand implemen
 					rm = new Leshao_RecurrentMatrix(timeSeries, embDim, tau, eps, isDiagonal, norm);
 					rqaValues = rm.getRQAValues();
 					
-					if (optShowReccurenceMatrix) {
+					if (optShowRecurrenceMatrix) {
 					
 						reccurentMatrix = rm.getRecurrentMatrix();
 						int matrixWidth  = reccurentMatrix.length;

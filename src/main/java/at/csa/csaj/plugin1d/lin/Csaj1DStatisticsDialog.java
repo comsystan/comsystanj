@@ -28,8 +28,14 @@
 
 package at.csa.csaj.plugin1d.lin;
 
+import java.awt.GridBagConstraints;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 
 import org.scijava.Context;
 import org.scijava.command.CommandModule;
@@ -63,6 +69,9 @@ public class Csaj1DStatisticsDialog extends CsajDialog_1DPlugin {
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
+	private JLabel    labelShowDistribution;
+	private JCheckBox checkBoxShowDistribution;
+ 	private boolean   booleanShowDistribution;
 
 	//Some default @Parameters are already defined in the super class
 
@@ -84,6 +93,35 @@ public class Csaj1DStatisticsDialog extends CsajDialog_1DPlugin {
 
 		//Add specific GUI elements according to Command @Parameter GUI elements   
 		//*****************************************************************************************
+ 		labelShowDistribution = new JLabel("Show distribution");
+ 		labelShowDistribution.setToolTipText("Show a histogram in an additional window");
+ 		labelShowDistribution.setHorizontalAlignment(JLabel.RIGHT);
+ 		labelShowDistribution.setEnabled(true);
+ 		
+ 		checkBoxShowDistribution = new JCheckBox();
+ 		checkBoxShowDistribution.setToolTipText("Show distribution");
+ 		checkBoxShowDistribution.setEnabled(true);
+ 		checkBoxShowDistribution.setSelected(true);
+ 		checkBoxShowDistribution.addItemListener(new ItemListener() {
+ 			@Override
+ 		    public void itemStateChanged(ItemEvent e) {
+ 		    	booleanShowDistribution = checkBoxShowDistribution.isSelected();	    
+ 				logService.info(this.getClass().getName() + " Show distribution(s) set to " + booleanShowDistribution);
+ 				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
+ 		    }
+ 		});
+ 		gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
+ 	    gbc.gridy = 1;
+ 	    gbc.anchor = GridBagConstraints.EAST; //right
+ 	    contentPanel.add(labelShowDistribution, gbc);
+ 	    gbc.gridx = 1;
+ 	    gbc.gridy = 1;
+ 	    gbc.anchor = GridBagConstraints.WEST; //left
+ 	    contentPanel.add(checkBoxShowDistribution, gbc);	
+ 	 
+ 	    //initialize command variable
+ 	    booleanShowDistribution = checkBoxShowDistribution.isSelected();
 	
 		//Change/Override items defined in the super class(es)	
 	    	
@@ -102,6 +140,8 @@ public class Csaj1DStatisticsDialog extends CsajDialog_1DPlugin {
 		Future<CommandModule> future = commandService.run(Csaj1DStatisticsCmd.class, false,
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,
+														
+														"booleanShowDistribution",	     booleanShowDistribution,
 
 														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,
 														"choiceRadioButt_SurrogateType", choiceRadioButt_SurrogateType,

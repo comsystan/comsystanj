@@ -90,9 +90,9 @@ public class Csaj1DRQADialog extends CsajDialog_1DPlugin {
 	private JComboBox<String> comboBoxNorm;
 	private String   choiceRadioButt_Norm;
 	
-	private JLabel    labelShowReccurenceMatrix;
-	private JCheckBox checkBoxShowReccurenceMatrix;
- 	private boolean   booleanShowReccurenceMatrix;
+	private JLabel    labelShowRecurrenceMatrix;
+	private JCheckBox checkBoxShowRecurrenceMatrix;
+ 	private boolean   booleanShowRecurrenceMatrix;
 
 	//Some default @Parameters are already defined in the super class
 
@@ -233,20 +233,20 @@ public class Csaj1DRQADialog extends CsajDialog_1DPlugin {
 	    choiceRadioButt_Norm = (String)comboBoxNorm.getSelectedItem();
 	    
 	    //*****************************************************************************************
- 		labelShowReccurenceMatrix = new JLabel("Show reccurence matrix");
- 		labelShowReccurenceMatrix.setToolTipText("Show reccurence matrix");
- 		labelShowReccurenceMatrix.setHorizontalAlignment(JLabel.RIGHT);
- 		labelShowReccurenceMatrix.setEnabled(true);
+ 		labelShowRecurrenceMatrix = new JLabel("Show recurrence matrix");
+ 		labelShowRecurrenceMatrix.setToolTipText("Show recurrence matrix");
+ 		labelShowRecurrenceMatrix.setHorizontalAlignment(JLabel.RIGHT);
+ 		labelShowRecurrenceMatrix.setEnabled(true);
  		
- 		checkBoxShowReccurenceMatrix = new JCheckBox();
- 		checkBoxShowReccurenceMatrix.setToolTipText("Show reccurence matrix");
- 		checkBoxShowReccurenceMatrix.setEnabled(true);
- 		checkBoxShowReccurenceMatrix.setSelected(true);
- 		checkBoxShowReccurenceMatrix.addItemListener(new ItemListener() {
+ 		checkBoxShowRecurrenceMatrix = new JCheckBox();
+ 		checkBoxShowRecurrenceMatrix.setToolTipText("Show recurrence matrix");
+ 		checkBoxShowRecurrenceMatrix.setEnabled(true);
+ 		checkBoxShowRecurrenceMatrix.setSelected(true);
+ 		checkBoxShowRecurrenceMatrix.addItemListener(new ItemListener() {
  			@Override
  		    public void itemStateChanged(ItemEvent e) {
- 		    	booleanShowReccurenceMatrix = checkBoxShowReccurenceMatrix.isSelected();	    
- 				logService.info(this.getClass().getName() + " Show reccurence matrix option set to " + booleanShowReccurenceMatrix);
+ 		    	booleanShowRecurrenceMatrix = checkBoxShowRecurrenceMatrix.isSelected();	    
+ 				logService.info(this.getClass().getName() + " Show recurrence matrix option set to " + booleanShowRecurrenceMatrix);
  				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
  		    }
  		});
@@ -254,14 +254,14 @@ public class Csaj1DRQADialog extends CsajDialog_1DPlugin {
         gbc.gridx = 0;
  	    gbc.gridy = 4;
  	    gbc.anchor = GridBagConstraints.EAST; //right
- 	    contentPanel.add(labelShowReccurenceMatrix, gbc);
+ 	    contentPanel.add(labelShowRecurrenceMatrix, gbc);
  	    gbc.gridx = 1;
  	    gbc.gridy = 4;
  	    gbc.anchor = GridBagConstraints.WEST; //left
- 	    contentPanel.add(checkBoxShowReccurenceMatrix, gbc);	
+ 	    contentPanel.add(checkBoxShowRecurrenceMatrix, gbc);	
  	 
  	    //initialize command variable
- 	    booleanShowReccurenceMatrix = checkBoxShowReccurenceMatrix.isSelected();
+ 	    booleanShowRecurrenceMatrix = checkBoxShowRecurrenceMatrix.isSelected();
 		
 	    //*****************************************************************************************
 		//Change/Override items defined in the super class(es)
@@ -286,7 +286,7 @@ public class Csaj1DRQADialog extends CsajDialog_1DPlugin {
 														"spinnerInteger_Tau",            spinnerInteger_Tau,
 														"spinnerFloat_Eps",              spinnerFloat_Eps,
 														"choiceRadioButt_Norm",			 choiceRadioButt_Norm,
-														"booleanShowReccurenceMatrix",	 booleanShowReccurenceMatrix,
+														"booleanShowRecurrenceMatrix",	 booleanShowRecurrenceMatrix,
 														
 														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,
 														"choiceRadioButt_SurrogateType", choiceRadioButt_SurrogateType,
