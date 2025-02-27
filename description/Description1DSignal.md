@@ -251,7 +251,7 @@
 - Guzik et al., 2006, Biomedizinische Technik/Biomedical Engineering, [DOI 10.1515/BMT.2006.054](https://doi.org/10.1515/BMT.2006.054).
 
 ### Complexity analyses - Recurrence quantification analysis
-- RQA measures that quantify the number and duration of reccurrences of a phase space trajectory
+- RQA measures the number and duration of reccurrences of a phase space trajectory
 - RR, DET, RATIO, DIV, Lmean, Lmax, ENT, LAM, TT  
 - The embedding dimension can be set (usually not too high)
 - The delay (tau) for the phase space reconstruction can be set (a relaible value value is the first minimum of the autocorrelation)
@@ -266,6 +266,21 @@
   - The number of gliding boxes is (signal length)-(box size)
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Marwan et al., 2007, PhysicaD, [DOI 10.1016/j.physrep.2006.11.001](https://doi.org/10.1016/j.physrep.2006.11.001)
+
+### Complexity analyses - Rescaled auto-density RAD
+- RAD measures the distance to criticality
+- cRAD centered RAD for symmetric distributions
+- For noisy and short sequences
+- The delay (tau) for the difference vector can be set (a relaible value value is the first minimum of the autocorrelation
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - the box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Harris et al., 2024, Phys Rev X, [DOI 10.1103/PhysRevX.14.031021](https://doi.org/10.1103/PhysRevX.14.031021)
 
 ### Complexity analyses - Standard HRV measurements
 - Standard HRV measurements (e.g. for 24h ECG Holter recordings)
