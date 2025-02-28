@@ -44,6 +44,9 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 
 import org.apache.commons.math3.complex.Complex;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.util.Pair;
 import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
@@ -77,6 +80,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -194,7 +200,8 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
     				   "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
     				   "Fractal IFS - Mandelbrot set", "Fractal IFS - Mandelbrot island-1", "Fractal IFS - Mandelbrot island-2",
     				   "Fractal IFS - Mandelbrot island&lake-1", "Fractal IFS - Mandelbrot island&lake-2", 
-    				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon"
+    				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon",
+    				   "Fractal - Hofstaedter butterfly"
     				  },
     		   persist = true,  //restore previous value default = true
     		   initializer = "initialImageType",
@@ -680,6 +687,7 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
 		else if (imageType.equals("Fractal IFS - Koch snowflake"))				name = "Fractal IFS - Koch snowflake";
 		else if (imageType.equals("Fractal IFS - Fern"))						name = "Fractal IFS - Fern";
 		else if (imageType.equals("Fractal IFS - Heighway dragon"))				name = "Fractal IFS - Heighway dragon";
+		else if (imageType.equals("Fractal - Hofstaedter butterfly"))	        name = "Fractal - Hofstaedter butterfly";
 		
 			
 		AxisType[] axes  = null;
@@ -726,6 +734,8 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
 				else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
 				else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
+				else if (imageType.equals("Fractal - Hofstaedter butterfly"))		computeHofstaedterButterfly(greyR);
+
 				
 				RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 				Cursor<UnsignedByteType> cursor = resultImg.cursor();
@@ -792,6 +802,7 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
 					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyR);
 					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyR);
+					else if (imageType.equals("Fractal - Hofstaedter butterfly"))		computeHofstaedterButterfly(greyR);
 						
 					ra = datasetOut.randomAccess();
 					cursor = resultImg.cursor();
@@ -862,6 +873,7 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
 					else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
 					else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
+					else if (imageType.equals("Fractal - Hofstaedter butterfly"))		computeHofstaedterButterfly(greyValue);
 								
 					cursor = resultImg.cursor();
 					
@@ -937,6 +949,7 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
 						else if (imageType.equals("Fractal IFS - Koch snowflake"))			computeFracKochSnowflake(numPolygons, numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Fern"))					computeFracFern(numIterations, greyValue);
 						else if (imageType.equals("Fractal IFS - Heighway dragon"))			computeFracHeighway(numIterations, greyValue);
+						else if (imageType.equals("Fractal - Hofstaedter butterfly"))		computeHofstaedterButterfly(greyValue);
 						
 						cursor = resultImg.cursor();
 						pos2D = new long[2];		
@@ -3507,7 +3520,112 @@ public class Csaj2DImageGeneratorCmd<T extends RealType<T>, C> extends ContextCo
 		}	
 	}
 	
-	 public static void main(final String... args) throws Exception {
+	private void computeHofstaedterButterfly(int greyMax) {
+		
+		//https://phys.org/news/2025-02-hofstadter-butterfly-quantum-fractal-patterns.html
+		//DOI: 10.1038/s41586-024-08550-2
+		
+		resultImg = new ArrayImgFactory<>(new UnsignedByteType()).create(datasetOut.dimension(0), datasetOut.dimension(1));
+		//Cursor<UnsignedByteType> cursor = resultImg.cursor();
+		RandomAccess<UnsignedByteType> ra = resultImg.randomAccess();
+		
+		int width = (int)resultImg.dimension(0);
+		int height = (int)resultImg.dimension(1);
+		 
+        // Horizontal number of indices (eigenvalues) 
+        int size = width;
+        //size = 100; //faster
+        
+        // Vertical number of indices (alphas)
+        int maximum = height;
+        //maximum = 100; //faster
+        
+        double alpha;
+        double[][] matrix;
+        double[] eigenValues;
+        Array2DRowRealMatrix matrixMath3;
+        EigenDecomposition eigenDecomposition;
+        
+        int x;
+        int y;
+
+        for (int index = 0; index <= maximum; index++) {
+         
+        	alpha = (double) index / maximum;
+            matrix = constructMatrix(0, alpha, size);      
+            matrixMath3 = new Array2DRowRealMatrix(matrix);
+            eigenDecomposition = new EigenDecomposition(matrixMath3);
+            eigenValues = eigenDecomposition.getRealEigenvalues();
+                  
+            for (int i = 0; i < eigenValues.length; i++) {
+                x = (int) Math.round((eigenValues[i] + 4.0)/8.0 * (width-1));  // Scale and translate, original range is [-4.4])
+                y = (int) Math.round(alpha * (height - 1)); // Scale, original range is [0,1])
+                
+            	try {
+					ra.setPosition(x, 0);
+					ra.setPosition(y, 1);
+					ra.get().setReal(greyMax);
+				} catch (ArrayIndexOutOfBoundsException e) {
+					logService.info(this.getClass().getName() + " ArrayIndexOutOfBoundsException at x:" + x + " y:" + y);
+					//e.printStackTrace();
+				}     	
+            }
+        } 			
+	}
+	   
+    private static double[][] constructMatrix(double g, double a, int size) {
+        double[][] matrix = new double[size][size];
+        double matrixNorm = 2 * Math.PI * a;
+        double minusComputed = Math.exp(-g);
+        double plusComputed = Math.exp(g);
+        int[] indices;
+        int minus;
+        int plus;
+
+        for (int i = 0; i < size; i++) {
+            matrix[i][i] = 2 * Math.cos(matrixNorm * i);
+                
+            if      (i == 0)        indices = new int[]{size - 1, 1};  
+            else if (i == size - 1) indices = new int[]{i - 1, 0};  
+            else indices = new int[]{i - 1, i + 1};
+                   
+            minus = indices[0];
+            plus = indices[1];
+
+            if (minus != -1) {
+                matrix[i][minus] = minusComputed;
+            }
+
+            if (plus != -1) {
+                matrix[i][plus] = plusComputed;
+            }
+        }
+
+        return matrix;
+    } 
+    
+    private static int[] constructIndices(int index, int size) {
+        if (index == 0) {
+            return new int[]{size - 1, 1};
+        }
+        if (index == size - 1) {
+            return new int[]{index - 1, 0};
+        }
+        return new int[]{index - 1, index + 1};
+    }
+    
+    private static double[] getEigenvaluesOfMatrix(double g, double a, int size) {
+        double[][] matrix = constructMatrix(g, a, size);
+        return calculateEigenvalues(matrix);
+    }
+    
+    private static double[] calculateEigenvalues(double[][] matrix) {
+  	  Array2DRowRealMatrix matrixMath3 = new Array2DRowRealMatrix(matrix);
+        EigenDecomposition eigenDecomposition = new EigenDecomposition(matrixMath3);
+      return eigenDecomposition.getRealEigenvalues();
+    } 
+
+    public static void main(final String... args) throws Exception {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch(Throwable t) {

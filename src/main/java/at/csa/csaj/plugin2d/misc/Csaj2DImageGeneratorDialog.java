@@ -435,7 +435,9 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 				   "Fractal IFS - Menger", "Fractal IFS - Sierpinski-1", "Fractal IFS - Sierpinski-2",
 				   "Fractal IFS - Mandelbrot set", "Fractal IFS - Mandelbrot island-1", "Fractal IFS - Mandelbrot island-2",
 				   "Fractal IFS - Mandelbrot island&lake-1", "Fractal IFS - Mandelbrot island&lake-2", 
-				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon"};
+				   "Fractal IFS - Koch snowflake",  "Fractal IFS - Fern", "Fractal IFS - Heighway dragon",
+				   "Fractal - Hofstaedter butterfly"
+				   };
 		comboBoxImageType = new JComboBox<String>(options);
 		comboBoxImageType.setToolTipText("Type of output image\bFFT..Fast Fourier transform\bMPD..Midpoint displacement\bHRM..Hirarchical random maps\bIFS..Iterated function system");
 	    comboBoxImageType.setEditable(false);
@@ -538,6 +540,10 @@ public class Csaj2DImageGeneratorDialog extends CsajDialog_PluginFrame {
 					spinnerHRMProbability2.setEnabled(true);
 					labelHRMProbability3.setEnabled(true);
 					spinnerHRMProbability3.setEnabled(true);
+				}
+				
+				if (   choiceRadioButt_ImageType.equals("Fractal - Hofstaedter butterfly") ) {		
+
 				}
 				
 				//if (booleanProcessImmediately) btnProcessSingleImage.doClick();
