@@ -458,7 +458,7 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Petrosian, 1988, Proc 8th IEEE Symp Comp Med Syst, [DOI 10.1109/CBMS.1995.465426](https://doi.org/10.1109/CBMS.1995.465426)
 
-### Fractal analyses - RSE dimension (Roughness dimension)
+### Fractal analyses - RSE dimension
 - Roughness scaling extraction dimension
 - M number of randomly chosen sub-sequences for each length (M=50 recommended)
 - Scaling factor = 1 (fixed) 
