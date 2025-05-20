@@ -62,6 +62,10 @@
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
+### Preprocessing - Outliers
+- Elimination or extracting outliers
+- Z-score, Interquartile range IQR
+
 ### Preprocessing - Resampling
 - Down- or Upsampling
 - A resampling factor can be set
