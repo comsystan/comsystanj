@@ -14,7 +14,7 @@
 
 	<groupId>at.csa.csaj</groupId>
 	<artifactId>ComsystanJ</artifactId>
-	<version>1.2.0-beta</version><!--ComsystanJ version-->
+	<version>1.2.0</version><!--ComsystanJ version-->
 
 	<name>ComsystanJ</name>
 	<description>ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes</description>
@@ -202,7 +202,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>3.3.0</version>
+				<version>3.5.0</version>
 				 <executions>
 					<execution>
 						<goals>
@@ -219,7 +219,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>2.0.0</version><!--license-maven-plugin version-->
+				<version>2.5.0</version><!--license-maven-plugin version-->
 				<configuration>
 					<verbose>false</verbose>
 					<canUpdateCopyright>true</canUpdateCopyright>
