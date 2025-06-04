@@ -21,29 +21,6 @@ If you use ComsystanJ plugins and publish your work, please cite following publi
 
 Helmut Ahammer, Martin A. Reiss, Moritz Hackhofer, Ion Andronache, Marko Radulovic, Fabián Labra-Spröhnle, and Herbert Franz Jelinek. „ComsystanJ: A Collection of Fiji/ImageJ2 Plugins for Nonlinear and Complexity Analysis in 1D, 2D and 3D“. PLOS ONE 18, Nr. 10, 2023, e0292217, [https://doi.org/10.1371/journal.pone.0292217](https://doi.org/10.1371/journal.pone.0292217)
 
-### Collaborations
-[<img src="images/nasa-logo.png" width=60 height=50/>](https://www.nasa.gov/goddard) [<img src="images/nasa-ccmc-logo.png" width=117 height=45/>](https://ccmc.gsfc.nasa.gov/) [CCMC](https://ccmc.gsfc.nasa.gov/)<br/>
-CCMC is a multi-agency partnership enabling, supporting, and performing research and development for next-generation space science and space weather models.
-It is situated at NASA Goddard Space Flight Center [GSFC](https://www.nasa.gov/goddard)
-
-[<img src="images/caimt-logo.png" width=60 height=58/>](https://caimt.ro) [CAIMT](https://caimt.ro)<br/>
-The Research Center for Integrated Analysis and Territorial Management aims to develop methods for advanced modeling of the complexity of territorial systems.
-
-[<img src="images/iors-logo.png" width=50 height=50/>](https://iors.ro) [IORS](https://www.ncrc.ac.rs)<br/>
-The Institute for Oncology and Radiology of Serbia is a cancer clinic integrated with the National Cancer Research Centre as a research unit.
-
-[<img src="images/noologica-logo.png" width=222 height=37/>](https://noologica.com) [Noologica](https://noologica.com)<br/>
-An open source initiative for the design, development, testing, validation and dissemination of a mental health research-diagnostic application.
-
-[<img src="images/iasms-logo.png" width=100 height=31/>](https://iasms.org) [IASMS](https://iasms.org)<br/>
-The International Association of Sciences in Medicine and Sports is dedicated to scientific activities in all fields of medicine by maintaining health.
-
-[<img src="images/nisos-logo.png" width=100 height=48/>](https://nisos.at) [NISOS](https://nisos.at)<br/>
-Body composition analyses
-
-[<img src="images/mug-logo.png" width=58 height=47/>](https://medunigraz.at/en) [MUG](https://medunigraz.at/en)<br/>
-Medical University of Graz, Division of Medical Physics & Biophysics
-
 ### Notes for using ComsystanJ with Fiji
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
@@ -58,4 +35,5 @@ To get the pom-scijava version number of your Fiji, simply start Fiji and execut
 
 ### Contact
 Helmut Ahammer
-e-mail **helmut.ahammer@medunigraz.at**
+
+e-mail **comsystan@outlook.com**
