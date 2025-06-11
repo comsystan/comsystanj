@@ -25,7 +25,7 @@ Helmut Ahammer, Martin A. Reiss, Moritz Hackhofer, Ion Andronache, Marko Radulov
 
 **If image plugins do not work, select Edit/Options/ImageJ2..., activate "Use SCIFIO when opening files" and restart Fiji.**
   
-**It is recommended to use the latest Fiji version from the download archive [https://downloads.imagej.net/fiji/archive](https://downloads.imagej.net/fiji/archive)**
+**It is recommended to use the latest Fiji version from the download archive [https://downloads.imagej.net/fiji/archive/latest/](https://downloads.imagej.net/fiji/archive/latest/)**
 
 **Signal plugins do not work with Fiji <=2.9.0.**
 
