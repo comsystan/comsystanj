@@ -89,12 +89,28 @@ For binary images black pixels are the background. White pixels are the foregrou
 - 8-bit grey images
 - RGB color images may also work, but not tested
 - Lossless and lossy algorithms can be chosen
-- Lossless algorithms are recommended.
+- Lossless algorithms are recommended
 - LD is estimated by the decompression time of the compressed data bytes (ZIP, ZLIB, GZIB) or
 - LD is estimated by the opening time of the compressed image (TIFF-LZW, PNG, J2K, JPG)
-- Iterations should be set to as high a value as possible.
+- Iterations should be set to the highest possible value
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
+
+### Complexity analyses - Statistical complexity measures
+- SCM = Shannon entropy H * Distribution distance D
+- _E ... Euclidean distance
+- _W ... Wootter's distance
+- _K ... Kullback-Leibler distance
+- _J ... Jensen-Shannon distance
+- SCM_E is also known as LMC complexity
+- H and/or D can be normalised
+- Normalisation of Kullback-Leibler distance not possible exactly
+- 8-bit grey images
+- RGB color images may also work, but not tested
+- Kowalski et al., 2011, Entropy, [DOI 10.3390/e13061055](https://doi.org/10.3390/e13061055)
+- Das et al., 2024, arXiv, [DOI 10.48550/arXiv.2411.06755](https://doi.org/10.48550/arXiv.2411.06755)
+- López-Ruiz et al., 1995, Physics Letters A, [DOI 10.1016/0375-9601(95)00867-5](https://doi.org/10.1016/0375-9601(95)00867-5)
+- Wootters, 1981, Physical Review D, [DOI 10.1103/PhysRevD.23.357](https://doi.org/10.1103/PhysRevD.23.357)
 
 ### Entropy analyses - Generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
