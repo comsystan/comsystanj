@@ -56,13 +56,28 @@
 - Lossless algorithms are recommended
 - LD is estimated by the decompression time of the compressed data bytes (ZIP, ZLIB, GZIB) or
 - LD is estimated by the opening time of the compressed image (TIFF-LZW)
-- Iterations should be set to as high a value as possible
+- Iterations should be set to the highest possible value
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
+### 3D Complexity analyses - 3D Statistical complexity measures
+- SCM = Shannon entropy H * Distribution distance D
+- Probabilities are computed with plain voxel grey values
+- 8-bit grey image volume
+- _E ... Euclidean distance
+- _W ... Wootter's distance
+- _K ... Kullback-Leibler distance
+- _J ... Jensen-Shannon distance
+- SCM_E is also known as LMC complexity
+- H and/or D can be normalised
+- Kowalski et al., 2011, Entropy, [DOI 10.3390/e13061055](https://doi.org/10.3390/e13061055)
+- Das et al., 2024, arXiv, [DOI 10.48550/arXiv.2411.06755](https://doi.org/10.48550/arXiv.2411.06755)
+- López-Ruiz et al., 1995, Physics Letters A, [DOI 10.1016/0375-9601(95)00867-5](https://doi.org/10.1016/0375-9601(95)00867-5)
+- Wootters, 1981, Physical Review D, [DOI 10.1103/PhysRevD.23.357](https://doi.org/10.1103/PhysRevD.23.357)
+
 ### 3D Entropy analyses - 3D Generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
-- Probabilities are computed with plain pixel grey values
+- Probabilities are computed with plain voxel grey values
 - 8-bit grey image volume
 - A plot of Renyi entropies can be shown
 - Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108)
