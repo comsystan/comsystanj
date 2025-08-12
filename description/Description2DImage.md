@@ -98,6 +98,8 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Complexity analyses - Statistical complexity measures
 - SCM = Shannon entropy H * Distribution distance D
+- Probabilities are computed with plain pixel grey values
+- 8-bit grey images
 - _E ... Euclidean distance
 - _W ... Wootter's distance
 - _K ... Kullback-Leibler distance
@@ -105,7 +107,6 @@ For binary images black pixels are the background. White pixels are the foregrou
 - SCM_E is also known as LMC complexity
 - H and/or D can be normalised
 - Normalisation of Kullback-Leibler distance not possible exactly
-- 8-bit grey images
 - RGB color images may also work, but not tested
 - Kowalski et al., 2011, Entropy, [DOI 10.3390/e13061055](https://doi.org/10.3390/e13061055)
 - Das et al., 2024, arXiv, [DOI 10.48550/arXiv.2411.06755](https://doi.org/10.48550/arXiv.2411.06755)
