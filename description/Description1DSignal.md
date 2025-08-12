@@ -302,6 +302,28 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Malik et al., 1996, Circulation, [DOI 10.1161/01.CIR.93.5.1043](https://doi.org/10.1161/01.CIR.93.5.1043)
 
+### Complexity analyses - Statistical complexity measures
+- SCM = Shannon entropy H * Distribution distance D
+- _E ... Euclidean distance
+- _W ... Wootter's distance
+- _K ... Kullback-Leibler distance
+- _J ... Jensen-Shannon distance
+- SCM_E is also known as LMC complexity
+- H and/or D can be normalised
+- Normalisation of Kullback-Leibler distance not possible exactly
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - One of the measurement parameters must be selected
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Kowalski et al., 2011, Entropy, [DOI 10.3390/e13061055](https://doi.org/10.3390/e13061055)
+- Das et al., 2024, arXiv, [DOI 10.48550/arXiv.2411.06755](https://doi.org/10.48550/arXiv.2411.06755)
+- López-Ruiz et al., 1995, Physics Letters A, [DOI 10.1016/0375-9601(95)00867-5](https://doi.org/10.1016/0375-9601(95)00867-5)
+- Wootters, 1981, Physical Review D, [DOI 10.1103/PhysRevD.23.357](https://doi.org/10.1103/PhysRevD.23.357)
+
 ### Complexity analyses - Symbolic aggregation
 - Output is an image
 - Aggregation size = Sqrt(Alphabet size) x 2^(Sub-word length - 1)
