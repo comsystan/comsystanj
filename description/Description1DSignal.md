@@ -189,7 +189,7 @@
 ### Complexity analyses - Kolmogorov complexity and Logical depth
 - KC is estiamted by compressing data bytes (ZLIB, GZIB)
 - LD is estimated by the decompression time
-- Iterations should be set to as high a value as possible
+- Iterations should be set to the highest possible value
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
