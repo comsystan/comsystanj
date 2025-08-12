@@ -255,7 +255,7 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	private String choiceRadioButt_ProbabilityType;
 
 	@Parameter(label = "Lag",
-			   description = "(difference)delta between two data points",
+			   description = "Delta (difference) between two data points",
 			   style = NumberWidget.SPINNER_STYLE,
 			   min = "1",
 			   max = "1000000",
@@ -1274,6 +1274,7 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		int     lag           = spinnerInteger_Lag;
 		boolean optShowRenyiPlot = booleanShowRenyiPlot;
 		boolean skipZeroes    = booleanSkipZeroes;
+		boolean skipZeroBin   = false;
 		
 		//min max and step values are already set in the table header generation method
 		
@@ -1346,17 +1347,17 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 				probabilities = compProbabilities(sequence1D, lag, probType);				
 				ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
 				
-				genEntSE      = ge.compSE();
-				genEntH       = ge.compH();	//H1 H2 H3 
-				genEntRenyi   = ge.compRenyi  (minQ, maxQ, numQ);
-				genEntTsallis = ge.compTsallis(minQ, maxQ, numQ);	
-				genEntSNorm   = ge.compSNorm  (minQ, maxQ, numQ);	
-				genEntSEscort = ge.compSEscort(minQ, maxQ, numQ);	
-				genEntSEta    = ge.compSEta   (minEta,   maxEta,   stepEta,   numEta);	
-				genEntSKappa  = ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa);	
-				genEntSB      = ge.compSB     (minB,     maxB,     stepB,     numB);	
-				genEntSBeta   = ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta);	
-				genEntSGamma  = ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma);
+				genEntSE      = ge.compSE(skipZeroBin);
+				genEntH       = ge.compH(skipZeroBin);	//H1 H2 H3 
+				genEntRenyi   = ge.compRenyi  (minQ, maxQ, numQ, skipZeroBin);
+				genEntTsallis = ge.compTsallis(minQ, maxQ, numQ, skipZeroBin);	
+				genEntSNorm   = ge.compSNorm  (minQ, maxQ, numQ, skipZeroBin);	
+				genEntSEscort = ge.compSEscort(minQ, maxQ, numQ, skipZeroBin);	
+				genEntSEta    = ge.compSEta   (minEta,   maxEta,   stepEta,   numEta, skipZeroBin);	
+				genEntSKappa  = ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa, skipZeroBin);	
+				genEntSB      = ge.compSB     (minB,     maxB,     stepB,     numB, skipZeroBin);	
+				genEntSBeta   = ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta, skipZeroBin);	
+				genEntSGamma  = ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma, skipZeroBin);
 
 				resultValues[0] = genEntSE;
 				resultValues[1] = genEntH[0];
@@ -1424,19 +1425,19 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 				ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
 				
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
-				if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE();
-				else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH())[0]; 
-				else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH())[1];
-				else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH())[2]; 
-				else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta))[0];//value for min 
-				else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma))[0]; //value for min
+				if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE(skipZeroBin);
+				else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH(skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH(skipZeroBin))[1];
+				else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH(skipZeroBin))[2]; 
+				else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta, skipZeroBin))[0];//value for min 
+				else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma, skipZeroBin))[0]; //value for min
 
 				resultValues[0] = entropyValue;
 				int lastMainResultsIndex = 0;
@@ -1457,19 +1458,19 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 					ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
 					
 					//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
-					if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE();
-					else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH())[0]; 
-					else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH())[1];
-					else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH())[2]; 
-					else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ))[0]; //value for min
-					else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ))[0]; //value for min
-					else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ))[0]; //value for min
-					else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ))[0]; //value for min
-					else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta))[0];//value for min 
-					else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa))[0]; //value for min
-					else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB))[0]; //value for min
-					else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta))[0]; //value for min
-					else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma))[0]; //value for min
+					if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE(skipZeroBin);
+					else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH(skipZeroBin))[0]; 
+					else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH(skipZeroBin))[1];
+					else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH(skipZeroBin))[2]; 
+					else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+					else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+					else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+					else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+					else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta, skipZeroBin))[0];//value for min 
+					else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa, skipZeroBin))[0]; //value for min
+					else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB, skipZeroBin))[0]; //value for min
+					else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta, skipZeroBin))[0]; //value for min
+					else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma, skipZeroBin))[0]; //value for min
 						
 					resultValues[lastMainResultsIndex + 2 + s] = entropyValue;
 					sumEntropies += entropyValue;
@@ -1496,19 +1497,19 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 				probabilities = compProbabilities(subSequence1D, lag, probType);	
 				ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
-				if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE();
-				else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH())[0];
-				else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH())[1];
-				else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH())[2]; 
-				else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta))[0];//value for min 
-				else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta))[0]; //value for min
-				else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma))[0]; 	//value for min
+				if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE(skipZeroBin);
+				else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH(skipZeroBin))[0];
+				else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH(skipZeroBin))[1];
+				else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH(skipZeroBin))[2]; 
+				else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta, skipZeroBin))[0];//value for min 
+				else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta, skipZeroBin))[0]; //value for min
+				else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma, skipZeroBin))[0]; 	//value for min
 				resultValues[i] = entropyValue;			
 				//***********************************************************************
 			}	
@@ -1532,19 +1533,19 @@ public class Csaj1DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 				ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
 				
 				//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
-				if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE();
-				else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH())[0];
-				else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH())[1];
-				else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH())[2]; 
-				else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta))[0]; 
-				else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma))[0]; 	
+				if (choiceRadioButt_EntropyType.equals("SE"))           entropyValue = ge.compSE(skipZeroBin);
+				else if (choiceRadioButt_EntropyType.equals("H1"))      entropyValue = (ge.compH(skipZeroBin))[0];
+				else if (choiceRadioButt_EntropyType.equals("H2"))      entropyValue = (ge.compH(skipZeroBin))[1];
+				else if (choiceRadioButt_EntropyType.equals("H3"))      entropyValue = (ge.compH(skipZeroBin))[2]; 
+				else if (choiceRadioButt_EntropyType.equals("Renyi"))   entropyValue = (ge.compRenyi  (minQ, maxQ, numQ, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("Tsallis")) entropyValue = (ge.compTsallis(minQ, maxQ, numQ, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("SNorm"))   entropyValue = (ge.compSNorm  (minQ, maxQ, numQ, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("SEscort")) entropyValue = (ge.compSEscort(minQ, maxQ, numQ, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("SEta"))    entropyValue = (ge.compSEta   (minEta,   maxEta,   stepEta,   numEta, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("SKappa"))  entropyValue = (ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("SB"))      entropyValue = (ge.compSB     (minB,     maxB,     stepB,     numB, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("SBeta"))   entropyValue = (ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta, skipZeroBin))[0]; 
+				else if (choiceRadioButt_EntropyType.equals("SGamma"))  entropyValue = (ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma, skipZeroBin))[0]; 	
 				resultValues[i] = entropyValue;		
 				//***********************************************************************
 			}

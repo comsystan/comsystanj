@@ -37,7 +37,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,23 +68,18 @@ import org.apache.commons.math3.util.Precision;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
+import org.scijava.table.BoolColumn;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
 import org.scijava.table.GenericColumn;
-import org.scijava.ui.DialogPrompt.MessageType;
-import org.scijava.ui.DialogPrompt.OptionType;
-import org.scijava.ui.DialogPrompt.Result;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
@@ -98,8 +92,7 @@ import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
 import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
+
 
 /**
  * A {@link ContextCommand} plugin computing <3D Generalised entropies</a>
@@ -272,7 +265,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	private String choiceRadioButt_ProbabilityType;
 
 	@Parameter(label = "Lag",
-			   description = "(difference)delta between two data points",
+			   description = "Delta (difference) between two data points",
 			   style = NumberWidget.SPINNER_STYLE,
 			   min = "1",
 			   max = "1000000",
@@ -281,6 +274,11 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 			   initializer = "initialLag",
 			   callback = "callbackLag")
 	private int spinnerInteger_Lag;
+	
+	@Parameter(label = "Skip zero values",
+			   persist = true,
+		       callback = "callbackSkipZeroes")
+	private boolean booleanSkipZeroes;
 
 	@Parameter(label = "(Renyi/Tsallis/SNorm/SEscort) Min q", description = "minimal Q for Renyi and Tsallis entropies", style = NumberWidget.SPINNER_STYLE, min = "-1000", max = "1000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
@@ -393,8 +391,12 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	 	
 	protected void initialLag() {
 	 	spinnerInteger_Lag = 1;
-	 }
+	}
 	 	
+	protected void initialSkipZeroes() {
+		booleanSkipZeroes = false;
+	}	
+	
 	protected void initialMinQ() {
 		spinnerInteger_MinQ = -5;
 		minQ = spinnerInteger_MinQ;
@@ -932,11 +934,13 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		GenericColumn columnFileName  = new GenericColumn("File name");
 		GenericColumn columnProbType  = new GenericColumn("Probability type");
 		GenericColumn columnLag       = new GenericColumn("Lag");
+		BoolColumn columnSkipZeroes   = new BoolColumn("Skip zeroes");		
 
 	    tableOut = new DefaultGenericTable();
 		tableOut.add(columnFileName);
 		tableOut.add(columnProbType);	
 		tableOut.add(columnLag);	
+		tableOut.add(columnSkipZeroes);
 	
 		//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
 		tableOut.add(new DoubleColumn("SE"));
@@ -971,7 +975,8 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		tableOut.set("File name",   	 tableOut.getRowCount() - 1, datasetName);	
 		tableOut.set("Probability type", tableOut.getRowCount() - 1, choiceRadioButt_ProbabilityType); 
 		tableOut.set("Lag",              tableOut.getRowCount() - 1, spinnerInteger_Lag);    // Lag
-		tableColLast = 2;
+		tableOut.set("Skip zeroes",      tableOut.getRowCount() - 1, booleanSkipZeroes); 		
+		tableColLast = 4;
 			
 		int numParameters = containerPM.item1_Values.length;
 		tableColStart = tableColLast + 1;
@@ -993,6 +998,8 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		
 		String  probType         = choiceRadioButt_ProbabilityType;
 		int     lag              = spinnerInteger_Lag;
+		boolean skipZeros        = booleanSkipZeroes;
+		boolean skipZeroBin      = booleanSkipZeroes;
 		boolean optShowRenyiPlot = booleanShowRenyiPlot;
 
 //		if ((!colorModelType.equals("Binary")) && (numRegStart == 1)){
@@ -1025,17 +1032,17 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		probabilities = compProbabilities2(rai, lag, probType); //faster  //3D grey	
 		CsajAlgorithm_GeneralisedEntropies ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
 		
-		genEntSE      = ge.compSE();
-		genEntH       = ge.compH();	//H1 H2 H3 
-		genEntRenyi   = ge.compRenyi  (minQ, maxQ, numQ);
-		genEntTsallis = ge.compTsallis(minQ, maxQ, numQ);	
-		genEntSNorm   = ge.compSNorm  (minQ, maxQ, numQ);	
-		genEntSEscort = ge.compSEscort(minQ, maxQ, numQ);	
-		genEntSEta    = ge.compSEta   (minEta,   maxEta,   stepEta,   numEta);	
-		genEntSKappa  = ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa);	
-		genEntSB      = ge.compSB     (minB,     maxB,     stepB,     numB);	
-		genEntSBeta   = ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta);	
-		genEntSGamma  = ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma);
+		genEntSE      = ge.compSE(skipZeroBin);
+		genEntH       = ge.compH(skipZeroBin);	//H1 H2 H3 
+		genEntRenyi   = ge.compRenyi  (minQ, maxQ, numQ, skipZeroBin);
+		genEntTsallis = ge.compTsallis(minQ, maxQ, numQ, skipZeroBin);	
+		genEntSNorm   = ge.compSNorm  (minQ, maxQ, numQ, skipZeroBin);	
+		genEntSEscort = ge.compSEscort(minQ, maxQ, numQ, skipZeroBin);	
+		genEntSEta    = ge.compSEta   (minEta,   maxEta,   stepEta,   numEta, skipZeroBin);	
+		genEntSKappa  = ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa, skipZeroBin);	
+		genEntSB      = ge.compSB     (minB,     maxB,     stepB,     numB, skipZeroBin);	
+		genEntSBeta   = ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta, skipZeroBin);	
+		genEntSGamma  = ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma, skipZeroBin);
 
 		resultValues[0] = genEntSE;
 		resultValues[1] = genEntH[0];

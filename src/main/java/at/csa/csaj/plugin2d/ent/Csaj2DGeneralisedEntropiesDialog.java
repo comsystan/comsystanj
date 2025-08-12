@@ -57,7 +57,7 @@ import at.csa.csaj.commons.CsajDialog_2DPlugin;
  */
 public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 
-	private static final long serialVersionUID = -2493569616738191269L;
+	private static final long serialVersionUID = -8523048595497569720L;
 
 	@Parameter
 	private LogService logService;
@@ -76,8 +76,13 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
   	private JComboBox<String> comboBoxProbabilityType;
 	private String   choiceRadioButt_ProbabilityType;
 	
+	private JLabel   labelLag; 
 	private JSpinner spinnerLag;
 	private int      spinnerInteger_Lag;
+	
+	private JLabel    labelSkipZeroes;
+	private JCheckBox checkBoxSkipZeroes;
+	private boolean   booleanSkipZeroes;
 
 	private JSpinner spinnerMinQ;
 	private int spinnerInteger_MinQ;
@@ -164,6 +169,16 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_ProbabilityType = (String)comboBoxProbabilityType.getSelectedItem();
 				logService.info(this.getClass().getName() + " Probability type set to " + choiceRadioButt_ProbabilityType);
+				//Lag must always be 1 for Sequence values
+				if (choiceRadioButt_ProbabilityType.equals("Grey values")) {
+					labelLag.setEnabled(false);
+					spinnerLag.setEnabled(false);	
+					spinnerLag.setValue(1);
+				}
+				else {
+					labelLag.setEnabled(true);
+					spinnerLag.setEnabled(true);	
+				}
 				if (booleanProcessImmediately) btnProcessSingleImage.doClick();
 			}
 		});
@@ -180,16 +195,23 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    choiceRadioButt_ProbabilityType = (String)comboBoxProbabilityType.getSelectedItem();
 	    
 	    //*****************************************************************************************
-	    JLabel labelLag = new JLabel("Lag");
-	    labelLag.setToolTipText("(difference)delta between two data points");
+	    labelLag = new JLabel("Lag");
+	    labelLag.setToolTipText("Delta (difference) between two data points");
 	    labelLag.setHorizontalAlignment(JLabel.RIGHT);
 	    
 	    SpinnerNumberModel spinnerModelLag = new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step
         spinnerLag = new JSpinner(spinnerModelLag);
-        spinnerLag.setToolTipText("(difference)delta between two data points");
+        spinnerLag.setToolTipText("Delta (difference) between two data points");
         spinnerLag.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
+            	spinnerInteger_Lag = (int)spinnerLag.getValue();
+            	
+            	if ((spinnerInteger_Lag > 1) && (String)comboBoxProbabilityType.getSelectedItem() == "Grey values") {
+        			spinnerLag.setValue(1);
+                	logService.info(this.getClass().getName() + " Lag > 1 not possible for Grey values");
+                }
+                
             	spinnerInteger_Lag = (int)spinnerLag.getValue();
                 logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
                 if (booleanProcessImmediately) btnProcessSingleImage.doClick();
@@ -206,6 +228,35 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 	    contentPanel.add(spinnerLag, gbc);	    
 	    //initialize command variable
 	    spinnerInteger_Lag = (int)spinnerLag.getValue();
+	    
+	    //*****************************************************************************************
+	    labelSkipZeroes = new JLabel("Skip zero values");
+	    labelSkipZeroes.setToolTipText("Delete zeroes or not");
+	    labelSkipZeroes.setHorizontalAlignment(JLabel.RIGHT);
+	    
+		checkBoxSkipZeroes = new JCheckBox();
+		checkBoxSkipZeroes.setToolTipText("Delete zeroes or not");
+		checkBoxSkipZeroes.setSelected(false);
+		checkBoxSkipZeroes.addItemListener(new ItemListener() {
+			@Override
+		    public void itemStateChanged(ItemEvent e) {
+		    	booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
+		    	logService.info(this.getClass().getName() + " Skip zeroes option set to " + booleanSkipZeroes);
+		    	if (booleanProcessImmediately) btnProcessSingleImage.doClick();
+		    }
+		});
+		gbc.insets = INSETS_STANDARD;
+        gbc.gridx = 0;
+	    gbc.gridy = 2;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelSkipZeroes, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 2;
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(checkBoxSkipZeroes, gbc);	
+	    //initialize command variable
+	    booleanSkipZeroes = checkBoxSkipZeroes.isSelected();
+	    
 	    //*****************************************************************************************
 	    JLabel labelMinQ = new JLabel("Min q");
 	    labelMinQ.setToolTipText("Minimum q for Renyi, Tsallis, SNorm and SEscort entropies");
@@ -229,11 +280,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 2;
+	    gbc.gridy = 3;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMinQ, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 2;
+	    gbc.gridy = 3;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinQ, gbc);	    
 	    //initialize command variable
@@ -261,11 +312,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 3;
+	    gbc.gridy = 4;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMaxQ, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 3;
+	    gbc.gridy = 4;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxQ, gbc);	    
 	    //initialize command variable
@@ -288,11 +339,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 4;
+	    gbc.gridy = 5;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMinEta, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 4;
+	    gbc.gridy = 5;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinEta, gbc);	    
 	    //initialize command variable
@@ -315,11 +366,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 5;
+	    gbc.gridy = 6;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMaxEta, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 5;
+	    gbc.gridy = 6;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxEta, gbc);	    
 	    //initialize command variable
@@ -342,11 +393,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 6;
+	    gbc.gridy = 7;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMinKappa, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 6;
+	    gbc.gridy = 7;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinKappa, gbc);	    
 	    //initialize command variable
@@ -369,11 +420,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 7;
+	    gbc.gridy = 8;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMaxKappa, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 7;
+	    gbc.gridy = 8;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxKappa, gbc);	    
 	    //initialize command variable
@@ -396,11 +447,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 8;
+	    gbc.gridy = 9;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMinB, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 8;
+	    gbc.gridy = 9;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinB, gbc);	    
 	    //initialize command variable
@@ -423,11 +474,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 9;
+	    gbc.gridy = 10;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMaxB, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 9;
+	    gbc.gridy = 10;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxB, gbc);	    
 	    //initialize command variable
@@ -450,11 +501,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 10;
+	    gbc.gridy = 11;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMinBeta, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 10;
+	    gbc.gridy = 11;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinBeta, gbc);	    
 	    //initialize command variable
@@ -477,11 +528,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 11;
+	    gbc.gridy = 12;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMaxBeta, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 11;
+	    gbc.gridy = 12;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxBeta, gbc);	    
 	    //initialize command variable
@@ -504,11 +555,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 12;
+	    gbc.gridy = 13;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMinGamma, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 12;
+	    gbc.gridy = 13;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMinGamma, gbc);	    
 	    //initialize command variable
@@ -531,11 +582,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 13;
+	    gbc.gridy = 14;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelMaxGamma, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 13;
+	    gbc.gridy = 14;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerMaxGamma, gbc);	    
 	    //initialize command variable
@@ -557,11 +608,11 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 		});
 		gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 14;
+	    gbc.gridy = 15;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelShowRenyiPlot, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 14;
+	    gbc.gridy = 15;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(checkBoxShowRenyiPlot, gbc);	
 	
@@ -588,6 +639,7 @@ public class Csaj2DGeneralisedEntropiesDialog extends CsajDialog_2DPlugin {
 														
 														"choiceRadioButt_ProbabilityType",	choiceRadioButt_ProbabilityType,
 														"spinnerInteger_Lag",				spinnerInteger_Lag,
+														"booleanSkipZeroes",                booleanSkipZeroes,	
 														"spinnerInteger_MinQ",				spinnerInteger_MinQ,
 														"spinnerInteger_MaxQ",				spinnerInteger_MaxQ,
 														"spinnerFloat_MinEta",				spinnerFloat_MinEta,

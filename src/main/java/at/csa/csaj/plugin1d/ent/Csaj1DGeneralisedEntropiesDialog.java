@@ -59,7 +59,7 @@ import at.csa.csaj.commons.CsajDialog_1DPlugin;
  */
 public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 
-	private static final long serialVersionUID = 6243623536761241706L;
+	private static final long serialVersionUID = -1900185710469129800L;
 
 	@Parameter
 	private LogService logService;
@@ -78,6 +78,7 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
  	private JComboBox<String> comboBoxProbabilityType;
 	private String            choiceRadioButt_ProbabilityType;
 	
+	private JLabel   labelLag;
 	private JSpinner spinnerLag;
 	private int      spinnerInteger_Lag;
 
@@ -158,6 +159,16 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 			public void actionPerformed(final ActionEvent arg0) {
 				choiceRadioButt_ProbabilityType = (String)comboBoxProbabilityType.getSelectedItem();
 				logService.info(this.getClass().getName() + " Probability type set to " + choiceRadioButt_ProbabilityType);
+				//Lag must always be 1 for Sequence values
+				if (choiceRadioButt_ProbabilityType.equals("Sequence values")) {
+					labelLag.setEnabled(false);
+					spinnerLag.setEnabled(false);	
+					spinnerLag.setValue(1);
+				}
+				else {
+					labelLag.setEnabled(true);
+					spinnerLag.setEnabled(true);	
+				}
 				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
 			}
 		});
@@ -174,17 +185,24 @@ public class Csaj1DGeneralisedEntropiesDialog extends CsajDialog_1DPlugin {
 	    choiceRadioButt_ProbabilityType = (String)comboBoxProbabilityType.getSelectedItem();
 	    
 	    //*****************************************************************************************
-	    JLabel labelLag = new JLabel("Lag");
-	    labelLag.setToolTipText("(difference)delta between two data points");
+	    labelLag = new JLabel("Lag");
+	    labelLag.setToolTipText("Delta (difference) between two data points");
 	    labelLag.setHorizontalAlignment(JLabel.RIGHT);
 	    
 	    SpinnerNumberModel spinnerModelLag = new SpinnerNumberModel(1, 1, 999999999, 1); // initial, min, max, step
         spinnerLag = new JSpinner(spinnerModelLag);
-        spinnerLag.setToolTipText("(difference)delta between two data points");
+        spinnerLag.setToolTipText("Delta (difference) between two data points");
         spinnerLag.addChangeListener(new ChangeListener() {
         	@Override
             public void stateChanged(ChangeEvent e) {
             	spinnerInteger_Lag = (int)spinnerLag.getValue();
+            	
+            	 if ((spinnerInteger_Lag > 1) && (String)comboBoxProbabilityType.getSelectedItem() == "Sequence values") {
+         			spinnerLag.setValue(1);
+                 	logService.info(this.getClass().getName() + " Lag > 1 not possible for Sequence values");
+                 }
+                 
+             	spinnerInteger_Lag = (int)spinnerLag.getValue();
                 logService.info(this.getClass().getName() + " Lag set to " + spinnerInteger_Lag);
                 if (booleanProcessImmediately) btnProcessSingleColumn .doClick();
             }

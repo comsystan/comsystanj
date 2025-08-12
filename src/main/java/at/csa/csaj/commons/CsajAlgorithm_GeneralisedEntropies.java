@@ -83,9 +83,11 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * This method computes the SE entropy
 	 * @return
 	 */
-	public double compSE() {
+	public double compSE(boolean skipZeroBin) {
 		double sum = 0.0f;
-		for (int pp = 0; pp < probabilities.length; pp++) {
+		int binStart = 0;
+		if (skipZeroBin) binStart = 1;
+		for (int pp = binStart; pp < probabilities.length; pp++) {
 			//if (probabilities[pp] != 0) {
 				//sum = sum +  probabilities[pp] * (1.0 - Math.exp((probabilities[pp] - 1.0) / probabilities[pp]) ); //almost always exact  1!?	//According to and Tsekouras & Tsallis, and Tsallis book
 				sum = sum + probabilities[pp] * (Math.exp(1.0 - probabilities[pp]) - 1.0); //around 1.7 // N. R. Pal and S. K. Pal: Object background segmentation using new definitions of entropy, IEEE Proc. 366 (1989), 284–295.
@@ -101,14 +103,16 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * According to Amigo etal. paper
 	 * @return
 	 */
-	public double[] compH() {
+	public double[] compH(boolean skipZeroBin) {
 		
 		double genEntH1 = 0;
 		double genEntH2 = 0;
 		double genEntH3 = 0;	
 		double pHochp;
 		
-		for (int pp = 0; pp < probabilities.length; pp++) {
+		int binStart = 0;
+		if (skipZeroBin) binStart = 1;
+		for (int pp = binStart; pp < probabilities.length; pp++) {
 			if (probabilities[pp] != 0) {
 					pHochp = Math.pow(probabilities[pp], probabilities[pp]);
 					genEntH1 = genEntH1 + (1.0 - pHochp);
@@ -129,11 +133,13 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numQ
 	 * @return
 	 */
-	public double[] compRenyi(int minQ, int maxQ, int numQ) {
+	public double[] compRenyi(int minQ, int maxQ, int numQ, boolean skipZeroBin) {
 		double[] genEntRenyi   = new double[numQ];
 		for (int q = 0; q < numQ; q++) {
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {
 				if ((q + minQ) == 1) { //q=1 special case
 					if (probabilities[pp] == 0) {// damit logarithmus nicht undefiniert ist;
 						sum = sum +  Double.MIN_VALUE*Math.log( Double.MIN_VALUE); //for q=1 Renyi is equal to S_BGS (Bolzmann Gibbs Shannon entropy)
@@ -168,11 +174,13 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numQ
 	 * @return
 	 */
-	public double[] compTsallis(int minQ, int maxQ, int numQ) {
+	public double[] compTsallis(int minQ, int maxQ, int numQ, boolean skipZeroBin) {
 		double[] genEntTsallis   = new double[numQ];
 		for (int q = 0; q < numQ; q++) {
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {
 				if ((q + minQ) == 1) { //q=1 special case
 					if (probabilities[pp] == 0) {// damit logarithmus nicht undefiniert ist;
 						sum = sum +  Double.MIN_VALUE*Math.log( Double.MIN_VALUE); //for q=1 Renyi is equal to S_BGS (Bolzmann Gibbs Shannon entropy)
@@ -206,11 +214,13 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numQ
 	 * @return
 	 */
-	public double[] compSNorm(int minQ, int maxQ, int numQ) {
+	public double[] compSNorm(int minQ, int maxQ, int numQ, boolean skipZeroBin) {
 		double[] genEntSNorm   = new double[numQ];
 		for (int q = 0; q < numQ; q++) {
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {
 				if ((q + minQ) == 1) { //q=1 special case
 					if (probabilities[pp] == 0) {// damit logarithmus nicht undefiniert ist;
 						sum = sum +  Double.MIN_VALUE*Math.log( Double.MIN_VALUE); //for q=1 Snorm is equal to S_BGS (Bolzmann Gibbs Shannon entropy)
@@ -247,11 +257,13 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numQ
 	 * @return
 	 */
-	public double[] compSEscort(int minQ, int maxQ, int numQ) {
+	public double[] compSEscort(int minQ, int maxQ, int numQ, boolean skipZeroBin) {
 		double[] genEntSEscort = new double[numQ];
 		for (int q = 0; q < numQ; q++) {
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {
 				if ((q + minQ) == 1) { //q=1 special case
 					if (probabilities[pp] == 0) {// damit logarithmus nicht undefiniert ist;
 						sum = sum +  Double.MIN_VALUE*Math.log( Double.MIN_VALUE); //for q=1 SEscort is equal to S_BGS (Bolzmann Gibbs Shannon entropy)
@@ -289,14 +301,16 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numEta
 	 * @return
 	 */
-	public double[] compSEta(float minEta, float maxEta, float stepEta, int numEta) {
+	public double[] compSEta(float minEta, float maxEta, float stepEta, int numEta, boolean skipZeroBin) {
 		double[] genEntSEta = new double[numEta];
 		for (int n = 0; n < numEta; n++) {
 			double eta = minEta + n*stepEta; //SEta is equal to S_BGS (Bolzmann Gibbs Shannon entropy) for eta = 1 
 			double sum = 0.0f;
 			double gam1;
 			double gam2;
-			for (int pp = 0; pp < probabilities.length; pp++) {
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {
 				if (probabilities[pp] != 0){
 
 					//compute incomplete Gamma function using Apache's classes
@@ -321,12 +335,14 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numKappa
 	 * @return
 	 */
-	public double[] compSKappa(float minKappa, float maxKappa, float stepKappa, int numKappa) {
+	public double[] compSKappa(float minKappa, float maxKappa, float stepKappa, int numKappa, boolean skipZeroBin) {
 		double[] genEntSKappa = new double[numKappa];
 		for (int k = 0; k < numKappa; k++) {
 			double kappa = minKappa + k*stepKappa; //SKappa is equal to S_BGS (Bolzmann Gibbs Shannon entropy) for kappa = 0 
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {
 				if (kappa == 0) { //kappa=0 special case S_BGS (Bolzmann Gibbs Shannon entropy)
 					if (probabilities[pp] == 0) {// damit logarithmus nicht undefiniert ist;
 						sum = sum +  Double.MIN_VALUE*Math.log(Double.MIN_VALUE); //for k = 0 SKappa is equal to S_BGS (Bolzmann Gibbs Shannon entropy)
@@ -360,12 +376,14 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numB
 	 * @return
 	 */
-	public double[] compSB(float minB, float maxB, float stepB, int numB) {
+	public double[] compSB(float minB, float maxB, float stepB, int numB, boolean skipZeroBin) {
 		double[] genEntSB = new double[numB];
 		for (int n = 0; n < numB; n++) {
 			double valueB = minB + n*stepB; //SB is equal to S_BGS (Bolzmann Gibbs Shannon entropy) for ????????????????? 
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {
 				//if (probabilities[pp] != 0){
 					sum = sum + (1.0 - Math.exp(-valueB*probabilities[pp]));
 				//}
@@ -384,12 +402,14 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numBeta
 	 * @return
 	 */
-	public double[] compSBeta(float minBeta, float maxBeta, float stepBeta, int numBeta) {
+	public double[] compSBeta(float minBeta, float maxBeta, float stepBeta, int numBeta, boolean skipZeroBin) {
 		double[] genEntSBeta = new double[numBeta];
 		for (int n = 0; n < numBeta; n++) {
 			double valueBeta = minBeta + n*stepBeta; //SBeta is equal to S_BGS (Bolzmann Gibbs Shannon entropy) for valueBeta = 1; 
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {		
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {		
 				if (probabilities[pp] != 0.0){ //leaving out 0 
 					sum = sum + Math.pow(probabilities[pp],  valueBeta) * Math.log(1.0/probabilities[pp]);
 				}
@@ -408,12 +428,14 @@ public class CsajAlgorithm_GeneralisedEntropies {
 	 * @param numGamma
 	 * @return
 	 */
-	public double[] compSGamma(float minGamma, float maxGamma, float stepGamma, int numGamma) {
+	public double[] compSGamma(float minGamma, float maxGamma, float stepGamma, int numGamma, boolean skipZeroBin) {
 		double[] genEntSGamma = new double[numGamma];
 		for (int g = 0; g < numGamma; g++) {
 			double valueGamma = minGamma + g*stepGamma; //SGama is equal to S_BGS (Bolzmann Gibbs Shannon entropy) for valueGamma = 1; 
 			double sum = 0.0f;
-			for (int pp = 0; pp < probabilities.length; pp++) {		
+			int binStart = 0;
+			if (skipZeroBin) binStart = 1;
+			for (int pp = binStart; pp < probabilities.length; pp++) {		
 				if (probabilities[pp] != 0.0){ //leaving out 0 
 					sum = sum + Math.pow(probabilities[pp],  1.0/valueGamma) * Math.log(1.0/probabilities[pp]);
 				}
