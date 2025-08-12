@@ -5,6 +5,29 @@ Version numbering
 2nd digit: pom-scijava change
 3rd digit: subsequent changes
 
+
+**************************************************************
+Version 1.2.?
+pom-scijava 40.0.0
+Java 21
+20??-??-??
+
+New plugins:
+1D Statistical complexity measures SCM
+2D Statistical complexity measures SCM
+3D Statistical complexity measures SCM
+
+Plugin changes:
+1D Generalised Entropies: Added option Skip zeroes,   Lag always 1 for option Sequence range
+2D Generalised Entropies: Added option Skip zero bin, Lag always 1 for option Grey values 
+3D Generalised Entropies: Added option Skip zero bin, Lag always 1 for option Grey values 
+
+Miscellaneous:
+
+Known issue:
+2D Kolmogorov complexity: J2K option may not work with Java 21, see https://github.com/fiji/fiji/issues/392
+
+
 **************************************************************
 Version 1.2.0
 pom-scijava 40.0.0
