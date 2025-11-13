@@ -208,7 +208,7 @@ public class Csaj2DStatCplxMeasDialog extends CsajDialog_2DPlugin {
 	  
 		checkBoxNormaliseH = new JCheckBox();
 		checkBoxNormaliseH.setToolTipText("Normalisation of Shannon entropy H");
-		checkBoxNormaliseH.setSelected(true);
+		checkBoxNormaliseH.setSelected(false);
 		checkBoxNormaliseH.addItemListener(new ItemListener() {
 		    public void itemStateChanged(ItemEvent e) {
 		    	booleanNormaliseH = checkBoxNormaliseH.isSelected();	    
@@ -236,7 +236,7 @@ public class Csaj2DStatCplxMeasDialog extends CsajDialog_2DPlugin {
 	  
 		checkBoxNormaliseD = new JCheckBox();
 		checkBoxNormaliseD.setToolTipText("Normalisation of statistical distribution distance D");
-		checkBoxNormaliseD.setSelected(true);
+		checkBoxNormaliseD.setSelected(false);
 		checkBoxNormaliseD.addItemListener(new ItemListener() {
 		    public void itemStateChanged(ItemEvent e) {
 		    	booleanNormaliseD = checkBoxNormaliseD.isSelected();	    

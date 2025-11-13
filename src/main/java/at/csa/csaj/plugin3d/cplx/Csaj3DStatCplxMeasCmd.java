@@ -312,11 +312,11 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	}
 	
 	protected void initialNormaliseH() {
-		booleanNormaliseH = true;
+		booleanNormaliseH = false;
 	}
 	
 	protected void initialNormaliseD() {
-		booleanNormaliseD = true;
+		booleanNormaliseD = false;
 	}
 	
 	protected void initialSkipZeroes() {
