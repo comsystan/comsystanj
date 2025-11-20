@@ -271,6 +271,24 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Marwan et al., 2007, PhysicaD, [DOI 10.1016/j.physrep.2006.11.001](https://doi.org/10.1016/j.physrep.2006.11.001)
 
+### Complexity analyses - Renyi heterogeneities
+- Also known as Hill numbers or Hannah–Kay indices
+- Probabilities of values or value differences 
+- A plot of Renyi heterogeneities can be shown
+- Signals should be opened with the CSAJ Signal Opener
+- Surrogate analysis is restricted to the smallest parameter value
+- Analysis of Entire signal or Subsequent/Gliding box
+- Notes for Subsequent/Gliding box:
+  - Restricted to the smallest parameter value
+  - The box size should not be larger than 1/3 of the signal length 
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Nunes et al., 2020, J Psychiatry Neurosci, [DOI 10.1503/jpn.190198](https://doi.org/10.1503/jpn.190198)
+- Nunes et al., 2020, Translational Psychatry, [DOI 10.1038/s41398-020-00986-0](https://doi.org/10.1038/s41398-020-00986-0)
+- Nunes et al., 2020, PLOS One, [DOI 10.1371/journal.pone.0242320](https://doi.org/10.1371/journal.pone.0242320)
+- Nunes et al., 2020, Entropy, [DOI 10.3390/e22040417](https://doi.org/10.3390/e22040417)
+
 ### Complexity analyses - Rescaled auto-density RAD
 - RAD measures the distance to criticality
 - cRAD centered RAD for symmetric distributions
