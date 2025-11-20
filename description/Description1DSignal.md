@@ -272,7 +272,7 @@
 - Marwan et al., 2007, PhysicaD, [DOI 10.1016/j.physrep.2006.11.001](https://doi.org/10.1016/j.physrep.2006.11.001)
 
 ### Complexity analyses - Renyi heterogeneities
-- Also known as Hill numbers or Hannah–Kay indices
+- Also known as Hill numbers, Hannah–Kay indices or participation ratio
 - Probabilities of values or value differences 
 - A plot of Renyi heterogeneities can be shown
 - Signals should be opened with the CSAJ Signal Opener
