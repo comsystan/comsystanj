@@ -16,6 +16,9 @@ New plugins:
 1D Statistical complexity measures SCM
 2D Statistical complexity measures SCM
 3D Statistical complexity measures SCM
+1D Renyi heterogeneities
+2D Renyi heterogeneities
+3D Renyi heterogeneities
 
 Plugin changes:
 1D Generalised Entropies: Added option Skip zeroes,   Lag always 1 for option Sequence range

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DGeneralisedEntropiesCmd.java
+ * File: Csaj3DRenyiHeterogeneitiesCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -27,7 +27,7 @@
  */
 
 
-package at.csa.csaj.plugin3d.ent;
+package at.csa.csaj.plugin3d.cplx;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -87,6 +87,7 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajAlgorithm_GeneralisedEntropies;
+import at.csa.csaj.commons.CsajAlgorithm_RenyiHeterogeneities;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
@@ -98,34 +99,25 @@ import at.csa.csaj.commons.CsajContainer_ProcessMethod;
  * A {@link ContextCommand} plugin computing <3D Generalised entropies</a>
  * of an image volume.
  * 
- * <li>According to a review of Amigó, J.M., Balogh, S.G., Hernández, S., 2018. A Brief Review of Generalised Entropies. Entropy 20, 813. https://doi.org/10.3390/e20110813
- * <li>and to: Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S105-106
- * <li>(SE     according to Amigo etal. and Tsekouras, G.A.; Tsallis, C. Generalised entropy arising from a distribution of q indices. Phys. Rev. E 2005,)
- * <li>SE      according to N. R. Pal and S. K. Pal: Object background segmentation using new definitions of entropy, IEEE Proc. 366 (1989), 284–295.
-							and N. R. Pal and S. K. Pal, Entropy: a new definitions and its applications, IEEE Transactions on systems, Man and Cybernetics, 21(5), 1260-1270, 1999
- * <li>H       according to Amigo etal.
- * <li>Renyi   according to Amigo etal.
- * <li>Tsallis according to Amigo etal.
- * <li>SNorm   according to Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S105-106
- * <li>SEscort according to Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S105-106
- * <li>SEta    according to Amigo etal. and Anteneodo, C.; Plastino, A.R. Maximum entropy approach to stretched exponential probability distributions. J. Phys. A Math. Gen. 1999, 32, 1089–1098.	
- * <li>SKappa  according to Amigo etal. and Kaniadakis, G. Statistical mechanics in the context of special relativity. Phys. Rev. E 2002, 66, 056125
- * <li>SB      according to Amigo etal. and Curado, E.M.; Nobre, F.D. On the stability of analytic entropic forms. Physica A 2004, 335, 94–106.
- * <li>SBeta   according to Amigo etal. and Shafee, F. Lambert function and a new non-extensive form of entropy. IMA J. Appl. Math. 2007, 72, 785–800.
- * <li>SGamma  according to Amigo etal. and Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S61
+ * <li> According to
+ * <li> Nunes A, Alda M, Bardouille T, Trappenberg T. Representational Rényi Heterogeneity. Entropy. April 2020;22(4):417. 
+ * <li> Nunes A, Trappenberg T, Alda M. The definition and measurement of heterogeneity. Transl Psychiatry. 24. August 2020;10(1):299.
+ * <li> Nunes A, Trappenberg T, Alda M. Measuring heterogeneity in normative models as the effective number of deviation patterns. PLOS ONE. 13. November 2020;15(11):e0242320.
+ * <li> Nunes A, Trappenberg T, Alda M. We need an operational framework for heterogeneity in psychiatric research. J Psychiatry Neurosci. Januar 2020;45(1):3–6. 
+ * 
  */
 @Plugin(type = ContextCommand.class,
 		headless = true,
-		label = "3D Generalised entropies",
+		label = "3D Renyi heterogeneities",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
 
-public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj3DRenyiHeterogeneitiesCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
-	private static final String PLUGIN_LABEL            = "<html><b>Computes 3D Generalised entropies</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Computes 3D Renyi heterogeneities</b></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String ENTROPYOPTIONS_LABEL    = "<html><b>Entropy options</b></html>";
+	private static final String RENYIOPTIONS_LABEL      = "<html><b>Renyi options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
@@ -146,47 +138,15 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	private static int  numBoxes = 0;
 	private static ArrayList<CsajPlot_SequenceFrame> genRenyiPlotList = new ArrayList<CsajPlot_SequenceFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - 3D Generalised entropies";
+	public static final String TABLE_OUT_NAME = "Table - 3D Renyi heterogeneities";
 	
-	private static int   minQ;
-	private static int   maxQ;
-	private static float minEta;
-	private static float maxEta;
-	private static float minKappa;
-	private static float maxKappa;
-	private static float minB;
-	private static float maxB;
-	private static float minBeta;
-	private static float maxBeta;
-	private static float minGamma;
-	private static float maxGamma;
-	
-	private static int   stepQ = 1;
-	private static float stepEta = 0.1f;
-	private static float stepKappa = 0.1f;
-	private static float stepB = 1.0f;
-	private static float stepBeta = 0.1f;
-	private static float stepGamma = 0.1f;
-	
+	private static int minQ;
+	private static int maxQ;
+	private static int stepQ = 1;	
 	private static int numQ;
-	private static int numEta;
-	private static int numKappa;
-	private static int numB;
-	private static int numBeta;
-	private static int numGamma;
-	
+
 	// data arrays		
-	private static double   genEntSE;
-	private static double[] genEntH;	
-	private static double[] genEntRenyi;
-	private static double[] genEntTsallis;	
-	private static double[] genEntSNorm;	
-	private static double[] genEntSEscort;	
-	private static double[] genEntSEta;	
-	private static double[] genEntSKappa;	
-	private static double[] genEntSB;	
-	private static double[] genEntSBeta;	
-	private static double[] genEntSGamma;
+	private static double[] hetRenyi;
 	
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
@@ -251,7 +211,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelEntropyOptions = ENTROPYOPTIONS_LABEL;
+	private final String labelEntropyOptions = RENYIOPTIONS_LABEL;
      
  	@Parameter(label = "Probability type",
 			description = "Selection of probability type",
@@ -278,66 +238,16 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		       callback = "callbackSkipZeroes")
 	private boolean booleanSkipZeroes;
 
-	@Parameter(label = "(Renyi/Tsallis/SNorm/SEscort) Min q", description = "minimal Q for Renyi and Tsallis entropies", style = NumberWidget.SPINNER_STYLE, min = "-1000", max = "1000", stepSize = "1",
+	@Parameter(label = "Min q", description = "minimal q for Renyi heterogeneities", style = NumberWidget.SPINNER_STYLE, min = "-1000", max = "1000", stepSize = "1",
 			   persist = false, // restore  previous value  default  =  true
 			   initializer = "initialMinQ", callback = "callbackMinQ")
 	private int spinnerInteger_MinQ;
 
-	@Parameter(label = "(Renyi/Tsallis/SNorm/SEscort) Max q", description = "maximal Q for Renyi Tsallis entropies", style = NumberWidget.SPINNER_STYLE, min = "-1000", max = "1000", stepSize = "1",
+	@Parameter(label = "Max q", description = "maximal q for Renyi heterogeneities", style = NumberWidget.SPINNER_STYLE, min = "-1000", max = "1000", stepSize = "1",
 			   persist = false, //restore previous value default = true
 			   initializer = "initialMaxQ", callback = "callbackMaxQ")
 	private int spinnerInteger_MaxQ;
 
-	@Parameter(label = "(SEta) Min eta", description = "minimal Eta for SEta entropies", style = NumberWidget.SPINNER_STYLE, min = "0f", max = "100000f", stepSize = "0.1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMinEta", callback = "callbackMinEta")
-	private float spinnerFloat_MinEta;
-	
-	@Parameter(label = "(SEta) Max eta", description = "maximal Eta for SEta entropies", style = NumberWidget.SPINNER_STYLE, min = "0f", max = "100000f", stepSize = "0.1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMaxEta", callback = "callbackMaxEta")
-	private float spinnerFloat_MaxEta;
-	
-	@Parameter(label = "(SKappa) Min kappa", description = "minimal Kappa for SKappa entropies", style = NumberWidget.SPINNER_STYLE, min = "0.000000000001f", max = "0.999999999999f", stepSize = "0.1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMinKappa", callback = "callbackMinKappa")
-	private float spinnerFloat_MinKappa;
-	
-	@Parameter(label = "(SKappa) Max kappa", description = "maximal Kappa for SKappa entropies", style = NumberWidget.SPINNER_STYLE, min = "0.000000000001f", max = "0.999999999999f", stepSize = "0.1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMaxKappa", callback = "callbackMaxKappa")
-	private float spinnerFloat_MaxKappa;
-	
-	@Parameter(label = "(SB) Min b", description = "minimal B for SB entropies", style = NumberWidget.SPINNER_STYLE, min = "0.000000000001f", max = "100000f", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMinB", callback = "callbackMinB")
-	private float spinnerFloat_MinB;
-	
-	@Parameter(label = "(SB) Max b", description = "maximal B for SB entropies", style = NumberWidget.SPINNER_STYLE, min = "1f", max = "100000f", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMaxB", callback = "callbackMaxB")
-	private float spinnerFloat_MaxB;
-	
-	@Parameter(label = "(SBeta) Min beta", description = "minimal Beta for SBeta entropies", style = NumberWidget.SPINNER_STYLE, min = "-100000f", max = "100000f", stepSize = "0.1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMinBeta", callback = "callbackMinBeta")
-	private float spinnerFloat_MinBeta;
-	
-	@Parameter(label = "(SBeta) Max beta", description = "maximal Beta for SBeta entropies", style = NumberWidget.SPINNER_STYLE, min = "-100000f", max = "100000f", stepSize = "0.1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMaxBeta", callback = "callbackMaxBeta")
-	private float spinnerFloat_MaxBeta;
-	
-	@Parameter(label = "(SGamma) Min gamma", description = "minimal Gamma for SGamma entropies", style = NumberWidget.SPINNER_STYLE, min = "0f", max = "100000f", stepSize = "1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMinGamma", callback = "callbackMinGamma")
-	private float spinnerFloat_MinGamma;
-	
-	@Parameter(label = "(SGamma) Max gamma", description = "maximal Gamma for SGamma entropies", style = NumberWidget.SPINNER_STYLE, min = "-0f", max = "100000f", stepSize = "0.1",
-			   persist = false, // restore  previous value  default  =  true
-			   initializer = "initialMaxGamma", callback = "callbackMaxGamma")
-	private float spinnerFloat_MaxGamma;
-     
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelDisplayOptions = DISPLAYOPTIONS_LABEL;
@@ -407,65 +317,6 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	 	numQ = (maxQ - minQ)/stepQ + 1;
 	 }
 	 	
-	 protected void initialMinEta() {
-	 	spinnerFloat_MinEta = 0.1f;
-	 	minEta = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
-		numEta = (int)((maxEta - minEta)/stepEta + 1);
-	 }
-	 	
-	 protected void initialMaxEta() {
-	 	spinnerFloat_MaxEta = 1f;
-	 	maxEta = Precision.round(spinnerFloat_MaxEta, 1);
-		numEta = (int)((maxEta - minEta)/stepEta + 1);
-	 }
-	 protected void initialMinKappa() {
-	 	spinnerFloat_MinKappa = 0.1f;
-	 	minKappa = Precision.round(spinnerFloat_MinKappa, 1);
-	 	numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
-	 }
-	 	
-	 protected void initialMaxKappa() {
-	 	spinnerFloat_MaxKappa = 0.9f;
-	 	maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
-	 	numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
-	 }
-	 	
-	 protected void initialMinB() {
-	 	spinnerFloat_MinB = 1.0f;
-	 	minB = Precision.round(spinnerFloat_MinB, 1);
-	 	numB = (int)((maxB - minB)/stepB + 1);
-	 }
-	 	
-	 protected void initialMaxB() {
-	 	spinnerFloat_MaxB = 10.0f;
-	 	maxB = Precision.round(spinnerFloat_MaxB, 1);
-	 	numB = (int)((maxB - minB)/stepB + 1);
-	 }
-	 	
-	 protected void initialMinBeta() {
-	 	spinnerFloat_MinBeta = 0.5f;
-	 	minBeta = Precision.round(spinnerFloat_MinBeta, 1);
-	 	numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
-	 }
-	 	
-	 protected void initialMaxBeta() {
-	 	spinnerFloat_MaxBeta = 1.5f;
-	 	maxBeta = Precision.round(spinnerFloat_MaxBeta, 1);
-	 	numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
-	 }
-	 	
-	 protected void initialMinGamma() {
-	 	spinnerFloat_MinGamma = 0.1f;
-	 	minGamma = Precision.round(spinnerFloat_MinGamma, 1);
-	 	numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
-	 }
-	 	
-	 protected void initialMaxGamma() {
-	 	spinnerFloat_MaxGamma = 1.0f;
-	 	maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
-	 	numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
-	 }
-	   
 	 protected void initialShowRenyiPlot() {
 	   	booleanShowRenyiPlot = true;
 	 }
@@ -507,76 +358,6 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		logService.info(this.getClass().getName() + " Maximal Q set to " + spinnerInteger_MaxQ);
 	}
 		
-	/** Executed whenever the {@link #spinFloat_MinEta} parameter changes. */
-	protected void callbackMinEta() {
-		minEta = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
-		numEta = (int)((maxEta - minEta)/stepEta + 1);
-		logService.info(this.getClass().getName() + " Minimal Eta set to " + spinnerFloat_MinEta);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MaxEta} parameter changes. */
-	protected void callbackMaxEta() {
-		maxEta = Precision.round(spinnerFloat_MaxEta, 1);
-		numEta = (int)((maxEta - minEta)/stepEta + 1);
-		logService.info(this.getClass().getName() + " Maximal Eta set to " + spinnerFloat_MaxEta);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MinKappa} parameter changes. */
-	protected void callbackMinKappa() {
-		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
-		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
-		logService.info(this.getClass().getName() + " Minimal Kappa set to " + spinnerFloat_MinKappa);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MaxKappa} parameter changes. */
-	protected void callbackMaxKapa() {
-		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
-		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
-		logService.info(this.getClass().getName() + " Maximal Kappa set to " + spinnerFloat_MaxKappa);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MinB} parameter changes. */
-	protected void callbackMinB() {
-		minB = Precision.round(spinnerFloat_MinB, 1);
-		numB = (int)((maxB - minB)/stepB + 1);
-		logService.info(this.getClass().getName() + " Minimal B set to " + spinnerFloat_MinB);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MaxB} parameter changes. */
-	protected void callbackMaxB() {
-		maxB = Precision.round(spinnerFloat_MaxB, 1);
-		numB = (int)((maxB - minB)/stepB + 1);
-		logService.info(this.getClass().getName() + " Maximal B set to " + spinnerFloat_MaxB);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MinBeta} parameter changes. */
-	protected void callbackMinBeta() {
-		minBeta = Precision.round(spinnerFloat_MinBeta, 1);
-		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
-		logService.info(this.getClass().getName() + " Minimal Beta set to " + spinnerFloat_MinBeta);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MaxBeta} parameter changes. */
-	protected void callbackMaxBeta() {
-		maxBeta = Precision.round(spinnerFloat_MaxBeta, 1);
-		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
-		logService.info(this.getClass().getName() + " Maximal Beta set to " + spinnerFloat_MaxBeta);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MinGamma} parameter changes. */
-	protected void callbackMinGamma() {
-		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
-		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
-		logService.info(this.getClass().getName() + " Minimal Gamma set to " + spinnerFloat_MinGamma);
-	}
-		
-	/** Executed whenever the {@link #spinFloat_MaxGamma} parameter changes. */
-	protected void callbackMaxGamma() {
-		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
-		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
-		logService.info(this.getClass().getName() + " Maximal Gamma set to " + spinnerFloat_MaxGamma);
-	}
-			
 	/** Executed whenever the {@link #booleanProcessImmediately} parameter changes. */
 	protected void callbackProcessImmediately() {
 		logService.info(this.getClass().getName() + " Process immediately set to " + booleanProcessImmediately);
@@ -687,30 +468,10 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		//Set field variables
 		minQ     = spinnerInteger_MinQ;
 		maxQ     = spinnerInteger_MaxQ;
-		minEta   = Precision.round(spinnerFloat_MinEta, 1); //round to 1 decimal, because sometimes float is not exact
-		maxEta 	 = Precision.round(spinnerFloat_MaxEta, 1);
-		minKappa = Precision.round(spinnerFloat_MinKappa, 1);
-		maxKappa = Precision.round(spinnerFloat_MaxKappa, 1);
-		minB 	 = Precision.round(spinnerFloat_MinB, 1);
-		maxB 	 = Precision.round(spinnerFloat_MaxB, 1);
-		minBeta  = Precision.round(spinnerFloat_MinBeta, 1);
-		maxBeta  = Precision.round(spinnerFloat_MaxBeta, 1);
-		minGamma = Precision.round(spinnerFloat_MinGamma, 1);
-		maxGamma = Precision.round(spinnerFloat_MaxGamma, 1);
 		
 //		stepQ     = 1;
-//		stepEta   = 0.1f;
-//		stepKappa = 0.1f;
-//		stepB     = 1.0f;
-//		stepBeta  = 0.1f;
-//		stepGamma = 0.1f;
 		
 		numQ = (maxQ - minQ)/stepQ + 1;;
-		numEta = (int)((maxEta - minEta)/stepEta + 1);;
-		numKappa = (int)((maxKappa - minKappa)/stepKappa + 1);
-		numB = (int)((maxB - minB)/stepB + 1);
-		numBeta = (int)((maxBeta - minBeta)/stepBeta  + 1);
-		numGamma = (int)((maxGamma - minGamma)/stepGamma + 1);
 
 		checkItemIOIn();
 		startWorkflowForSingleVolume();
@@ -748,7 +509,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Generalised entropies, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Renyi heterogeneities, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -890,16 +651,16 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	private void processSingleInputVolume() {
 		
 		long startTime = System.currentTimeMillis();
-		int numOfEntropies = 1 + 3 + 4*numQ + numEta + numKappa + numB + numBeta + numGamma;
+		int numOfHets = numQ;
 	
 		//get rai
 		RandomAccessibleInterval<T> rai = null;	
 	
 		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
 
-		//Compute generalised entropies
+		//Compute Renyi heterogeneities
 		CsajContainer_ProcessMethod containerPM = process(rai);	
-		//Gen entropies SE H1, H2, H3, .....
+		//Renyi heterogeneities
 					
 		writeToTable(containerPM);
 		
@@ -940,21 +701,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		tableOut.add(columnLag);	
 		tableOut.add(columnSkipZeroes);
 	
-		//"SE", "H1", "H2", "H3", "Renyi", "Tsallis", "SNorm", "SEscort", "SEta", "SKappa", "SB", "SBeta", "SGamma"
-		tableOut.add(new DoubleColumn("SE"));
-		tableOut.add(new DoubleColumn("H1"));
-		tableOut.add(new DoubleColumn("H2"));
-		tableOut.add(new DoubleColumn("H3"));
-		for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("Renyi_q"   + (minQ + q))); 
-		for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("Tsallis_q" + (minQ + q))); 
-		for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("SNorm_q"   + (minQ + q))); 
-		for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("SEscort_q" + (minQ + q))); 
-		for (int e = 0; e < numEta;   e++)  tableOut.add(new DoubleColumn("SEta_e"    + String.format ("%.1f", minEta   + e*stepEta)));
-		for (int k = 0; k < numKappa; k++)  tableOut.add(new DoubleColumn("SKappa_k"  + String.format ("%.1f", minKappa + k*stepKappa))); 
-		for (int b = 0; b < numB;     b++)  tableOut.add(new DoubleColumn("SB_b"      + String.format ("%.1f", minB     + b*stepB))); 
-		for (int be= 0; be< numBeta;  be++) tableOut.add(new DoubleColumn("SBeta_be"  + String.format ("%.1f", minBeta  +be*stepBeta))); 
-		for (int g = 0; g < numGamma; g++)  tableOut.add(new DoubleColumn("SGamma_g"  + String.format ("%.1f", minGamma + g*stepGamma))); 
-
+		for (int q = 0; q < numQ; q++) tableOut.add(new DoubleColumn("RenyiHet_q"   + (minQ + q))); 
 	}
 
 	/**
@@ -1009,76 +756,28 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 		long depth  = rai.dimension(2);
 		
 		// data arrays		
-		genEntSE      = 0.0f;
-		genEntH       = new double[3];	
-		genEntRenyi   = new double[numQ];
-		genEntTsallis = new double[numQ];	
-		genEntSNorm   = new double[numQ];	
-		genEntSEscort = new double[numQ];	
-		genEntSEta    = new double[numEta];	
-		genEntSKappa  = new double[numKappa];	
-		genEntSB      = new double[numB];	
-		genEntSBeta   = new double[numBeta];	
-		genEntSGamma  = new double[numGamma];
+		hetRenyi   = new double[numQ];
 		
-		int numOfEntropies = 1 + 3 + 4*numQ + numEta + numKappa + numB + numBeta + numGamma;
+		int numOfHets = numQ;
 		
-		double[] resultValues = new double[numOfEntropies]; // 
+		double[] resultValues = new double[numOfHets]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
 		
 		//probabilities = compProbabilities(rai, lag, probType); //3D rai	grey
 		probabilities = compProbabilities2(rai, lag, probType); //faster  //3D grey	
-		CsajAlgorithm_GeneralisedEntropies ge = new CsajAlgorithm_GeneralisedEntropies(probabilities);
-		
-		genEntSE      = ge.compSE(skipZeroBin);
-		genEntH       = ge.compH(skipZeroBin);	//H1 H2 H3 
-		genEntRenyi   = ge.compRenyi  (minQ, maxQ, numQ, skipZeroBin);
-		genEntTsallis = ge.compTsallis(minQ, maxQ, numQ, skipZeroBin);	
-		genEntSNorm   = ge.compSNorm  (minQ, maxQ, numQ, skipZeroBin);	
-		genEntSEscort = ge.compSEscort(minQ, maxQ, numQ, skipZeroBin);	
-		genEntSEta    = ge.compSEta   (minEta,   maxEta,   stepEta,   numEta, skipZeroBin);	
-		genEntSKappa  = ge.compSKappa (minKappa, maxKappa, stepKappa, numKappa, skipZeroBin);	
-		genEntSB      = ge.compSB     (minB,     maxB,     stepB,     numB, skipZeroBin);	
-		genEntSBeta   = ge.compSBeta  (minBeta,  maxBeta,  stepBeta,  numBeta, skipZeroBin);	
-		genEntSGamma  = ge.compSGamma (minGamma, maxGamma, stepGamma, numGamma, skipZeroBin);
+		CsajAlgorithm_RenyiHeterogeneities rh = new CsajAlgorithm_RenyiHeterogeneities(probabilities);
 
-		resultValues[0] = genEntSE;
-		resultValues[1] = genEntH[0];
-		resultValues[2] = genEntH[1];
-		resultValues[3] = genEntH[2];	
-		int start = 3 + 1;
+		hetRenyi   = rh.compRenyiHets(minQ, maxQ, numQ, skipZeroBin);
+
+		int start = 0;
 		int end   = start + numQ;
-		for (int i = start; i < end; i++) resultValues[i] = genEntRenyi[i-start];	
-		start = end;
-		end   = start + numQ;
-		for (int i = start; i < end; i++) resultValues[i] = genEntTsallis[i-start];
-		start = end;
-		end   = start + numQ;
-		for (int i = start; i < end; i++) resultValues[i] = genEntSNorm[i-start];
-		start = end;
-		end   = start + numQ;
-		for (int i = start; i < end; i++) resultValues[i] = genEntSEscort[i-start];
-		start = end;
-		end   = start + numEta;
-		for (int i = start; i < end; i++) resultValues[i] = genEntSEta[i-start];
-		start = end;
-		end   = start + numKappa;
-		for (int i = start; i < end; i++) resultValues[i] = genEntSKappa[i-start];
-		start = end;
-		end   = start + numB;
-		for (int i = start; i < end; i++) resultValues[i] = genEntSB[i-start];
-		start = end;
-		end   = start + numBeta;
-		for (int i = start; i < end; i++) resultValues[i] = genEntSBeta[i-start];
-		start = end;
-		end   = start + numGamma;
-		for (int i = start; i < end; i++) resultValues[i] = genEntSGamma[i-start];
-			
+		for (int i = start; i < end; i++) resultValues[i] = hetRenyi[i-start];	
+	
 		//Collect some entropies for display
 		double[] entList;
 		double[] qList;		
 		if (optShowRenyiPlot) {	
-			int offset = 4; //S, H1, H2, H3
+			int offset = 0;
 			entList = new double[numQ];
 			qList   = new double[numQ];
 			for (int q = 0; q < numQ; q++) {
@@ -1092,14 +791,14 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 			String axisNameY = "";
 			
 			axisNameX = "q";
-			axisNameY = "Renyi";
+			axisNameY = "Renyi heterogeneity";
 		
-			CsajPlot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, entList, isLineVisible, "3D Generalised Renyi entropies", 
+			CsajPlot_SequenceFrame dimGenPlot = DisplaySinglePlotXY(qList, entList, isLineVisible, "3D Renyi heterogeneities", 
 					preName + datasetName, axisNameX, axisNameY, "");
 			genRenyiPlotList.add(dimGenPlot);
 		}		
 			
-		logService.info(this.getClass().getName() + " Generalised entropy SE: " + resultValues[0]);
+		logService.info(this.getClass().getName() + " Renyi heterogeneity: " + resultValues[0]);
 		
 		return new CsajContainer_ProcessMethod(resultValues);
 		//Output
