@@ -60,6 +60,16 @@
 - LD values should be taken with caution, as computers are not well suited to measure times
 - Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
+### 3D Complexity analyses - 3D Renyi heterogeneities
+- Also known as Hill numbers or Hannah–Kay indices
+- Probabilities of grey values or grey value differences 
+- 8-bit grey volume
+- A plot of Renyi heterogeneities can be shown
+- Nunes et al., 2020, J Psychiatry Neurosci, [DOI 10.1503/jpn.190198](https://doi.org/10.1503/jpn.190198)
+- Nunes et al., 2020, Translational Psychatry, [DOI 10.1038/s41398-020-00986-0](https://doi.org/10.1038/s41398-020-00986-0)
+- Nunes et al., 2020, PLOS One, [DOI 10.1371/journal.pone.0242320](https://doi.org/10.1371/journal.pone.0242320)
+- Nunes et al., 2020, Entropy, [DOI 10.3390/e22040417](https://doi.org/10.3390/e22040417)
+
 ### 3D Complexity analyses - 3D Statistical complexity measures
 - SCM = Shannon entropy H * Distribution distance D
 - Probabilities are computed with plain voxel grey values
@@ -77,7 +87,7 @@
 
 ### 3D Entropy analyses - 3D Generalised entropies
 - SE, H1, H2, H3, Renyi, Tsallis, SNorm, SEscort, SEta, SKappa, SB, SBeta, SGamma
-- Probabilities are computed with plain voxel grey values
+- Probabilities of voxel values or grey value differences
 - 8-bit grey image volume
 - A plot of Renyi entropies can be shown
 - Amigo et al., 2018, Entropy, [DOI 10.3390/e20110813](https://doi.org/10.3390/e201108)
