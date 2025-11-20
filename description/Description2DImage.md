@@ -97,7 +97,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Zenil et al., Complexity, 2012, [DOI 10.1002/cplx.20388](https://doi.org/10.1002/cplx.20388)
 
 ### Complexity analyses - Renyi heterogeneities
-- Also known as Hill numbers or Hannah–Kay indices
+- Also known as Hill numbers, Hannah–Kay indices or participation ratio
 - Probabilities of grey values or grey value differences 
 - 8-bit grey images
 - A plot of Renyi heterogeneities can be shown
