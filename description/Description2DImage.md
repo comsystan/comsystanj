@@ -64,6 +64,10 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
+### Preprocessing - Outliers
+- Eliminating or extracting outliers — detecting extreme events
+- Z-score, Interquartile range IQR
+
 ### Preprocessing - Particles to stack
   - Single 8-bit binary image
   - Particles in a binary image [0, >0] are separated to an image stack
