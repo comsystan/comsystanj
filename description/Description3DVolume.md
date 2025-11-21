@@ -42,6 +42,11 @@
 - Gaussian, Rayleigh, Exponential
   - Scaling parameter can be set
 
+### 3D Preprocessing - 3D Outliers
+- Eliminating or extracting outliers — detecting extreme events
+- 8-bit grey or RGB color image volume
+- Z-score, Interquartile range IQR
+
 ### 3D Preprocessing - 3D Surrogates
 - Computes a surrogate image volume
 - 8-bit grey or RGB color image volume
