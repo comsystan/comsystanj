@@ -66,6 +66,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 
 ### Preprocessing - Outliers
 - Eliminating or extracting outliers — detecting extreme events
+- 8-bit grey or RGB color images
 - Z-score, Interquartile range IQR
 
 ### Preprocessing - Particles to stack
