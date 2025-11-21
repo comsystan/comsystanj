@@ -63,7 +63,7 @@
   - Scaling parameter can be set
 
 ### Preprocessing - Outliers
-- Elimination or extracting outliers
+- Eliminating or extracting outliers — detecting extreme events
 - Z-score, Interquartile range IQR
 
 ### Preprocessing - Resampling
