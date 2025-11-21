@@ -19,6 +19,8 @@ New plugins:
 1D Renyi heterogeneities
 2D Renyi heterogeneities
 3D Renyi heterogeneities
+2D Outlier elimination/extraction
+3D Outlier elimination/extraction
 
 Plugin changes:
 1D Generalised Entropies: Added option Skip zeroes,   Lag always 1 for option Sequence range
