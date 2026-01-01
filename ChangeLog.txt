@@ -7,27 +7,20 @@ Version numbering
 
 
 **************************************************************
-Version 1.2.?
+Version 1.2.1
 pom-scijava 40.0.0
 Java 21
-20??-??-??
+2026-01-01
 
 New plugins:
-1D Statistical complexity measures SCM
-2D Statistical complexity measures SCM
-3D Statistical complexity measures SCM
-1D Renyi heterogeneities
-2D Renyi heterogeneities
-3D Renyi heterogeneities
-2D Outlier elimination/extraction
-3D Outlier elimination/extraction
+1D 2D 3D Statistical complexity measures SCM
+1D 2D 3D Renyi heterogeneities
+2D 3D Outlier elimination/extraction
 
 Plugin changes:
 1D Generalised Entropies: Added option Skip zeroes,   Lag always 1 for option Sequence range
 2D Generalised Entropies: Added option Skip zero bin, Lag always 1 for option Grey values 
 3D Generalised Entropies: Added option Skip zero bin, Lag always 1 for option Grey values 
-
-Miscellaneous:
 
 Known issue:
 2D Kolmogorov complexity: J2K option may not work with Java 21, see https://github.com/fiji/fiji/issues/392
