@@ -29,7 +29,7 @@ package at.csa.csaj.plugin1d.detect.util;
  * 
  * This file is part of ComsystanJ software, hereinafter referred to as "this program".
  * %%
- * Copyright (C) 2024 - 2025 Comsystan Software
+ * Copyright (C) 2024 - 2026 Comsystan Software
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
