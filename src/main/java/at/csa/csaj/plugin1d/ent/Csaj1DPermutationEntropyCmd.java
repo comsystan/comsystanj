@@ -74,6 +74,15 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
 /**
  * A {@link ContextCommand} plugin computing <Permutation entropy</a>
  * of a sequence.
+ * 
+ * 
+ * PE according to original paper:
+ * Bandt C and Pompe B. Permutation Entropy: A Natural Complexity Measure for Time Series. Phys Rev Lett Vol88(17) 2002
+ * 
+ * Weighted PE according to:
+ * Fadlallah B, Chen B, Keil A, Príncipe J. Weighted-permutation entropy: A complexity measure for time series incorporating amplitude information. Phys Rev E. 20. Februar 2013;87(2):022911. 
+ * 
+ * 
  */
 @Plugin(type = ContextCommand.class, 
 		headless = true,
@@ -595,10 +604,11 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		String entropyHeader           = "PermEn";
-		String entropyPerSymbolHeader  = "PermEn per symbol";
-		String entropyNormalizedHeader = "PermEn normalized";
-		String entropySortingHeader    = "SortingEn";
+		String entropyHeader           = "PE";
+		String entropyPerSymbolHeader  = "PE per symbol";
+		String entropyNormalizedHeader = "Normalized PE";
+		String entropySortingHeader    = "Sorting E";
+		String entropyWeightedHeader   = "Weighted PE"; //WPE
 		
 		tableOut = new DefaultGenericTable();
 		tableOut.add(new GenericColumn("File name"));
@@ -618,6 +628,7 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 			tableOut.add(new DoubleColumn(entropyPerSymbolHeader));	
 			tableOut.add(new DoubleColumn(entropyNormalizedHeader));
 			tableOut.add(new DoubleColumn(entropySortingHeader));	
+			tableOut.add(new DoubleColumn(entropyWeightedHeader));	
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
@@ -857,17 +868,17 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 				
 		PermutationEntropy pe;
 		PermutationEntropy pe2;
-		double entropyValue  = Double.NaN;
-		double entropyValue2 = Double.NaN;
+		double entropyValues[]  = new double[] {Double.NaN, Double.NaN}; //PE, weightedPE
+		double entropyValues2[] = new double[] {Double.NaN, Double.NaN}; //PE, weightedPE
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		if (sequenceRange.equals("Entire sequence")){	
 			if (surrType.equals("No surrogates")) {
-				resultValues = new double[4]; // PermEn, PermEn per symbol, normalized PermEn, Sorting entropy
+				resultValues = new double[5]; // PE, PE per symbol, normalized PE, Sorting entropy, WPE
 			} else {
-				resultValues = new double[4+1+1*numSurrogates]; // 4xEntropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
+				resultValues = new double[5+1+1*numSurrogates]; // 5xEntropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
 			}
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
@@ -876,20 +887,21 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 			if (sequence1D.length > (numParamN * 2)) { // only data series which are large enough
 				
 				pe = new PermutationEntropy(logService);
-				entropyValue = pe.calcPermutationEntropy(sequence1D, numParamN, numParamD);
+				entropyValues = pe.calcPermutationEntropy(sequence1D, numParamN, numParamD); //PE, weightedPE
 					
-				resultValues[0] = entropyValue; //entropy
-				resultValues[1] = entropyValue/(numParamN - 1); //entropy per symbol
-				resultValues[2] = entropyValue/Math.log10(CombinatoricsUtils.factorial(numParamN));
+				resultValues[0] = entropyValues[0]; //PE
+				resultValues[1] = entropyValues[0]/(numParamN - 1); //entropy per symbol
+				resultValues[2] = entropyValues[0]/Math.log(CombinatoricsUtils.factorial(numParamN));
 				if (numParamN == 2){
-					resultValues[3] = entropyValue; //Sorting entropy
+					resultValues[3] = entropyValues[0]; //Sorting entropy
 				} else if (numParamN > 2){
 					pe2 = new PermutationEntropy(logService);
-					entropyValue2 = pe2.calcPermutationEntropy(sequence1D, numParamN-1, numParamD);
-					resultValues[3] = entropyValue - entropyValue2; //Sorting entropy
+					entropyValues2 = pe2.calcPermutationEntropy(sequence1D, numParamN-1, numParamD);
+					resultValues[3] = entropyValues[0] - entropyValues2[0]; //Sorting entropy
 				}
+				resultValues[4] = entropyValues[1]; //WPE
 				
-				int lastMainResultsIndex = 3;
+				int lastMainResultsIndex = 4;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
 					surrSequence1D = new double[sequence1D.length];
@@ -905,14 +917,13 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 						if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 				
 						pe = new PermutationEntropy(logService);
-						entropyValue = pe.calcPermutationEntropy(surrSequence1D, numParamN, numParamD);
+						entropyValues = pe.calcPermutationEntropy(surrSequence1D, numParamN, numParamD);
 			
-						resultValues[lastMainResultsIndex + 2 + s] = entropyValue;
+						resultValues[lastMainResultsIndex + 2 + s] = entropyValues[0]; //PE
 						
-						sumEntropies += entropyValue;
+						sumEntropies += entropyValues[0];
 					}
-					resultValues[lastMainResultsIndex + 1] = sumEntropies/numSurrogates;
-					
+					resultValues[lastMainResultsIndex + 1] = sumEntropies/numSurrogates;					
 				}	
 			} 
 		//********************************************************************************************************	
@@ -933,8 +944,8 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 				//Compute specific values************************************************
 				if (subSequence1D.length > (numParamN * 2)) { // only data series which are large enough
 					pe = new PermutationEntropy(logService);
-					entropyValue = pe.calcPermutationEntropy(subSequence1D, numParamN, numParamD);
-					resultValues[i] = entropyValue;	
+					entropyValues = pe.calcPermutationEntropy(subSequence1D, numParamN, numParamD);
+					resultValues[i] = entropyValues[0]; //PE	
 				} 
 				//***********************************************************************
 			}	
@@ -956,8 +967,8 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 				//Compute specific values************************************************
 				if (subSequence1D.length > (numParamN * 2)) { // only data series which are large enough
 						pe = new PermutationEntropy(logService);
-						entropyValue = pe.calcPermutationEntropy(subSequence1D, numParamN, numParamD);
-					resultValues[i] = entropyValue;		
+						entropyValues = pe.calcPermutationEntropy(subSequence1D, numParamN, numParamD);
+					resultValues[i] = entropyValues[0]; //PE		
 				}
 				//***********************************************************************
 			}

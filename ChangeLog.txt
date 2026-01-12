@@ -7,6 +7,23 @@ Version numbering
 
 
 **************************************************************
+Version 1.2.2-beta
+pom-scijava 40.0.0
+Java 21
+2026-01-12
+
+New plugins:
+
+
+Plugin changes:
+1D Permutation entropy: Added Weighted PE
+1D Permutation entropy: Correction of normalized PE
+1D Permutation entropy: Correction for delay d>1
+
+Known issue:
+2D Kolmogorov complexity: J2K option may not work with Java 21, see https://github.com/fiji/fiji/issues/392
+
+**************************************************************
 Version 1.2.1
 pom-scijava 40.0.0
 Java 21
