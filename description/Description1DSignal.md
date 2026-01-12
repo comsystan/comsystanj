@@ -22,7 +22,7 @@
   - Gaussian and Uniform noise
   - Discrete chaotical maps (Logistic, Lorenz, Henon, Cubic, Spence), Silva & Murta Jr., 2012, Chaos, [DOI 10.1063/1.4758815](http://dx.doi.org/10.1063/1.4758815) 
   - Fractional Gaussian noise fGn with variable Hurst coefficient using Davis and Harte autocorrelation method DHM
-  - Fractional Brownian motion fBm with variable Hurst coefficient using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et.al., 1997, Physica A, [DOI 10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
+  - Fractional Brownian motion fBm with variable Hurst coefficient using spectral synthesis method SSM, Eke et al., 2000, Pflugers Archiv-European Journal of Physiology, [DOI 10.1007/s004249900135](https://doi.org/10.1007/s004249900135) Caccia et al., 1997, Physica A, [DOI 10.1016/S0378-4371(97)00363-4](https://doi.org/10.1016/S0378-4371(97)00363-4)
   - Weierstraß-Mandelbrot signals with variable fractal dimension, Falconer, Fractal Geometry, Wiley, 2014, 3rd Ed., ISBN: 978-1-119-94239-9
   - Binary Cantor dusts with variable fractal dimension
 - Optionally generates a plot display of signals
@@ -372,9 +372,10 @@
 - Tsallis, Introduction to Nonextensive Statistical Mechanics, Springer, 2009
 
 ### Entropy analyses - Permutation entropy
-- Permutation entropy H(n), Permutation entropy per symbol h(n)=H(n)/(n-1), Normalized permutation entropy H(n)/log(n!), Sorting entropy d(n)=H(n)-H(n-1), d(2)=H(2)  
-- n Order of Permutation entropy (>=2)
-- d Additional delay according to Govindan et.al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- Permutation entropy H(n), PE per symbol h(n)=H(n)/(n-1), Normalized PE H(n)/ln(n!), Sorting entropy d(n)=H(n)-H(n-1), d(2)=H(2), Weighted PE  
+- n Order of PE (>=2)
+- d Delay according to Govindan et al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- Weighted PE according to Fadlallah et al., 2013, Phys Rev E., [DOI 10.1103/PhysRevE.87.022911](https://doi.org/10.1103/PhysRevE.87.022911)
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
@@ -391,7 +392,7 @@
 - Approximate entropy is not recommended for different signal lengths
 - m length of subsignals (m=2 is often used)
 - r maximal distance radius (0.1SD < r < 0.25SD, with SD the standard deviation of the time series)
-- d additional delay according to Govindan et.al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
+- d additional delay according to Govindan et al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
