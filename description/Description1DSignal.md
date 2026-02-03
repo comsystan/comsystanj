@@ -372,7 +372,7 @@
 - Tsallis, Introduction to Nonextensive Statistical Mechanics, Springer, 2009
 
 ### Entropy analyses - Permutation entropy
-- Permutation entropy H(n), PE per symbol h(n)=H(n)/(n-1), Normalized PE H(n)/ln(n!), Sorting entropy d(n)=H(n)-H(n-1), d(2)=H(2), Weighted PE  
+- Permutation entropy H(n), PE per symbol h(n)=H(n)/(n-1), Normalized PE H(n)/ln(n!), Sorting entropy d(n)=H(n)-H(n-1), d(2)=H(2), Weighted PE, Amplitude sensitive PE  
 - n Order of PE (>=2)
 - d Delay according to Govindan et al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Weighted PE according to Fadlallah et al., 2013, Phys Rev E., [DOI 10.1103/PhysRevE.87.022911](https://doi.org/10.1103/PhysRevE.87.022911)
