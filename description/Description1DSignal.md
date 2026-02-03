@@ -376,6 +376,7 @@
 - n Order of PE (>=2)
 - d Delay according to Govindan et al., 2007, PhysicaA, [DOI 10.1016/j.physa.2006.10.077](https://doi.org/10.1016/j.physa.2006.10.077)
 - Weighted PE according to Fadlallah et al., 2013, Phys Rev E., [DOI 10.1103/PhysRevE.87.022911](https://doi.org/10.1103/PhysRevE.87.022911)
+- Amplitude sensitive PE according to Feng et al., 2025, Entropy, [DOI 10.3390/e27090919](https://doi.org/10.3390/e27090919)
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
 - Analysis of Entire signal or Subsequent/Gliding boxes
