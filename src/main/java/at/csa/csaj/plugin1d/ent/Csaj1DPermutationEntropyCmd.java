@@ -82,6 +82,9 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
  * Weighted PE according to:
  * Fadlallah B, Chen B, Keil A, Príncipe J. Weighted-permutation entropy: A complexity measure for time series incorporating amplitude information. Phys Rev E. 20. Februar 2013;87(2):022911. 
  * 
+ * Amplitude sensitive PE according to:
+ * Feng G, Li J, Zhong Y, Zhang S, Liu X, Vai MI, et al. A Novel Co-Designed Multi-Domain Entropy and Its Dynamic Synapse Classification Approach for EEG Seizure Detection. Entropy. September 2025;27(9):919. 
+ * NOTE: has problems with negative values
  * 
  */
 @Plugin(type = ContextCommand.class, 
@@ -604,11 +607,14 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 	/** Generates the table header {@code DefaultGenericTable} */
 	private void generateTableHeader() {
 		
-		String entropyHeader           = "PE";
-		String entropyPerSymbolHeader  = "PE per symbol";
-		String entropyNormalizedHeader = "Normalized PE";
-		String entropySortingHeader    = "Sorting E";
-		String entropyWeightedHeader   = "Weighted PE"; //WPE
+		String entropyHeader               = "PE";
+		String entropyPerSymbolHeader      = "PE per symbol";
+		String entropySortingHeader        = "Sorting E";
+		String entropyWeightedHeader       = "WPE"; //Weighted PE
+		String entropyAmplSensitiveHeader  = "ASPE"; //Amplitude-sensitive  PE
+		String entropyNormalizedPEHeader   = "Normalized PE";
+		String entropyNormalizedWPEHeader  = "Normalized WPE";
+		String entropyNormalizedASPEHeader = "Normalized ASPE";
 		
 		tableOut = new DefaultGenericTable();
 		tableOut.add(new GenericColumn("File name"));
@@ -626,9 +632,12 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
 			tableOut.add(new DoubleColumn(entropyHeader));	
 			tableOut.add(new DoubleColumn(entropyPerSymbolHeader));	
-			tableOut.add(new DoubleColumn(entropyNormalizedHeader));
 			tableOut.add(new DoubleColumn(entropySortingHeader));	
 			tableOut.add(new DoubleColumn(entropyWeightedHeader));	
+			tableOut.add(new DoubleColumn(entropyAmplSensitiveHeader));	
+			tableOut.add(new DoubleColumn(entropyNormalizedPEHeader));
+			tableOut.add(new DoubleColumn(entropyNormalizedWPEHeader));
+			tableOut.add(new DoubleColumn(entropyNormalizedASPEHeader));
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
 				//do nothing	
 			} else { //Surrogates
@@ -821,8 +830,8 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 		int     numParamD     = spinnerInteger_ParamD;
 		boolean skipZeroes    = booleanSkipZeroes;
 		
-		double[] resultValues = new double[2]; // only 2   PermEn and normalized PermEn
-		for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
+		double[] resultValues = null; //will be defined later
+		//for (int r = 0; r<resultValues.length; r++) resultValues[r] = Double.NaN;
 		
 //		double[]totals = new double[numParamN];
 //		double[]eps = new double[numParamN];
@@ -868,17 +877,17 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 				
 		PermutationEntropy pe;
 		PermutationEntropy pe2;
-		double entropyValues[]  = new double[] {Double.NaN, Double.NaN}; //PE, weightedPE
-		double entropyValues2[] = new double[] {Double.NaN, Double.NaN}; //PE, weightedPE
+		double entropyValues[]  = new double[] {Double.NaN, Double.NaN, Double.NaN}; //PE, WPE, ASPE
+		double entropyValues2[] = new double[] {Double.NaN, Double.NaN, Double.NaN}; //PE, WPE, ASPE
 		
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
 		if (sequenceRange.equals("Entire sequence")){	
 			if (surrType.equals("No surrogates")) {
-				resultValues = new double[5]; // PE, PE per symbol, normalized PE, Sorting entropy, WPE
+				resultValues = new double[8]; // PE, PE per symbol, Sorting entropy, WPE, ASPE, normalized PE, normalized WPE, normalized ASPE
 			} else {
-				resultValues = new double[5+1+1*numSurrogates]; // 5xEntropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
+				resultValues = new double[8+1+1*numSurrogates]; // 6xEntropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
 			}
 			for (int r = 0; r < resultValues.length; r++) resultValues[r] = Double.NaN;
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	
@@ -891,17 +900,20 @@ public class Csaj1DPermutationEntropyCmd<T extends RealType<T>> extends ContextC
 					
 				resultValues[0] = entropyValues[0]; //PE
 				resultValues[1] = entropyValues[0]/(numParamN - 1); //entropy per symbol
-				resultValues[2] = entropyValues[0]/Math.log(CombinatoricsUtils.factorial(numParamN));
+			
 				if (numParamN == 2){
-					resultValues[3] = entropyValues[0]; //Sorting entropy
+					resultValues[2] = entropyValues[0]; //Sorting entropy
 				} else if (numParamN > 2){
 					pe2 = new PermutationEntropy(logService);
 					entropyValues2 = pe2.calcPermutationEntropy(sequence1D, numParamN-1, numParamD);
-					resultValues[3] = entropyValues[0] - entropyValues2[0]; //Sorting entropy
+					resultValues[2] = entropyValues[0] - entropyValues2[0]; //Sorting entropy
 				}
-				resultValues[4] = entropyValues[1]; //WPE
-				
-				int lastMainResultsIndex = 4;
+				resultValues[3] = entropyValues[1]; //WPE
+				resultValues[4] = entropyValues[2]; //ASPE
+				resultValues[5] = entropyValues[0]/Math.log(CombinatoricsUtils.factorial(numParamN)); //Normalized PE
+				resultValues[6] = entropyValues[1]/Math.log(CombinatoricsUtils.factorial(numParamN)); //Normalized WPE
+				resultValues[7] = entropyValues[2]/Math.log(CombinatoricsUtils.factorial(numParamN)); //Normalized ASPE
+				int lastMainResultsIndex = 7;
 				
 				if (!surrType.equals("No surrogates")) { //Add surrogate analysis
 					surrSequence1D = new double[sequence1D.length];

@@ -40,6 +40,10 @@ import org.scijava.log.LogService;
  * Weighted PE according to:
  * Fadlallah B, Chen B, Keil A, Príncipe J. Weighted-permutation entropy: A complexity measure for time series incorporating amplitude information. Phys Rev E. 20. Februar 2013;87(2):022911. 
  * 
+ * Amplitude sensitive PE according to:
+ * Feng G, Li J, Zhong Y, Zhang S, Liu X, Vai MI, et al. A Novel Co-Designed Multi-Domain Entropy and Its Dynamic Synapse Classification Approach for EEG Seizure Detection. Entropy. September 2025;27(9):919. 
+ * NOTE: has problems with negative values
+ * 
  * <p>
  * <b>Changes</b>
  * <ul>
@@ -77,7 +81,7 @@ public class PermutationEntropy {
 	 * This method calculates the mean of a data series.
 	 * 
 	 * @param data1D
-	 * @return the mean
+	 * @return mean
 	 */
 	private Double calcMean(double[] data1D) {
 		double sum = 0;
@@ -91,7 +95,7 @@ public class PermutationEntropy {
 	 * This method calculates the variance of a data series.
 	 * 
 	 * @param data1D
-	 * @return the variance
+	 * @return variance
 	 */
 	private double calcVariance(double[] data1D) {
 		double mean = calcMean(data1D);
@@ -101,12 +105,40 @@ public class PermutationEntropy {
 		}
 		return sum / (data1D.length - 1); // 1/(n-1) is used by histo.getStandardDeviation() too
 	}
+	
+	/**
+	 * This method calculates the minimum of a data series.
+	 * 
+	 * @param data1D
+	 * @return min
+	 */
+	private double calcMin(double[] data1D) {
+		double min = Double.MAX_VALUE;
+		for (double d : data1D) {
+			if (d < min) min = d; 
+		}
+		return min;
+	}
+	
+	/**
+	 * This method calculates the maximum of a data series.
+	 * 
+	 * @param data1D
+	 * @return max
+	 */
+	private double calcMax(double[] data1D) {
+		double max = -Double.MAX_VALUE;
+		for (double d : data1D) {
+			if (d > max) max = d; 
+		}
+		return max;
+	}
 
 	/**
 	 * This method calculates the permutation entropy
 	 * @param data1D 1D data vector
 	 * @param n order of permutation entropy;  
-	 *        n should not be greater than N/3 (N number of data points)!
+	 *        n should not be greater than N/3 (N number of data points, WPE)!
 	 * @param d delay
 	 * @return double[] {permutationEntropy, weightedPermutationEntropy}
 	 * 
@@ -126,6 +158,15 @@ public class PermutationEntropy {
 			return new double[] {999999999d, 999999999d};
 		}
 	
+		//NOTE
+		//Shifting to positive values starting with 0
+		//because ASPE has problems with negative values, the mean can be negative.
+		//Shifting does not change all other PEs (PE, PE per symbol, Sorting E, WPE) 
+		double min = this.calcMin(data1D);		
+		for (int i = 0; i < data1D.length; i++) {
+			data1D[i] = data1D[i] - min; 
+		}
+		
 		//generate permutation patterns
 		char[] buffer = new char[n];
 		for (int i = 0; i < buffer.length; i++){
@@ -133,21 +174,24 @@ public class PermutationEntropy {
 		}	  
 		int[][] permArray = Permutation.allPermutations(n);
 			
-		double[] counts         = new double[permArray.length];
-		double[] countsWeighted = new double[permArray.length];
-		double[] sumWeighted    = new double[permArray.length];
+		double[] counts             = new double[permArray.length];
+		double[] countsWeighted     = new double[permArray.length];
+		double[] countsAmpSensitive = new double[permArray.length];
+		double[] sumWeighted        = new double[permArray.length];
+		double[] sumAmpSensitive    = new double[permArray.length];
 //		long  factorial = ArithmeticUtils.factorial(m);
 		//System.out.println("PEntropy: permArray.length: "+ permArray.length+ "     factorial: " + factorial);
 		
 		
-		double permutationEntropy = 0d;
-		double weightedPermutationEntropy = 0d;
+		double permutationEntropy             = 0d;
+		double weightedPermutationEntropy     = 0d;
+		double ampSensitivePermutationEntropy = 0d;
 		double[] sample;
 		NaturalRanking ranking;
         double[] rankOfSample;
         double diff;
-        double mean;       //for weighted PE
-        double weight = 0; //for weighted PE 
+        double mean;
+        double weight = 0; //for weighted and amplitude sensitive PE 
  
 		for(int j = 0; j < data1D.length-d*(n-1); j++){ 			
 		
@@ -160,14 +204,13 @@ public class PermutationEntropy {
 	       
 	        //look for matches
 	        for(int i = 0; i < permArray.length; i++){
-	        	
-	        	mean = this.calcMean(sample);
-	        	weight = 0.0;
-        		for (int ii = 0; ii < sample.length; ii++) {
-        			weight = weight + Math.pow((sample[ii] - mean), 2);
-        		}
-        		weight = weight/sample.length; //sample.length == n
-        		sumWeighted[i] = sumWeighted[i] + weight;
+	        	mean   = this.calcMean(sample);  //NOTE: mean must not be negative -  ASPE is not suited for that
+        		weight = this.calcVariance(sample);
+        		sumWeighted[i]     = sumWeighted[i]     + weight; //for WPE
+        		sumAmpSensitive[i] = sumAmpSensitive[i] + weight*weight/mean; //for ASPE
+//        		System.out.println("PermutationEntropy: weight: " + weight);
+//        		System.out.println("PermutationEntropy: mean: " + mean);
+//        		System.out.println("PermutationEntropy: weight*weight/mean: " + (weight*weight/mean));
         		
         		diff = 0.0;
 	        	for (int s = 0; s < n; s++){
@@ -175,7 +218,8 @@ public class PermutationEntropy {
 	        	}    
 	        	if (diff == 0){ //pattern match
 	        		counts[i] = counts[i] + 1; //for usual PE	
-	        		countsWeighted[i] = countsWeighted[i] + weight; //for weighted PE	
+	        		countsWeighted[i]     = countsWeighted[i]     + weight; //for WPE
+	        		countsAmpSensitive[i] = countsAmpSensitive[i] + weight*weight/mean; //for ASPE
 	        	}   
 	        }
 		}
@@ -185,9 +229,10 @@ public class PermutationEntropy {
 //			sum = sum + counts[i];
 //		}
 		for(int i = 0; i <counts.length; i++){
-			//counts[i] = counts[i] / sum; //should be identical, used until v1.2.1 
-			counts[i] = counts[i] / (numbDataPoints - (n-1)*d); //is the same but shorter
-			countsWeighted[i] = countsWeighted[i] / sumWeighted[i];
+			//counts[i]           = counts[i] / sum; //should be identical, used until v1.2.1 
+			counts[i]             = counts[i] / (numbDataPoints - (n-1)*d); //is the same but shorter
+			countsWeighted[i]     = countsWeighted[i] / sumWeighted[i];
+			countsAmpSensitive[i] = countsAmpSensitive[i] / sumAmpSensitive[i];
 		}
 		
 		//Last equation
@@ -203,9 +248,17 @@ public class PermutationEntropy {
 				entropySumWeighted = entropySumWeighted + countsWeighted[i] * Math.log(countsWeighted[i]);
 			}
 		}
-		permutationEntropy         = -entropySum;
-		weightedPermutationEntropy = -entropySumWeighted;
-		return new double[]{permutationEntropy, weightedPermutationEntropy}; //PE, weightedPE
+		double entropySumAmpSensitive = 0.0d;
+		for(int i = 0; i <countsAmpSensitive.length; i++){
+			if (countsAmpSensitive[i] != 0){
+				entropySumAmpSensitive = entropySumAmpSensitive + countsAmpSensitive[i] * Math.log(countsAmpSensitive[i]);
+			}
+		}
+		
+		permutationEntropy             = -entropySum;
+		weightedPermutationEntropy     = -entropySumWeighted;
+		ampSensitivePermutationEntropy = -entropySumAmpSensitive;
+		return new double[]{permutationEntropy, weightedPermutationEntropy, ampSensitivePermutationEntropy}; //PE, WPE, ASPE
 	}
 
 }

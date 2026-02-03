@@ -10,18 +10,19 @@ Version numbering
 Version 1.2.2-beta
 pom-scijava 40.0.0
 Java 21
-2026-01-12
+2026-02-03
 
 New plugins:
 
 
 Plugin changes:
-1D Permutation entropy: Added Weighted PE
+1D Permutation entropy: Added Weighted PE and Amplitude sensitive PE
 1D Permutation entropy: Correction of normalized PE
 1D Permutation entropy: Correction for delay d>1
 
 Known issue:
 2D Kolmogorov complexity: J2K option may not work with Java 21, see https://github.com/fiji/fiji/issues/392
+
 
 **************************************************************
 Version 1.2.1
@@ -68,6 +69,7 @@ Improved display of regression parameters in the double log plot
 Known issue:
 2D Kolmogorov complexity: J2K option may not work with Java 21, see https://github.com/fiji/fiji/issues/392
 
+
 **************************************************************
 Version 1.1.4
 pom-scijava 36.0.0
@@ -85,6 +87,7 @@ Plugin changes:
 Miscellaneous:
 Added non-modal custom UI dialogs for all plugins
 The majority of plugins now consist of three classes (Commmand, CommandUI, Dialog) 
+
 
 **************************************************************
 Version 1.1.3
@@ -115,6 +118,7 @@ Improved error handling during initialisation
 Improved workflow of getting data and writing to a table
 Added FracLac link to 2D Fractal plugins
 
+
 **************************************************************
 Version 1.1.2
 pom-scijava 36.0.0
@@ -128,6 +132,7 @@ New plugins:
 Plugin changes:
 1D Hurst coefficient changed to 1D Hurst coefficient (PSD)
 
+
 **************************************************************
 Version 1.1.1
 pom-scijava 36.0.0
@@ -140,11 +145,13 @@ New plugin:
 Plugin extension:
 1D Generator: Lorenz attractor
 
+
 **************************************************************
 Version 1.1.0
 pom-scijava 36.0.0
 Java 8
 2023-07-18
+
 
 **************************************************************
 Version 1.0.0 initial official release
