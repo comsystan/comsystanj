@@ -3,7 +3,7 @@
 ### Add a column on the left with sequential numbering in a csv table with Notepad++
 
 - Click with the cursor to the very top left position<br>
-Press <b>Alt+C</b><br>
+Press **Alt+C**<br>
 Select Text to Insert<br>
 Type "**,**"<br>
 Press **OK**<br>
