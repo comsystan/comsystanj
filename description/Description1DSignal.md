@@ -11,7 +11,8 @@
 - NaNs will be ignored for plot charts
 - NaNs will be ignored by CSAJ signal plugins
 - Conversion of integer to floating numbers with Notepad++ can be found [here](notepadpp/IntegerToFloating.md) 
-- Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md) 
+- Filling up missing values by NaNs with Notepad++ can be found [here](notepadpp/FillNaNs.md)
+- Add a column on the left with sequential numbering with Notepad++ can be found [here](notepadpp/AddNumberedColumn.md)
 - A sample signal file can be donwloaded [here](samples/SignalSample.txt)
 
 ### Signal generator
