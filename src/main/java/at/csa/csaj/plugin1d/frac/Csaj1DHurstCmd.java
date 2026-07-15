@@ -406,6 +406,8 @@ public class Csaj1DHurstCmd<T extends RealType<T>> extends ContextCommand implem
 		spinnerInteger_HKN = 500;	
 	}
 	protected void initialNumEps() {
+		initialNumRegStart();
+		initialEpsRegEnd();
 		if (epsRegEnd - numRegStart + 1  < 10) {
 			numEps = epsRegEnd - numRegStart + 1;
 		} else {
@@ -1387,8 +1389,9 @@ public class Csaj1DHurstCmd<T extends RealType<T>> extends ContextCommand implem
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel,
 			int numRegStart, int epsRegEnd) {
 		// jFreeChart
+		boolean addDiffPlot = true;
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabel, numRegStart, epsRegEnd);
+				yAxisLabel, legendLabel, numRegStart, epsRegEnd, addDiffPlot);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;

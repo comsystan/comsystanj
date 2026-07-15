@@ -5,6 +5,21 @@ Version numbering
 2nd digit: pom-scijava change
 3rd digit: subsequent changes
 
+**************************************************************
+Version 1.3.1-beta
+pom-scijava 43.0.0
+Java 21
+2027-01-01
+
+New plugins:
+
+
+Plugin changes:
+All 1D, 2D, 3D plugings with a double log regression plot:
+Added a difference plot to help finding the most linear part  
+
+Known issue:
+2D Kolmogorov complexity: J2K option may not work with Java 21, see https://github.com/fiji/fiji/issues/392
 
 **************************************************************
 Version 1.3.0

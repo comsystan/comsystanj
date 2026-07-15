@@ -361,6 +361,7 @@ public class Csaj1DHurstPSDDialog extends CsajDialog_1DPluginWithRegression {
 														//"spinnerInteger_NumEps", 	     spinnerInteger_NumEps,
 														"spinnerInteger_NumRegStart",    spinnerInteger_NumRegStart,
 														"spinnerInteger_NumRegEnd",      spinnerInteger_NumRegEnd,
+														"booleanShowDoubleLogPlot",      booleanShowDoubleLogPlot,
 													
 														
 														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,

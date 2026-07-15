@@ -73,12 +73,8 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 */
 	private static final long serialVersionUID = 3141924072908771166L;
 
-	private boolean isLineVisible = false;
-	private ChartPanel chartPanel = null;
-
-	private String title = null;
-	private String xLabel = null;
-	private String yLabel = null;
+	private boolean isLineVisible     = false;
+	private ChartPanel chartPanel     = null;
 
 	private static int SLIDER_INITIAL_VALUE = 50;
 	private JSlider slider;
@@ -92,10 +88,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	public CsajPlot_DefaultXYLineChart(DefaultGenericTable defaultGenericTable, int col, boolean isLineVisible, String title, String xLabel, String yLabel) {
 
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
-		
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		int numColumns    = defaultGenericTable.getColumnCount();
@@ -110,9 +102,9 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			dataY[n] = dataValue;	
 		}
 		
-		String seriesLabel = this.yLabel;
+		String seriesLabel = yLabel;
 		XYDataset xyDataset = this.createXYDataset(dataX, dataY, seriesLabel);
-		this.chartPanel.setChart(createChart(xyDataset));
+		this.chartPanel.setChart(createChart(xyDataset, title, xLabel, yLabel));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
 		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
@@ -120,6 +112,9 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 
 		this.setLayout(new BorderLayout());
 		this.add(this.chartPanel, BorderLayout.CENTER);
+		
+		
+		
 
 	}
 
@@ -138,9 +133,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			String yLabel, String[] colNames) {
 		
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		int numColumns    = defaultGenericTable.getColumnCount();
@@ -170,7 +162,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		
 		XYDataset xyDataset = this.createXYDataset(dataX, dataY, colNames);
 
-		this.chartPanel.setChart(createChart(xyDataset));
+		this.chartPanel.setChart(createChart(xyDataset, title, xLabel, yLabel));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
 		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
@@ -183,11 +175,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	@SuppressWarnings("rawtypes")
 	public CsajPlot_DefaultXYLineChart(double[] dataX, DefaultGenericTable defaultGenericTable, int col,  boolean isLineVisible, String title, String xLabel, String yLabel) {
 
-		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
-		
+		this.isLineVisible = isLineVisible;	
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		int numColumns    = defaultGenericTable.getColumnCount();
@@ -202,9 +190,9 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			dataY[n] = dataValue;	
 		}
 		
-		String seriesLabel = this.yLabel;
+		String seriesLabel = yLabel;
 		XYDataset xyDataset = this.createXYDataset(dataX, dataY, seriesLabel);
-		this.chartPanel.setChart(createChart(xyDataset));
+		this.chartPanel.setChart(createChart(xyDataset, title, xLabel, yLabel));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
 		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
@@ -230,9 +218,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			String yLabel, String[] colNames) {
 		
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		int numColumns    = defaultGenericTable.getColumnCount();
@@ -252,7 +237,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		
 		XYDataset xyDataset = this.createXYDataset(dataX, dataY, colNames);
 
-		this.chartPanel.setChart(createChart(xyDataset));
+		this.chartPanel.setChart(createChart(xyDataset, title, xLabel, yLabel));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
 		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
@@ -266,22 +251,16 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	public CsajPlot_DefaultXYLineChart(double[] dataX, double[] dataY, boolean isLineVisible, String title, String xLabel, String yLabel, String legendLabel) {
 
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
-
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
-
+		this.setLayout(new BorderLayout());		
+		
 		XYDataset dataset = this.createXYDataset(dataX, dataY, legendLabel);
-		this.chartPanel.setChart(createChart(dataset));
+		this.chartPanel.setChart(createChart(dataset, title, xLabel, yLabel));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
 		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
-		this.chartPanel.setMouseZoomable(true, false);
-
-		this.setLayout(new BorderLayout());
-		this.add(this.chartPanel, BorderLayout.CENTER);
-
+		this.chartPanel.setMouseZoomable(true, false);	
+		this.add(this.chartPanel, BorderLayout.NORTH);  ////Center will be the difference plot
 	}
 
 	/**
@@ -299,20 +278,17 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			String yLabel, String[] legendLabels) {
 		
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		XYDataset dataset = this.createXYDataset(dataX, dataY, legendLabels);
-		this.chartPanel.setChart(createChart(dataset));
+		this.chartPanel.setChart(createChart(dataset, title, xLabel, yLabel));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
 		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
 		this.chartPanel.setMouseZoomable(true, false);
 
 		this.setLayout(new BorderLayout());
-		this.add(this.chartPanel, BorderLayout.CENTER);
+		this.add(this.chartPanel, BorderLayout.NORTH); //Center will be the difference plots
 	}
 	
 	/**
@@ -330,13 +306,10 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			String yLabel, String[] legendLabels) {
 		
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		XYDataset dataset = this.createXYDataset(dataX, dataY, legendLabels);
-		this.chartPanel.setChart(createChart(dataset));
+		this.chartPanel.setChart(createChart(dataset, title, xLabel, yLabel));
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
 		this.chartPanel.setPreferredSize(new java.awt.Dimension(600, 400));
@@ -364,10 +337,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			String title, String xLabel, String yLabel, String dataLegendLabel, String data2LegendLabel) {
 
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
-
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		XYDataset xyDataset = this.createXYDataset(dataX, dataY, dataLegendLabel);
@@ -375,7 +344,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		//	this.chartPanel.setChart(createChart2(0, xyDataset));
 
 		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, data2LegendLabel);
-		this.chartPanel.setChart(createChart(xyDataset, xyDataset2));
+		this.chartPanel.setChart(createChart(xyDataset, xyDataset2, title, xLabel, yLabel));
 
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
@@ -392,10 +361,6 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 			String title, String xLabel, String yLabel, String[] dataLegendLabels, String[] data2LegendLabels) {
 
 		this.isLineVisible = isLineVisible;
-		this.title = title;
-		this.xLabel = xLabel;
-		this.yLabel = yLabel;
-
 		this.chartPanel = new ChartPanel((JFreeChart) null, true);
 
 		XYDataset xyDataset = this.createXYDataset(dataX, dataY, dataLegendLabels);
@@ -404,7 +369,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 
 		XYDataset xyDataset2 = this.createXYDataset(dataX2, dataY2, data2LegendLabels);
 
-		this.chartPanel.setChart(createChart(xyDataset, xyDataset2));
+		this.chartPanel.setChart(createChart(xyDataset, xyDataset2, title, xLabel, yLabel));
 
 		// this.setHorizontalAxisTrace(true);
 		// this.setVerticalAxisTrace(true);
@@ -417,7 +382,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	}
 
 	// XYDataset xyDataset2 - second series e.g. for detected events in Csaj1DDetectEventsCmd
-	private JFreeChart createChart(XYDataset xyDataset, XYDataset xyDataset2) {
+	public JFreeChart createChart(XYDataset xyDataset, XYDataset xyDataset2, String title, String xLabel, String yLabel) {
 
 		//Define Them
 		StandardChartTheme theme = null;
@@ -540,9 +505,12 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * Creates a chart.
 	 * 
 	 * @param xyDataset a xyDataset.
+	 * @param String title.
+	 * @param String xLabel.
+	 * @param String yLabel.
 	 * @return A chart.
 	 */
-	private JFreeChart createChart(XYDataset xyDataset) {
+	public JFreeChart createChart(XYDataset xyDataset, String title, String xLabel, String yLabel) {
 		
 		//Define Them
 		StandardChartTheme theme = null;
@@ -589,8 +557,8 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 		
 		//Create a chart
 		JFreeChart chart = ChartFactory.createXYLineChart(title, // "", // title
-				this.xLabel, // x-axis label
-				this.yLabel, // y-axis label
+				xLabel, // x-axis label
+				yLabel, // y-axis label
 				xyDataset, // data
 				PlotOrientation.VERTICAL, // orientation?
 				true, // generate legends?
@@ -689,7 +657,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @return the xySeriesColl
 	 */
 	@SuppressWarnings("rawtypes")
-	private XYDataset createXYDataset(double[] dataX, double[] dataY, String seriesLabel) {
+	public XYDataset createXYDataset(double[] dataX, double[] dataY, String seriesLabel) {
 
 		XYSeries s = null;
 		XYSeriesCollection xySeriesColl = null;
@@ -709,7 +677,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @return the xySeriesColl
 	 */
 	@SuppressWarnings({ "rawtypes" })
-	private XYDataset createXYDataset(double[] dataX, double[][] dataY, String[] legendLabels) {
+	public XYDataset createXYDataset(double[] dataX, double[][] dataY, String[] legendLabels) {
 
 		XYSeries[] s = new XYSeries[dataY.length];
 		XYSeriesCollection xySeriesColl = null;
@@ -738,7 +706,7 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @return the xySeriesColl
 	 */
 	@SuppressWarnings({ "rawtypes" })
-	private XYDataset createXYDataset(double[][] dataX, double[][] dataY, String[] legendLabels) {
+	public XYDataset createXYDataset(double[][] dataX, double[][] dataY, String[] legendLabels) {
 
 		XYSeries[] s = new XYSeries[dataY.length];
 		XYSeriesCollection xySeriesColl = null;
@@ -767,8 +735,8 @@ public class CsajPlot_DefaultXYLineChart extends JPanel implements ChangeListene
 	 * @return A panel.
 	 */
 	@SuppressWarnings("rawtypes")
-	public JPanel createPanel(double[] dataX, double[] dataY) {
-		JFreeChart chart = createChart(createXYDataset(dataX, dataY, "Series 1"));
+	public JPanel createPanel(double[] dataX, double[] dataY, String title, String xLabel, String yLabel) {
+		JFreeChart chart = createChart(createXYDataset(dataX, dataY, "Series 1"), title, xLabel, yLabel);
 		ChartPanel chartPanel = new ChartPanel(chart);
 		// chartPanel.setVerticalAxisTrace(true);
 		// chartPanel.setHorizontalAxisTrace(true);

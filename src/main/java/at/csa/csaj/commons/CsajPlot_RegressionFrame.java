@@ -48,13 +48,14 @@ public class CsajPlot_RegressionFrame extends CsajPlot_Frame {
 	 */
 	private static final long serialVersionUID = -1736340059325958928L;
 
+	//This is mainly used for single double log regression plots
 	public CsajPlot_RegressionFrame(double[] dataX, double[] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
-			String xLabel, String yLabel, String legendLabel, int numRegStart, int numRegEnd) {
+			String xLabel, String yLabel, String legendLabel, int numRegStart, int numRegEnd, boolean addDiffPlot) {
 		super(frameTitle);
 
 		CsajPlot_Regression rp = new CsajPlot_Regression(dataX, dataY, isLineVisible,
-				frameTitle, imageTitle, xLabel, yLabel, legendLabel, numRegStart, numRegEnd);
+				frameTitle, imageTitle, xLabel, yLabel, legendLabel, numRegStart, numRegEnd, addDiffPlot);
 
 		this.setContentPane(rp);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -68,13 +69,14 @@ public class CsajPlot_RegressionFrame extends CsajPlot_Frame {
 	    this.setLocation(x, y);	
 	}
 
+	//This is mainly used for multiple double log regression plots
 	public CsajPlot_RegressionFrame(double[] dataX, double[][] dataY,
 			boolean isLineVisible, String frameTitle, String imageTitle,
-			String xLabel, String yLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
+			String xLabel, String yLabel, String[] legendLabels, int numRegStart, int numRegEnd, boolean addDiffPlot) {
 		super(frameTitle);
 
 		CsajPlot_Regression rp = new CsajPlot_Regression(dataX, dataY, isLineVisible,
-				frameTitle, imageTitle, xLabel, yLabel, legendLabels, numRegStart, numRegEnd);
+				frameTitle, imageTitle, xLabel, yLabel, legendLabels, numRegStart, numRegEnd, addDiffPlot);
 
 		this.setContentPane(rp);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);

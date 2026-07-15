@@ -29,8 +29,6 @@ package at.csa.csaj.commons;
 
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Paint;
 import java.text.DecimalFormat;
@@ -47,6 +45,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.InternationalFormatter;
 
+import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -78,8 +77,10 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 	 */
 	private static final long serialVersionUID = 983749030307565008L;
 
-	private JPanel jPanelSouth = null; // a panel for all components in the
-										// south
+	
+	private ChartPanel chartPanelDiff = null;
+	
+	private JPanel jPanelSouth = null; // a panel for all components in the south
 
 	private JPanel jPanelRegression   = null;
 	private JLabel jLabelRegression   = null;
@@ -109,7 +110,11 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 	private JLabel jLabelRegResultP1 = null; // x
 	private JLabel jLabelRegResultP2 = null; // r2=
 
-	private XYSeriesCollection regressionSeries = null;
+	//private XYSeriesCollection regressionSeries     = null;
+	//private XYSeriesCollection regressionSeriesDiff = null;
+	
+	JFreeChart chartMain = null;
+	JFreeChart chartDiff = null;
 
 	/**
 	 * This constructor creates a single regression plot
@@ -127,7 +132,7 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 	@SuppressWarnings("rawtypes")
 	public CsajPlot_Regression(double[] dataX, double[] dataY, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xTitle, String yTitle, String legendLabel,
-			int regStart, int regEnd) {
+			int regStart, int regEnd, boolean addDiffPlot) {
 		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabel);
 		this.numPoints = dataX.length;
 		this.numReg = 1; //number of regression lines
@@ -135,10 +140,19 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 		this.regEnd = regEnd;
 		this.legendLabels = new String[1];
 		this.legendLabels[0] = legendLabel;
-		//System.out.println("RegressionPlot:  regStart:"+regStart + "   regEnd:"+regEnd);
+		chartMain = this.getChartPanel().getChart();
+		
+		if (addDiffPlot) {
+			this.addDifferencePlot(dataX, dataY, imageTitle, xTitle, yTitle, legendLabel);
+		}
+	
+		//Add Regression control elements
+		//System.out.println("RegressionPlot:  regStart:"+regStart + "   regEnd:"+regEnd);	
 		this.add(getJPanelSouth(), BorderLayout.SOUTH);
-		this.plotRegressions();
-
+		
+		//Plot regressions
+		this.plotRegressionsOfPlot();
+		if (chartPanelDiff != null) this.plotRegressionsOfDiffPlot();
 	}
 
 	/**
@@ -158,15 +172,26 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 	@SuppressWarnings("rawtypes")
 	public CsajPlot_Regression(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String imageTitle, String xTitle, String yTitle, String[] legendLabels,
-			int regStart, int regEnd) {
+			int regStart, int regEnd, boolean addDiffPlot) {
 		super(dataX, dataY, isLineVisible, imageTitle, xTitle, yTitle, legendLabels);
 		this.numPoints = dataX.length;
 		this.numReg = dataY.length; //number of regression lines
 		this.regStart = regStart;
 		this.regEnd = regEnd;
 		this.legendLabels = legendLabels;
+		chartMain = this.getChartPanel().getChart();
+		
+		if (addDiffPlot) {
+			this.addDifferencePlot(dataX, dataY, imageTitle, xTitle, yTitle, legendLabels);
+		}
+	
+		//Add Regression control elements
+		//System.out.println("RegressionPlot:  regStart:"+regStart + "   regEnd:"+regEnd);	
 		this.add(getJPanelSouth(), BorderLayout.SOUTH);
-		this.plotRegressions();
+		
+		//Plot regressions
+		this.plotRegressionsOfPlot();
+		if (chartPanelDiff != null) this.plotRegressionsOfDiffPlot();
 
 	}
 
@@ -367,14 +392,29 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 	/**
 	 * This method displays a regression line for each data series
 	 */
-	private void plotRegressions() {
-		JFreeChart chart = this.getChartPanel().getChart();
-		XYSeriesCollection sc = (XYSeriesCollection) chart.getXYPlot().getDataset();
+	private void plotRegressionsOfPlot() {
+		//JFreeChart chartMain = this.getChartPanel().getChart();
+		XYSeriesCollection sc = (XYSeriesCollection) chartMain.getXYPlot().getDataset();
 		int numSeries = sc.getSeriesCount();
 		// System.out.println("IqmRegressionPlot: numSeries" + numSeries);
 		for (int s = 0; s < numSeries; s++) {
 			// System.out.println("IqmRegressionPlot: s" + s);
-			this.plotRegression(s);
+			this.plotRegression(chartMain, s);
+		}
+	}
+	
+	// --------------------------------------------------------------------------------------------
+	/**
+	 * This method displays a regression line for each data series of the difference plot
+	 */
+	private void plotRegressionsOfDiffPlot() {
+		chartDiff = chartPanelDiff.getChart();	
+		XYSeriesCollection scDiff = (XYSeriesCollection) chartDiff.getXYPlot().getDataset();
+		int numSeriesDiff = scDiff.getSeriesCount();
+		// System.out.println("IqmRegressionPlot: numSeries" + numSeries);
+		for (int s = 0; s < numSeriesDiff; s++) {
+			// System.out.println("IqmRegressionPlot: s" + s);
+			this.plotRegression(chartDiff, s);
 		}
 	}
 
@@ -385,8 +425,8 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 	 * @param s number of data Series
 	 */
 	@SuppressWarnings("unused")
-	private void plotRegression(int s) {
-		JFreeChart chart = this.getChartPanel().getChart();
+	private void plotRegression(JFreeChart chart, int s) {
+		//chartMain or chartDiff
 		XYSeriesCollection dataPointSeriesCollection = (XYSeriesCollection) chart
 				.getXYPlot().getDataset(0); // 0 Data Points, 1 Regression lines
 		Paint colSeries = chart.getXYPlot().getRenderer().getSeriesPaint(s);
@@ -395,7 +435,7 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 		int regStart = ((Number) jSpinnerRegStart.getValue()).intValue();
 		int regEnd = ((Number) jSpinnerRegEnd.getValue()).intValue();
 		int regNum = 1;
-		if (numReg >1) regNum = ((Number) jSpinnerRegNum.getValue()).intValue();
+		if (numReg > 1) regNum = ((Number) jSpinnerRegNum.getValue()).intValue();
 		int numRegPoints = regEnd - regStart + 1;
 	
 		// old method of regression using jFreeChart; gives back only a and b
@@ -479,7 +519,7 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 		// chart.getXYPlot().setDataset(1, dataset);
 
 		// draw regression lines
-		regressionSeries = null;
+		XYSeriesCollection regressionSeries = null;
 		// get the plot
 		XYPlot plot = chart.getXYPlot();
 		// get the data set at index 1 (regressions)
@@ -501,7 +541,7 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 			regressionSeries = new XYSeriesCollection();
 			regressionSeries.addSeries(regSeries);
 			chart.getXYPlot().setDataset(1, regressionSeries);
-			
+			chart.getXYPlot().getDataset(1);
 			
 			// set renderer
 			XYLineAndShapeRenderer renderer1 = new XYLineAndShapeRenderer(true, false);
@@ -522,7 +562,7 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 			chart.getXYPlot().getRenderer(1).setSeriesPaint(s, colSeries);
 		}
 	}
-
+	
 	/**
 	 * This method displays the regression parameters
 	 * 
@@ -544,6 +584,59 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 		
 	}
 
+	/**
+	 * This method adds a difference plot
+	 * 
+	 * @param 
+	 */
+	private void addDifferencePlot(double[] dataX, double[] dataY, String title, String xTitle, String yTitle, String legendLabel) {
+		//Add difference panel
+		//double[] dataXDiff = new double[dataX.length - 1]; //not necessary, because identical
+		double[] dataYDiff = new double[dataY.length]; 
+		
+		dataYDiff[0] = dataY[1] - dataY[0]; //difference for first entry
+		for (int j = 1; j < dataY.length-1; j++) dataYDiff[j] = (dataY[j+1] - dataY[j-1])/2.0; //difference
+		dataYDiff[dataY.length-1] = dataY[dataY.length-1] - dataY[dataY.length-2]; //difference for last entry
+		
+		String titleDiff = "";
+		String xLabelDiff = xTitle;
+		String yLabelDiff = "Diff ( "+yTitle+" )";
+		String legendLabelDiff = legendLabel; //Take it as it is
+		chartPanelDiff = new ChartPanel((JFreeChart) null, true);
+		XYDataset datasetDiff = this.createXYDataset(dataX, dataYDiff, legendLabelDiff);
+		chartPanelDiff.setChart(createChart(datasetDiff, titleDiff, xLabelDiff, yLabelDiff));
+		chartPanelDiff.setPreferredSize(new java.awt.Dimension(600, 200));
+		chartPanelDiff.setMouseZoomable(true, false);
+		this.add(chartPanelDiff, BorderLayout.CENTER);
+	}
+	
+	/**
+	 * This method adds a difference plot
+	 * 
+	 * @param 
+	 */
+	private void addDifferencePlot(double[] dataX, double[][] dataY, String title, String xTitle, String yTitle, String[] legendLabels) {
+		//Add difference panel
+		//double[] dataXDiff = new double[dataX.length - 1]; //not necessary, because identical
+		double[][] dataYDiff = new double[dataY.length][dataY[0].length]; //[q][numBoxes]
+		
+		for (int q = 0; q < dataY.length; q++) {
+			dataYDiff[q][0] = dataY[q][1] - dataY[q][0]; //difference for first entry
+			for (int j = 1; j < dataY[0].length-1; j++) dataYDiff[q][j] = (dataY[q][j+1] - dataY[q][j-1])/2.0; //difference
+			dataYDiff[q][dataY[0].length-1] = dataY[q][dataY[0].length-1] - dataY[q][dataY[0].length-2]; //difference for last entry
+		}
+		
+		String titleDiff = "";
+		String xLabelDiff = xTitle;
+		String yLabelDiff = "Diff ( "+yTitle+" )";
+		String[] legendLabelsDiff = legendLabels; //Take it as it is
+		chartPanelDiff = new ChartPanel((JFreeChart) null, true);
+		XYDataset datasetDiff = this.createXYDataset(dataX, dataYDiff, legendLabelsDiff);
+		chartPanelDiff.setChart(createChart(datasetDiff, titleDiff, xLabelDiff, yLabelDiff));
+		chartPanelDiff.setPreferredSize(new java.awt.Dimension(600, 200));
+		chartPanelDiff.setMouseZoomable(true, false);
+		this.add(chartPanelDiff, BorderLayout.CENTER);
+	}
 	// --------------------------------------------------------------------------------------------
 	@Override
 	public void stateChanged(ChangeEvent e) {
@@ -572,9 +665,17 @@ public class CsajPlot_Regression extends CsajPlot_DefaultXYLineChart implements 
 		if (numReg >1) jSpinnerRegNum.addChangeListener(this);
 
 		// remove all series from the regression data set collection
-		this.regressionSeries.removeAllSeries();
-
-		this.plotRegressions();
+		//this.regressionSeries.removeAllSeries();
+		//JFreeChart chartMain = this.getChartPanel().getChart();
+		((XYSeriesCollection) chartMain.getXYPlot().getDataset(1)).removeAllSeries();
+		this.plotRegressionsOfPlot();
+		
+		//this.regressionSeriesDiff.removeAllSeries();
+		//JFreeChart chartDiff = chartPanelDiff.getChart();	
+		if (chartPanelDiff != null) {
+			((XYSeriesCollection) chartDiff.getXYPlot().getDataset(1)).removeAllSeries();
+			this.plotRegressionsOfDiffPlot();
+		}
 	}
 
 }

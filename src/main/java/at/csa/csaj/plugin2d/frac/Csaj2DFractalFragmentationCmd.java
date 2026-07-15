@@ -830,7 +830,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 		//Img<FloatType> imgFloat; // = opService.convert().float32((Img<T>)dataset.getImgPlus());
 	
 		CsajContainer_ProcessMethod containerPM;
-		CsajContainer_ProcessMethod containerPMCH;
+		CsajContainer_ProcessMethod containerPMCH; //CH...Convex Hull
 		//loop over all slices of stack
 		for (int s = 0; s < numSlices; s++){ //p...planes of an image stack
 			//if (!exec.isShutdown()) {
@@ -1629,8 +1629,9 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 	private CsajPlot_RegressionFrame DisplayRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
 		// jFreeChart
+		boolean addDiffPlot = true;
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabels, numRegStart, numRegEnd);
+				yAxisLabel, legendLabels, numRegStart, numRegEnd, addDiffPlot);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;

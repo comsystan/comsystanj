@@ -1530,8 +1530,9 @@ public class Csaj1DRQACmd<T extends RealType<T>> extends ContextCommand implemen
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String legendLabel,
 			int numRegStart, int numRegEnd) {
 		// jFreeChart
+		boolean addDiffPlot = true;
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabel, numRegStart, numRegEnd);
+				yAxisLabel, legendLabel, numRegStart, numRegEnd, addDiffPlot);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;
@@ -1569,8 +1570,9 @@ public class Csaj1DRQACmd<T extends RealType<T>> extends ContextCommand implemen
 			boolean isLineVisible, String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels,
 			int numRegStart, int numRegEnd) {
 		// jFreeChart
+		boolean addDiffPlot = true;
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabels, numRegStart, numRegEnd);
+				yAxisLabel, legendLabels, numRegStart, numRegEnd, addDiffPlot);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;

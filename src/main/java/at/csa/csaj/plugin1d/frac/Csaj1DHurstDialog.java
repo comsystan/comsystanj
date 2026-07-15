@@ -511,7 +511,7 @@ public class Csaj1DHurstDialog extends CsajDialog_1DPluginWithRegression {
 			spinnerNumEps.setValue(valueNumEps);
 			spinnerInteger_NumEps = (int)spinnerNumEps.getValue();
 		}
-
+		spinnerInteger_NumEps = (int)spinnerNumEps.getValue();
 		logService.info(this.getClass().getName() + " Regression # set to: " + spinnerInteger_NumEps);
 		logService.info(this.getClass().getName() + " Eps #        set to: " + epsInterval.length);
 		logService.info(this.getClass().getName() + " Eps interval set to: " + Arrays.toString(epsInterval));
@@ -537,7 +537,7 @@ public class Csaj1DHurstDialog extends CsajDialog_1DPluginWithRegression {
 														"spinnerInteger_NumEps", 	     spinnerInteger_NumEps,
 														"spinnerInteger_NumRegStart",    spinnerInteger_NumRegStart,
 														"spinnerInteger_NumRegEnd",      spinnerInteger_NumRegEnd,
-													
+														"booleanShowDoubleLogPlot",      booleanShowDoubleLogPlot,
 														
 														"choiceRadioButt_SequenceRange", choiceRadioButt_SequenceRange,
 														"choiceRadioButt_SurrogateType", choiceRadioButt_SurrogateType,

@@ -1164,8 +1164,9 @@ public class Csaj2DRenyiHeterogeneitiesCmd<T extends RealType<T>> extends Contex
 	private CsajPlot_RegressionFrame DisplayMultipleRegressionPlotXY(double[] dataX, double[][] dataY, boolean isLineVisible,
 			String frameTitle, String plotLabel, String xAxisLabel, String yAxisLabel, String[] legendLabels, int numRegStart, int numRegEnd) {
 		// jFreeChart
+		boolean addDiffPlot = true;
 		CsajPlot_RegressionFrame pl = new CsajPlot_RegressionFrame(dataX, dataY, isLineVisible, frameTitle, plotLabel, xAxisLabel,
-				yAxisLabel, legendLabels, numRegStart, numRegEnd);
+				yAxisLabel, legendLabels, numRegStart, numRegEnd, addDiffPlot);
 		pl.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		pl.pack();
 		// int horizontalPercent = 5;

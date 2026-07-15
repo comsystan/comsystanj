@@ -37,6 +37,7 @@ import java.util.concurrent.Future;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
@@ -157,6 +158,11 @@ public class Csaj1DFracDimWalkingDividerDialog extends CsajDialog_1DPluginWithRe
 		spinnerNumEps.setToolTipText("Number of rulers following 2^i");
 		
 		int numEpsMax = Csaj1DFracDimWalkingDividerCmd.getMaxRulersNumber(tableIn);
+		
+		if (numEpsMax < 3) { //Ther might be something wrong
+			JOptionPane.showMessageDialog(null, "Number of rulers too low\nInput columns are expected to be x,y coordinates of a contour", "Computation not possible", JOptionPane.WARNING_MESSAGE);			
+		}
+		
 		spinnerModelNumEps= new SpinnerNumberModel(numEpsMax, 1, numEpsMax, 1); // initial, min, max, step NOTE: (int) cast because JSpinner interprets long as double   
 		spinnerNumEps.setModel(spinnerModelNumEps);
 	
