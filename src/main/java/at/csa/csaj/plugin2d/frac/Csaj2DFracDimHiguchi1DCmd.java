@@ -1222,17 +1222,17 @@ public class Csaj2DFracDimHiguchi1DCmd<T extends RealType<T>> extends ContextCom
 				
 				for (int h = 0; h < height; h++) { // columns
 					if (h % 2 ==0) {//even
-						for (int w = 0; w < width; w++) { // one row
+						for (int w = 0; w < width; w++) { // one row from left to right
 							ra.setPosition(w, 0);
-							ra.setPosition(h, 1); //row in the middle of the image (column)
-							sequence1D[w + h * (int)width] = ((UnsignedByteType) ra.get()).getRealFloat();
+							ra.setPosition(h, 1);
+							sequence1D[w + h * (int)width] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
 						}
 					}
 					else {
-						for (int w = (int) (width-1); w >= 0; w--) { // one row
+						for (int w = (int) (width-1); w >= 0; w--) { // one row from right to left
 							ra.setPosition(w, 0);
-							ra.setPosition(h, 1); //row in the middle of the image (column)
-							sequence1D[w + h* (int)width] = ((UnsignedByteType) ra.get()).getRealFloat();
+							ra.setPosition(h, 1);
+							sequence1D[((int)(width-1) - w) + h* (int)width] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
 						}
 					}
 				}
@@ -1257,21 +1257,21 @@ public class Csaj2DFracDimHiguchi1DCmd<T extends RealType<T>> extends ContextCom
 				
 				// Dh-col Single meander column---------------------------------------------------------------------------------
 				int numActualColumns = 0;
-				sequence1D = new double[(int) (width*height)];
+				sequence1D = new double[(int)(width*height)];
 				
 				for (int w = 0; w < width; w++) { // columns
 					if (w % 2 ==0) {//even
-						for (int h = 0; h < height; h++) { // one row
+						for (int h = 0; h < height; h++) { // one column from top to bottom
 							ra.setPosition(w, 0);
-							ra.setPosition(h, 1); //row in the middle of the image (column)
-							sequence1D[h + w * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat();
+							ra.setPosition(h, 1); 
+							sequence1D[h + w * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
 						}
 					}
 					else {
-						for (int h = (int) (height-1); h >= 0; h--) { // one row
+						for (int h = (int)(height-1); h >= 0; h--) { // one column from bottom to top
 							ra.setPosition(w, 0);
-							ra.setPosition(h, 1); //row in the middle of the image (column)
-							sequence1D[h + w* (int)height] = ((UnsignedByteType) ra.get()).getRealFloat();
+							ra.setPosition(h, 1); 
+							sequence1D[((int)(height-1) - h) + w* (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
 						}
 					}
 				}

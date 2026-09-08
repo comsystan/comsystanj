@@ -160,7 +160,7 @@ public class Csaj2DFracDimHiguchi1DDialog extends CsajDialog_2DPluginWithRegress
 					checkBoxShowSomeRadialLinePlots.setEnabled(false);
 					checkBoxShowSomeRadialLinePlots.setSelected(false);
 					booleanShowSomeRadialLinePlots = false;
-					logService.info(this.getClass().getName() + "  Show some radila line plots option set to " + booleanShowSomeRadialLinePlots);
+					logService.info(this.getClass().getName() + "  Show some radial line plots option set to " + booleanShowSomeRadialLinePlots);
 					labelGetAllRadialDhValues.setEnabled(false);
 					checkBoxGetAllRadialDhValues.setEnabled(false);
 					checkBoxGetAllRadialDhValues.setSelected(false);
