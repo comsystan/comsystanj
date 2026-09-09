@@ -798,6 +798,7 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 						ra.setPosition(w, 0);
 						ra.setPosition(h, 1);
 						resultValues[w + h * (int)width] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
 					}
 				}
 				else {
@@ -805,6 +806,7 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 						ra.setPosition(w, 0);
 						ra.setPosition(h, 1);
 						resultValues[((int)(width-1) - w) + h * (int)width] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
 					}
 				}
 			}
@@ -822,6 +824,7 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 						ra.setPosition(w, 0);
 						ra.setPosition(h, 1);
 						resultValues[h + w * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
 					}
 				}
 				else {
@@ -829,6 +832,7 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 						ra.setPosition(w, 0);
 						ra.setPosition(h, 1);
 						resultValues[((int)(height-1) - h) + w * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
 					}
 				}
 			}
