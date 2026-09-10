@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DKolmogorovComplexityCmd.java
+ * File: Csaj3Dto1DScanCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -69,27 +69,20 @@ import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
-import org.scijava.table.BoolColumn;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericColumn;
-import org.scijava.table.IntColumn;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
-import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajAlgorithm_HilbertScan;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import at.csa.csaj.plugin3d.cplx.util.Kolmogorov3DMethods;
-import at.csa.csaj.plugin3d.cplx.util.Kolmogorov3D_Grey;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
 
 /**
- * A {@link ContextCommand} plugin computing <the 3D Kolmogorov complexity</a>
+ * A {@link ContextCommand} plugin computing <a 3D to 1D scan</a>
  * of an image volume.
  */
 @Plugin(type = ContextCommand.class,
@@ -611,9 +604,7 @@ public class Csaj3Dto1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 		
 		//dataset = datasetService.create(rai);
 		
-		String scanType = choiceRadioButt_ScanType;
-
-		
+		String scanType = choiceRadioButt_ScanType;	
 		double[] resultValues = null;
 
 		int width  = (int)rai.dimension(0);
@@ -628,117 +619,64 @@ public class Csaj3Dto1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 
 		}
 		
-//		//FILE 1
-//		//*******************************************************************************************************************
-//		if (scanType.equals("Meander")){
-//		
-//			RandomAccess<?> ra=  rai.randomAccess();		
-//			// Single meander ---------------------------------------------------------------------------------
-//			resultValues = new double[(int)(width*height*depth)];			
-//			int idx = 0;
-//	     
-//	        for (int z = 0; z < depth; z++) {
-//	            // Alternate direction for each layer (z)
-//	            boolean forward = (z % 2 == 0);
-//	            
-//	            for (int y = 0; y < height; y++) {
-//	                // Determine x iteration direction based on y and layer parity
-//	                // Standard meander: reverse x direction every row
-//	                boolean row_forward = ((y + (forward ? 0 : 1)) % 2 == 0);
-//	                int actual_start = row_forward ? 0 : width - 1;
-//	                int actual_end = row_forward ? width : -1;
-//	                int actual_step = row_forward ? 1 : -1;
-//
-//	                for (int x = actual_start; x != actual_end; x += actual_step) {
-//	                	ra.setPosition(x, 0);
-//	        			ra.setPosition(y, 1);
-//	        			ra.setPosition(z, 2);
-//	        			resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat();
-//	        			logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y +" " +z );
-//	        			idx = idx +1;
-//	                }
-//	            }
-//	        }			
-//		}
-		
-//		//FILE 2
-//		//*******************************************************************************************************************
-//		if (scanType.equals("Meander")){
-//		
-//			RandomAccess<?> ra=  rai.randomAccess();		
-//			// Single meander ---------------------------------------------------------------------------------
-//			resultValues = new double[(int)(width*height*depth)];			
-//			int idx = 0;
-//	     
-//			for (int z = 0; z < depth; z++) {
-//	 
-//	            // Alternate scan direction every other slice
-//	            boolean scanLeftToRight = (z % 2 == 0);
-//
-//	            for (int y = 0; y < height; y++) {
-//
-//	                if (scanLeftToRight) {
-//	                    for (int x = 0; x < width; x++) {
-//	        				ra.setPosition(x, 0);
-//							ra.setPosition(y, 1);
-//							ra.setPosition(z, 2);
-//							resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat();
-//							logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y +" " +z );
-//							idx = idx +1;
-//	                    }
-//	                } else {
-//	                    for (int x = width - 1; x >= 0; x--) {
-//	        				ra.setPosition(x, 0);
-//							ra.setPosition(y, 1);
-//							ra.setPosition(z, 2);
-//							resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat();
-//							logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y +" " +z );
-//							idx = idx +1;
-//	                    }
-//	                }
-//	            }
-//	        }	
-//		}
-		
-//		//FILE3
-//		//*******************************************************************************************************************
-//		if (scanType.equals("Meander")){
-//		
-//			RandomAccess<?> ra=  rai.randomAccess();		
-//			// Single meander ---------------------------------------------------------------------------------
-//			resultValues = new double[(int)(width*height*depth)];
-//			int idx = 0;
-//	        for (int z = 0; z < depth; z++) {
-//	            for (int y = 0; y < height; y++) {
-//	                // Alternate x-direction per row; flip per z-slice for continuity
-//	                boolean forward = ((y + z) % 2) == 0;
-//	                if (forward) {
-//	                    for (int x = 0; x < width; x++) {
-//	        				ra.setPosition(x, 0);
-//							ra.setPosition(y, 1);
-//							ra.setPosition(z, 2);
-//							resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat();
-//							logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y +" " +z );
-//							idx = idx +1;
-//	                    }
-//	                    	                       
-//	                } else {
-//	                    for (int x = width - 1; x >= 0; x--) {
-//	        				ra.setPosition(x, 0);
-//							ra.setPosition(y, 1);
-//							ra.setPosition(z, 2);
-//							resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat();
-//							logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y +" " +z );
-//							idx = idx +1;
-//	                    }
-//	                       
-//	                }
-//	            }
-//	        }
-//				
-//		}
-		
-		
+		if(scanType.equals("Meander")) {
+			
+			RandomAccess<?> ra=  rai.randomAccess();
+			// Single meander row---------------------------------------------------------------------------------
+			resultValues = new double[width*height*depth];
+			int idx = 0;
+			   for (int z = 0; z < depth; z++) {
+				   if (z % 2 == 0) { //even z
+					   for (int y = 0; y < height; y++) { // columns
+							if (y % 2 == 0) {//even y
+								for (int x = 0; x < width; x++) { // one row from left to right
+									ra.setPosition(x, 0);
+									ra.setPosition(y, 1);
+									ra.setPosition(z, 2);
+									resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+									idx = idx + 1;
+									//logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y + " " + z);
+								}
+							}
+							else { //uneven y
+								for (int x = (width-1); x >= 0; x--) { // one row from right to left
+									ra.setPosition(x, 0);
+									ra.setPosition(y, 1);
+									ra.setPosition(z, 2);
+									resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+									idx = idx + 1;
+									//logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y + " " + z);
+								}
+							}
+						}
+				   }
+				   else { //uneven z
+					   for (int y = (height -1); y >= 0; y--) { // columns
+							if (y % 2 == 0) { //even y
+								for (int x = (width-1); x >= 0; x--) { // one row from right to left
+									ra.setPosition(x, 0);
+									ra.setPosition(y, 1);
+									ra.setPosition(z, 2);
+									resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+									idx = idx + 1;
+									//logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y + " " + z);
+								}
+							}
+							else { //uneven y
+								for (int x = 0; x < width; x++) { // one row from left to right
+									ra.setPosition(x, 0);
+									ra.setPosition(y, 1);
+									ra.setPosition(z, 2);
+									resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+									idx = idx + 1;
+									//logService.info(this.getClass().getName() + " Meander coordinates x,y,z: "+ x + " " + y + " " + z);
+								}
+							}
+						}		   
+				   } //uneven z
+			   } //for z
+		} //Meander
+
 		if (scanType.equals("Random")){
 			
 			resultValues = new double[(int)(width*height*depth)];
@@ -770,11 +708,8 @@ public class Csaj3Dto1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 			
 			cursor.reset();	
 			list.clear();
-			list = null;
-		
+			list = null;	
 		}	
-	
-	
 		
 		return new CsajContainer_ProcessMethod(resultValues);
 		// Output

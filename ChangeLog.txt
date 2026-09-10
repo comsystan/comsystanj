@@ -9,10 +9,11 @@ Version numbering
 Version 1.4.0-beta
 pom-scijava 45.1.0
 Java 21
-2027-01-01
+2027-01-01-target date
 
 New plugins:
-2D to 1D scan - to analyze 2D images using all 1D algorithms.
+2D to 1D scan - for analyzing 2D images using 1D algorithms.
+3D to 1D scan - for analyzing 3D volumes using 1D algorithms.
 
 Plugin changes:
 All 1D, 2D, 3D plugings with a double log regression plot:

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DKolmogorovComplexityCmdUI.java
+ * File: Csaj3Dto1DScanCmdUI.java
  * 
  * $Id$
  * $HeadURL$
@@ -57,7 +57,7 @@ import net.imagej.ImageJ;
 		@Menu(label = "ComsystanJ"),
 		@Menu(label = "3D Volume"),
 		@Menu(label = "3D Preprocessing", weight = 1),
-		@Menu(label = "3D Kolmogorov complexity")})
+		@Menu(label = "3D to 1D scan")})
 
 public class Csaj3Dto1DScanCmdUI extends ContextCommand implements Previewable{
 	

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj3DKolmogorovComplexityDialog.java
+ * File: Csaj3Dto1DScanDialog.java
  * 
  * $Id$
  * $HeadURL$

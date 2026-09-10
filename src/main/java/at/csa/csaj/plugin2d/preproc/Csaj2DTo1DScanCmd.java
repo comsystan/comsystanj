@@ -29,37 +29,19 @@ package at.csa.csaj.plugin2d.preproc;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.Inflater;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import net.imagej.Dataset;
 import net.imagej.DatasetService;
@@ -79,28 +61,20 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.scijava.ItemIO;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
 import org.scijava.command.ContextCommand;
 import org.scijava.command.Previewable;
 import org.scijava.display.DefaultDisplayService;
 import org.scijava.display.Display;
 import org.scijava.io.IOService;
-import org.scijava.io.location.FileLocation;
 import org.scijava.log.LogService;
-import org.scijava.menu.MenuConstants;
-import org.scijava.plugin.Menu;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.prefs.PrefService;
-import org.scijava.table.BoolColumn;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericColumn;
-import org.scijava.table.IntColumn;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
@@ -108,20 +82,13 @@ import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
-import at.csa.csaj.plugin2d.frac.util.Higuchi;
 import at.csa.csaj.commons.CsajAlgorithm_HilbertScan;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
-import io.scif.DefaultImageMetadata;
-import io.scif.MetaTable;
-import io.scif.SCIFIO;
-import io.scif.codec.CompressionType;
-import io.scif.config.SCIFIOConfig;
 
 
 /**
- * A {@link ContextCommand} plugin computing
- * <the Kolmogorov complexity and Logical depth </a>
+ * A {@link ContextCommand} plugin computing <a 3D to 1D scan </a>
  * of an image.
  */
 @Plugin(type = ContextCommand.class,
@@ -149,9 +116,6 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 	private static long numSlices = 0;
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
-	private static File kolmogorovComplexityDir;
-	private static double durationReference  = Double.NaN;
-	private static double megabytesReference = Double.NaN;
 		
 	public static final String TABLE_OUT_NAME = "Table - 2D to 1D scan";
 	
@@ -788,25 +752,28 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 		//*******************************************************************************************************************
 		if(scanType.equals("Row meander")){
 		
-			RandomAccess<?> ra=  rai.randomAccess();		
+			RandomAccess<?> ra=  rai.randomAccess();
 			// Single meander row---------------------------------------------------------------------------------
 			resultValues = new double[(int)(width*height)];
+			int idx = 0;
 			
-			for (int h = 0; h < height; h++) { // columns
-				if (h % 2 == 0) {//even
-					for (int w = 0; w < width; w++) { // one row from left to right
-						ra.setPosition(w, 0);
-						ra.setPosition(h, 1);
-						resultValues[w + h * (int)width] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
-						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
+			for (int y = 0; y < height; y++) { // columns
+				if (y % 2 == 0) { //even y
+					for (int x = 0; x < width; x++) { // one row from left to right
+						ra.setPosition(x, 0);
+						ra.setPosition(y, 1);
+						resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						idx = idx + 1;
+						//logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ x + " " + y);
 					}
 				}
-				else {
-					for (int w = (int)(width-1); w >= 0; w--) { // one row from right to left
-						ra.setPosition(w, 0);
-						ra.setPosition(h, 1);
-						resultValues[((int)(width-1) - w) + h * (int)width] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
-						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
+				else { //uneven y
+					for (int x = (int)(width-1); x >= 0; x--) { // one row from right to left
+						ra.setPosition(x, 0);
+						ra.setPosition(y, 1);
+						resultValues[idx] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						idx = idx + 1;
+						//logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ x + " " + y);
 					}
 				}
 			}
@@ -818,21 +785,21 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 			// Single meander column---------------------------------------------------------------------------------
 			resultValues = new double[(int)(width*height)];
 			
-			for (int w = 0; w < width; w++) { // columns
-				if (w % 2 == 0) {//even
-					for (int h = 0; h < height; h++) { // one column from top to bottom
-						ra.setPosition(w, 0);
-						ra.setPosition(h, 1);
-						resultValues[h + w * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
-						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
+			for (int x = 0; x < width; x++) { // columns
+				if (x % 2 == 0) { //even x
+					for (int y = 0; y < height; y++) { // one column from top to bottom
+						ra.setPosition(x, 0);
+						ra.setPosition(y, 1);
+						resultValues[y + x * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						//logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ x + " " + y);
 					}
 				}
-				else {
-					for (int h = (int)(height-1); h >= 0; h--) { // one column from bottom to top
-						ra.setPosition(w, 0);
-						ra.setPosition(h, 1);
-						resultValues[((int)(height-1) - h) + w * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
-						logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ w + " " + h);
+				else { //uneven x
+					for (int y = (int)(height-1); y >= 0; y--) { // one column from bottom to top
+						ra.setPosition(x, 0);
+						ra.setPosition(y, 1);
+						resultValues[((int)(height-1) - y) + x * (int)height] = ((UnsignedByteType) ra.get()).getRealFloat(); //always from left to right
+						//logService.info(this.getClass().getName() + " Meander coordinates x,y: "+ x + " " + y);
 					}
 				}
 			}
