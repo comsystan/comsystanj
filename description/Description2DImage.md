@@ -34,6 +34,12 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Note: Fiji displays RGB images as 3 channel color images. Workaround: Image/Type/RGB Color 
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
+### Preprocessing - 2D to 1D scan
+- Computes a space filling 1D scan through the volume 
+- 8-bit grey images
+- Hibert, Row meander, Column meander, Random
+- Note: Appropriate transformation for applying 1D algorithms
+
 ### Preprocessing - Auto crop borders
   - 8-bit grey or RGB color images
   - Useful for e.g. computing fractal dimensions of ojects rather than images
