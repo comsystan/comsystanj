@@ -47,11 +47,17 @@
 - 8-bit grey or RGB color image volume
 - Z-score, Interquartile range IQR
 
-### 3D Preprocessing - 3D Surrogates
+### 3D Preprocessing - 3D Surrogate
 - Computes a surrogate image volume
 - 8-bit grey or RGB color image volume
 - Shuffle, Gaussian, Random phase, AAFT
 - FFT windowing can be set
+
+### 3D Preprocessing - 3D to 1D scan
+- Computes a space filling 1D scan through the volume 
+- 8-bit grey image volume
+- Hibert, Meander, Random
+- Note: Appropriate transformation for applying 1D algorithms
 
 ### 3D Complexity analyses - 3D Kolmogorov complexity and Logical depth
 - KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB) or
