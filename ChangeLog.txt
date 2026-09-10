@@ -19,6 +19,8 @@ Plugin changes:
 All 1D, 2D, 3D plugings with a double log regression plot:
 Added a difference plot to help finding the most linear part
 
+Miscellaneous:
+Eliminated depreciated command Views.iterable()
 
 Known issue:
 2D Kolmogorov complexity: J2K option may not work with Java 21, see https://github.com/fiji/fiji/issues/392
