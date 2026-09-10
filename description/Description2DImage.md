@@ -37,7 +37,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 ### Preprocessing - 2D to 1D scan
 - Space filling 1D scan through the image 
 - 8-bit grey images
-- Hibert, Row meander, Column meander, Random
+- Hilbert, Row meander, Column meander, Random
 - Note: Appropriate transformation for applying 1D algorithms
 
 ### Preprocessing - Auto crop borders
