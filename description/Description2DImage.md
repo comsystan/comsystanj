@@ -35,7 +35,7 @@ For binary images black pixels are the background. White pixels are the foregrou
 - Note: Fiji sometimes displays an enhanced R channel. Workaround: Image/Color/Arrange Channels... and press OK
 
 ### Preprocessing - 2D to 1D scan
-- Computes a space filling 1D scan through the volume 
+- Space filling 1D scan through the image 
 - 8-bit grey images
 - Hibert, Row meander, Column meander, Random
 - Note: Appropriate transformation for applying 1D algorithms
