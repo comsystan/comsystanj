@@ -56,7 +56,7 @@
 ### 3D Preprocessing - 3D to 1D scan
 - Space filling 1D scan through the volume 
 - 8-bit grey image volume
-- Hibert, Meander, Random
+- Hilbert, Meander, Random
 - Note: Appropriate transformation for applying 1D algorithms
 
 ### 3D Complexity analyses - 3D Kolmogorov complexity and Logical depth
