@@ -21,7 +21,7 @@ package at.csa.csaj.plugin1d.detect.util;
 
 /*-
  * #%L
- * Project: ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes
+ * Project: ImageJ2/Fiji plugins for complexity analyses of 1D signals, 2D images and 3D volumes
  * File: Osea4Java_NoiseChecker.java
  * 
  * $Id$

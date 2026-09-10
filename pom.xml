@@ -17,7 +17,7 @@
 	<version>1.4.0-beta</version><!--ComsystanJ version-->
 
 	<name>ComsystanJ</name>
-	<description>ImageJ2/Fiji plugins for complex analyses of 1D signals, 2D images and 3D volumes</description>
+	<description>ImageJ2/Fiji plugins for complexity analyses of 1D signals, 2D images and 3D volumes</description>
 	<url>https://github.com/comsystan/comsystanj</url>
 	<inceptionYear>2024</inceptionYear>
 	<organization>
