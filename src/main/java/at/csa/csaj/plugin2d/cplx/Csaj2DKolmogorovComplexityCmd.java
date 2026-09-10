@@ -799,7 +799,7 @@ public class Csaj2DKolmogorovComplexityCmd<T extends RealType<T>> extends Contex
 			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
 			byte sample = 0; 
 			// Loop through all pixels of this image
-			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			Cursor<?> cursor = rai.localizingCursor();
 			while (cursor.hasNext()) { //Image
 				cursor.fwd();
 				sample = (byte) ((UnsignedByteType) cursor.get()).get();
@@ -848,7 +848,7 @@ public class Csaj2DKolmogorovComplexityCmd<T extends RealType<T>> extends Contex
 			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
 			byte sample = 0; 
 			// Loop through all pixels of this image
-			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			Cursor<?> cursor = rai.localizingCursor();
 			while (cursor.hasNext()) { //Image
 				cursor.fwd();
 				sample = (byte) ((UnsignedByteType) cursor.get()).get();
@@ -897,7 +897,7 @@ public class Csaj2DKolmogorovComplexityCmd<T extends RealType<T>> extends Contex
 			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
 			byte sample = 0; 
 			// Loop through all pixels of this image
-			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			Cursor<?> cursor = rai.localizingCursor();
 			while (cursor.hasNext()) { //Image
 				cursor.fwd();
 				sample = (byte) ((UnsignedByteType) cursor.get()).get();

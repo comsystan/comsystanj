@@ -86,7 +86,7 @@ public class CsajAlgorithm_Surrogate2D {
 		double pixelVal;
 		minmax[0] =  Double.MAX_VALUE;
 		minmax[1] = -Double.MAX_VALUE;
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		//pos = new long[2];
 		while (cursor.hasNext()) {
 			cursor.fwd();
@@ -115,7 +115,7 @@ public class CsajAlgorithm_Surrogate2D {
 		RandomAccessibleInterval raiSlice = null;	
 		
 		if (numDim == 2) { //2D grey
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			list = new ArrayList<Integer>();
 			while (cursor.hasNext()) {
 				cursor.fwd();
@@ -155,7 +155,7 @@ public class CsajAlgorithm_Surrogate2D {
 			for (int b = 0; b < numBands; b++) {
 				raiSlice = (RandomAccessibleInterval) Views.hyperSlice(rai, 2, b);
 		
-				cursor = Views.iterable(raiSlice).localizingCursor();	
+				cursor = raiSlice.localizingCursor();	
 				list = new ArrayList<Integer>();
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -220,7 +220,7 @@ public class CsajAlgorithm_Surrogate2D {
 			width  = rai.dimension(0);
 			height = rai.dimension(1);
 			
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				//cursor.localize(pos);	
@@ -259,7 +259,7 @@ public class CsajAlgorithm_Surrogate2D {
 			int numBands = 3;//RGB
 			for (int b = 0; b < numBands; b++) {
 				raiSlice = (RandomAccessibleInterval) Views.hyperSlice(rai, 2, b);
-				cursor = Views.iterable(raiSlice).localizingCursor();
+				cursor = raiSlice.localizingCursor();
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
@@ -382,7 +382,7 @@ public class CsajAlgorithm_Surrogate2D {
 			
 			//JTransform needs rows and columns swapped!!!!!
 			imgA = new float[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
-			cursor = Views.iterable(raiWindowed).localizingCursor();
+			cursor = raiWindowed.localizingCursor();
 			pos = new long[2];
 			while (cursor.hasNext()) {
 				cursor.fwd();
@@ -493,7 +493,7 @@ public class CsajAlgorithm_Surrogate2D {
 			minmax = new double[2];
 			minmax[0] =  Double.MAX_VALUE;
 			minmax[1] = -Double.MAX_VALUE;
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			pos = new long[2];
 			while (cursor.hasNext()) {
 				cursor.fwd();
@@ -504,7 +504,7 @@ public class CsajAlgorithm_Surrogate2D {
 				if (pixelVal > minmax[1]) minmax[1] = pixelVal;
 			}
 			
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			pos = new long[2];
 			double rf = (minmaxOrig[1]-minmaxOrig[0])/(minmax[1]-minmax[0]); //rescale factor
 			while (cursor.hasNext()) {
@@ -598,7 +598,7 @@ public class CsajAlgorithm_Surrogate2D {
 				
 				//JTransform needs rows and columns swapped!!!!!
 				imgA = new float[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
-				cursor = Views.iterable(raiWindowed).localizingCursor();
+				cursor = raiWindowed.localizingCursor();
 				pos = new long[2];
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -659,7 +659,7 @@ public class CsajAlgorithm_Surrogate2D {
 				minmax = new double[2];
 				minmax[0] =  Double.MAX_VALUE;
 				minmax[1] = -Double.MAX_VALUE;
-				cursor = Views.iterable(raiSlice).localizingCursor();
+				cursor = raiSlice.localizingCursor();
 				pos = new long[2];
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -670,7 +670,7 @@ public class CsajAlgorithm_Surrogate2D {
 					if (pixelVal > minmax[1]) minmax[1] = pixelVal;
 				}
 				
-				cursor = Views.iterable(raiSlice).localizingCursor();
+				cursor = raiSlice.localizingCursor();
 				pos = new long[2];
 				double rf = (minmaxOrig[1]-minmaxOrig[0])/(minmax[1]-minmax[0]); //rescale factor
 				while (cursor.hasNext()) {
@@ -921,7 +921,7 @@ public class CsajAlgorithm_Surrogate2D {
 		
 		double weight = 1.0;
 	
-		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -962,7 +962,7 @@ public class CsajAlgorithm_Surrogate2D {
 //			}
 //		}
 		
-		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -998,7 +998,7 @@ public class CsajAlgorithm_Surrogate2D {
 		double r_uv;
 		double weight;
 		
-		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -1034,7 +1034,7 @@ public class CsajAlgorithm_Surrogate2D {
 		double r_uv;
 		double weight = 0;
 		
-		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -1072,7 +1072,7 @@ public class CsajAlgorithm_Surrogate2D {
 		double r_uv;
 		double weight;
 		
-		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -1110,7 +1110,7 @@ public class CsajAlgorithm_Surrogate2D {
 		double sigma  = 0.3;
 		double sigma2 = sigma*sigma;
 		
-		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){
@@ -1145,7 +1145,7 @@ public class CsajAlgorithm_Surrogate2D {
 		double r_uv;
 		double weight;
 		
-		Cursor<FloatType> cursorD = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorD = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorD.hasNext()){

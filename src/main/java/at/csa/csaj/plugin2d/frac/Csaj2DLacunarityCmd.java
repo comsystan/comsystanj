@@ -1025,7 +1025,7 @@ public class Csaj2DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 							count = 0;
 							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
+							cursor = raiBox.localizingCursor();
 							while (cursor.hasNext()) { //Box
 								cursor.fwd();
 								//cursorF.localize(pos); 
@@ -1072,7 +1072,7 @@ public class Csaj2DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 								raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 								count = 0;
 								// Loop through all pixels of this box.
-								cursor = Views.iterable(raiBox).localizingCursor();
+								cursor = raiBox.localizingCursor();
 								while (cursor.hasNext()) { //Box
 									cursor.fwd();
 									//cursorF.localize(pos); 
@@ -1259,7 +1259,7 @@ public class Csaj2DLacunarityCmd<T extends RealType<T>> extends ContextCommand i
 			
 			// Count total number of points		
 			int sample;
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				sample = ((UnsignedByteType) cursor.get()).getInteger();

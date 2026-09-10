@@ -156,7 +156,7 @@ public class CorrelationDim3D_Grey implements CorrelationDim3DMethods{
 						for (int z =0;  z<= (depth-boxSize); z=z+delta){
 							raiBox = Views.interval(rai, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
 							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
+							cursor = raiBox.localizingCursor();
 							while (cursor.hasNext()) { //Box
 								cursor.fwd();
 								//cursorF.localize(pos);	

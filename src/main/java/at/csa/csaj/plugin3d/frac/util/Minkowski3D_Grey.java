@@ -160,7 +160,7 @@ public class Minkowski3D_Grey implements Minkowski3DMethods{
 			//n=0  2^0 = 1 ... single pixel
 			// Loop through all pixels.
 			//get count(area) and copy image 
-//				cursor = (Cursor<UnsignedByteType>) Views.iterable(rai).localizingCursor();	
+//				cursor = (Cursor<UnsignedByteType>) rai.localizingCursor();	
 //				while (cursor.hasNext()) {
 //					cursor.fwd();
 //					//cursor.localize(pos);			

@@ -1130,7 +1130,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	
 		if (probType.equals("Grey values")) {//Actual values without lag
 			volumeDouble = new double[(int)(width*height*depth)]; 
-			cursor = Views.iterable(rai).cursor();
+			cursor = rai.cursor();
 			int i = 0;
 			while (cursor.hasNext()) {
 				cursor.fwd();
@@ -1266,7 +1266,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 			int sample;
 			//imgUnsignedByte = this.createImgUnsignedByte(rai);
 			//cursor = imgUnsignedByte.cursor();
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				sample = ((UnsignedByteType) cursor.get()).getInteger();
@@ -1363,7 +1363,7 @@ public class Csaj3DGeneralisedEntropiesCmd<T extends RealType<T>> extends Contex
 	 */
 	private long getNumberOfNonZeroPixels(RandomAccessibleInterval<?> rai) {
 		long total = 0;
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		while (cursor.hasNext()) { //Box
 			cursor.fwd();
 			//cursor.localize(pos);				

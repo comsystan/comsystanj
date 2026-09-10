@@ -811,7 +811,7 @@ public class Csaj3DFracDimTugOfWarCmd<T extends RealType<T>> extends ContextComm
 		if (imageType.equals("Grey")) {// grey image   //additional check, is already checked during validation of active dataset
 		
 			// Count total number of points		
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				sample = ((UnsignedByteType) cursor.get()).getInteger();

@@ -650,7 +650,7 @@ public class Csaj2DAutoCropBordersCmd<T extends RealType<T>> extends ContextComm
 		//or
 		
 //		//write to output dataset
-//		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+//		Cursor<?> cursor = rai.localizingCursor();
 //		long[] pos = new long[datasetIn.numDimensions()];
 //		RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 //		while (cursor.hasNext()) {
@@ -1005,7 +1005,7 @@ public class Csaj2DAutoCropBordersCmd<T extends RealType<T>> extends ContextComm
 				
 		//Find 4 corner coordinates of rectangle
 		if (imageType.equals("Grey")) { //rai should have 2 dimensions							
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			int[] pos = new int[2];
 			while (cursor.hasNext()) {
 				cursor.fwd();
@@ -1019,7 +1019,7 @@ public class Csaj2DAutoCropBordersCmd<T extends RealType<T>> extends ContextComm
 				}
 			} //cursor						
 		} else if (imageType.equals("RGB")) {				
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			int[] pos = new int[3];
 			while (cursor.hasNext()) {
 				cursor.fwd();

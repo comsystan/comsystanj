@@ -1162,7 +1162,7 @@ public class Csaj2DFracDimMassRadiusCmd<T extends RealType<T>> extends ContextCo
 
 		//if( (datasetIn.firstElement() instanceof UnsignedByteType) ){
 		//}
-		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+		Cursor<?> cursor = rai.localizingCursor();
 		final long[] pos = new long[rai.numDimensions()];
 		while (cursor.hasNext()) {
 			cursor.fwd();

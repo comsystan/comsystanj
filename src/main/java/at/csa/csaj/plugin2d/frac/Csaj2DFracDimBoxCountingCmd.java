@@ -889,7 +889,7 @@ public class Csaj2DFracDimBoxCountingCmd<T extends RealType<T>> extends ContextC
 			//n=0  2^0 = 1 ... single pixel
 			// Loop through all pixels.
 		
-			cursor = Views.iterable(rai).localizingCursor();	
+			cursor = rai.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				//cursor.localize(pos);			
@@ -908,7 +908,7 @@ public class Csaj2DFracDimBoxCountingCmd<T extends RealType<T>> extends ContextC
 						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 						boolean isGreaterZeroFound = false;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos);				
@@ -951,7 +951,7 @@ public class Csaj2DFracDimBoxCountingCmd<T extends RealType<T>> extends ContextC
 						greyMin = Double.MAX_VALUE;
 						greyValue = Double.NaN;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos);
@@ -997,7 +997,7 @@ public class Csaj2DFracDimBoxCountingCmd<T extends RealType<T>> extends ContextC
 						greyMin = Double.MAX_VALUE;
 						greyValue = Double.NaN;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos);

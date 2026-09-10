@@ -632,7 +632,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 		//or
 		
 //		//write to output dataset
-//		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+//		Cursor<?> cursor = rai.localizingCursor();
 //		long[] pos = new long[datasetIn.numDimensions()];
 //		RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 //		while (cursor.hasNext()) {
@@ -702,7 +702,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 				int max = -Integer.MAX_VALUE;
 				//double min = Double.MAX_VALUE;
 					
-				cursor = Views.iterable(rai).localizingCursor();	
+				cursor = rai.localizingCursor();	
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
@@ -732,7 +732,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 					int max = -Integer.MAX_VALUE;
 					//double min = Double.MAX_VALUE;
 					
-					cursor = Views.iterable(raiSlice).localizingCursor();			
+					cursor = raiSlice.localizingCursor();			
 					while (cursor.hasNext()) {
 						cursor.fwd();
 						//cursor.localize(pos);	
@@ -760,7 +760,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 				int max = -Integer.MAX_VALUE;
 				int min =  Integer.MAX_VALUE;
 					
-				cursor = Views.iterable(rai).localizingCursor();	
+				cursor = rai.localizingCursor();	
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
@@ -792,7 +792,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 					int max = -Integer.MAX_VALUE;
 					int min =  Integer.MAX_VALUE;
 					
-					cursor = Views.iterable(raiSlice).localizingCursor();			
+					cursor = raiSlice.localizingCursor();			
 					while (cursor.hasNext()) {
 						cursor.fwd();
 						//cursor.localize(pos);	
@@ -823,7 +823,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 			
 			if (imageType.equals("Grey")) { //rai should have 2 dimensions
 							
-				cursor = Views.iterable(rai).localizingCursor();	
+				cursor = rai.localizingCursor();	
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
@@ -849,7 +849,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 				
 				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
-					cursor = Views.iterable(raiSlice).localizingCursor();			
+					cursor = raiSlice.localizingCursor();			
 					while (cursor.hasNext()) {
 						cursor.fwd();
 						//cursor.localize(pos);	
@@ -877,7 +877,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 			double sigma = scaleParam;
 			
 			if (imageType.equals("Grey")) { //rai should have 3 dimensions
-				cursor = Views.iterable(rai).localizingCursor();	
+				cursor = rai.localizingCursor();	
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
@@ -904,7 +904,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 				
 				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
-					cursor = Views.iterable(raiSlice).localizingCursor();			
+					cursor = raiSlice.localizingCursor();			
 					while (cursor.hasNext()) {
 						cursor.fwd();
 						//cursor.localize(pos);	
@@ -934,7 +934,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 			//https://en.wikipedia.org/wiki/Rayleigh_distribution
 			if (imageType.equals("Grey")) { //rai should have 3 dimensions
 				
-				cursor = Views.iterable(rai).localizingCursor();	
+				cursor = rai.localizingCursor();	
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
@@ -962,7 +962,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 				
 				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
-					cursor = Views.iterable(raiSlice).localizingCursor();			
+					cursor = raiSlice.localizingCursor();			
 					while (cursor.hasNext()) {
 						cursor.fwd();
 						//cursor.localize(pos);	
@@ -991,7 +991,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 			
 			if (imageType.equals("Grey")) { //rai should have 2 dimensions
 						
-				cursor = Views.iterable(rai).localizingCursor();	
+				cursor = rai.localizingCursor();	
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);	
@@ -1019,7 +1019,7 @@ public class Csaj3DNoiseCmd<T extends RealType<T>> extends ContextCommand implem
 				
 				for (int b = 0; b < numBands; b++) {
 					raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(rai, 2, b);				
-					cursor = Views.iterable(raiSlice).localizingCursor();			
+					cursor = raiSlice.localizingCursor();			
 					while (cursor.hasNext()) {
 						cursor.fwd();
 						//cursor.localize(pos);	

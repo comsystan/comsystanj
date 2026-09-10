@@ -680,7 +680,7 @@ public class Csaj2DHistoModifyCmd<T extends RealType<T>> extends ContextCommand 
 		//or
 		
 //		//write to output dataset
-//		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+//		Cursor<?> cursor = rai.localizingCursor();
 //		long[] pos = new long[datasetIn.numDimensions()];
 //		RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 //		while (cursor.hasNext()) {
@@ -851,7 +851,7 @@ public class Csaj2DHistoModifyCmd<T extends RealType<T>> extends ContextCommand 
 				double oldValue;
 				int newValue;
 				//apply histogram stretch
-				cursor = Views.iterable(rai).localizingCursor();	
+				cursor = rai.localizingCursor();	
 				while (cursor.hasNext()) {
 					cursor.fwd();
 					//cursor.localize(pos);			
@@ -889,7 +889,7 @@ public class Csaj2DHistoModifyCmd<T extends RealType<T>> extends ContextCommand 
 					logService.info(this.getClass().getName() + " Mean inside ROI of channel "+b+ ": " + roiMeans[b]);
 							
 					//apply histogram stretch
-					cursor = Views.iterable(raiSlice).localizingCursor();	
+					cursor = raiSlice.localizingCursor();	
 					while (cursor.hasNext()) {
 						cursor.fwd();
 						//cursor.localize(pos);			

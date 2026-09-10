@@ -174,7 +174,7 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
 			byte sample = 0; 
 			// Loop through all pixels of this image
-			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			Cursor<?> cursor = rai.localizingCursor();
 			while (cursor.hasNext()) { //Image
 				cursor.fwd();
 				sample = (byte) ((UnsignedByteType) cursor.get()).get();
@@ -228,7 +228,7 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
 			byte sample = 0; 
 			// Loop through all pixels of this image
-			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			Cursor<?> cursor = rai.localizingCursor();
 			while (cursor.hasNext()) { //Image
 				cursor.fwd();
 				sample = (byte) ((UnsignedByteType) cursor.get()).get();
@@ -282,7 +282,7 @@ public class Kolmogorov3D_Grey implements Kolmogorov3DMethods{
 			List<Byte> list = new ArrayList<Byte>();  //Image as a byte list
 			byte sample = 0; 
 			// Loop through all pixels of this image
-			Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+			Cursor<?> cursor = rai.localizingCursor();
 			while (cursor.hasNext()) { //Image
 				cursor.fwd();
 				sample = (byte) ((UnsignedByteType) cursor.get()).get();

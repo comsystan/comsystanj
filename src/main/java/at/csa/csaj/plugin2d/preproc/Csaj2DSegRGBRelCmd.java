@@ -659,7 +659,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 		//or
 		
 //		//write to output dataset
-//		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+//		Cursor<?> cursor = rai.localizingCursor();
 //		long[] pos = new long[datasetIn.numDimensions()];
 //		RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 //		while (cursor.hasNext()) {
@@ -821,7 +821,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiR).localizingCursor();	
+			cursor = raiR.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -846,7 +846,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiR).localizingCursor();	
+			cursor = raiR.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -871,7 +871,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiR).localizingCursor();	
+			cursor = raiR.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -896,7 +896,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiR).localizingCursor();	
+			cursor = raiR.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -921,7 +921,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raiG = Views.hyperSlice(rai, 2, 1); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiG).localizingCursor();	
+			cursor = raiG.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -944,7 +944,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raiG = Views.hyperSlice(rai, 2, 1); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiG).localizingCursor();	
+			cursor = raiG.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -967,7 +967,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raiG = Views.hyperSlice(rai, 2, 1); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiG).localizingCursor();	
+			cursor = raiG.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -990,7 +990,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raiG = Views.hyperSlice(rai, 2, 1); //G
 			raB  = Views.hyperSlice(rai, 2, 2).randomAccess(); //B
 					
-			cursor = Views.iterable(raiG).localizingCursor();	
+			cursor = raiG.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1013,7 +1013,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raiB = Views.hyperSlice(rai, 2, 2); //B
 					
-			cursor = Views.iterable(raiB).localizingCursor();	
+			cursor = raiB.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1036,7 +1036,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raiB = Views.hyperSlice(rai, 2, 2); //B
 					
-			cursor = Views.iterable(raiB).localizingCursor();	
+			cursor = raiB.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1059,7 +1059,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raiB = Views.hyperSlice(rai, 2, 2); //B
 					
-			cursor = Views.iterable(raiB).localizingCursor();	
+			cursor = raiB.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);
@@ -1082,7 +1082,7 @@ public class Csaj2DSegRGBRelCmd<T extends RealType<T>> extends ContextCommand im
 			raG  = Views.hyperSlice(rai, 2, 1).randomAccess(); //G
 			raiB = Views.hyperSlice(rai, 2, 2); //B
 					
-			cursor = Views.iterable(raiB).localizingCursor();	
+			cursor = raiB.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				cursor.localize(pos);

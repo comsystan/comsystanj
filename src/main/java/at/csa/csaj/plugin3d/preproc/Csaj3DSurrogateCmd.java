@@ -617,7 +617,7 @@ public class Csaj3DSurrogateCmd<T extends RealType<T>> extends ContextCommand im
 		//or
 		
 //		//write to output dataset
-//		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+//		Cursor<?> cursor = rai.localizingCursor();
 //		long[] pos = new long[datasetIn.numDimensions()];
 //		RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 //		while (cursor.hasNext()) {

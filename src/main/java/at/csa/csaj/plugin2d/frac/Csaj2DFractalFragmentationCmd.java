@@ -750,7 +750,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 			
 		//get list of object points	
 		List<Point> pointList = new ArrayList<>();
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		int[] pos = new int[2];
 		while(cursor.hasNext()) {
 			cursor.next();
@@ -890,7 +890,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 				
 				//get list of object points	
 				List<Point> pointList = new ArrayList<>();
-				cursor = Views.iterable(rai).localizingCursor();
+				cursor = rai.localizingCursor();
 				int[] pos = new int[2];
 				while(cursor.hasNext()) {
 					cursor.next();
@@ -1140,7 +1140,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 						count = 0;
 						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursor.localize(pos);
@@ -1177,7 +1177,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 							count = 0;
 							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
+							cursor = raiBox.localizingCursor();
 							while (cursor.hasNext()) { //Box
 								cursor.fwd();
 								//cursor.localize(pos);
@@ -1217,7 +1217,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 			//n=0  2^0 = 1 ... single pixel
 			// Loop through all pixels.
 	
-			cursor = Views.iterable(rai).localizingCursor();	
+			cursor = rai.localizingCursor();	
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				//cursor.localize(pos);			
@@ -1240,7 +1240,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 						boolean isGreaterZeroFound = false;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos);				
@@ -1319,7 +1319,7 @@ public class Csaj2DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 						raiBox = Views.interval(imgTemp, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 						boolean isGreaterZeroFound = false;
 						// Loop through all pixels of this box.
-						cursorF = (Cursor<FloatType>) Views.iterable(raiBox).localizingCursor();
+						cursorF = (Cursor<FloatType>) raiBox.localizingCursor();
 						while (cursorF.hasNext()) { //Box
 							cursorF.fwd();
 							//cursorF.localize(pos);				

@@ -993,7 +993,7 @@ public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 		double numBlackPixels = 0;
 		double numTotalPixels = 0;
 		
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		while (cursor.hasNext()) {
 			cursor.fwd();				
 			if (((UnsignedByteType) cursor.get()).get() == 0) {
@@ -1277,7 +1277,7 @@ public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 						raiBox = Views.interval(volFlood, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
 						occ = 0;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos); 		
@@ -1327,7 +1327,7 @@ public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 						raiBox = Views.interval(volFlood, new long[]{x, y-boxSize+1, z}, new long[]{x+boxSize-1, y, z+boxSize-1});
 						occ = 0.0;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos); 		
@@ -1376,7 +1376,7 @@ public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 						raiBox = Views.interval(volFlood, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
 						occ = 0.0;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos); 		
@@ -1426,7 +1426,7 @@ public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 						raiBox = Views.interval(volFlood, new long[]{x-boxSize+1, y, z}, new long[]{x, y+boxSize-1, z+boxSize-1});
 						occ = 0.0;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos); 		
@@ -1476,7 +1476,7 @@ public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 						raiBox = Views.interval(volFlood, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
 						occ = 0;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos); 		
@@ -1526,7 +1526,7 @@ public class Csaj3DSuccolarityCmd<T extends RealType<T>> extends ContextCommand 
 						raiBox = Views.interval(volFlood, new long[]{x, y, z-boxSize+1}, new long[]{x+boxSize-1, y+boxSize-1, z});
 						occ = 0.0;
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos); 		

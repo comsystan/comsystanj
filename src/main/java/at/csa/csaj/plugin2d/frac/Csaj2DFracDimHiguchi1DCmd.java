@@ -1382,7 +1382,7 @@ public class Csaj2DFracDimHiguchi1DCmd<T extends RealType<T>> extends ContextCom
 				// this neighborhood depends on which interpolator is used
 				
 				//Convert to float image
-				imgFloat = opService.convert().float32((IterableInterval<T>) Views.iterable(rai));
+				imgFloat = opService.convert().float32((IterableInterval<T>) rai);
 				//Interpolate
 				RealRandomAccessible< FloatType > interpolant = Views.interpolate(Views.extendMirrorSingle(imgFloat), factory);
 				RealRandomAccess<FloatType> rra = interpolant.realRandomAccess();

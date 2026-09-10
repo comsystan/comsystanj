@@ -907,7 +907,7 @@ public class Csaj2DFracDimMinkowskiCmd<T extends RealType<T>> extends ContextCom
 			// Loop through all pixels.
 			//get count(area) and copy image 
 //			for (int b = 0; b < numBands; b++) {
-//				cursor = (Cursor<UnsignedByteType>) Views.iterable(rai).localizingCursor();	
+//				cursor = (Cursor<UnsignedByteType>) rai.localizingCursor();	
 //				while (cursor.hasNext()) {
 //					cursor.fwd();
 //					//cursor.localize(pos);			

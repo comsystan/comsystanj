@@ -808,7 +808,7 @@ public class Csaj2DTo1DScanCmd<T extends RealType<T>> extends ContextCommand imp
 	if(scanType.equals("Random")){
 		
 		resultValues = new double[(int)(width*height)];
-		Cursor<T> cursor = Views.iterable(rai).localizingCursor();
+		Cursor<T> cursor = rai.localizingCursor();
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		while (cursor.hasNext()) {
 			cursor.fwd();

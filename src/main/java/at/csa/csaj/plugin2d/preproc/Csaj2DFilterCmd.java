@@ -717,7 +717,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 		//or
 		
 //		//write to output dataset
-//		Cursor<?> cursor = Views.iterable(rai).localizingCursor();
+//		Cursor<?> cursor = rai.localizingCursor();
 //		long[] pos = new long[datasetIn.numDimensions()];
 //		RandomAccess<RealType<?>> ra = datasetOut.randomAccess();
 //		while (cursor.hasNext()) {
@@ -1030,7 +1030,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 				//opService.filter().ifft(rai, fft);
 				FFT.complexInverse(matrixA, true); //true: values are back in the right range 
 				
-				cursor = Views.iterable(rai).localizingCursor();
+				cursor = rai.localizingCursor();
 				long[] pos = new long[2];
 				float real = 0f;
 				while (cursor.hasNext()) {
@@ -1061,7 +1061,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 //					}
 //				
 //						
-//				cursor = Views.iterable(rai).localizingCursor();
+//				cursor = rai.localizingCursor();
 //				//cursor = datasetOut.cursor();	
 //		
 //		    	pos = new long[2];
@@ -1092,7 +1092,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 					//opService.filter().ifft(rai, fft);
 					FFT.complexInverse(matrixA, true); //true: values are back in the right range 
 					
-					cursor = Views.iterable(raiSlice).localizingCursor();
+					cursor = raiSlice.localizingCursor();
 					long[] pos = new long[2];
 					float real = 0f;
 					while (cursor.hasNext()) {
@@ -1137,7 +1137,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 				//opService.filter().ifft(rai, fft);
 				FFT.complexInverse(matrixA, true); //true: values are back in the right range 
 				
-//				cursor = Views.iterable(rai).localizingCursor();
+//				cursor = rai.localizingCursor();
 //				long[] pos = new long[3];
 //				float real = 0f;
 //				while (cursor.hasNext()) {
@@ -1169,7 +1169,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 					}
 				}
 							
-				cursor = Views.iterable(rai).localizingCursor();
+				cursor = rai.localizingCursor();
 				//cursor = datasetOut.cursor();	
 		
 		    	long[] pos = new long[2];
@@ -1224,7 +1224,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 						}
 					}
 								
-					cursor = Views.iterable(raiSlice).localizingCursor();
+					cursor = raiSlice.localizingCursor();
 					//cursor = datasetOut.cursor();	
 			
 			    	long[] pos = new long[2];
@@ -1379,7 +1379,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			
 			//JTransform needs rows and columns swapped!!!!!
 			matrixA = new float[rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
-			Cursor<?> cursor = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<?> cursor = raiWindowed.localizingCursor();
 			long[] pos = new long[2];
 			while (cursor.hasNext()) {
 				cursor.fwd();
@@ -1442,7 +1442,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			
 			double weight = 1.0;
 		
-			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 			long[] pos = new long[raiWindowed.numDimensions()];
 			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 			while (cursorF.hasNext()){
@@ -1483,7 +1483,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 //				}
 //			}
 			
-			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 			long[] pos = new long[raiWindowed.numDimensions()];
 			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 			while (cursorF.hasNext()){
@@ -1519,7 +1519,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			double r_uv;
 			double weight;
 			
-			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 			long[] pos = new long[raiWindowed.numDimensions()];
 			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 			while (cursorF.hasNext()){
@@ -1555,7 +1555,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			double r_uv;
 			double weight = 0;
 			
-			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 			long[] pos = new long[raiWindowed.numDimensions()];
 			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 			while (cursorF.hasNext()){
@@ -1593,7 +1593,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			double r_uv;
 			double weight;
 			
-			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 			long[] pos = new long[raiWindowed.numDimensions()];
 			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 			while (cursorF.hasNext()){
@@ -1631,7 +1631,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			double sigma  = 0.3;
 			double sigma2 = sigma*sigma;
 			
-			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 			long[] pos = new long[raiWindowed.numDimensions()];
 			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 			while (cursorF.hasNext()){
@@ -1666,7 +1666,7 @@ public class Csaj2DFilterCmd<T extends RealType<T>> extends ContextCommand imple
 			double r_uv;
 			double weight;
 			
-			Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+			Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 			long[] pos = new long[raiWindowed.numDimensions()];
 			RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 			while (cursorF.hasNext()){

@@ -926,7 +926,7 @@ public class Csaj2DFracDimCorrelationCmd<T extends RealType<T>> extends ContextC
 					for (int y =0;  y<= (height-boxSize); y=y+delta){
 						raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 						// Loop through all pixels of this box.
-						cursor = Views.iterable(raiBox).localizingCursor();
+						cursor = raiBox.localizingCursor();
 						while (cursor.hasNext()) { //Box
 							cursor.fwd();
 							//cursorF.localize(pos);	

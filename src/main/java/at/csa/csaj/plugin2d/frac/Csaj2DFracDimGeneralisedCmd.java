@@ -1083,7 +1083,7 @@ public class Csaj2DFracDimGeneralisedCmd<T extends RealType<T>> extends ContextC
 							count = 0;
 							raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 							// Loop through all pixels of this box.
-							cursor = Views.iterable(raiBox).localizingCursor();
+							cursor = raiBox.localizingCursor();
 							while (cursor.hasNext()) { //Box
 								cursor.fwd();
 								//cursor.localize(pos);
@@ -1125,7 +1125,7 @@ public class Csaj2DFracDimGeneralisedCmd<T extends RealType<T>> extends ContextC
 								count = 0;
 								raiBox = Views.interval(rai, new long[]{x, y}, new long[]{x+boxSize-1, y+boxSize-1});
 								// Loop through all pixels of this box.
-								cursor = Views.iterable(raiBox).localizingCursor();
+								cursor = raiBox.localizingCursor();
 								while (cursor.hasNext()) { //Box
 									cursor.fwd();
 									//cursor.localize(pos);
@@ -1423,7 +1423,7 @@ public class Csaj2DFracDimGeneralisedCmd<T extends RealType<T>> extends ContextC
 	 */
 	private long getNumberOfNonZeroPixels(RandomAccessibleInterval<?> rai) {
 		long total = 0;
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		while (cursor.hasNext()) { //Box
 			cursor.fwd();
 			//cursor.localize(pos);				

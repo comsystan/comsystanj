@@ -724,7 +724,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 				}//k1
 				
 				raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 		    	pos = new long[3];
 		    	
 		    	float rf = 0;
@@ -948,7 +948,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 		    	else if (b == 2) scale = (float)greyMaxB / (allMax - allMin);	
 			
 		    	raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 		    	pos = new long[3];	
 		    	while (cursor.hasNext()) {
 					cursor.fwd();
@@ -1599,7 +1599,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 				else if (b == 1) greyMax = greyMaxG;
 				else if (b == 2) greyMax = greyMaxB;
 			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 				pos = new long[3];	
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -1834,7 +1834,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 				else if (b == 2) greyMax = greyMaxB;
 				
 			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 							
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -2080,7 +2080,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 				else if (b == 2) greyMax = greyMaxB;
 				
 			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 		
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -2328,7 +2328,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 				else if (b == 2) greyMax = greyMaxB;
 				
 			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 			
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -2520,7 +2520,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 				else if (b == 2) greyMax = greyMaxB;
 				
 			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 			
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -2668,7 +2668,7 @@ public class Csaj3DVolumeGeneratorCmd<T extends RealType<T>, C> extends ContextC
 				else if (b == 2) greyMax = greyMaxB;
 				
 			   	RandomAccessibleInterval<T> raiSlice = (RandomAccessibleInterval<T>) Views.hyperSlice(datasetOut, 2, b);	
-				cursor = (Cursor<RealType<?>>) Views.iterable(raiSlice).localizingCursor();	
+				cursor = (Cursor<RealType<?>>) raiSlice.localizingCursor();	
 			
 				while (cursor.hasNext()) {
 					cursor.fwd();

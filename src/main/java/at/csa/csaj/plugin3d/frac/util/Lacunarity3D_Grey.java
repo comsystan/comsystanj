@@ -185,7 +185,7 @@ public class Lacunarity3D_Grey implements Lacunarity3DMethods{
 								raiBox = Views.interval(rai, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
 								count = 0;
 								// Loop through all pixels of this box.
-								cursor = Views.iterable(raiBox).localizingCursor();
+								cursor = raiBox.localizingCursor();
 								while (cursor.hasNext()) { //Box
 									cursor.fwd();
 									//cursorF.localize(pos); 
@@ -239,7 +239,7 @@ public class Lacunarity3D_Grey implements Lacunarity3DMethods{
 									raiBox = Views.interval(rai, new long[]{x, y, z}, new long[]{x+boxSize-1, y+boxSize-1, z+boxSize-1});
 									count = 0;
 									// Loop through all pixels of this box.
-									cursor = Views.iterable(raiBox).localizingCursor();
+									cursor = raiBox.localizingCursor();
 									while (cursor.hasNext()) { //Box
 										cursor.fwd();
 										//cursorF.localize(pos); 
@@ -433,7 +433,7 @@ public class Lacunarity3D_Grey implements Lacunarity3DMethods{
 			
 			// Count total number of points		
 			int sample;
-			cursor = Views.iterable(rai).localizingCursor();
+			cursor = rai.localizingCursor();
 			while (cursor.hasNext()) {
 				cursor.fwd();
 				sample = ((UnsignedByteType) cursor.get()).getInteger();

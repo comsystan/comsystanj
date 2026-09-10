@@ -744,7 +744,7 @@ public class Csaj3DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 //		RandomAccessibleInterval<BitType> raiHull = opService.geom().voxelization(hull, (int)datasetIn.dimension(0), (int)datasetIn.dimension(1), (int)datasetIn.dimension(2));
 //		
 //		ra = (RandomAccess<UnsignedByteType>) rai.randomAccess();	
-//		cursor = (Views.iterable(raiHull)).localizingCursor();
+//		cursor = raiHull.localizingCursor();
 //		long[] pos = new long[3];
 //		while(cursor.hasNext()) {
 //			cursor.next();
@@ -761,7 +761,7 @@ public class Csaj3DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 		//https://www.cs.ubc.ca/~lloyd/java/quickhull3d.html
 		//get number of object points
 		int numPoints = 0;
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		while(cursor.hasNext()) {
 			cursor.next();	
 			if (((UnsignedByteType) cursor.get()).getInteger() > 0 ) {
@@ -772,7 +772,7 @@ public class Csaj3DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 		//get list of object points	
 		QuickHull3D_Point3d[] points = new QuickHull3D_Point3d[numPoints];
 		int p = 0;
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		int[] pos = new int[3];
 		while(cursor.hasNext()) {
 			cursor.next();
@@ -825,7 +825,7 @@ public class Csaj3DFractalFragmentationCmd<T extends RealType<T>> extends Contex
 		//Main procedure to check if a point (ax, ay, az) is inside the CubeVertices:               
 		//procInst.PointInside3DPolygon(ax, ay, az);
 		//set rai accordingly
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		pos = new int[3];
 		while(cursor.hasNext()) {
 			cursor.next();

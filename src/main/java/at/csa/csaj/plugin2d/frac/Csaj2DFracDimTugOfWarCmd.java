@@ -936,7 +936,7 @@ public class Csaj2DFracDimTugOfWarCmd<T extends RealType<T>> extends ContextComm
 		
 		// Count total number of points		
 		int sample;
-		cursor = Views.iterable(rai).localizingCursor();
+		cursor = rai.localizingCursor();
 		while (cursor.hasNext()) {
 			cursor.fwd();
 			sample = ((UnsignedByteType) cursor.get()).getInteger();

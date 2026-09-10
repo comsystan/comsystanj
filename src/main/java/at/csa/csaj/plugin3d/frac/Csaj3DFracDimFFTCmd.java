@@ -879,7 +879,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 				
 				//JTransform needs rows and columns swapped!!!!!
 				volA = new float[slices][rows][2*columns]; //Every frequency entry needs a pair of columns: for real and imaginary part
-				Cursor<?> cursor = Views.iterable(raiWindowed).localizingCursor();
+				Cursor<?> cursor = raiWindowed.localizingCursor();
 				long[] pos = new long[3];
 				while (cursor.hasNext()) {
 					cursor.fwd();
@@ -1436,7 +1436,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		
 		double weight = 1.0;
 	
-		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];		
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		
@@ -1468,7 +1468,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		double r_uvw;
 		double weight;
 				
-		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorF.hasNext()){
@@ -1506,7 +1506,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		double r_uvw;
 		double weight;
 		
-		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorF.hasNext()){
@@ -1544,7 +1544,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		double r_uvw;
 		double weight = 0;
 		
-		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorF.hasNext()){
@@ -1585,7 +1585,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		double r_uvw;
 		double weight;
 		
-		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorF.hasNext()){
@@ -1626,7 +1626,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		double sigma  = 0.3;
 		double sigma2 = sigma*sigma;
 		
-		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorF.hasNext()){
@@ -1663,7 +1663,7 @@ public class Csaj3DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		double r_uvw;
 		double weight;
 		
-		Cursor<FloatType> cursorF = Views.iterable(raiWindowed).localizingCursor();
+		Cursor<FloatType> cursorF = raiWindowed.localizingCursor();
 		long[] pos = new long[raiWindowed.numDimensions()];
 		RandomAccess<RealType<?>> ra = (RandomAccess<RealType<?>>) rai.randomAccess();
 		while (cursorF.hasNext()){
