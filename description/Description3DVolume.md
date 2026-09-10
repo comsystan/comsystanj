@@ -54,7 +54,7 @@
 - FFT windowing can be set
 
 ### 3D Preprocessing - 3D to 1D scan
-- Computes a space filling 1D scan through the volume 
+- Space filling 1D scan through the volume 
 - 8-bit grey image volume
 - Hibert, Meander, Random
 - Note: Appropriate transformation for applying 1D algorithms
