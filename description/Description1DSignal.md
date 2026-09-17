@@ -167,6 +167,20 @@
   - Note: The number of subsequent and particularly of gliding boxes can be very high
 - Peng et al., 1994, Phys.Rev.E., [DOI 10.1103/physreve.49.1685](https://doi.org/10.1103/physreve.49.1685)
 
+### Complexity analyses - Fisher information measure
+- Probability difference measure
+- Probabilities of grey values or grey value differences
+- Signals should be opened with the CSAJ Signal Opener
+- Optional surrogate data analysis
+- Analysis of Entire signal or Subsequent/Gliding boxes
+- Notes for Subsequent/Gliding box:
+  - One of the measurement parameters must be selected
+  - The number of subsequent boxes is (signal length)/(box size)
+  - The number of gliding boxes is (signal length)-(box size)
+  - Note: The number of subsequent and particularly of gliding boxes can be very high
+- Arouxet et al., 2026, Chaos, [DOI 10.1063/5.0341167](https://doi.org/10.1063/5.0341167)
+- Olivares et al., 2012, Physics Letters A, [DOI 10.1016/j.physleta.2012.03.039](https://doi.org/10.1016/j.physleta.2012.03.039)
+
 ### Complexity analyses - Generalised DFA
 - Signals should be opened with the CSAJ Signal Opener
 - Optional surrogate data analysis
