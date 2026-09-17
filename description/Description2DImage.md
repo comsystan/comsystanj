@@ -93,7 +93,15 @@ For binary images black pixels are the background. White pixels are the foregrou
 - 8-bit grey or RGB color images
 - Shuffle, Gaussian, Random phase, AAFT
 - FFT windowing can be set
- 
+
+### Complexity analyses - Fisher information measure
+- Probability difference measure
+- Probabilities of grey values or grey value differences
+- 8-bit grey images
+- RGB color images may also work, but not tested
+- Arouxet et al., 2026, Chaos, [DOI 10.1063/5.0341167](https://doi.org/10.1063/5.0341167)
+- Olivares et al., 2012, Physics Letters A, [DOI 10.1016/j.physleta.2012.03.039](https://doi.org/10.1016/j.physleta.2012.03.039)
+
 ### Complexity analyses - Kolmogorov complexity and Logical depth
 - KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB) or
 - KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW, PNG, J2K, JPG) - slow!
