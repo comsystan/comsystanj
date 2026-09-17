@@ -645,9 +645,9 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	
 		rai =  (RandomAccessibleInterval<T>) datasetIn.getImgPlus(); //dim==3
 
-		//Compute generalised entropies
+		//Compute statistical complexity measures
 		CsajContainer_ProcessMethod containerPM = process(rai);	
-		//Gen entropies SE H1, H2, H3, .....
+		//SCM_E,........
 					
 		writeToTable(containerPM);
 		

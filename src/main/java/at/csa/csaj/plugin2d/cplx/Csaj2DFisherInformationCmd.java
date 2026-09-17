@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complexity analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj2DStatCplxMeasCmd.java
+ * File: Csaj2DFisherInformationCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -84,8 +84,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
-import at.csa.csaj.commons.CsajAlgorithm_ProbabilityDistance;
-import at.csa.csaj.commons.CsajAlgorithm_ShannonEntropy;
+import at.csa.csaj.commons.CsajAlgorithm_FisherInformation;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
 import at.csa.csaj.commons.CsajPlot_RegressionFrame;
@@ -93,23 +92,22 @@ import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 
 /**
- * A {@link ContextCommand} plugin computing
- * <a>Statistical complexity measures</a>
+ * A {@link ContextCommand} plugin computing the
+ * <a>Fisher information measure</a>
  * of an image.
  * 
  */
 @Plugin(type = ContextCommand.class, 
 		headless = true,
-		label = "Statistical complexity measures",
+		label = "Fisher information measure",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {})
 
-public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj2DFisherInformationCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 	
-	private static final String PLUGIN_LABEL            = "<html><b>Statistical complexity measures</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Fisher information measure</b></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String SCMOPTIONS_LABEL        = "<html><b>SCM options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display options</b></html>";
 	private static final String PROCESSOPTIONS_LABEL    = "<html><b>Process options</b></html>";
@@ -126,18 +124,9 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	private static long numSlices = 0;
 	private static long compositeChannelCount =0;
 	private static String imageType = "";
-	private static ArrayList<CsajPlot_SequenceFrame> genRenyiPlotList = new ArrayList<CsajPlot_SequenceFrame>();
+	private static ArrayList<CsajPlot_SequenceFrame> plotList = new ArrayList<CsajPlot_SequenceFrame>();
 	
 	// data arrays		
-	private static double scm_e;
-	private static double scm_w;
-	private static double scm_k;
-	private static double scm_j;
-	private static double shannonH;
-	private static double d_e;
-	private static double d_w;
-	private static double d_k;
-	private static double d_j;
 	
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
@@ -194,8 +183,8 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	  	//private final String labelSpace = SPACE_LABEL;
 	    
 		//-----------------------------------------------------------------------------------------------------
-	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelEntropyOptions = SCMOPTIONS_LABEL;
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelOptions = OPTIONS_LABEL;
      
  	@Parameter(label = "Probability type",
 			description = "Selection of probability type",
@@ -216,18 +205,6 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 			   initializer = "initialLag",
 			   callback = "callbackLag")
 	private int spinnerInteger_Lag;
-	
-	@Parameter(label = "Normalise H",
-			   description = "Normalisation of Shannon entropy H - recommended",
-		       persist = true,  //restore previous value default = true
-		       initializer = "initialNormaliseH")
-	 private boolean booleanNormaliseH;
-	
-	@Parameter(label = "Normalise D",
-		       description = "Normalisation of statistical distribution distance D - recommended",
-		       persist = true,  //restore previous value default = true
-		       initializer = "initialNormaliseD")
-	 private boolean booleanNormaliseD;
 	
 	@Parameter(label = "Skip zero values",
 			   persist = true,
@@ -288,15 +265,7 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
  	protected void initialLag() {
  		spinnerInteger_Lag = 1;
  	}
- 	
-	protected void initialNormaliseH() {
-		booleanNormaliseH = false;
-	}
-	
-	protected void initialNormaliseD() {
-		booleanNormaliseD = false;
-	}
-	
+
 	protected void initialSkipZeroes() {
 		booleanSkipZeroes = false;
 	}	
@@ -478,7 +447,7 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	*/
 	protected void startWorkflowForSingleImage() {
 			
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Fisher information measure, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -501,7 +470,7 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	*/
 	protected void startWorkflowForAllImages() {
 			
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Fisher information measures, please wait... Open console window for further info.",
 						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);	
 	
@@ -579,13 +548,13 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		}
 		if (optDeleteExistingPlots) {
 //			//This dose not work with DisplayService because the JFrame is not "registered" as an ImageJ display	
-			if (genRenyiPlotList != null) {
-				for (int l = 0; l < genRenyiPlotList.size(); l++) {
-					genRenyiPlotList.get(l).setVisible(false);
-					genRenyiPlotList.get(l).dispose();
+			if (plotList != null) {
+				for (int l = 0; l < plotList.size(); l++) {
+					plotList.get(l).setVisible(false);
+					plotList.get(l).dispose();
 					//genDimPlotList.remove(l);  /
 				}
-				genRenyiPlotList.clear();		
+				plotList.clear();		
 			}
 		}
 		if (optDeleteExistingTables) {
@@ -598,18 +567,7 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 			}			
 		}
 	}
-	
-	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height) { 
-		float boxWidth = 1f;
-		int number = 1; 
-		while ((boxWidth <= width) && (boxWidth <= height)) {
-			boxWidth = boxWidth * 2;
-			number = number + 1;
-		}
-		return number - 1;
-	}
-	
+
 	/** This method takes the active image and computes results. 
 	 *
 	 */
@@ -630,9 +588,9 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		
 		}
 
-		//Compute SCM
+		//Compute FIM
 		CsajContainer_ProcessMethod containerPM = process(rai, s);	
-		//SCM.......
+		//FIM
 			
 		writeToTable(0, s, containerPM); //write always to the first row
 	
@@ -698,9 +656,9 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 					rai = (RandomAccessibleInterval<?>) Views.hyperSlice(datasetIn, 2, s);
 				
 				}
-				//Compute SCM
+				//Compute FIM
 				containerPM = process(rai, s);	
-				//SCM......
+				//FIM
 					
 				writeToTable(s, s, containerPM);
 				
@@ -741,9 +699,7 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		GenericColumn columnFileName  = new GenericColumn("File name");
 		GenericColumn columnSliceName = new GenericColumn("Slice name");
 		GenericColumn columnProbType  = new GenericColumn("Probability type");
-		GenericColumn columnLag       = new GenericColumn("Lag");	
-		BoolColumn columnNormH        = new BoolColumn("Normalised H");
-		BoolColumn columnNormD        = new BoolColumn("Normalised D");		
+		GenericColumn columnLag       = new GenericColumn("Lag");		
 		BoolColumn columnSkipZeroes   = new BoolColumn("Skip zeroes");		
 		
 	    tableOut = new DefaultGenericTable();
@@ -751,20 +707,11 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		tableOut.add(columnSliceName);
 		tableOut.add(columnProbType);	
 		tableOut.add(columnLag);	
-		tableOut.add(columnNormH);
-		tableOut.add(columnNormD);
 		tableOut.add(columnSkipZeroes);
 	
-		//"SCM_E", "SCM_W", "SCM_K", "SCM_J"
-		tableOut.add(new DoubleColumn("SCM_E"));
-		tableOut.add(new DoubleColumn("SCM_W"));
-		tableOut.add(new DoubleColumn("SCM_K"));
-		tableOut.add(new DoubleColumn("SCM_J"));
-		tableOut.add(new DoubleColumn("H"));
-		tableOut.add(new DoubleColumn("D_E"));
-		tableOut.add(new DoubleColumn("D_W"));
-		tableOut.add(new DoubleColumn("D_K"));
-		tableOut.add(new DoubleColumn("D_J"));
+		//"FIM"
+		tableOut.add(new DoubleColumn("FIM"));
+
 	}
 	
 	/**
@@ -789,10 +736,8 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 			if (sliceLabels != null) 	     tableOut.set("Slice name", row, sliceLabels[s]);
 			tableOut.set("Probability type", row, choiceRadioButt_ProbabilityType);    // Lag
 			tableOut.set("Lag",              row, spinnerInteger_Lag);    // Lag
-			tableOut.set("Normalised H",     row, booleanNormaliseH);    
-			tableOut.set("Normalised D",     row, booleanNormaliseD);
 			tableOut.set("Skip zeroes",      row, booleanSkipZeroes); 		
-			tableColLast = 6;
+			tableColLast = 4;
 			
 			int numParameters = containerPM.item1_Values.length;
 			tableColStart = tableColLast + 1;
@@ -814,8 +759,6 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		
 		String  probType    = choiceRadioButt_ProbabilityType;
 		int     lag         = spinnerInteger_Lag;
-		boolean normaliseH  = booleanNormaliseH;
-		boolean normaliseD  = booleanNormaliseD;
 		boolean skipZeros   = booleanSkipZeroes;
 		boolean skipZeroBin = booleanSkipZeroes;
 		
@@ -827,18 +770,9 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		
 		String imageType = "8-bit";  //  "RGB"....
 	
-		// data values		
-		scm_e = 0.0;
-		scm_w = 0.0;
-		scm_k = 0.0;
-		scm_j = 0.0;
-		shannonH = 0.0;
-		d_e = 0.0;
-		d_w = 0.0;
-		d_k = 0.0;
-		d_j = 0.0;
+		// data values
 		
-		int numOfMeasures = 9;
+		int numOfMeasures = 1;
 		
 		double[] resultValues = new double[numOfMeasures]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
@@ -852,41 +786,12 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	
 		//probabilities = compProbabilities(rai, lag, probType);	
 		probabilities = compProbabilities2(rai, lag, probType); //faster	
-		CsajAlgorithm_ShannonEntropy se = new CsajAlgorithm_ShannonEntropy(probabilities);
-		CsajAlgorithm_ProbabilityDistance pd = new CsajAlgorithm_ProbabilityDistance(probabilities);
+		CsajAlgorithm_FisherInformation fim = new CsajAlgorithm_FisherInformation(probabilities);
 		
-		if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-		else            shannonH = se.compH(skipZeroBin);
+		resultValues[0] = fim.compNormalisedFIM(skipZeroBin);
+	
 		
-		if (normaliseD) {
-			d_e = pd.compNormalisedD_E(skipZeroBin);
-			d_w = pd.compNormalisedD_W(skipZeroBin);
-			d_k = pd.compNormalisedD_K(skipZeroBin);
-			d_j = pd.compNormalisedD_J(skipZeroBin);
-		}
-		else {
-			d_e = pd.compD_E(skipZeroBin);
-			d_w = pd.compD_W(skipZeroBin);
-			d_k = pd.compD_K(skipZeroBin);
-			d_j = pd.compD_J(skipZeroBin);
-		}
-				
-		scm_e = shannonH*d_e;
-		scm_w = shannonH*d_w;
-		scm_k = shannonH*d_k;
-		scm_j = shannonH*d_j;
-		
-		resultValues[0] = scm_e;
-		resultValues[1] = scm_w;
-		resultValues[2] = scm_k;
-		resultValues[3] = scm_j;
-		resultValues[4] = shannonH;	
-		resultValues[5] = d_e;
-		resultValues[6] = d_w;
-		resultValues[7] = d_k;
-		resultValues[8] = d_j;		
-		
-		logService.info(this.getClass().getName() + " SCM_E: " + resultValues[0]);
+		logService.info(this.getClass().getName() + " FIM: " + resultValues[0]);
 		
 		return new CsajContainer_ProcessMethod(resultValues);
 		//Output

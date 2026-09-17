@@ -14,6 +14,9 @@ Java 21
 New plugins:
 2D to 1D scan - for analyzing 2D images using 1D algorithms.
 3D to 1D scan - for analyzing 3D volumes using 1D algorithms.
+1D Fisher information measure
+2D Fisher information measure
+3D Fisher information measure
 
 Plugin changes:
 All 1D, 2D, 3D plugings with a double log regression plot:
@@ -50,9 +53,14 @@ Java 21
 2026-01-01
 
 New plugins:
-1D 2D 3D Statistical complexity measures SCM
-1D 2D 3D Renyi heterogeneities
-2D 3D Outlier elimination/extraction
+1D Statistical complexity measures SCM
+2D Statistical complexity measures SCM
+3D Statistical complexity measures SCM
+1D Renyi heterogeneities
+2D Renyi heterogeneities
+3D Renyi heterogeneities
+2D Outlier elimination/extraction
+3D Outlier elimination/extraction
 
 Plugin changes:
 1D Generalised Entropies: Added option Skip zeroes,   Lag always 1 for option Sequence range

@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Project: ImageJ2/Fiji plugins for complexity analyses of 1D signals, 2D images and 3D volumes
- * File: Csaj1DStatCplxMeasCmd.java
+ * File: Csaj1DFisherInformationCmd.java
  * 
  * $Id$
  * $HeadURL$
@@ -69,8 +69,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.ChoiceWidget;
 import org.scijava.widget.NumberWidget;
 
-import at.csa.csaj.commons.CsajAlgorithm_ProbabilityDistance;
-import at.csa.csaj.commons.CsajAlgorithm_ShannonEntropy;
+import at.csa.csaj.commons.CsajAlgorithm_FisherInformation;
 import at.csa.csaj.commons.CsajAlgorithm_Surrogate1D;
 import at.csa.csaj.commons.CsajCheck_ItemIn;
 import at.csa.csaj.commons.CsajDialog_WaitingWithProgressBar;
@@ -93,16 +92,15 @@ import at.csa.csaj.plugin1d.misc.Csaj1DOpenerCmd;
  */
 @Plugin(type = ContextCommand.class, 
 		headless = true,
-		label = "Statistical complexity measures",
+		label = "Fisher information measure",
 		initializer = "initialPluginLaunch",
 		iconPath = "/icons/comsystan-logo-grey46-16x16.png", //Menu entry icon
 		menu = {}) //Space at the end of the label is necessary to avoid duplicate with 2D plugin 
 
-public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
+public class Csaj1DFisherInformationCmd<T extends RealType<T>> extends ContextCommand implements Previewable {
 
-	private static final String PLUGIN_LABEL            = "<html><b>Statistical complexity measures</b></html>";
+	private static final String PLUGIN_LABEL            = "<html><b>Fisher information measure</b></html>";
 	private static final String SPACE_LABEL             = "";
-	private static final String SCMOPTIONS_LABEL        = "<html><b>SCM options</b></html>";
 	private static final String ANALYSISOPTIONS_LABEL   = "<html><b>Analysis options</b></html>";
 	private static final String BACKGROUNDOPTIONS_LABEL = "<html><b>Background option</b></html>";
 	private static final String DISPLAYOPTIONS_LABEL    = "<html><b>Display option</b></html>";
@@ -125,22 +123,13 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	private static long numGlidingBoxes = 0;
 	
 	// data arrays		
-	private static double scm_e;
-	private static double scm_w;
-	private static double scm_k;
-	private static double scm_j;
-	private static double shannonH;
-	private static double d_e;
-	private static double d_w;
-	private static double d_k;
-	private static double d_j;
 
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
 	
 	private static ArrayList<CsajPlot_SequenceFrame> plotList = new ArrayList<CsajPlot_SequenceFrame>();
 	
-	public static final String TABLE_OUT_NAME = "Table - Statistical complexity measures";
+	public static final String TABLE_OUT_NAME = "Table - Fisher information measure";
 	
 	CsajDialog_WaitingWithProgressBar dlgProgress;
 	private ExecutorService exec;
@@ -197,8 +186,8 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	private DefaultTableDisplay  defaultTableDisplay;
 
 	//-----------------------------------------------------------------------------------------------------
-	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
-	private final String labelEntropyOptions = SCMOPTIONS_LABEL;
+	//@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
+	//private final String labelOptions = OPTIONS_LABEL;
 	
 	@Parameter(label = "Probability type",
 			   description = "Selection of probability type",
@@ -219,18 +208,6 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 			   initializer = "initialLag",
 			   callback = "callbackLag")
 	private int spinnerInteger_Lag;
-
-	@Parameter(label = "Normalise H",
-			   description = "Normalisation of Shannon entropy H - recommended",
-		       persist = true,  //restore previous value default = true
-		       initializer = "initialNormaliseH")
-	 private boolean booleanNormaliseH;
-	
-	@Parameter(label = "Normalise D",
-		       description = "Normalisation of statistical distribution distance D - recommended",
-		       persist = true,  //restore previous value default = true
-		       initializer = "initialNormaliseD")
-	 private boolean booleanNormaliseD;
 	
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -275,15 +252,6 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 			   initializer = "initialBoxLength",
 			   callback = "callbackBoxLength")
 	private int spinnerInteger_BoxLength;
-	
-	@Parameter(label = "(Surr/Box) SCM type",
-			   description = "SCM type for Surrogates, Subsequent boxes or Gliding box",
-			   style = ChoiceWidget.LIST_BOX_STYLE,
-			   choices = {"SCM_E", "SCM_W", "SCM_K", "SCM_J"}, 
-			   persist = true,  //restore previous value default = true
-			   initializer = "initialSCMType",
-			   callback = "callbackSCMType")
-	private String choiceRadioButt_SCMType;
 	
 	//-----------------------------------------------------------------------------------------------------
 //	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
@@ -345,14 +313,6 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		spinnerInteger_Lag = 1;
 	}
 	
-	protected void initialNormaliseH() {
-		booleanNormaliseH = false;
-	}
-	
-	protected void initialNormaliseD() {
-		booleanNormaliseD = false;
-	}
-	
 	protected void initialSequenceRange() {
 		choiceRadioButt_SequenceRange = "Entire sequence";
 	} 
@@ -372,10 +332,6 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
 		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 	}
-	
-	protected void initialSCMType() {
-		choiceRadioButt_SCMType = "SCM_E"; //"SCM_E", "SCM_W", "SCM_K", "SCM_J"
-	} 
 	
 	protected void initialSkipZeroes() {
 		booleanSkipZeroes = false;
@@ -438,11 +394,6 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		numSubsequentBoxes = (long) Math.floor((double)numRows/(double)spinnerInteger_BoxLength);
 		numGlidingBoxes = numRows - spinnerInteger_BoxLength + 1;
 		logService.info(this.getClass().getName() + " Box length set to " + spinnerInteger_BoxLength);
-	}
-
-	/** Executed whenever the {@link #choiceRadioButt_SCMType} parameter changes. */
-	protected void callbackSCMType() {
-		logService.info(this.getClass().getName() + " SCM type for surrogate or box set to " + choiceRadioButt_SCMType);
 	}
 	
 	/** Executed whenever the {@link #booleanSkipZeroes} parameter changes. */
@@ -596,7 +547,7 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	*/
 	protected void startWorkflowForSingleColumn() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Statistical complexity measures, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Fisher information measure, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -617,7 +568,7 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	*/
 	protected void startWorkflowForAllColumns() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Statistical complexity measures, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Fisher information measures, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = true, because processAllInputSequencess(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);
 
@@ -677,71 +628,31 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	
 		tableOut.add(new GenericColumn("Probability type"));	
 		tableOut.add(new IntColumn("Lag"));
-		tableOut.add(new BoolColumn("Nomalised H"));
-		tableOut.add(new BoolColumn("Nomalised D"));
-			
+	
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		if (choiceRadioButt_SequenceRange.equals("Entire sequence")){
 			
 			if (choiceRadioButt_SurrogateType.equals("No surrogates")) {
-				//"SCM_E", "SCM_W", "SCM_K", "SCM_J"
-				tableOut.add(new DoubleColumn("SCM_E"));
-				tableOut.add(new DoubleColumn("SCM_W"));
-				tableOut.add(new DoubleColumn("SCM_K"));
-				tableOut.add(new DoubleColumn("SCM_J"));
-				tableOut.add(new DoubleColumn("H"));
-				tableOut.add(new DoubleColumn("D_E"));
-				tableOut.add(new DoubleColumn("D_W"));
-				tableOut.add(new DoubleColumn("D_K"));
-				tableOut.add(new DoubleColumn("D_J"));
+				//"FIM"
+				tableOut.add(new DoubleColumn("FIM"));
 				
 			} else { //Surrogates	
-				if (choiceRadioButt_SCMType.equals("SCM_E")) {
-					tableOut.add(new DoubleColumn("SCM_E"));
-					tableOut.add(new DoubleColumn("SCM_E_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SCM_E_Surr#"+(s+1))); 
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_W")) {
-					tableOut.add(new DoubleColumn("SCM_W"));
-					tableOut.add(new DoubleColumn("SCM_W_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SCM_W_Surr#"+(s+1))); 
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_K")) {
-					tableOut.add(new DoubleColumn("SCM_K"));
-					tableOut.add(new DoubleColumn("SCM_K_Surr"));  //Mean surrogate value	
-					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SCM_K_Surr#"+(s+1))); 
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_J")) {
-					tableOut.add(new DoubleColumn("SCM_J"));
-					tableOut.add(new DoubleColumn("SCM_J_Surr"));  //Mean surrogate value	 
-					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SCM_J_Surr#"+(s+1))); 
-				}
-		
+				tableOut.add(new DoubleColumn("FIM"));
+				tableOut.add(new DoubleColumn("FIM_Surr"));  //Mean surrogate value	
+				for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("FIM_Surr#"+(s+1))); 
 			}
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
-			String scmHeader = "";
-			if      (choiceRadioButt_SCMType.equals("SCM_E"))      {scmHeader = "SCM_E";}
-			else if (choiceRadioButt_SCMType.equals("SCM_W"))      {scmHeader = "SCM_W";}
-			else if (choiceRadioButt_SCMType.equals("SCM_K"))      {scmHeader = "SCM_K";}
-			else if (choiceRadioButt_SCMType.equals("SCM_J"))      {scmHeader = "SCM_J";}
-		
-				
+			String header = "FIM";		
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
-				tableOut.add(new DoubleColumn(scmHeader+"-#" + n));	
+				tableOut.add(new DoubleColumn(header+"-#" + n));	
 			}	
 		}
 		else if (choiceRadioButt_SequenceRange.equals("Gliding box")){
-			String scmHeader = "";
-			if      (choiceRadioButt_SCMType.equals("SCM_E"))      {scmHeader = "SCM_E";}
-			else if (choiceRadioButt_SCMType.equals("SCM_W"))      {scmHeader = "SCM_W";}
-			else if (choiceRadioButt_SCMType.equals("SCM_K"))      {scmHeader = "SCM_K";}
-			else if (choiceRadioButt_SCMType.equals("SCM_J"))      {scmHeader = "SCM_J";}
-		
+			String header = "FIM";	
 			for (int n = 1; n <= numGlidingBoxes; n++) {
-				tableOut.add(new DoubleColumn(scmHeader+"-#" + n));	
-			}
-		
+				tableOut.add(new DoubleColumn(header+"-#" + n));	
+			}	
 		}	
 	}
 	
@@ -801,7 +712,7 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		// Compute result values
 		CsajContainer_ProcessMethod containerPM = process(tableIn, c); 
 		// 
-		logService.info(this.getClass().getName() + " Gen entropy SE: " + containerPM.item1_Values[0]);
+		logService.info(this.getClass().getName() + " FIM: " + containerPM.item1_Values[0]);
 		logService.info(this.getClass().getName() + " Processing finished.");
 		writeToTable(0, c, containerPM); //write always to the first row
 		
@@ -833,7 +744,7 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				
 				// Compute result values
 				containerPM = process(tableIn, s);
-				// 0 Entropy
+				// 0 SCM_E
 				logService.info(this.getClass().getName() + " Processing finished.");
 				writeToTable(s, s, containerPM);
 	
@@ -889,10 +800,8 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		tableOut.set(6, row, booleanSkipZeroes); //Zeroes removed
 		
 		tableOut.set(7, row, choiceRadioButt_ProbabilityType);
-		tableOut.set(8, row, spinnerInteger_Lag);    // Lag
-		tableOut.set(9, row, booleanNormaliseH);    
-		tableOut.set(10, row, booleanNormaliseD);    
-		tableColLast = 10;
+		tableOut.set(8, row, spinnerInteger_Lag);    // Lag 
+		tableColLast = 8;
 		
 		if (containerPM == null) { //set missing result values to NaN
 			tableColStart = tableColLast + 1;
@@ -935,8 +844,6 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		int     numDataPoints = dgt.getRowCount();
 		String  probType      = choiceRadioButt_ProbabilityType;
 		int     lag           = spinnerInteger_Lag;
-		boolean normaliseH    = booleanNormaliseH;
-		boolean normaliseD    = booleanNormaliseD;
 		boolean skipZeroes    = booleanSkipZeroes;
 		boolean skipZeroBin   = false;
 		
@@ -944,17 +851,8 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		//Skipping zeores is done directly for the input sequence, see below 
 		
 		// data values		
-		scm_e = 0.0;
-		scm_w = 0.0;
-		scm_k = 0.0;
-		scm_j = 0.0;
-		shannonH = 0.0;
-		d_e = 0.0;
-		d_w = 0.0;
-		d_k = 0.0;
-		d_j = 0.0;
-		
-		int numOfMeasures = 9;
+
+		int numOfMeasures = 1;
 		
 		double[] resultValues = new double[numOfMeasures]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
@@ -993,9 +891,9 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		//domain1D = new double[numDataPoints];
 		//for (int n = 0; n < numDataPoints; n++) domain1D[n] = n+1
 				
-		double scmValue = Float.NaN;
-		CsajAlgorithm_ShannonEntropy se;
-		CsajAlgorithm_ProbabilityDistance pd;
+		CsajAlgorithm_FisherInformation fim;
+		double fimValue = Double.NaN;
+		double sumFimValue = 0.0;
 		
 		//"Entire sequence", "Subsequent boxes", "Gliding box" 
 		//********************************************************************************************************
@@ -1009,91 +907,17 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				//if (sequence1D.length == 0) return null; //e.g. if sequence had only NaNs
 				
 				probabilities = compProbabilities(sequence1D, lag, probType);				
-				se = new CsajAlgorithm_ShannonEntropy(probabilities);
-				pd = new CsajAlgorithm_ProbabilityDistance(probabilities);
-				
-				if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-				else            shannonH = se.compH(skipZeroBin);
-				
-				if (normaliseD) {
-					d_e = pd.compNormalisedD_E(skipZeroBin);
-					d_w = pd.compNormalisedD_W(skipZeroBin);
-					d_k = pd.compNormalisedD_K(skipZeroBin);
-					d_j = pd.compNormalisedD_J(skipZeroBin);
-				}
-				else {
-					d_e = pd.compD_E(skipZeroBin);
-					d_w = pd.compD_W(skipZeroBin);
-					d_k = pd.compD_K(skipZeroBin);
-					d_j = pd.compD_J(skipZeroBin);
-				}
-						
-				scm_e = shannonH*d_e;
-				scm_w = shannonH*d_w;
-				scm_k = shannonH*d_k;
-				scm_j = shannonH*d_j;
-				
-				resultValues[0] = scm_e;
-				resultValues[1] = scm_w;
-				resultValues[2] = scm_k;
-				resultValues[3] = scm_j;
-				resultValues[4] = shannonH;	
-				resultValues[5] = d_e;
-				resultValues[6] = d_w;
-				resultValues[7] = d_k;
-				resultValues[8] = d_j;		
+				fim = new CsajAlgorithm_FisherInformation(probabilities);	
+				fimValue = fim.compNormalisedFIM(skipZeroBin);	
+				resultValues[0] = fimValue;	
 				
 			} else {
-				resultValues = new double[1+1+1*numSurrogates]; // Entropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
-				double sumScmValue = 0.0;	
+				resultValues = new double[1+1+1*numSurrogates]; // FIM,  FIM_SurrMean, FIM_Surr#1, FIM_Surr#2......
 				
 				probabilities = compProbabilities(sequence1D, lag, probType);		
-				se = new CsajAlgorithm_ShannonEntropy(probabilities);
-				pd = new CsajAlgorithm_ProbabilityDistance(probabilities);
-				
-				//"SCM_E", "SCM_W", "SCM_K", "SCM_J"
-				if (choiceRadioButt_SCMType.equals("SCM_E")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_e = pd.compNormalisedD_E(skipZeroBin);
-					else            d_e = pd.compD_E(skipZeroBin);
-						
-					scmValue = shannonH*d_e;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_W")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_w = pd.compNormalisedD_W(skipZeroBin);
-					else            d_w = pd.compD_W(skipZeroBin);
-						
-					scmValue = shannonH*d_w;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_K")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_k = pd.compNormalisedD_K(skipZeroBin);
-					else            d_k = pd.compD_K(skipZeroBin);
-						
-					scmValue = shannonH*d_k;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_J")) {
-				
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else               shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_j = pd.compNormalisedD_J(skipZeroBin);
-					else            d_j = pd.compD_J(skipZeroBin);
-						
-					scmValue = shannonH*d_j;
-				}
-					
-				resultValues[0] = scmValue;
+				fim = new CsajAlgorithm_FisherInformation(probabilities);	
+				fimValue = fim.compNormalisedFIM(skipZeroBin);	
+				resultValues[0] = fimValue;
 				int lastMainResultsIndex = 0;
 				
 				surrSequence1D = new double[sequence1D.length];
@@ -1108,55 +932,11 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 					else if (surrType.equals("AAFT"))         surrSequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
 			
 					probabilities = compProbabilities(surrSequence1D, lag, probType);
-					se = new CsajAlgorithm_ShannonEntropy(probabilities);
-					pd = new CsajAlgorithm_ProbabilityDistance(probabilities);
-					
-					//"SCM_E", "SCM_W", "SCM_K", "SCM_J"
-					if (choiceRadioButt_SCMType.equals("SCM_E")) {
-						
-						if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-						else            shannonH = se.compH(skipZeroBin);
-						
-						if (normaliseD) d_e = pd.compNormalisedD_E(skipZeroBin);
-						else            d_e = pd.compD_E(skipZeroBin);
-							
-						scmValue = shannonH*d_e;
-					}
-					else if (choiceRadioButt_SCMType.equals("SCM_W")) {
-						
-						if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-						else            shannonH = se.compH(skipZeroBin);
-						
-						if (normaliseD) d_w = pd.compNormalisedD_W(skipZeroBin);
-						else            d_w = pd.compD_W(skipZeroBin);
-							
-						scmValue = shannonH*d_w;
-					}
-					else if (choiceRadioButt_SCMType.equals("SCM_K")) {
-						
-						if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-						else            shannonH = se.compH(skipZeroBin);
-						
-						if (normaliseD) d_k = pd.compNormalisedD_K(skipZeroBin);
-						else            d_k = pd.compD_K(skipZeroBin);
-							
-						scmValue = shannonH*d_k;
-					}
-					else if (choiceRadioButt_SCMType.equals("SCM_J")) {
-					
-						if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-						else            shannonH = se.compH(skipZeroBin);
-						
-						if (normaliseD) d_j = pd.compNormalisedD_J(skipZeroBin);
-						else            d_j = pd.compD_J(skipZeroBin);
-							
-						scmValue = shannonH*d_j;
-					}	
-					sumScmValue = sumScmValue + scmValue;
-					resultValues[lastMainResultsIndex + 2 + s] = scmValue;
-					
+					fim = new CsajAlgorithm_FisherInformation(probabilities);	
+					resultValues[lastMainResultsIndex + 2 + s] = fimValue;
+					sumFimValue = sumFimValue +fimValue;
 				}
-				resultValues[lastMainResultsIndex + 1] = sumScmValue/numSurrogates;
+				resultValues[lastMainResultsIndex + 1] = sumFimValue/numSurrogates;
 			}
 			
 		//********************************************************************************************************	
@@ -1176,52 +956,8 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				}
 				//Compute specific values************************************************
 				probabilities = compProbabilities(subSequence1D, lag, probType);	
-				se = new CsajAlgorithm_ShannonEntropy(probabilities);
-				pd = new CsajAlgorithm_ProbabilityDistance(probabilities);
-				
-				//"SCM_E", "SCM_W", "SCM_K", "SCM_J"
-				if (choiceRadioButt_SCMType.equals("SCM_E")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_e = pd.compNormalisedD_E(skipZeroBin);
-					else            d_e = pd.compD_E(skipZeroBin);
-						
-					scmValue = shannonH*d_e;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_W")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_w = pd.compNormalisedD_W(skipZeroBin);
-					else            d_w = pd.compD_W(skipZeroBin);
-						
-					scmValue = shannonH*d_w;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_K")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_k = pd.compNormalisedD_K(skipZeroBin);
-					else            d_k = pd.compD_K(skipZeroBin);
-						
-					scmValue = shannonH*d_k;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_J")) {
-				
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else               shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_j = pd.compNormalisedD_J(skipZeroBin);
-					else            d_j = pd.compD_J(skipZeroBin);
-						
-					scmValue = shannonH*d_j;
-				}				
-				
-				resultValues[i] = scmValue;			
+				fim = new CsajAlgorithm_FisherInformation(probabilities);	
+				resultValues[i] = fim.compNormalisedFIM(skipZeroBin);		
 				//***********************************************************************
 			}	
 		//********************************************************************************************************			
@@ -1241,52 +977,8 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				}	
 				//Compute specific values************************************************
 				probabilities = compProbabilities(subSequence1D, lag, probType);	
-				se = new CsajAlgorithm_ShannonEntropy(probabilities);
-				pd = new CsajAlgorithm_ProbabilityDistance(probabilities);
-				
-				//"SCM_E", "SCM_W", "SCM_K", "SCM_J"
-				if (choiceRadioButt_SCMType.equals("SCM_E")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_e = pd.compNormalisedD_E(skipZeroBin);
-					else            d_e = pd.compD_E(skipZeroBin);
-						
-					scmValue = shannonH*d_e;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_W")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_w = pd.compNormalisedD_W(skipZeroBin);
-					else            d_w = pd.compD_W(skipZeroBin);
-						
-					scmValue = shannonH*d_w;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_K")) {
-					
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else            shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_k = pd.compNormalisedD_K(skipZeroBin);
-					else            d_k = pd.compD_K(skipZeroBin);
-						
-					scmValue = shannonH*d_k;
-				}
-				else if (choiceRadioButt_SCMType.equals("SCM_J")) {
-				
-					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else               shannonH = se.compH(skipZeroBin);
-					
-					if (normaliseD) d_j = pd.compNormalisedD_J(skipZeroBin);
-					else            d_j = pd.compD_J(skipZeroBin);
-						
-					scmValue = shannonH*d_j;
-				}				
-				
-				resultValues[i] = scmValue;		
+				fim = new CsajAlgorithm_FisherInformation(probabilities);	
+				resultValues[i] = fim.compNormalisedFIM(skipZeroBin);		
 				//***********************************************************************
 			}
 		}	
