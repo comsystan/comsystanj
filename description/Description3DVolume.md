@@ -59,6 +59,13 @@
 - Hilbert, Meander, Random
 - Note: Appropriate transformation for applying 1D algorithms
 
+### 3D Complexity analyses - 3D Fisher information measure
+- Probability difference measure
+- Probabilities of grey values or grey value differences
+- 8-bit grey image volume
+- Arouxet et al., 2026, Chaos, [DOI 10.1063/5.0341167](https://doi.org/10.1063/5.0341167)
+- Olivares et al., 2012, Physics Letters A, [DOI 10.1016/j.physleta.2012.03.039](https://doi.org/10.1016/j.physleta.2012.03.039)
+
 ### 3D Complexity analyses - 3D Kolmogorov complexity and Logical depth
 - KC is estimated in a fast way by compressing data bytes (ZIP, ZLIB, GZIB) or
 - KC is estimated by the memory size of compressed images saved to disk (TIFF-LZW) - very slow!
@@ -83,7 +90,7 @@
 
 ### 3D Complexity analyses - 3D Statistical complexity measures
 - SCM = Shannon entropy H * Distribution distance D
-- Probabilities are computed with plain voxel grey values
+- Probabilities of grey values or grey value differences 
 - 8-bit grey image volume
 - _E ... Euclidean distance
 - _W ... Wootter's distance
