@@ -341,6 +341,7 @@
 - _W ... Wootter's distance
 - _K ... Kullback-Leibler distance
 - _J ... Jensen-Shannon distance
+- _1W ... 1-Wasserstein distance (Earth mover’s distance)
 - SCM_E is also known as LMC complexity
 - H and/or D can be normalised
 - Normalisation of Kullback-Leibler distance not possible exactly
