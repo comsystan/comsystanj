@@ -129,11 +129,13 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	private static double scm_w;
 	private static double scm_k;
 	private static double scm_j;
+	private static double scm_1w;
 	private static double shannonH;
 	private static double d_e;
 	private static double d_w;
 	private static double d_k;
 	private static double d_j;
+	private static double d_1w;
 
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
@@ -279,7 +281,7 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	@Parameter(label = "(Surr/Box) SCM type",
 			   description = "SCM type for Surrogates, Subsequent boxes or Gliding box",
 			   style = ChoiceWidget.LIST_BOX_STYLE,
-			   choices = {"SCM_E", "SCM_W", "SCM_K", "SCM_J"}, 
+			   choices = {"SCM_E", "SCM_W", "SCM_K", "SCM_J", "SCM_1W"}, 
 			   persist = true,  //restore previous value default = true
 			   initializer = "initialSCMType",
 			   callback = "callbackSCMType")
@@ -689,11 +691,13 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				tableOut.add(new DoubleColumn("SCM_W"));
 				tableOut.add(new DoubleColumn("SCM_K"));
 				tableOut.add(new DoubleColumn("SCM_J"));
+				tableOut.add(new DoubleColumn("SCM_1W"));
 				tableOut.add(new DoubleColumn("H"));
 				tableOut.add(new DoubleColumn("D_E"));
 				tableOut.add(new DoubleColumn("D_W"));
 				tableOut.add(new DoubleColumn("D_K"));
 				tableOut.add(new DoubleColumn("D_J"));
+				tableOut.add(new DoubleColumn("D_1W"));
 				
 			} else { //Surrogates	
 				if (choiceRadioButt_SCMType.equals("SCM_E")) {
@@ -716,7 +720,11 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 					tableOut.add(new DoubleColumn("SCM_J_Surr"));  //Mean surrogate value	 
 					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SCM_J_Surr#"+(s+1))); 
 				}
-		
+				else if (choiceRadioButt_SCMType.equals("SCM_1W")) {
+					tableOut.add(new DoubleColumn("SCM_1W"));
+					tableOut.add(new DoubleColumn("SCM_1W_Surr"));  //Mean surrogate value	 
+					for (int s = 0; s < numSurrogates; s++) tableOut.add(new DoubleColumn("SCM_1W_Surr#"+(s+1))); 
+				}
 			}
 		} 
 		else if (choiceRadioButt_SequenceRange.equals("Subsequent boxes")){
@@ -725,8 +733,8 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 			else if (choiceRadioButt_SCMType.equals("SCM_W"))      {scmHeader = "SCM_W";}
 			else if (choiceRadioButt_SCMType.equals("SCM_K"))      {scmHeader = "SCM_K";}
 			else if (choiceRadioButt_SCMType.equals("SCM_J"))      {scmHeader = "SCM_J";}
+			else if (choiceRadioButt_SCMType.equals("SCM_1W"))     {scmHeader = "SCM_1W";}
 		
-				
 			for (int n = 1; n <= numSubsequentBoxes; n++) {
 				tableOut.add(new DoubleColumn(scmHeader+"-#" + n));	
 			}	
@@ -737,11 +745,11 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 			else if (choiceRadioButt_SCMType.equals("SCM_W"))      {scmHeader = "SCM_W";}
 			else if (choiceRadioButt_SCMType.equals("SCM_K"))      {scmHeader = "SCM_K";}
 			else if (choiceRadioButt_SCMType.equals("SCM_J"))      {scmHeader = "SCM_J";}
+			else if (choiceRadioButt_SCMType.equals("SCM_1W"))     {scmHeader = "SCM_1W";}
 		
 			for (int n = 1; n <= numGlidingBoxes; n++) {
 				tableOut.add(new DoubleColumn(scmHeader+"-#" + n));	
-			}
-		
+			}	
 		}	
 	}
 	
@@ -944,17 +952,19 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		//Skipping zeores is done directly for the input sequence, see below 
 		
 		// data values		
-		scm_e = 0.0;
-		scm_w = 0.0;
-		scm_k = 0.0;
-		scm_j = 0.0;
+		scm_e  = 0.0;
+		scm_w  = 0.0;
+		scm_k  = 0.0;
+		scm_j  = 0.0;
+		scm_1w = 0.0;
 		shannonH = 0.0;
-		d_e = 0.0;
-		d_w = 0.0;
-		d_k = 0.0;
-		d_j = 0.0;
+		d_e  = 0.0;
+		d_w  = 0.0;
+		d_k  = 0.0;
+		d_j  = 0.0;
+		d_1w = 0.0;
 		
-		int numOfMeasures = 9;
+		int numOfMeasures = 11;
 		
 		double[] resultValues = new double[numOfMeasures]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
@@ -1016,32 +1026,37 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				else            shannonH = se.compH(skipZeroBin);
 				
 				if (normaliseD) {
-					d_e = pd.compNormalisedD_E(skipZeroBin);
-					d_w = pd.compNormalisedD_W(skipZeroBin);
-					d_k = pd.compNormalisedD_K(skipZeroBin);
-					d_j = pd.compNormalisedD_J(skipZeroBin);
+					d_e  = pd.compNormalisedD_E(skipZeroBin);
+					d_w  = pd.compNormalisedD_W(skipZeroBin);
+					d_k  = pd.compNormalisedD_K(skipZeroBin);
+					d_j  = pd.compNormalisedD_J(skipZeroBin);
+					d_1w = pd.compNormalisedD_1W(skipZeroBin);
 				}
 				else {
-					d_e = pd.compD_E(skipZeroBin);
-					d_w = pd.compD_W(skipZeroBin);
-					d_k = pd.compD_K(skipZeroBin);
-					d_j = pd.compD_J(skipZeroBin);
+					d_e  = pd.compD_E(skipZeroBin);
+					d_w  = pd.compD_W(skipZeroBin);
+					d_k  = pd.compD_K(skipZeroBin);
+					d_j  = pd.compD_J(skipZeroBin);
+					d_1w = pd.compD_1W(skipZeroBin);
 				}
 						
-				scm_e = shannonH*d_e;
-				scm_w = shannonH*d_w;
-				scm_k = shannonH*d_k;
-				scm_j = shannonH*d_j;
+				scm_e  = shannonH*d_e;
+				scm_w  = shannonH*d_w;
+				scm_k  = shannonH*d_k;
+				scm_j  = shannonH*d_j;
+				scm_1w = shannonH*d_1w;
 				
-				resultValues[0] = scm_e;
-				resultValues[1] = scm_w;
-				resultValues[2] = scm_k;
-				resultValues[3] = scm_j;
-				resultValues[4] = shannonH;	
-				resultValues[5] = d_e;
-				resultValues[6] = d_w;
-				resultValues[7] = d_k;
-				resultValues[8] = d_j;		
+				resultValues[0]  = scm_e;
+				resultValues[1]  = scm_w;
+				resultValues[2]  = scm_k;
+				resultValues[3]  = scm_j;
+				resultValues[4]  = scm_1w;
+				resultValues[5]  = shannonH;	
+				resultValues[6]  = d_e;
+				resultValues[7]  = d_w;
+				resultValues[8]  = d_k;
+				resultValues[9]  = d_j;		
+				resultValues[10] = d_1w;		
 				
 			} else {
 				resultValues = new double[1+1+1*numSurrogates]; // Entropy,  Entropy_SurrMean, Entropy_Surr#1, Entropy_Surr#2......
@@ -1085,12 +1100,22 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				else if (choiceRadioButt_SCMType.equals("SCM_J")) {
 				
 					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else               shannonH = se.compH(skipZeroBin);
+					else            shannonH = se.compH(skipZeroBin);
 					
 					if (normaliseD) d_j = pd.compNormalisedD_J(skipZeroBin);
 					else            d_j = pd.compD_J(skipZeroBin);
 						
 					scmValue = shannonH*d_j;
+				}
+				else if (choiceRadioButt_SCMType.equals("SCM_1W")) {
+					
+					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
+					else            shannonH = se.compH(skipZeroBin);
+					
+					if (normaliseD) d_1w = pd.compNormalisedD_1W(skipZeroBin);
+					else            d_1w = pd.compD_1W(skipZeroBin);
+						
+					scmValue = shannonH*d_1w;
 				}
 					
 				resultValues[0] = scmValue;
@@ -1111,7 +1136,7 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 					se = new CsajAlgorithm_ShannonEntropy(probabilities);
 					pd = new CsajAlgorithm_ProbabilityDistance(probabilities);
 					
-					//"SCM_E", "SCM_W", "SCM_K", "SCM_J"
+					//"SCM_E", "SCM_W", "SCM_K", "SCM_J", "SCM_1W"
 					if (choiceRadioButt_SCMType.equals("SCM_E")) {
 						
 						if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
@@ -1151,6 +1176,16 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 						else            d_j = pd.compD_J(skipZeroBin);
 							
 						scmValue = shannonH*d_j;
+					}	
+					else if (choiceRadioButt_SCMType.equals("SCM_1W")) {
+						
+						if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
+						else            shannonH = se.compH(skipZeroBin);
+						
+						if (normaliseD) d_1w = pd.compNormalisedD_1W(skipZeroBin);
+						else            d_1w = pd.compD_1W(skipZeroBin);
+							
+						scmValue = shannonH*d_1w;
 					}	
 					sumScmValue = sumScmValue + scmValue;
 					resultValues[lastMainResultsIndex + 2 + s] = scmValue;
@@ -1213,13 +1248,23 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				else if (choiceRadioButt_SCMType.equals("SCM_J")) {
 				
 					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else               shannonH = se.compH(skipZeroBin);
+					else            shannonH = se.compH(skipZeroBin);
 					
 					if (normaliseD) d_j = pd.compNormalisedD_J(skipZeroBin);
 					else            d_j = pd.compD_J(skipZeroBin);
 						
 					scmValue = shannonH*d_j;
-				}				
+				}
+				else if (choiceRadioButt_SCMType.equals("SCM_1W")) {
+					
+					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
+					else            shannonH = se.compH(skipZeroBin);
+					
+					if (normaliseD) d_1w = pd.compNormalisedD_1W(skipZeroBin);
+					else            d_1w = pd.compD_1W(skipZeroBin);
+						
+					scmValue = shannonH*d_1w;
+				}
 				
 				resultValues[i] = scmValue;			
 				//***********************************************************************
@@ -1278,13 +1323,23 @@ public class Csaj1DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 				else if (choiceRadioButt_SCMType.equals("SCM_J")) {
 				
 					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
-					else               shannonH = se.compH(skipZeroBin);
+					else            shannonH = se.compH(skipZeroBin);
 					
 					if (normaliseD) d_j = pd.compNormalisedD_J(skipZeroBin);
 					else            d_j = pd.compD_J(skipZeroBin);
 						
 					scmValue = shannonH*d_j;
-				}				
+				}	
+				else if (choiceRadioButt_SCMType.equals("SCM_1W")) {
+					
+					if (normaliseH) shannonH = se.compNormalisedH(skipZeroBin);
+					else            shannonH = se.compH(skipZeroBin);
+					
+					if (normaliseD) d_1w = pd.compNormalisedD_1W(skipZeroBin);
+					else            d_1w = pd.compD_1W(skipZeroBin);
+						
+					scmValue = shannonH*d_1w;
+				}	
 				
 				resultValues[i] = scmValue;		
 				//***********************************************************************

@@ -94,26 +94,9 @@ import at.csa.csaj.commons.CsajPlot_SequenceFrame;
 import at.csa.csaj.commons.CsajContainer_ProcessMethod;
 
 /**
- * A {@link ContextCommand} plugin computing <3D Generalised entropies</a>
+ * A {@link ContextCommand} plugin computing <3D Statistical complexity measures</a>
  * of an image volume.
  * 
- * * A {@link ContextCommand} plugin computing <Generalised entropies</a>
- * of a sequence.
- * <li>according to a review of Amigó, J.M., Balogh, S.G., Hernández, S., 2018. A Brief Review of Generalised Entropies. Entropy 20, 813. https://doi.org/10.3390/e20110813
- * <li>and to: Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S105-106
- * <li>(SE     according to Amigo etal. and Tsekouras, G.A.; Tsallis, C. Generalised entropy arising from a distribution of q indices. Phys. Rev. E 2005,)
- * <li>SE      according to N. R. Pal and S. K. Pal: Object background segmentation using new definitions of entropy, IEEE Proc. 366 (1989), 284–295.
-							and N. R. Pal and S. K. Pal, Entropy: a new definitions and its applications, IEEE Transactions on systems, Man and Cybernetics, 21(5), 1260-1270, 1999
- * <li>H       according to Amigo etal.
- * <li>Renyi   according to Amigo etal.
- * <li>Tsallis according to Amigo etal.
- * <li>SNorm   according to Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S105-106
- * <li>SEscort according to Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S105-106
- * <li>SEta    according to Amigo etal. and Anteneodo, C.; Plastino, A.R. Maximum entropy approach to stretched exponential probability distributions. J. Phys. A Math. Gen. 1999, 32, 1089–1098.	
- * <li>SKappa  according to Amigo etal. and Kaniadakis, G. Statistical mechanics in the context of special relativity. Phys. Rev. E 2002, 66, 056125
- * <li>SB      according to Amigo etal. and Curado, E.M.; Nobre, F.D. On the stability of analytic entropic forms. Physica A 2004, 335, 94–106.
- * <li>SBeta   according to Amigo etal. and Shafee, F. Lambert function and a new non-extensive form of entropy. IMA J. Appl. Math. 2007, 72, 785–800.
- * <li>SGamma  according to Amigo etal. and Tsallis Introduction to Nonextensive Statistical Mechanics, 2009, S61
  */
 @Plugin(type = ContextCommand.class,
 		headless = true,
@@ -155,11 +138,13 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	private static double scm_w;
 	private static double scm_k;
 	private static double scm_j;
+	private static double scm_1w;
 	private static double shannonH;
 	private static double d_e;
 	private static double d_w;
 	private static double d_k;
 	private static double d_j;
+	private static double d_1w;
 	
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
@@ -496,7 +481,7 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	*/
 	protected void startWorkflowForSingleVolume() {
 	
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Generalised entropies, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing 3D Statistical complexity measures, please wait... Open console window for further info.",
 							logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -620,18 +605,6 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		}
 	}
 
-
-	/** This method computes the maximal number of possible boxes*/
-	private int getMaxBoxNumber(long width, long height, long depth) { 
-		float boxWidth = 1f;
-		int number = 1; 
-		while ((boxWidth <= width) && (boxWidth <= height) && (boxWidth <= depth)) {
-			boxWidth = boxWidth * 2;
-			number = number + 1;
-		}
-		return number - 1;
-	}
-
 	/** This method takes the active image volume and computes results. 
 	 *
 	 **/
@@ -697,11 +670,13 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		tableOut.add(new DoubleColumn("SCM_W"));
 		tableOut.add(new DoubleColumn("SCM_K"));
 		tableOut.add(new DoubleColumn("SCM_J"));
+		tableOut.add(new DoubleColumn("SCM_1W"));
 		tableOut.add(new DoubleColumn("H"));
 		tableOut.add(new DoubleColumn("D_E"));
 		tableOut.add(new DoubleColumn("D_W"));
 		tableOut.add(new DoubleColumn("D_K"));
 		tableOut.add(new DoubleColumn("D_J"));
+		tableOut.add(new DoubleColumn("D_1W"));
 	}
 
 	/**
@@ -759,17 +734,19 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		long depth  = rai.dimension(2);
 		
 		// data values		
-		scm_e = 0.0;
-		scm_w = 0.0;
-		scm_k = 0.0;
-		scm_j = 0.0;
+		scm_e  = 0.0;
+		scm_w  = 0.0;
+		scm_k  = 0.0;
+		scm_j  = 0.0;
+		scm_1w = 0.0;
 		shannonH = 0.0;
-		d_e = 0.0;
-		d_w = 0.0;
-		d_k = 0.0;
-		d_j = 0.0;
+		d_e  = 0.0;
+		d_w  = 0.0;
+		d_k  = 0.0;
+		d_j  = 0.0;
+		d_1w = 0.0;
 		
-		int numOfMeasures = 9;
+		int numOfMeasures = 11;
 		
 		double[] resultValues = new double[numOfMeasures]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
@@ -783,32 +760,37 @@ public class Csaj3DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		else            shannonH = se.compH(skipZeroBin);
 		
 		if (normaliseD) {
-			d_e = pd.compNormalisedD_E(skipZeroBin);
-			d_w = pd.compNormalisedD_W(skipZeroBin);
-			d_k = pd.compNormalisedD_K(skipZeroBin);
-			d_j = pd.compNormalisedD_J(skipZeroBin);
+			d_e  = pd.compNormalisedD_E(skipZeroBin);
+			d_w  = pd.compNormalisedD_W(skipZeroBin);
+			d_k  = pd.compNormalisedD_K(skipZeroBin);
+			d_j  = pd.compNormalisedD_J(skipZeroBin);
+			d_1w = pd.compNormalisedD_1W(skipZeroBin);
 		}
 		else {
-			d_e = pd.compD_E(skipZeroBin);
-			d_w = pd.compD_W(skipZeroBin);
-			d_k = pd.compD_K(skipZeroBin);
-			d_j = pd.compD_J(skipZeroBin);
+			d_e  = pd.compD_E(skipZeroBin);
+			d_w  = pd.compD_W(skipZeroBin);
+			d_k  = pd.compD_K(skipZeroBin);
+			d_j  = pd.compD_J(skipZeroBin);
+			d_1w = pd.compD_1W(skipZeroBin);
 		}
 				
-		scm_e = shannonH*d_e;
-		scm_w = shannonH*d_w;
-		scm_k = shannonH*d_k;
-		scm_j = shannonH*d_j;
+		scm_e  = shannonH*d_e;
+		scm_w  = shannonH*d_w;
+		scm_k  = shannonH*d_k;
+		scm_j  = shannonH*d_j;
+		scm_1w = shannonH*d_1w;
 		
-		resultValues[0] = scm_e;
-		resultValues[1] = scm_w;
-		resultValues[2] = scm_k;
-		resultValues[3] = scm_j;
-		resultValues[4] = shannonH;	
-		resultValues[5] = d_e;
-		resultValues[6] = d_w;
-		resultValues[7] = d_k;
-		resultValues[8] = d_j;		
+		resultValues[0]  = scm_e;
+		resultValues[1]  = scm_w;
+		resultValues[2]  = scm_k;
+		resultValues[3]  = scm_j;
+		resultValues[4]  = scm_1w;
+		resultValues[5]  = shannonH;	
+		resultValues[6]  = d_e;
+		resultValues[7]  = d_w;
+		resultValues[8]  = d_k;
+		resultValues[9]  = d_j;	
+		resultValues[10] = d_1w;	
 						
 		logService.info(this.getClass().getName() + " SCM_E: " + resultValues[0]);
 		

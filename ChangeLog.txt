@@ -19,6 +19,7 @@ New plugins:
 3D Fisher information measure
 
 Plugin changes:
+1D 2D 3D Statistical complexity measures: added 1-Wasserstein distance
 All 1D, 2D, 3D plugings with a double log regression plot:
 Added a difference plot to help finding the most linear part
 

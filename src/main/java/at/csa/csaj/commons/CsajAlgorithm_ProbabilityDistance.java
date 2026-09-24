@@ -142,7 +142,7 @@ public class CsajAlgorithm_ProbabilityDistance {
 	}
 	
 	/**
-	 * This method computes the normalized distance between two probabilities
+	 * This method computes the normalized Wotter's distance between two probabilities
 	 */
 	public double compNormalisedD_W(boolean skipZeroBin) {
 		
@@ -258,7 +258,52 @@ public class CsajAlgorithm_ProbabilityDistance {
 	}
 	
 	
+	/**
+	 * This method computes the distance between two probabilities
+	 * 1 Wasserstein distance (Earth mover’s distance or Kantorovich–Rubinstein metric) 
+	 * Arouxet MaB, Bariviera AF, Hansen R, Pastor VE. A compact information-theoretic framework for texture classification: Hilbert curves, amplitude-aware permutation entropy, and explainability. Chaos. 3. August 2026;36(8):083102. doi:10.1063/5.0341167
+	 * 
+	 * @return
+	 */
+	public double compD_1W(boolean skipZeroBin) {
+		double d = 0.0;
+		double cumSum1 = 0.0;
+		double cumSum2 = 0.0;
+		int length = probabilities1.length;
 	
+		int binStart = 0;
+		if (skipZeroBin) binStart = 1;
+		for (int i = binStart; i < length; i++) {
+			cumSum1 = 0.0;
+			cumSum2 = 0.0;
+			for (int s = binStart; s <= i; s++) {
+				cumSum1 = cumSum1 + probabilities1[s];
+				cumSum2 = cumSum2 + probabilities2[s];
+			}
+			d = d + Math.abs(cumSum1 - cumSum2);	
+		}			
+		
+		return d;
+	}
+	
+	/**
+	 * This method computes the normalized 1-Wasserstein distance between two probabilities
+	 */
+	public double compNormalisedD_1W(boolean skipZeroBin) {
+		
+		int length1 = probabilities1.length;
+		int length2 = probabilities2.length;
+		
+		double n1 = 0.0; //Number of data points with distribution1
+		double n2 = 0.0; //Number of data points with distribution2
+		
+		int binStart = 0;
+		if (skipZeroBin) binStart = 1;
+		for (int n = binStart; n < length1; n++) n1 = n1 + probabilities1[n];
+		for (int n = binStart; n < length2; n++) n2 = n2 + probabilities2[n];
+		
+		return compD_W(skipZeroBin) * Math.sqrt(Math.min(n1, n2));
+	}
 	
 	
 }

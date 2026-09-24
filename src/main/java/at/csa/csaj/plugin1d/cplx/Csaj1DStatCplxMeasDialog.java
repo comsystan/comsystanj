@@ -252,7 +252,7 @@ public class Csaj1DStatCplxMeasDialog extends CsajDialog_1DPlugin {
 	    labelSCMType.setEnabled(false);
 	    labelSCMType.setHorizontalAlignment(JLabel.RIGHT);
 		
-		String optionsEntropyType[] = {"SCM_E", "SCM_W", "SCM_K", "SCM_J"};
+		String optionsEntropyType[] = {"SCM_E", "SCM_W", "SCM_K", "SCM_J", "SCM_1W"};
 		comboBoxSCMType = new JComboBox<String>(optionsEntropyType);
 		comboBoxSCMType.setToolTipText("SCM type for Surrogates, Subsequent boxes or Gliding box");
 	    comboBoxSCMType.setEnabled(false);

@@ -133,16 +133,18 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	private static double scm_w;
 	private static double scm_k;
 	private static double scm_j;
+	private static double scm_1w;
 	private static double shannonH;
 	private static double d_e;
 	private static double d_w;
 	private static double d_k;
 	private static double d_j;
+	private static double d_1w;
 	
 	double[] probabilities         = null; //pi's
 	double[] probabilitiesSurrMean = null; //pi's
 	
-	public static final String TABLE_OUT_NAME = "Table - Generalised entropies";
+	public static final String TABLE_OUT_NAME = "Table - Statistical complexity measures";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
     private ExecutorService exec;
@@ -478,7 +480,7 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	*/
 	protected void startWorkflowForSingleImage() {
 			
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Statistical complexity measures, please wait... Open console window for further info.",
 				logService, false, exec); //isCanceable = false, because no following method listens to exec.shutdown 
 		dlgProgress.updatePercent("");
 		dlgProgress.setBarIndeterminate(true);
@@ -501,7 +503,7 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 	*/
 	protected void startWorkflowForAllImages() {
 			
-		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Generalised entropies, please wait... Open console window for further info.",
+		dlgProgress = new CsajDialog_WaitingWithProgressBar("Computing Statistical complexity measures, please wait... Open console window for further info.",
 						logService, false, exec); //isCanceable = true, because processAllInputImages(dlgProgress) listens to exec.shutdown 
 		dlgProgress.setVisible(true);	
 	
@@ -760,11 +762,13 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		tableOut.add(new DoubleColumn("SCM_W"));
 		tableOut.add(new DoubleColumn("SCM_K"));
 		tableOut.add(new DoubleColumn("SCM_J"));
+		tableOut.add(new DoubleColumn("SCM_1W"));
 		tableOut.add(new DoubleColumn("H"));
 		tableOut.add(new DoubleColumn("D_E"));
 		tableOut.add(new DoubleColumn("D_W"));
 		tableOut.add(new DoubleColumn("D_K"));
 		tableOut.add(new DoubleColumn("D_J"));
+		tableOut.add(new DoubleColumn("D_1W"));
 	}
 	
 	/**
@@ -828,17 +832,19 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		String imageType = "8-bit";  //  "RGB"....
 	
 		// data values		
-		scm_e = 0.0;
-		scm_w = 0.0;
-		scm_k = 0.0;
-		scm_j = 0.0;
+		scm_e  = 0.0;
+		scm_w  = 0.0;
+		scm_k  = 0.0;
+		scm_j  = 0.0;
+		scm_1w = 0.0;
 		shannonH = 0.0;
-		d_e = 0.0;
-		d_w = 0.0;
-		d_k = 0.0;
-		d_j = 0.0;
+		d_e  = 0.0;
+		d_w  = 0.0;
+		d_k  = 0.0;
+		d_j  = 0.0;
+		d_1w = 0.0;
 		
-		int numOfMeasures = 9;
+		int numOfMeasures = 11;
 		
 		double[] resultValues = new double[numOfMeasures]; // 
 		for (int r = 0; r < resultValues.length; r++) resultValues[r] = Float.NaN;
@@ -859,32 +865,37 @@ public class Csaj2DStatCplxMeasCmd<T extends RealType<T>> extends ContextCommand
 		else            shannonH = se.compH(skipZeroBin);
 		
 		if (normaliseD) {
-			d_e = pd.compNormalisedD_E(skipZeroBin);
-			d_w = pd.compNormalisedD_W(skipZeroBin);
-			d_k = pd.compNormalisedD_K(skipZeroBin);
-			d_j = pd.compNormalisedD_J(skipZeroBin);
+			d_e  = pd.compNormalisedD_E(skipZeroBin);
+			d_w  = pd.compNormalisedD_W(skipZeroBin);
+			d_k  = pd.compNormalisedD_K(skipZeroBin);
+			d_j  = pd.compNormalisedD_J(skipZeroBin);
+			d_1w = pd.compNormalisedD_1W(skipZeroBin);
 		}
 		else {
-			d_e = pd.compD_E(skipZeroBin);
-			d_w = pd.compD_W(skipZeroBin);
-			d_k = pd.compD_K(skipZeroBin);
-			d_j = pd.compD_J(skipZeroBin);
+			d_e  = pd.compD_E(skipZeroBin);
+			d_w  = pd.compD_W(skipZeroBin);
+			d_k  = pd.compD_K(skipZeroBin);
+			d_j  = pd.compD_J(skipZeroBin);
+			d_1w = pd.compD_1W(skipZeroBin);
 		}
 				
-		scm_e = shannonH*d_e;
-		scm_w = shannonH*d_w;
-		scm_k = shannonH*d_k;
-		scm_j = shannonH*d_j;
+		scm_e  = shannonH*d_e;
+		scm_w  = shannonH*d_w;
+		scm_k  = shannonH*d_k;
+		scm_j  = shannonH*d_j;
+		scm_1w = shannonH*d_1w;
 		
-		resultValues[0] = scm_e;
-		resultValues[1] = scm_w;
-		resultValues[2] = scm_k;
-		resultValues[3] = scm_j;
-		resultValues[4] = shannonH;	
-		resultValues[5] = d_e;
-		resultValues[6] = d_w;
-		resultValues[7] = d_k;
-		resultValues[8] = d_j;		
+		resultValues[0]  = scm_e;
+		resultValues[1]  = scm_w;
+		resultValues[2]  = scm_k;
+		resultValues[3]  = scm_j;
+		resultValues[4]  = scm_1w;
+		resultValues[5]  = shannonH;	
+		resultValues[6]  = d_e;
+		resultValues[7]  = d_w;
+		resultValues[8]  = d_k;
+		resultValues[9]  = d_j;	
+		resultValues[10] = d_1w;	
 		
 		logService.info(this.getClass().getName() + " SCM_E: " + resultValues[0]);
 		
