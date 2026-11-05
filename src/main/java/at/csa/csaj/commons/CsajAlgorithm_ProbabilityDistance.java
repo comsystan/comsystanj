@@ -251,6 +251,9 @@ public class CsajAlgorithm_ProbabilityDistance {
 	 * The Jensen–Shannon divergence is bounded by 1 for two discrete probability distributions with base 2 logarithm
 	 * With base-e logarithm, which is commonly used in statistical thermodynamics, the upper bound is ln(2)
 	 * 
+	 * Another normalization constant is presented in
+	 * Arouxet MaB, Bariviera AF, Hansen R, Pastor VE. A compact information-theoretic framework for texture classification: Hilbert curves, amplitude-aware permutation entropy, and explainability. Chaos. 3. August 2026;36(8):083102. doi:10.1063/5.0341167
+	 * 
 	 */
 	public double compNormalisedD_J(boolean skipZeroBin) {
 	

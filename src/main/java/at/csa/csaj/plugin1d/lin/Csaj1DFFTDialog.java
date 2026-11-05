@@ -31,10 +31,13 @@ package at.csa.csaj.plugin1d.lin;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
@@ -74,6 +77,9 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
+	private JCheckBox         checkBoxSubtractMean;
+	private boolean           booleanSubtractMean;
+	
 	private JLabel			  labelWindowingType;
 	private JComboBox<String> comboBoxWindowingType;
 	private String            choiceRadioButt_WindowingType;
@@ -118,6 +124,33 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 
 		//Add specific GUI elements according to Command @Parameter GUI elements   
 		//*****************************************************************************************
+	    JLabel labelSubtractMean = new JLabel("Subtract mean");
+	    labelSubtractMean.setToolTipText("Subtract the sequence mean before windowing and Fourier transformation");
+	    labelSubtractMean.setHorizontalAlignment(JLabel.RIGHT);
+
+		checkBoxSubtractMean = new JCheckBox();
+		checkBoxSubtractMean.setToolTipText("Subtract the sequence mean before windowing and Fourier transformation");
+		checkBoxSubtractMean.setSelected(true);
+		checkBoxSubtractMean.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				booleanSubtractMean = checkBoxSubtractMean.isSelected();
+				logService.info(this.getClass().getName() + " Subtract mean option set to " + booleanSubtractMean);
+				if (booleanProcessImmediately) btnProcessSingleColumn.doClick();
+			}
+		});
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelSubtractMean, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(checkBoxSubtractMean, gbc);
+	    booleanSubtractMean = checkBoxSubtractMean.isSelected();
+	    
+		//*****************************************************************************************
 	    labelWindowingType = new JLabel("Windowing");
 	    labelWindowingType.setToolTipText("Windowing type");
 	    labelWindowingType.setEnabled(true);
@@ -139,11 +172,11 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 		});    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
-	    gbc.gridy = 0;
+	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelWindowingType, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 0;
+	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
 	    contentPanel.add(comboBoxWindowingType, gbc);
 	    //initialize command variable
@@ -171,11 +204,11 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 		});    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
-	    gbc.gridy = 1;
+	    gbc.gridy = 2;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelOutputType, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 1;
+	    gbc.gridy = 2;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
 	    contentPanel.add(comboBoxOutputType, gbc);
 	    //initialize command variable
@@ -203,11 +236,11 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 		});    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
-	    gbc.gridy = 2;
+	    gbc.gridy = 3;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelNormalizationType, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 2;
+	    gbc.gridy = 3;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
 	    contentPanel.add(comboBoxNormalizationType, gbc);
 	    //initialize command variable
@@ -235,11 +268,11 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 		});    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
-	    gbc.gridy = 3;
+	    gbc.gridy = 4;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelScalingType, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 3;
+	    gbc.gridy = 4;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
 	    contentPanel.add(comboBoxScalingType, gbc);
 	    //initialize command variable
@@ -267,11 +300,11 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 		});    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
-	    gbc.gridy = 4;
+	    gbc.gridy = 5;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelTimeDomainType, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 4;
+	    gbc.gridy = 5;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
 	    contentPanel.add(comboBoxTimeDomainType, gbc);
 	    //initialize command variable
@@ -297,11 +330,11 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
         });
         gbc.insets = INSETS_STANDARD;
         gbc.gridx = 0;
-	    gbc.gridy = 5;
+	    gbc.gridy = 6;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelSampleRate, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 5;
+	    gbc.gridy = 6;
 	    gbc.anchor = GridBagConstraints.WEST; //left
 	    contentPanel.add(spinnerSampleRate, gbc);	    
 	    //initialize command variable
@@ -347,6 +380,7 @@ public class Csaj1DFFTDialog extends CsajDialog_1DPlugin {
 														"defaultTableDisplay",           defaultTableDisplay,  //is not automatically harvested in headless mode
 														"processAll",                    processAll,
 			
+														"booleanSubtractMean",               booleanSubtractMean,
 														"choiceRadioButt_WindowingType",     choiceRadioButt_WindowingType,
 														"choiceRadioButt_OutputType",        choiceRadioButt_OutputType,
 														"choiceRadioButt_NormalizationType", choiceRadioButt_NormalizationType,

@@ -116,7 +116,7 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 //	private static long numSubsequentBoxes = 0;
 //	private static long numGlidingBoxes = 0;
 	
-	private static final int numTableOutPreCols = 4; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
+	private static final int numTableOutPreCols = 5; //Number of columns before data (sequence) columns, see methods generateTableHeader() and writeToTable()
 	public static final String TABLE_OUT_NAME = "Table - FFT";
 	
 	private CsajDialog_WaitingWithProgressBar dlgProgress;
@@ -176,6 +176,15 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 	//-----------------------------------------------------------------------------------------------------
 	@Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
 	private final String labelFFTOptions = FFTOPTIONS_LABEL;
+	
+	//It is strongly recommended to subtract the sequence mean; see Moritz Hackhofer's thesis
+	//The result is better for low frequencies
+	@Parameter(label = "Subtract mean",
+			description = "Subtract the sequence mean before windowing and Fourier transformation",
+			persist = false,
+			initializer = "initialSubtractMean",
+			callback = "callbackSubtractMean")
+	private boolean booleanSubtractMean;
 	
 	@Parameter(label = "Windowing",
 			   description = "Windowing type",
@@ -317,6 +326,10 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 		checkItemIOIn();
 	}
 	
+	protected void initialSubtractMean() {
+		booleanSubtractMean = true;
+	}
+	
 	protected void initialWindowingType() {
 		choiceRadioButt_WindowingType = "Hanning";
 	} 
@@ -374,6 +387,10 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 	}
 	
 	// ------------------------------------------------------------------------------
+	/** Executed whenever the {@link #booleanSubtractMean} parameter changes. */
+	protected void callbackSubtractMean() {
+		logService.info(this.getClass().getName() + " Subtract mean option set to " + booleanSubtractMean);
+	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
 	protected void callbackWindowingType() {
@@ -659,7 +676,7 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 		tableOut = new DefaultGenericTable();
 		tableOut.add(new GenericColumn("Surrogate type"));
 		tableOut.add(new GenericColumn("Normalization"));	
-		
+		tableOut.add(new GenericColumn("Subtract mean"));
 		tableOut.add(new GenericColumn("Windowing"));
 		String output = "";
 		if      (this.choiceRadioButt_OutputType.equals("Power"))     output = "Power";
@@ -870,8 +887,9 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 			for (int r = 0; r < tableOut.getRowCount(); r++ ) {
 				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
-				tableOut.set(2, r, this.choiceRadioButt_WindowingType);
-				tableOut.set(3, r, Double.NaN); // time domain column	
+				tableOut.set(2, r, this.booleanSubtractMean);
+				tableOut.set(3, r, this.choiceRadioButt_WindowingType);
+				tableOut.set(4, r, Double.NaN); // time domain column	
 				tableOut.set(numTableOutPreCols + sequenceNumber, r, Double.NaN); //+ because of first text columns	
 			}
 		}
@@ -879,8 +897,9 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 			for (int r = 0; r < containerPM.item1_Values.length; r++ ) {
 				tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
 				tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
-				tableOut.set(2, r, this.choiceRadioButt_WindowingType);
-				tableOut.set(3, r, domain1D[r]); // time domain column	
+				tableOut.set(2, r, this.booleanSubtractMean);
+				tableOut.set(3, r, this.choiceRadioButt_WindowingType);
+				tableOut.set(4, r, domain1D[r]); // time domain column	
 				tableOut.set(numTableOutPreCols + sequenceNumber, r, containerPM.item1_Values[r]); //+ because of first text columns	
 			}
 			
@@ -889,8 +908,9 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 				for (int r = containerPM.item1_Values.length; r < tableOut.getRowCount(); r++ ) {
 					tableOut.set(0, r, this.choiceRadioButt_SurrogateType);
 					tableOut.set(1, r, this.choiceRadioButt_NormalizationType);
-					tableOut.set(2, r, this.choiceRadioButt_WindowingType);
-					tableOut.set(3, r, Double.NaN); // time domain column	
+					tableOut.set(2, r, this.booleanSubtractMean);
+					tableOut.set(3, r, this.choiceRadioButt_WindowingType);
+					tableOut.set(4, r, Double.NaN); // time domain column	
 					tableOut.set(numTableOutPreCols + sequenceNumber, r, Double.NaN); //+ because of first text columns	
 				}
 			}
@@ -927,6 +947,7 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 		String  scalingType    = choiceRadioButt_ScalingType;//"Standard", "Unitary"
 		String  timeDomainType = choiceRadioButt_TimeDomainType;//"Unitary", "Hz"
 		int     sampleRate     = spinnerInteger_SampleRate;
+		boolean subtractMean   = booleanSubtractMean;
 		String  windowingType  = choiceRadioButt_WindowingType;
 		//******************************************************************************************************
 		
@@ -983,6 +1004,16 @@ public class Csaj1DFFTCmd<T extends RealType<T>> extends ContextCommand implemen
 				if (surrType.equals("Gaussian"))     sequence1D = surrogate1D.calcSurrogateGaussian(sequence1D);
 				if (surrType.equals("Random phase")) sequence1D = surrogate1D.calcSurrogateRandomPhase(sequence1D, windowingType);
 				if (surrType.equals("AAFT"))         sequence1D = surrogate1D.calcSurrogateAAFT(sequence1D, windowingType);
+			}
+			
+			//It is strongly recommended to subtract the sequence mean; see Moritz Hackhofer's thesis
+			//The result is better for low frequencies
+			if (subtractMean) {
+				double meanCorrection = calcMean(sequence1D);
+				logService.info(this.getClass().getName() + " Subtracting sequence mean before FFT: " + meanCorrection);
+				for (int i = 0; i < sequence1D.length; i++) {
+					sequence1D[i] -= meanCorrection;
+				}
 			}
 			
 			//logService.info(this.getClass().getName() + " Column #: "+ (col+1) + "  " + sequenceColumn.getHeader() + "  Size of sequence = " + sequence1D.length);	

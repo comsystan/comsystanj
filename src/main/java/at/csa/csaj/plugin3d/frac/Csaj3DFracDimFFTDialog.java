@@ -31,11 +31,14 @@ package at.csa.csaj.plugin3d.frac;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -74,6 +77,9 @@ public class Csaj3DFracDimFFTDialog extends CsajDialog_3DPluginWithRegression {
 	private DefaultGenericTable tableOut;
    
 	//Specific dialog items
+	private JCheckBox checkBoxSubtractMean;
+	private boolean   booleanSubtractMean;
+	
  	private JComboBox<String> comboBoxWindowingType;
 	private String   choiceRadioButt_WindowingType;
 	
@@ -118,6 +124,34 @@ public class Csaj3DFracDimFFTDialog extends CsajDialog_3DPluginWithRegression {
 
 		//Add specific GUI elements according to Command @Parameter GUI elements
 	    //*****************************************************************************************
+	    JLabel labelSubtractMean = new JLabel("Subtract mean");
+	    labelSubtractMean.setToolTipText("Subtract the volume mean before windowing and Fourier transformation");
+	    labelSubtractMean.setHorizontalAlignment(JLabel.RIGHT);
+
+		checkBoxSubtractMean = new JCheckBox();
+		checkBoxSubtractMean.setToolTipText("Subtract the volume mean before windowing and Fourier transformation");
+		checkBoxSubtractMean.setSelected(true);
+		checkBoxSubtractMean.addItemListener(new ItemListener() {
+			@Override
+		    public void itemStateChanged(ItemEvent e) {
+				booleanSubtractMean = checkBoxSubtractMean.isSelected();
+				logService.info(this.getClass().getName() + " Subtract mean option set to " + booleanSubtractMean);
+				if (booleanProcessImmediately) btnProcessSingleVolume.doClick();
+		    }
+		});
+	    gbc.insets = INSETS_STANDARD;
+	    gbc.gridx = 0;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.EAST; //right
+	    contentPanel.add(labelSubtractMean, gbc);
+	    gbc.gridx = 1;
+	    gbc.gridy = 0;
+	    gbc.anchor = GridBagConstraints.WEST; //left
+	    contentPanel.add(checkBoxSubtractMean, gbc);
+	    //initialize command variable
+	    booleanSubtractMean = checkBoxSubtractMean.isSelected();
+		
+	    //*****************************************************************************************
 	    JLabel labelWindowingType = new JLabel("Windowing");
 	    labelWindowingType.setToolTipText("Windowing type with increasing filter strength");
 	    labelWindowingType.setHorizontalAlignment(JLabel.RIGHT);
@@ -138,11 +172,11 @@ public class Csaj3DFracDimFFTDialog extends CsajDialog_3DPluginWithRegression {
 	    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
-	    gbc.gridy = 0;
+	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelWindowingType, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 0;
+	    gbc.gridy = 1;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
 	    contentPanel.add(comboBoxWindowingType, gbc);
 	    //initialize command variable
@@ -223,11 +257,11 @@ public class Csaj3DFracDimFFTDialog extends CsajDialog_3DPluginWithRegression {
 	    
 	    gbc.insets = INSETS_STANDARD;
 	    gbc.gridx = 0;
-	    gbc.gridy = 1;
+	    gbc.gridy = 2;
 	    gbc.anchor = GridBagConstraints.EAST; //right
 	    contentPanel.add(labelPowerSpecType, gbc);
 	    gbc.gridx = 1;
-	    gbc.gridy = 1;
+	    gbc.gridy = 2;
 	    gbc.anchor = GridBagConstraints.WEST; //left 
 	    contentPanel.add(panelPowerSpecType, gbc);
 	    //initialize command variable
@@ -258,7 +292,8 @@ public class Csaj3DFracDimFFTDialog extends CsajDialog_3DPluginWithRegression {
 		 
 		Future<CommandModule> future = commandService.run(Csaj3DFracDimFFTCmd.class, false,
 														"datasetIn",                      datasetIn,  //is not automatically harvested in headless mode
-	
+														
+														"booleanSubtractMean",            booleanSubtractMean,
 														"choiceRadioButt_WindowingType",  choiceRadioButt_WindowingType,
 														"choiceRadioButt_PowerSpecType",  choiceRadioButt_PowerSpecType,
 					

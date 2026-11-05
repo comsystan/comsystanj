@@ -236,6 +236,15 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
     @Parameter(label = " ", visibility = ItemVisibility.MESSAGE, persist = false)
     private final String labelMethodOptions = METHODOPTIONS_LABEL;
      
+	//It is strongly recommended to subtract the image mean; see Moritz Hackhofer's thesis
+	//The result is better for low frequencies
+	@Parameter(label = "Subtract mean",
+			description = "Subtract the image mean before windowing and Fourier transformation",
+			persist = false,
+			initializer = "initialSubtractMean",
+			callback = "callbackSubtractMean")
+	private boolean booleanSubtractMean;
+	
  	@Parameter(label = "Windowing",
 			description = "Windowing type with increasing filter strength",
 			style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
@@ -244,7 +253,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			initializer = "initialWindowingType",
 			callback = "callbackWindowingType")
 	private String choiceRadioButt_WindowingType;
-     
+ 	
     @Parameter(label = "Power spectrum",
     		    description = "Type of power spectrum computation",
     		    style = ChoiceWidget.RADIO_BUTTON_VERTICAL_STYLE,
@@ -336,9 +345,15 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
     	}
     	spinnerInteger_NumRegEnd =  numOfK;
     }
+
+    protected void initialSubtractMean() {
+		booleanSubtractMean = true;
+    }
+    
     protected void initialWindowingType() {
 		choiceRadioButt_WindowingType = "Hanning";
 	} 
+    
     protected void initialPowerSpecType() {
     	choiceRadioButt_PowerSpecType = "Circular average";
      	if (datasetIn == null) {
@@ -406,6 +421,11 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		}
 		
 		logService.info(this.getClass().getName() + " Regression Max set to " + spinnerInteger_NumRegEnd);
+	}
+	
+	/** Executed whenever the {@link #booleanSubtractMean} parameter changes. */
+	protected void callbackSubtractMean() {
+		logService.info(this.getClass().getName() + " Subtract mean option set to " + booleanSubtractMean);
 	}
 	
 	/** Executed whenever the {@link #choiceRadioButt_WindowingType} parameter changes. */
@@ -855,6 +875,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		IntColumn columnMaxK         	   = new IntColumn("Max k");
 		GenericColumn columnNumRegStart    = new GenericColumn("Reg Start");
 		GenericColumn columnNumRegEnd      = new GenericColumn("Reg End");
+		GenericColumn columnSubtractMean   = new GenericColumn("Subtract mean");
 		GenericColumn columnWindowingType  = new GenericColumn("Windowing type");
 		GenericColumn columnPowerSpecType  = new GenericColumn("PowerSpec type");
 		//GenericColumn columnAddMirrors     = new GenericColumn("Add mirrors");
@@ -868,6 +889,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		tableOut.add(columnMaxK);
 		tableOut.add(columnNumRegStart);
 		tableOut.add(columnNumRegEnd);
+		tableOut.add(columnSubtractMean);
 		tableOut.add(columnWindowingType);
 		tableOut.add(columnPowerSpecType);
 		//table.add(columnAddMirrors);
@@ -888,6 +910,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
 		int numMaxK           = spinnerInteger_MaxK;
+		boolean subtractMean  = booleanSubtractMean;
 		String windowingType  = choiceRadioButt_WindowingType;
 		String powerSpecType  = choiceRadioButt_PowerSpecType;	
 		//boolean addMirrors    = booleanAddMirroredImages;
@@ -902,6 +925,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			tableOut.set("Max k",      	     tableOut.getRowCount()-1, numMaxK);	
 			tableOut.set("Reg Start",        tableOut.getRowCount()-1, "("+numRegStart+")" + containerPM.item2_Values[0]); //(NumRegStart)epsRegStart
 			tableOut.set("Reg End",      	 tableOut.getRowCount()-1, "("+numRegEnd+")"   + containerPM.item2_Values[1]); //(NumRegEnd)epsRegEnd
+			tableOut.set("Subtract mean",    tableOut.getRowCount()-1, subtractMean);
 			tableOut.set("Windowing type",   tableOut.getRowCount()-1, windowingType);	
 			tableOut.set("PowerSpec type",   tableOut.getRowCount()-1, powerSpecType);	
 			//table.set("Add mirrors",  	 table.getRowCount()-1, addMirrors);	
@@ -924,6 +948,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		int numRegStart       = spinnerInteger_NumRegStart;
 		int numRegEnd         = spinnerInteger_NumRegEnd;
 		int numMaxK           = spinnerInteger_MaxK;
+		boolean subtractMean  = booleanSubtractMean;
 		String windowingType  = choiceRadioButt_WindowingType;
 		String powerSpecType  = choiceRadioButt_PowerSpecType;	
 		//boolean addMirrors    = booleanAddMirroredImages;
@@ -962,28 +987,35 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 //			//take rai as it comes
 //			//uiService.show("Image rai", rai);	
 //		}
+		
+		//It is strongly recommended to subtract the image mean; see Moritz Hackhofer's thesis
+		//The result is better for low frequencies
+		double meanCorrection = subtractMean ? calcMean(rai) : 0.0;
+		if (subtractMean) {
+			logService.info(this.getClass().getName() + " Subtracting image mean before FFT: " + meanCorrection);
+		}
 
 		//In the order of increasing filter strength
 		if (windowingType.equals("Rectangular")) {
-			raiWindowed = windowingRectangular(rai);
+			raiWindowed = windowingRectangular(rai, meanCorrection);
 		}
 		else if (windowingType.equals("Bartlett")) {
-			raiWindowed = windowingBartlett(rai);
+			raiWindowed = windowingBartlett(rai, meanCorrection);
 		}
 		else if (windowingType.equals("Hamming")) {
-			raiWindowed = windowingHamming(rai);
+			raiWindowed = windowingHamming(rai, meanCorrection);
 		}
 		else if (windowingType.equals("Hanning")) {
-			raiWindowed = windowingHanning(rai);
+			raiWindowed = windowingHanning(rai, meanCorrection);
 		}
 		else if (windowingType.equals("Blackman")) {
-			raiWindowed = windowingBlackman(rai);
+			raiWindowed = windowingBlackman(rai, meanCorrection);
 		}
 		else if (windowingType.equals("Gaussian")) {
-			raiWindowed = windowingGaussian(rai);
+			raiWindowed = windowingGaussian(rai, meanCorrection);
 		}
 		else if (windowingType.equals("Parzen")) {
-			raiWindowed = windowingParzen(rai);
+			raiWindowed = windowingParzen(rai, meanCorrection);
 		}
 			
 		if (powerSpecType.equals("Circular average")) { //{"Circular average", "Mean of line scans", "Integral of line scans"},
@@ -1568,6 +1600,19 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 		return imgMirrored;
 	}
 	
+	/** Calculates the mean value of an image. */
+	private double calcMean(RandomAccessibleInterval<?> rai) {
+		Cursor<?> cursor = rai.cursor();
+		double sum = 0.0;
+		long count = 0;
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			sum += ((RealType<?>) cursor.get()).getRealDouble();
+			count += 1;
+		}
+		return count == 0 ? 0.0 : sum / count;
+	}
+	
 	
 	/**
 	 * This method does Rectangular windowing
@@ -1575,7 +1620,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<FloatType> windowingRectangular (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingRectangular (RandomAccessibleInterval<?> rai, double meanCorrection) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
 		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
@@ -1589,7 +1634,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			cursorF.fwd();
 			cursorF.localize(pos);
 			ra.setPosition(pos);
-			cursorF.get().setReal(ra.get().getRealFloat()*weight); //simply a copy
+			cursorF.get().setReal((ra.get().getRealFloat() - meanCorrection)*weight); //simply a copy
 		} 
 	    return raiWindowed; 
 	}
@@ -1600,7 +1645,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<FloatType> windowingBartlett (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingBartlett (RandomAccessibleInterval<?> rai, double meanCorrection) {
 		
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
@@ -1636,7 +1681,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 1 - r_uv;
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Bartlett windowing weight " + pos[0] +" "+pos[1]+"  "+ weight);
-			cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			cursorF.get().setReal((ra.get().getRealFloat() - meanCorrection)*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1648,7 +1693,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<FloatType> windowingHamming (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingHamming (RandomAccessibleInterval<?> rai, double meanCorrection) {
 	
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
@@ -1672,7 +1717,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 0.54 + 0.46*Math.cos(Math.PI*(r_uv)); //== 0.54 - 0.46*Math.cos(Math.PI*(1.0-r_uv));
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Hamming windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			cursorF.get().setReal((ra.get().getRealFloat() - meanCorrection)*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1684,7 +1729,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<FloatType> windowingHanning (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingHanning (RandomAccessibleInterval<?> rai, double meanCorrection) {
 		
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
@@ -1711,7 +1756,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			}
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Hanning windowing weight " + pos[0] +" "+pos[1]+"  " + weight);
-			cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			cursorF.get().setReal((ra.get().getRealFloat() - meanCorrection)*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1723,7 +1768,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<FloatType> windowingBlackman (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingBlackman (RandomAccessibleInterval<?> rai, double meanCorrection) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
 		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
@@ -1747,7 +1792,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			if ((r_uv >= 0) && (r_uv <=1)) weight = 0.42 - 0.5*Math.cos(Math.PI*(1.0-r_uv)) + 0.08*Math.cos(2.0*Math.PI*(1.0-r_uv));
 			else weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Blackman windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			cursorF.get().setReal((ra.get().getRealFloat() - meanCorrection)*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1759,7 +1804,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<FloatType> windowingGaussian (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingGaussian (RandomAccessibleInterval<?> rai, double meanCorrection) {
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
 		raiWindowed = new ArrayImgFactory<>(new FloatType()).create(width, height); //always single 2D
@@ -1783,7 +1828,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			r_uv = Math.sqrt(r_u*r_u + r_v*r_v);
 			weight = Math.exp(-(r_uv*r_uv)/(2.0*sigma2));
 			//if(pos[1] == 1) System.out.println("Gaussian windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			cursorF.get().setReal((ra.get().getRealFloat() - meanCorrection)*weight);
 		} 
 	    return raiWindowed; 
 	}
@@ -1795,7 +1840,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 	 * @param  rai
 	 * @return windowed rai
 	 */
-	private RandomAccessibleInterval<FloatType> windowingParzen (RandomAccessibleInterval<?> rai) {
+	private RandomAccessibleInterval<FloatType> windowingParzen (RandomAccessibleInterval<?> rai, double meanCorrection) {
 	
 		int width  = (int) rai.dimension(0);
 		int height = (int) rai.dimension(1);	
@@ -1821,7 +1866,7 @@ public class Csaj2DFracDimFFTCmd<T extends RealType<T>> extends ContextCommand i
 			else if ((r_uv >= 0.5) && (r_uv <1)) weight = 2.0*Math.pow(1-r_uv, 3);
 			else    weight = 0.0;	
 			//if(pos[1] == 1) System.out.println("Parzen windowing weight " + pos[0] +" "+pos[1]+"  "  + weight);
-			cursorF.get().setReal(ra.get().getRealFloat()*weight);
+			cursorF.get().setReal((ra.get().getRealFloat() - meanCorrection)*weight);
 		} 
 	    return raiWindowed; 
 	}
